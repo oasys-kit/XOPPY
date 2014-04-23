@@ -1,0 +1,69 @@
+{ "function":["0"
+,"LineEnergy"
+,"EdgeEnergy"
+,"AtomicWeight"
+,"ElementDensity"
+,"CS_Total_CP"
+,"CS_Photo_CP"
+,"CS_Photo_Partial_CP"
+,"CS_Rayl_CP"
+,"CS_Compt_CP"
+,"CSb_Total_CP"
+,"CSb_Photo_CP"
+,"CSb_Rayl_CP"
+,"CSb_Compt_CP"
+,"CS_KN"
+,"CS_Energy_CP"
+,"DCS_KN"
+,"DCS_Thoms"
+,"DCS_Rayl_CP"
+,"DCSb_Rayl_CP"
+,"DCS_Compt_CP"
+,"DCSb_Compt_CP"
+,"DCSP_KN"
+,"DCSP_Thoms"
+,"DCSP_Rayl_CP"
+,"DCSPb_Rayl_CP"
+,"DCSP_Compt_CP"
+,"DCSPb_Compt_CP"
+,"FF_Rayl"
+,"SF_Compt"
+,"MomentTransf"
+,"CosKronTransProb"
+,"FluorYield"
+,"JumpFactor"
+,"RadRate"
+,"ComptonEnergy"
+,"Fi"
+,"Fii"
+,"ElectronConfig"
+,"CS_FluorLine_Kissel_Cascade"
+,"CS_FluorLine_Kissel_Radiative_Cascade"
+,"CS_FluorLine_Kissel_Nonradiative_Cascade"
+,"CS_FluorLine_Kissel_no_Cascade"
+,"AtomicLevelWidth"
+,"AugerYield"
+,"Refractive_Index"
+,"ComptonProfile"
+,"ComptonProfile_Partial"
+,"GetCompoundDataNISTList"],
+"element":26,
+"elementOrCompound":'FeSO4',
+"linetype":["0","IUPAC","Siegbahn"],
+"lineIupacTo":["0",
+"K", "L1", "L2", "L3", "M1", "M2", "M3", "M4", "M5", "N1", "N2", "N3", "N4", "N5", "N6", "N7", "O1"],
+"lineIupacFrom":["0",
+"K", "L1", "L2", "L3", "M1", "M2", "M3", "M4", "M5", "N1", "N2", "N3", "N4", "N5", "N6", "N7", "O1"],
+"lineSiegbahn":["0",
+"KA1", "KA2", "KB1", "KB2", "KB3", "KB4", "KB5",
+"LA1", "LA2", "LB1", "LB2", "LB3", "LB4", "LB5", "LB6", "LB7", "LB9", "LB10", "LB15", "LB17",
+"LG1", "LG2", "LG3", "LG4", "LG5", "LG6", "LG8", "LE", "LL", "LS", "LT", "LU", "LV"],
+"shell":["0",
+"K", "L1", "L2", "L3", "M1", "M2", "M3", "M4", "M5", "N1", "N2", "N3", "N4", "N5", "N6", "N7", "O1"],
+"energy":10.0,
+"theta":1.5707964,
+"phi":3.14159,
+"momentumtransfer":1.0,
+"cktrans":1.0,
+"density":1.0,
+"pz":1.0}

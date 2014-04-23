@@ -1,0 +1,68 @@
+----- header of ivolume.pro extracted on: Fri May 31 15:31:08 2013
+----- Documentation for /sware/com/idl-7.0/idl70/lib/itools/ivolume.pro -----
+
+ NAME:
+   iVolume
+
+ PURPOSE:
+   Implements the iVolume command line interface for the tools sytem.
+
+ CALLING SEQUENCE:
+   iVolume
+
+ INPUTS:
+   vol0, vol1, vol2, vol3 - Three-dimensional arrays of volume data.
+   Zero, one, two, or four of these channels must be specified.
+   All of the volume arrays must be of the same dimension.
+   If no volume data is specified, an empty volume visualization
+   is created.
+
+ KEYWORD PARAMETERS:
+   RGB_TABLE0, RGB_TABLE1 -
+   Set this keyword to the number of the predefined IDL color
+   table (0 to 40), or to either a 3 by 256 or 256 by 3 array containing
+   color values for Vol0 and Vol1.
+   If not specified, linear gray ramps are used in the volume
+   visualization.  If a two-channel volume is specified, the
+   volume visualization will use both color tables; otherwise
+   it uses the first color table.
+
+   OPACITY_TABLE0, OPACITY_TABLE1 - [3x256] array of opacity values.
+   If not specified, linear ramps are used in the volume
+   visualization.  If a two-channel volume is specified, the
+   volume visualization will use both opacity tables; otherwise
+   it uses the first opacity table.
+
+   VOLUME_DIMENSIONS - A three-element vector that specifies the
+   volume dimensions in user data coordinates.
+
+   VOLUME_LOCATION - A three-element vector that specifies the
+   volume location in user data coordinates.
+
+   IDENTIFIER  [out] - The identifier of the created tool.
+
+   Keywords accepted by IDLgrVolume may also be specified.
+
+   In addition, the following keywords are available:
+
+   AUTO_RENDER - Set to 1 to always render the volume.  The default is
+   to not render the volume each time the tool window is drawn.
+
+   RENDER_EXTENTS - 0: Do not draw anything around the volume.
+   1: Draw a wireframe around the volume.  2: Draw a translucent box
+   around the volume.
+
+   RENDER_QUALITY - 1: Low - Renders volume with a stack of 2D texture maps.
+   2: High - Use IDLgrVolume ray-casting rendering.
+
+   SUBVOLUME (or BOUNDS)- Six-element vector [Xmin, Ymin, Zmin, Xmax, Ymax, Zmax]
+   to specify the subvolume to render.
+
+   All other keywords are passed to the tool during creation.
+
+ MODIFICATION HISTORY:
+   Written by:  KWS, RSI, February 2003
+   Modified: CT, Oct 2006: Added TEST keyword,
+       allow RGB_TABLE0 and RGB_TABLE1 to be Loadct table numbers.
+
+

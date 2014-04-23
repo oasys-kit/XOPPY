@@ -1,0 +1,75 @@
+
+The parameters in this window are specific for the Takagi-Taupin (TT)
+codes of the xcrystal_bent application.
+
+They are ignored for the non-TT models.
+
+Window [microns]:
+	Set here the number of microns of "window".
+	"Window" is the dimension of the integration network (Borrmann
+	fan) along the crystal surface. 
+	Other special values are accepted:
+	0 = use the default value calculated internally by cryst_tt
+	-X = means X times the default value. For example -0.2 means 
+	that window is set to 20% of the default value.
+
+Step [microns]:
+        Set here the number of microns of "step".
+        "Step" is the dimension of a step of the the integration network 
+	(Borrmann fan) in the perpendicular direction of the crystal surface. 
+        Other special values are accepted:
+        0 = use the default value calculated internally by cryst_tt
+        -X = means X times the default value. For example -2 means 
+        that step is twice default value.
+
+Write file with network?
+	Allows to write a file (cryst_tt.net) containing the network and
+	the electric field on that network.
+	It can be siaplayed with Show/Takagi-Tapin/Integration Network 
+	option.
+
+Write file with all diff profiles?
+	Allows to write a file (cryst_tt.all) containing the diffraction
+	profiles in all the knots of the intersection between the
+	integration network with the exit surface.
+	It can be siaplayed with Show/Takagi-Tapin/All reflectivity curves 
+	option.
+
+RECOMMENDATIONS:
+
+The network dimension incrteases when "window" increases, and also
+increases when "sted" decreases. A carefull definition of these
+parameters is essential. A large network can affect in an extremely long
+calculation time. The calculation time can be estimated from the text
+displayed in the spawned log screen. It is not possible to abort the
+calculations from the interface. Long calculation may be aborted by
+aborting the XOP session. Under Unix the process can be aborted from
+another terminal window, by locating the process id (using ps -u
+username | grep cryst) and killing such a process number (using kill).
+Under Windows, the task can be aborted from the window that appears
+when pressing <Ctl><Alt><Del> at the same time.
+
+The diffraction profile is taken from the central point of the "window".
+If "window" is too small, border effects can affect this main
+diffraction profile. In order to check if the border effects are
+important at the central point, one can display all thediffraction
+profiles (in all the knot points) using the option:
+Show/Takagi-Tapin/All reflectivity curves.
+
+The "elem" should be small enough to avoid spurious oscillations and to
+be able of following the phase of the diffracted beam. For example,
+thin crystals may present Pendelloesung oscillations which period is 
+completely wrong is "elem" is not correctly set.
+
+They are not recipes for such values. The defaults set by cryst_tt are
+calculated from the Pendelloesung length (l_pen):
+  For Bragg/flat crystals:
+    window = l_pen*400.0
+    elem = window/100.0
+  For Bragg/bent crystals:
+    window = l_pen*120.0
+    elem = window/50.0
+  For Laue crystals:
+    window = 3.0*(thickness+tan(thetab+alpha))
+    elem=window/300.0
+

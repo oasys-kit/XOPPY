@@ -1,0 +1,140 @@
+----- header of exodus.pro extracted on: Fri May 31 15:31:07 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/spec/exodus.pro -----
+
+ =================================  EXODUS ===============================
+
+   EXODUS is a widget based application to manipulate SPEC files: 
+
+	1) It loads a SPEC file and user can  select, view, interpolate, 
+		average, and perform operations with data from multiple scans. 
+	   It also accepts MCS SPEC scans. Hete the XCol=1 means channel
+		numbet and XCol=2 means Energy (using calibration from
+		spec file).
+          It also loads data from ASCII files and from other XPlot windows.
+	2) It allows to export the selected data set from one or 
+		many SPEC files into files af different types
+		(Spec/Scan,Spac/Mesh, etc.)
+	3) It contains some tools to convert and operate with 
+		lists of Spec/MCA files. 
+
+		
+  COPYRIGHT:
+ 	EXODUS belongs to XOP package and it is distributed within XOP.
+ 	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+ 
+  REFERENCE:
+ 	Published calculations made with XOP should refer:
+ 
+ 	M. Sanchez del Rio and R. J. Dejus 
+         "Status of XOP: an x-ray optics software toolkit"
+         SPIE Proceedings Vol. 5536 (2004) pp.171-174
+ 
+         http://dx.doi.org/10.1117/12.560903
+ 
+  LAST MODIFICATION: srio@esrf.eu 2009-05-25
+ 
+ 
+ ============= Non interactive use of EXODUS  ============================
+
+	NAME:
+		EXODUS
+	PURPOSE:
+		Manipulate and overplot multiple sets of data.
+ 	CATEGORY:
+		Widgets. SPEC tools.
+	CALLING SEQUENCE:
+		EXODUS 
+	KEYWORD PARAMETERS:
+		GROUP = The widget ID of the widget that calls Xplot.
+			When this ID is specified, a death of the caller 
+			results in a death of EXODUS.
+		NO_BLOCK = Set this keyword to start EXODUS and leaving
+			unblocked the IDL prompt (default: no_block=1)
+		XAFS = Set this keyword to start EXODUS with some
+			functionality for EXAFS data treatment. 
+		OnlyRight = Set this keyword if you want to eliminate
+			the spec preparation panel.
+		Quit_button = Set this keyword if you want to create
+			a QUIT button in the right panel.
+		Xlog = Set this keyword to start plots in log (X)
+		Ylog = Set this keyword to start plots in log (Y)
+               Wtitle = String with the window title
+
+	OUTPUTS:
+		Open the widget utility.
+	COMMON BLOCKS:
+		Exodus, to store some widget values
+	HISTORY:
+		EXODUS was  designed for being an application aiming
+		to average multiple scans for the ESRF beamline ID26
+		(at the time dedicated to EXafs Of DilUte Samples,
+		origin of the program title). However, as the
+		application revealed to be of general interest, it was 
+		promoted to be a general XOP tool. The "particularities" 
+		of EXAFS data analysis (i.e., interpolate and resample in 
+		k space, etc.), are hidden in the standard version, and are 
+		only available if EXODUS is started using the XAFS keyword on. 
+
+	MODIFICATION HISTORY:
+		Written by  Manuel Sanchez del Rio. ESRF. 13 April 2000
+		version 1.0 Beta2
+		00-05-10 srio@esrf.fr doc, added resample, 
+			and other changes. Release of version 1.0.
+		03-03-27 added MCA stuff. version 1.1
+			Bug fixed (did not use the first spectrum 
+			for average and sum...) M. Valvidares (id3).
+			use ompp inetead of mpp (obsoleted).
+			Export to mesh file. New routines:
+			exodus_interpolation and exodus_quit. 
+		03-03-31 Promoted from being an utility of xop/xaid
+			to be a general tool for XOP. 
+		03-11-17 srio@esrf.fr Added "Import from" options in
+			right panel.  Version 1.11
+		04-01-14 srio@esrf.fr Added Preferences (skip lines in ascii)
+		04-02-27 srio@esrf.fr Added import filter version 1.12
+		06-03-01 srio@esrf.fr Added onlyRight V 1.13
+			 Non interactive use via exodus_loadfile
+		06-04-12 srio@esrf.fr V 1.14
+			 Any operation allowed for ColX, ColY
+			 Export to Microsoft/Excel file
+		06-04-18 srio@esrf.fr export to multicolumn spec and excel
+		06-06-07 srio@esrf.fr Adds SPEC/MCA support. v. 1.15
+		06-07-03 srio@esrf.fr Bug fixed when def ColX=...,ColY=..
+		06-08-14 srio@esrf.fr keeps limits in xwindow 
+		06-09-12 srio@esrf.fr small bugs fixed
+		06-10-10 srio@esrf.fr fixes bug with fufifa_loadfile,/append
+		06-10-12 srio@esrf.fr adds operation on induvidual sets
+		06-11-07 srio@esrf.fr debug copying multiple columns.
+		07-09-07 srio@esrf.eu adds "append" data sets
+		07-11-07 srio@esrf.eu fixes some bugs in EXPORT options
+                        and adds Xplot view in them
+		07-11-07 srio@esrf.eu adds /xlog and /ylog
+		08-04-15 srio@esrf.eu adds wTitle keyword.
+		08-05-30 srio@esrf.eu adds Operations->Merge, Export->edf
+		08-11-11 srio@esrf.eu adds Export->CSV, v1.28
+		08-12-05 srio@esrf.eu skip recalculating data when col1 and
+                        col2 are selected. It keeps additional columns (for
+                        errors). v 1.29
+               09-09-02 srio@esrf.eu adds tolltips and cut data in operations
+                        v 1.30
+               10-06-11 srio@esrf.eu multi-file ASCII export allowed
+
+
+ 
+
+ PRO EXODUS_LOADFILE, parent, isel=isel, data=data, Dialog_Parent=id, $
+	title=title
+
+ 06-03-01 srio@esrf.fr
+ isel: 0 Import data keyword (title=title for title)
+       1 Import from current Xplot window
+       2 Import from other Xplot window
+       3 Import from ASCII file (browser)
+       4 Import from ASCII file (wildcard)
+       5 Import filter (one file) 
+       6 Import filter (browser)
+       7 SPEC file (just a message)
+      10 delia (3cols: X,Y,Index)
+	0 data
+

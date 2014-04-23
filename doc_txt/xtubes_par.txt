@@ -1,0 +1,7 @@
+               Description of the input parameters for XTUBES:
+               ===============================================
+
+
+TARGET ELEMENT:     Select one: Mo, Rh or W
+VOLTAGE: Anode voltage in kiloVolts in the 18-42 interval. 
+

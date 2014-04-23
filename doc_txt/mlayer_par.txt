@@ -1,0 +1,74 @@
+Description of mlayer input parameters:
+=======================================
+
+
+ Schematic representation of the multilayer:
+
+               vacuum
+    |------------------------------|  \
+    |          odd (1)             |  |
+    |------------------------------|  | BILAYER # n_bilayers
+    |          even (2)            |  |
+    |------------------------------|  /
+    |          .                   |
+    |          .                   |
+    |          .                   |
+    |------------------------------|  \
+    |          odd (2n - 1)        |  |
+    |------------------------------|  | BILAYER # 1
+    |          even (2n)           |  |
+    |------------------------------|  /
+    |                              |
+    |///////// substrate //////////|
+    |                              |
+
+
+
+LAYER PERIODICITY: Multilayer may be periodic or aperiodic. In the first 
+  case you may define the number of layer pairs and the thickness of the 
+  two components of the pair. In the second case you must prepare a file 
+  containing two columns and N rows, one row for each pair.
+  The first element of the column is the thickness in A of the odd element and 
+  the second column is the thickness of the even element.
+
+SCANNING VARIABLE: Grazing angle [deg] or Photon Energy [eV]
+
+MATERIAL PARAMETERS: 
+	Create on the fly: the material parameters are created by mlayer
+                     and placed in a file mlayer.f12 (which overwrites previous
+                     versions).
+        Use existing file: mlayer.f12:  Do not create the mlayer.f12 file 
+                     and uses an existing one. 
+                     The mlayer.f12 file created "on the fly" can be edited by 
+                     hand customize the materials, optical constants, 
+                     densities, etc.
+                     
+                     ****Note that the file mlayer.f12 is overwritten when the 
+                     "Material parameters" entry is set to "Create on the fly".
+                     
+SUBSTRATE: Chemical symbol for the substrate.
+
+ODD LAYER MATERIAL's chemical symbol for the odd layer
+
+EVEN LAYER MATERIAL's chemical symbol for the even layer
+
+PHOTON ENERGY: in eV
+
+GRAZING ANGLE: in degrees
+
+SCANNING VARIABLE STEP: the spep in either Photon energy or grazing angle, 
+  depending on your choice.
+
+NUMBER OF SCANNING POINTS: obvious.
+
+THICKNESS FOR THE ODD MATERIAL in A, when periodic Mlayers are considered.
+
+THICKNESS FOR THE EVEN MATERIAL in A, when periodic Mlayers are considered.
+
+NUMBER OF LAYER PAIRS when periodic Mlayers are considered.
+
+FILE WITH LAYER THICKNESSES: file name with thicknesses as explained before, 
+  valid only when Individual layers are considered.
+
+
+

@@ -1,0 +1,108 @@
+
+==============================  xmlayer   =====================================
+
+ Mlayer is a widget based graphical interface to calculate multilayer 
+ reflectivities as a function of either the photon energy or incident angle.
+
+ Limitations: This code only handles elements as materials (no mixtures or
+ compounds implemented). It does not calculate the influence of interface 
+ roughness.
+
+ ***Note: The functionality of this code is quite limited. A much more
+ performant code for multilayer calculations is IMD, available as an XOP
+ extension.
+
+ The mlayer code has been witten by J.H. Underwood at CXRO and is part of the 
+ SHADOW package. M. Sanchez del Rio has modified it to directly call 
+ an optical library, which gives correct values of refraction indeces when the 
+ energy is scanned.  M. Sanchez del Rio has also writen this graphic interface 
+ called mlayer too. 
+
+ Schematic representation of the multilayer:
+
+               vacuum
+    |------------------------------|  \
+    |          odd (1)             |  |
+    |------------------------------|  | BILAYER # n_bilayers
+    |          even (2)            |  |
+    |------------------------------|  /
+    |          .                   |
+    |          .                   |
+    |          .                   |
+    |------------------------------|  \
+    |          odd (2n - 1)        |  |
+    |------------------------------|  | BILAYER # 1
+    |          even (2n)           |  |
+    |------------------------------|  /
+    |                              |
+    |///////// substrate //////////|
+    |                              |
+
+
+
+ DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
+
+  File:
+   MLayer input parameters: This option allows to save the current
+		parameters to a file for later loading. It also allows
+		to save the current parameters as defaults for being
+		used when the application is initialized. In the last
+		case, the file is named "application".xop (where 
+		"application " is the name of the current XOP
+		application) and is written in the directory pointed
+		by the XOP_DEFAULTS_DIR environment variable (which
+		must be set). The parameter file is ASCII and can be
+		read and edited with care.
+  Quit: to exit from the program
+
+ Set_Parameters:
+  Set Parameters: to define the parameters for the calculation.
+		The same result is obtained pressing the "Set Parameters"
+		button in the main mlayer window. 
+                Please refer to the information under the HELP
+		button for a complete description of the parameters. After 
+		pressing the ACCEPT button, mlayer starts running.
+  Set Defaults: Sets the default parameters.
+
+  Show: Display results
+    Plot Results: Plots the mlayer results.
+    Show/Edit material file mlayer.f12: mlayer creates the material information
+          into a file named mlayer.f12 in the case that the 
+          "Material parameters" entry is set to "Create on the fly". 
+          However, this mlayer.f12 file can be edited by hand and reused 
+          in a next run of mlayer where the "Material parameter" entry is set 
+          to "Use existing file: mlayer.f12".  
+          This option allows the used to customize the materials, optical 
+          constants, densities, etc.
+          ****Note that the file mlayer.f12 is overwritten when the "Material 
+          parameters" entry is set to "Create on the fly". It is also deleted
+          when quitting the mlayer application. Therefore, be sure to save
+          a security copy.
+
+  Help:   Shows the mlayer help (this text).
+
+
+ COPYRIGHT:
+	MLAYER belongs to XOP package and it is distributed within XOP.
+	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+
+ REFERENCE:
+	Published calculations made with XOP should refer:
+
+	 M. Sanchez del Rio and R. J. Dejus 
+         "Status of XOP: an x-ray optics software toolkit"
+         SPIE Proceedings Vol. 5536 (2004) pp.171-174
+
+         http://dx.doi.org/10.1117/12.560903
+
+	In addition, published calculations using the mlayer aplication 
+	should also cite:
+
+	  C. Welnak, G.J. Chen and F. Cerrina, "SHADOW: a synchrotron 
+          radiation X-ray Optics simulation tool",
+	  Nucl. Instr. and Meth. in Phys. Res. A347 91994) 344
+	or
+	  SHADOW WEB Page: http://www.nanotech.wisc.edu/shadow/
+
+ LAST MODIFICATION: srio@esrf.eu 2008-01-28
+

@@ -1,0 +1,35 @@
+C INPUT PARAMETERS:
+C  The input parameters are divided into sections related to the storage ring,
+C  the undulator device, and the quantity to be calculated. Note: When modifying
+C  parameters under the Xus interface, double click the field and make sure to
+C  press the RETURN key so that the new parameter is accepted.
+C Machine Parameters:
+C  Storage ring energy 			(GeV)
+C  Storage ring current			(mA)
+C  RMS beam size (horizontal)		(mm)
+C  RMS beam size (vertical)		(mm)
+C  RMS beam divergence (horizontal)	(mrad)
+C  RMS beam divergence (vertical)	(mrad)
+C Undulator Parameters:
+C  Period length			(cm)
+C  Number of periods
+C  Deflection parameter (hor.  field) Kx (= 0.0 for a regular planar device)
+C  Deflection parameter (vert. field) Ky
+C Scan Parameters:
+C  Minimum energy			(eV)
+C  Maximum energy			(eV)
+C  Number of energy points
+C Pinhole Parameters:
+C  Distance from the source		(m)
+C    (d=0.0 => angular units)
+C  X-coordinate for center of pinhole	(mm) or (mrad)
+C  Y-coordinate for center of pinhole	(mm) or (mrad)
+C  X-size of pinhole (full width)	(mm) or (mrad)
+C  Y-size of pinhole (full width)	(mm) or (mrad)
+C    (for angular units (d=0.0) values are entered in mrad)
+C    (X is for horizontal direction)
+C    (Y is for the vertical direction)
+C  Number of subdivisions of pinhole in X (max 50)
+C  Number of subdivisions of pinhole in Y (max 50)
+C    (for plotting 3d results with Xus, the X-size, Y-size, and the number of
+C     of subdivisions in the two directions should be equal)

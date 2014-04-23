@@ -1,0 +1,33 @@
+C INPUT PARAMETERS:
+C  The input parameters are divided into sections related to the storage ring,
+C  the undulator device, and the brilliance calculation.
+C Machine Parameters:
+C  ENERGY		Storage ring energy              (GeV)
+C  CUR		        Storage ring current             (mA)
+C  SIGE		        Energy spread (sigma(E)/E)
+C  SIGX		        RMS beam size (horizontal)       (mm)
+C  SIGY		        RMS beam size (vertical)         (mm)
+C  SIGX1	        RMS beam divergence (horizontal) (mrad)
+C  SIGY1	        RMS beam divergence (vertical)   (mrad)
+C Undulator Parameters:
+C  PERIOD	        Undulator period length          (cm)
+C  N			Number of periods        
+C Scan Parameters:
+C  EMIN			Lower energy limit for FIRST harmonic (eV)
+C  EMAX			Upper energy limit for FIRST harmonic (eV)
+C  NE	                Number of energy points
+C  IHMIN		Minimum harmonic of interest
+C  IHMAX		Maximum harmonic of interest
+C  IHSTEP		Step size for the harmonics
+C Brilliance Parameters:
+C  IHEL			Type of device; ihel=0: regular planar, ihel=1: helical
+C  METHOD               Method
+C  			METHOD={0,1}Non-zero emittance;
+C                                   infinite-N +convolution (Dejus' approach)
+C  			METHOD=2    Non-zero emittance;
+C                                   infinite-N +convolution (Walker's approach)
+C  			METHOD=3    Non-zero emittance; finite-N (Walker's)
+C
+C  IK			Print K-values & powers; ik=0: quiet, ik=1: print
+C  NEKS			Number of energy points for peak search: Default 100, or
+C			use 0 for default.

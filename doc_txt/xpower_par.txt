@@ -1,0 +1,67 @@
+
+     This screen holds the inpout parameters for XPOWER
+
+     It consists of the following entries:
+
+	f1f2 datasets  \
+	                > The dabax datasets with f1f2 and Mu for
+	Mu datasets    /  reflectivity and transmission (respectively).
+
+	Source: Select one of the following possibilities:
+	   1) Normalized to 1 (standard E grid): The source is normalized
+		to 1 and the energy array consist in 500 points in the 
+		[1,100] keV interval.
+	   2) Normalized to 1 (E grid from keyboard): The source is normalized
+		to 1 and the energy starting point, ending point and
+		number of points are entered from the keyboard (next entries).
+		The number og points must be greater than one.
+		For calculating a single energy point, set the starting
+		and the ending value to the same value.
+	   3) From external file: The energy [in eV] and source arrays
+		are thetwo first columns of the given file.
+		In the case that the file does not exist, it asks for 
+		a new one. Therefore, by entering any string (e.g. '?'),
+		a browser to select the file will be launched.
+	   4) xop/source Flux (file SRCOMPE) the source fnd energy
+		arrays are read from the SRCOMPE file, which is usually 
+		produced by a xop/source calculation.
+	   5) xop/source Power (file SRCOMPW) the source fnd energy
+		arrays are read from the SRCOMPW file, which is usually 
+		produced by a xop/source calculation.
+
+	If selected source is case 2, then entry the start, end and
+		number of E points.
+	If selected source is 3, entry the file name.
+
+	Number of elements: The number of optical elements for
+		calculations (from 1 to 5).
+		For each optical elements a line of entry boxes appear
+		with the following meaning:
+
+		xx oe formula: The optical element formula. This may be
+		  an element or compound formula (i.e. Si, H2O, etc.), a
+		  mixture formula (i.e.  H2O(0.99)Cl2(0.01)), or a 
+		  material name as defined in the DABAX file Compounds.dat
+		  The list of the material defined in the installed
+		  Compounds.dat file is listed below.
+		  It is possible to type a question mark (?). In this case
+		  the program will present a list with all the available
+		  compounds in the Compounds.dat file, and the user must 
+		  select one. This avoids typos in typing the compound names.
+		Filter/Mirror (select the appropiate entry).
+		In the Flter case entry the filter thickness [mm]
+		In the Mirror case entry the grazing angle [mrad] and
+		  the surface roughness rms [Angstroms]
+		Density: The density value in g/cm^3. It accepts the ?
+		  entry. In such a case it takes:
+		    - For elements, the value returned by AtomicConstants()
+		    - For materials from the Compounds.dat file, the
+			value stored in that file.
+		    - Takes 1.0 as defaults in the other cases.
+		
+==========================================================================
+ The allowed compound names [from file Compounds.dat] are listed below.
+(Case sensitive!. Do not add blanks at the beginning or end of the name.
+Remember that this list appears interactively when a "?" is typed.)
+
+

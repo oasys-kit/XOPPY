@@ -1,0 +1,32 @@
+                   Description of the input parameters for xbfield
+                   ===============================================
+
+PERIOD: magnet period in cm.
+
+N:      number of periods
+
+NPTS: Number of points per period (for internal use in calculations)
+
+Undulator magnet:  Magnet composition  (Nd-Fe-B of Sm-Co)
+
+Undulator type: Plane (convensional) or tapered undulator
+
+K: Deflection parameter K
+
+For tapared undulators define:
+  GAP: initial gap in cm.
+  GAPTAP: Gap taper in %
+
+FILE: The output file name. 
+
+
+It uses a linearly modulated gap model of the form (see BFIELD.F):
+
+B=0.95*3.44*exp(-r*(5.08-1.54*r))
+
+where B is the magnetic field
+      r  = lgap/period
+      lgap is the "local" gap, i.e., lgap=GAP*(1.0+z*(GAPTAP/100)/PERIOD)
+      z is the spatial position along the undulator axis
+      
+    

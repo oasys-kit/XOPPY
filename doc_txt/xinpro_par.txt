@@ -1,0 +1,31 @@
+Input parameters for xinpro:
+============================
+
+Crystal material: Select a crystal from this list of crystals.
+
+Calculation Mode: select between BRAGG/LAUE  in REFLECTION/TRANSMISSION.
+
+Energy [eV]: The photon energy.
+
+Miller index h: obvious
+Miller index k: obvious
+Miller index l: obvious
+
+Asymmetry angle: in degrees. For Laue, the asymmetry angle is defined as
+  the angle between the crystal normal and the bragg plases. For Bragg,
+  this is the angle between the crystal surface and the bragg planes. In
+  other works, for Bragg-symmetrical alpha=0 a,d for Laue symmetrical
+  alpha=0.
+
+Crystal thickness [microns]
+
+Crystal temperature [K]: NOTE: due to the Debye-Model parametrization
+  used, T=0K is not valid!
+
+Number of points
+
+Angular limits: Set either automatic or external.
+
+Theta min [arcsec]: The external minimum value of the scanning variable.
+
+Theta max [arcsec]: The external maximum value of the scanning variable.

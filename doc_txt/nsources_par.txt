@@ -1,0 +1,14 @@
+               Description of the input parameters for NSOURCES:
+               =================================================
+
+MODERATOR TEMPERATURE [K]: The moderator temperature in Kelvin
+
+SPECTRUM:   Select the spectral zone to calculate flux:
+	Thermal neutron flux: Maxwellian distribution valid for E < 0.2 eV
+        Epithermal neutron flux: 0.2 eV < E < 0.5 MeV
+        Fast neutron flux: E > 0.5 MeV
+
+MAX FLUX (THERMAL/EPITHERMAL/FAST) [n/cm2/s]:  Maximum flux
+
+NUMBER OF POINTS: Number of energy points for the energy spectra
+

@@ -1,0 +1,14 @@
+
+A program called BFIELD.F is distributed with YAUP.F. BFIELD.F is a
+standalone module that generates a B-field file for an undulator with
+a linearly tapered gap in a format acceptable to YAUP.  The user must
+specify the gap GZMIN at Z=Zmin=0 and the amount of gap taper
+DG=(GZMAX-GZMIN)/GZMIN (either positive or negative).  The program
+interpolates the gap linearly between GZMIN and GZMAX.  The field
+strength dependence is specific to the proposed APS undulators but the
+user may modify this section of the program according to his/her
+specific needs.  Zero phase errors are assumed. See the file BFIELD.F
+for more details.
+
+
+

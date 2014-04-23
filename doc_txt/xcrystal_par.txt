@@ -1,0 +1,101 @@
+This is a description of the input parameters for xcrystal
+
+DABAX f0 FILE: 
+	Select a DABAX file from where the f0 component of the structure 
+	factor will be read.
+
+DABAX f1f2 FILE: Select a DABAX file from where the f1f2 components of 
+	the structure factor will be read.
+
+CRYSTAL: Select a crystal from this list of crystals.
+
+h MILLER INDEX: obvious
+k MILLER INDEX: obvious
+l MILLER INDEX: obvious
+
+
+TEMPERATURE FACTOR: Three possibilites:
+       1) Enter the exp(-M) value (a positive value between 0 and 1)
+       2) Enter the absolute temperatute in Kelvin, WITH A MINUS SIGN.
+	  The minus sign tells to the code that the number entered
+	  refers to a temperature and not to the full debye-waller exp(-M)
+	  factor. The minus sign will not be considered for the numerial
+	  calculations. 
+	  In this case, the Debye-Waller factor is calculated 
+	  as a function of the temperature, using a well-known approximation 
+	  as a function of sin(theta/lambda)=1/(2d), temperature, atomic 
+	  mass and Debye-temperature. In the case of crystal structures 
+	  with more that one atomic sites, an independent Debye-Waller 
+	  factor is calculated for each atomic site and then putting them 
+	  together by averaging the M's. Values for atomic mass and 
+	  Debye temperatures are obtained from the DABAX file
+	  AtomicConstants.dat. For more info, see the documentation in the
+	  function DebyeWaller.pro
+       3) Enter a question mark (?). 
+	  In this case, the code will perform the calculation as in 
+	  point 2), but it will pop-up a window that will permit to modify 
+	  the Debye-Waller ingredients (i.e., the sin(theta/lambda)=1/(2d) 
+	  ratio, temperatute, atomic mass and Debye temperature). 
+	  In the case of crystal structures with several atomic types, 
+	  several values of atomic mass and Debye temperature should be entered.
+	  The default values are taken from the DABAX file AtomicConstants.dat. 
+	  The interest of this option is to allow the user to "improve"
+	  the default value of the temperature factor, which is 
+	  mostly "structure" dependent rather than dependent on the atomic 
+	  types. For example, in the case of AlphaQuartz (SiO2), The Debye 
+	  temperature of the oxygen is not defined by default in the 
+	  AtomicConstants.dat DABAX file because oxigen does not exist in
+	  crystalline state. Therefore the averaged value seems not realistic.
+	  This option allows to customize the Debye temperatures from 
+	  default (note that values of Debye temperature found in bibliography 
+	  change significatively from one reference to another) and also allows
+	  to enter average values of atomic mass and Debye temperature by 
+	  entering identical values foe all atomic sites. 
+	  Note that if values are changed in this window, they are not
+	  saved for further runs, nor saved to input files like
+	  xcrystal.xop. 
+
+MOSAIC CRYSTAL: Select YES when you want "mosaic crystal", otherwise 
+	"perfect crystal" is set.
+
+GEOMETRY: select one of the four cases combining Laue and Bragg cases 
+	for either diffracted or transmitted beam. Note that the 
+	transmitted intensity is not implemented for mosaic crystals.
+
+SCAN: The scanned variable for the plot. Angular and Energy scans are
+	allowed. The angular variable can be: Theta, when absolute angle
+	is wanted; Th-ThBragg(corrected) or angular scan with zero at
+	the bragg angle corrected for refraction; Th-ThBragg or angular
+	scan with zero at the bragg angle; and y is dimensionless angular
+	variable defined by (for instance) in the Zachariasen book.
+	In the case of angular scans the unit can be set, except in the
+	case of y. Energy is always in eV.
+
+SCAN UNITS: angular units, if angular scan is set.
+
+MIN SCAN VALUE: min value for the scanning variable.
+
+MAX SCAN VALUE: max value for the scanning variable.
+
+SCAN POINTS: the number of scanning points.
+
+FIX VALUE (E[eV]) OR Theta[deg]): Place here either the energy value of the 
+	monochromatic incident photon beam (when angular scan is
+	selected) or the grazing angle [in degrees] when a energy scan 
+	is wanted.
+	In the case of energy scan, the program can calculate
+	automatically the theta angle if one inputs the energy. If this 
+	option is selected, enter the Energy with a minus sign in this box.
+
+ASYMMETRY ANGLE [deg]: the angle between the Bragg planes and the crystal 
+	surface. It is 0.0 for the symmetrical Bragg case and 90.0 for 
+	the symmetrical Laue case.
+	This input is not present when using Mosaic crystals, which are
+	always symmetrical.
+
+CRYSTAL THICKNESS [cm]: the crystal thickness in cm
+
+MOSAICITY [deg fwhm]: The mosaicirty of the mosaic crystal (if selected).
+
+
+

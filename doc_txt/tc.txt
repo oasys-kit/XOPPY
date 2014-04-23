@@ -1,0 +1,148 @@
+Last modification date of this file: Mon Nov 17 00:09:32 CST 1997
+Roger J. Dejus (dejus@aps.anl.gov)
+C+
+C PROGRAM DESCRIPTION: 
+C  Program to calculate on-axis brilliance tuning curves for an ideal undulator
+C  insertion device (regular planar device or a helical device). The program
+C  uses the Bessel function approximation which is valid for an ideal device,
+C  e.g., no magnetic field errors. The effect of the particle beam emittance and
+C  the beam energy spread is taken into account.
+C
+C AUTHORS: 
+C  Roger J. Dejus
+C  The Advanced Photon Source
+C  Experimental Facilities Division
+C  Argonne National Laboratory
+C 
+C CREATION DATE: 
+C  22-APR-1996
+C 
+C INPUT PARAMETERS:
+C  The input parameters are divided into sections related to the storage ring,
+C  the undulator device, and the brilliance calculation.
+C Machine Parameters:
+C  ENERGY		Storage ring energy              (GeV)
+C  CUR		        Storage ring current             (mA)
+C  SIGE		        Energy spread (sigma(E)/E)
+C  SIGX		        RMS beam size (horizontal)       (mm)
+C  SIGY		        RMS beam size (vertical)         (mm)
+C  SIGX1	        RMS beam divergence (horizontal) (mrad)
+C  SIGY1	        RMS beam divergence (vertical)   (mrad)
+C Undulator Parameters:
+C  PERIOD	        Undulator period length          (cm)
+C  N			Number of periods        
+C Scan Parameters:
+C  EMIN			Lower energy limit for FIRST harmonic (eV)
+C  EMAX			Upper energy limit for FIRST harmonic (eV)
+C  NE	                Number of energy points
+C  IHMIN		Minimum harmonic of interest
+C  IHMAX		Maximum harmonic of interest
+C  IHSTEP		Step size for the harmonics
+C Brilliance Parameters:
+C  IHEL			Type of device; ihel=0: regular planar, ihel=1: helical
+C  METHOD               Method
+C  			METHOD={0,1}Non-zero emittance;
+C                                   infinite-N +convolution (Dejus' approach)
+C  			METHOD=2    Non-zero emittance;
+C                                   infinite-N +convolution (Walker's approach)
+C  			METHOD=3    Non-zero emittance; finite-N (Walker's)
+C
+C  IK			Print K-values & powers; ik=0: quiet, ik=1: print
+C  NEKS			Number of energy points for peak search: Default 100, or
+C			use 0 for default.
+C COMMON BLOCKS:
+C  None.
+C  
+C DESIGN ISSUES:
+C  The down shift in energy due to the beam emittance is most noticable for
+C  small values of K, and therefore, for each harmonic, the energy shift is
+C  calculated for K = Kmin. The shifted peak is then used to define the energy
+C  interval over which the on-axis brilliance is calculated. The peak of this
+C  function is stored and subsequently saved in a file vs. energy (eV). The
+C  user enters the scanning range in energy (eV) for the first harmonic, even in
+C  the case when higher harmonics are chosen (using IHMIN > 1). The beam energy
+C  spread is included by using a straightforward convolution at the fixed energy
+C  of the peak. Beam energy spreads typically in the range 1% to 0.01% can be
+C  used. It is valid to set the beam energy spread to zero. The number of energy
+C  points for peak search NEKS is used at each K-value and would typically be
+C  set to the default value unless the down shift in energy is being sought with
+C  high accuracy. For high accuracy typically use NEKS = 1000.
+C  
+C COPYRIGHT:
+C  Unless part of the XOP software package, this routine must only be used 
+C  at The Advanced Photon Source and must not be tranferred or used at any 
+C  other location without the written consent of the author.
+C  
+C FILES USED:
+C Input files
+C  tc.dat
+C Output files
+C  tc.plt
+C
+C KEYWORDS:
+C  Undulator Tuning Curve, Undulator On-Axis Brilliance.
+C  
+C LINK/LIBRARY ISSUES:
+C  Calls routine USB that calls routines BRIGHTE and HUNT.  
+C  BRIGHTE calculates the brightness and HUNT searches an array of real
+C  numbers (from Numerical Recipes).
+C  
+C PORTABILITY ISSUES:
+C  Runs on DEC 3000/400 AXP alpha (Unix 4.0b) and SUN (Solaris: SunOS Release
+C  5.5.1)
+C  
+C TIMING:
+C  Generally, the execution is fast. For example, the first three odd
+C  harmonics (1, 3, 5) for Undulatar A at the APS over the full tuning range is 
+C  calculated in about 10 s using the default parameters for the infinite-N
+C  method with convolution and zero beam energy spread. The finite-N method is
+C  about 10 times slower. Introduction of the beam energy spread increases the
+C  execution time by typically 40%. The timing above is given for the default
+C  value of NEKS (=100) and the number of points/harmonic ne = 20.
+C
+C VERSION:
+C  1.9
+C  
+C MODIFICATION HISTORY:
+C	 Date     | Name  | Description
+C ----------------+-------+-----------------------------------------------------
+C 10-MAY-1996     | RJD   | Tuning variable is K.
+C ----------------+-------+-----------------------------------------------------
+C 21-MAY-1996     | RJD   | Changed tuning variable to E1 and added descriptive
+C                 |       | text describing the input/output. First official
+C                 |       | release, v1.2.
+C ----------------+-------+-----------------------------------------------------
+C 13-MAR-1997     | RJD   | Added beam energy spread using a straightforward
+C                 |       | convolution at the fixed energy of the peak.
+C                 |       | Modified calculation of the variable nek. Added the
+C                 |       | variable ik which controls printing of K-values.
+C                 |       | Current version is v1.3.
+C ----------------+-------+-----------------------------------------------------
+C 18-MAR-1997     | RJD   | Modified upper limit of peak search from 1.0 to
+C                 |       | fc2 = 1.002. Added parameter SPECLIM which defines
+C                 |       | the minimum Brilliance to retain in the calculation.
+C                 |       | Current version is v1.4.
+C ----------------+-------+-----------------------------------------------------
+C 21-MAR-1997     | RJD   | Modified lower limit of peak search from fc = 
+C                 |       | 0.990d0*ep/eiz to fc = 0.985d0*ep/eiz so that the 
+C                 |       | the peak of the higher odd harmonics will be found
+C                 |       | (or is more likely to be found) when the beam energy
+C                 |       | spread is taken into account.
+C                 |       | Current version is v1.5.
+C ----------------+-------+-----------------------------------------------------
+C 15-JUL-1997     | RJD   | Added information about total emitted power and 
+C                 |       | on-axis power density to the printout when the print
+C                 |       | variable ik is set to 1. Current version is v1.6.
+C ----------------+-------+-----------------------------------------------------
+C 29-SEP-1997     | RJD   | Added printout of zero emittance energy (first
+C                 |       | column in output file). Current version is v1.7.
+C ----------------+-------+-----------------------------------------------------
+C 06-OCT-1997     | RJD   | The parameter NEKS which determines the number of
+C                 |       | energy points for the peak search at each K-value
+C                 |       | was added to the input file. Default = 100 (or enter
+C                 |       | 0). Min and max is 100 and 10000, respectively.
+C ----------------+-------+-----------------------------------------------------
+C 14-NOV-1997     | RJD   | The variable neks declared as integer*4.
+C                 |       | Current version is v1.9.
+C ----------------+-------+-----------------------------------------------------
+C-

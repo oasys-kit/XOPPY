@@ -1,0 +1,41 @@
+----- header of isurface.pro extracted on: Fri May 31 15:31:08 2013
+----- Documentation for /sware/com/idl-7.0/idl70/lib/itools/isurface.pro -----
+
+ NAME:
+   iSurface
+
+ PURPOSE:
+   Implements the isurface wrapper interface for the tools sytem.
+
+ CALLING SEQUENCE:
+   ISurface
+
+ INPUTS:
+   Z[,X,Y] [,...] (see IDLgrSurface)
+
+ KEYWORD PARAMETERS:
+   IDENTIFIER  [out] - The identifier of the created tool.
+
+   vertColors: vector or 2D array of color indices,
+    or a two-dimensional array containing RGB triplets or RGBA values.
+
+   TEXTURE_IMAGE: 2D array (MxN), 3D array (3xMxN, Mx3xN, MxNx3,
+   4xMxN, Mx4xN, MxNx4) RGB with optional alpha channel
+
+   TEXTURE_RED, TEXTURE_GREEN, TEXTURE_BLUE, TEXTURE_ALPHA: 2D arrays
+   (must be of same size and type) specifying, respectively, red
+   channel, green channel, blue channel, and, optionally, the alpha
+   channel of the image to be used as the TEXTURE_IMAGE
+
+   RGB_TABLE: Set this keyword to the number of the predefined IDL color
+   table (0 to 40), or to either a 3 by 256 or 256 by 3 array containing
+   color values to use in a color indexed texture image or by vertex colors.
+
+   All other keywords are passed to the tool during creation.
+
+ MODIFICATION HISTORY:
+   Written by:  AGEH, RSI, January 2003
+   Modified: CT, Oct 2006: Added helper function, TEST keyword,
+       allow RGB_TABLE to be a Loadct table number.
+
+

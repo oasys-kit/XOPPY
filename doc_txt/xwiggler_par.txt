@@ -1,0 +1,28 @@
+Description of the input parameters for BM:
+===========================================
+
+MAGNETIC FIELD three posibilities:
+  Sinusoidal or standard wiggler
+  Asymmetric wiggler with magnetic field profile (for a single priod) 
+    from a two columns file (y[meters], B[Tesla])
+    An example of this option can be found in the files ex3_b.dat
+	in the $XOP_HOME/examples directory.
+  Asymmetric wiggler with magnetic field calculated in function of a 
+    supplied file containing the harmonic expansion of the magnetic field 
+    profile. The file contains two columns: (# of harmonic, Bmax [T])
+    An example of this option can be found in the files ex3_b.dat
+    in the $XOP_HOME/examples directory.
+NUMBER OF PERIODS of the Wiggler
+WIGGLER PERIOD in meters
+K VALUE
+BEAM ENERGY of the electrons in GeV
+MINIMUM PHOTON ENERGY for the calculation in eV
+MAXIMUM PHOTON ENERGY for the calculation in eV
+NUMBER OF ENERGY POINTS
+ENERGY POINT SPACING: Sel linear of logatithmic for the corresponding 
+	energy point spacing
+NUMBER OF TRAJECTORY POINTS PER PERIOD of electron trajectory
+ELECTRON BEAM INTENSITY in mA
+EXTERNAL FILE with Magnetic field profile or Harmonic expansion. (Case of 
+  asymmetric wiggler). Type ? for starting a file browser to get it.
+

@@ -1,0 +1,60 @@
+----- header of dabax.pro extracted on: Fri May 31 15:31:05 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/dabax/dabax.pro -----
+
+==================================  DABAX     =================================
+
+   DABAX is a widget based graphical interface to visualize and 
+   process data stored in the DABAX data base.
+
+   This is the main interface that allows to access to the contains
+   of the files, makes plots and start processing applications based
+   on that files.
+
+   More information about DABAX can be found at the XOP web page 
+   (select the DABAX entry):
+   http://www.esrf.fr/computing/scientific/xop
+
+ DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
+
+  File:
+   Download new DABAX file...
+	Information on how to add and update files to your DABAX directory.
+	It also includes a socket mechanism to automatically download and install
+		files.
+   Quit: to exit from the program
+  Edit: 
+   DABAX Path: Permits to edit the DABAX path. Dabax path is a 
+	list of directories (separated by columns ':') that
+	define the placed where the DABAX files are located.
+	The utility of redefining the DABAX path here is to add
+	user-files located in user directories.
+  View:
+   Refresh File List: refresh main window with DABAX list of files. 
+   DABAX Path: Displays the current DABAX Path.
+   Full File Name: Displays the Full name of the selected DABAX
+	file. This is useful when several versions of a file
+	with the same name are present in different directories 
+	in the DABAX path.
+  Help:
+   DABAX: Displays doc of DABAX interface application (this text).
+
+
+  COPYRIGHT:
+ 	DABAX belongs to XOP package and it is distributed within XOP.
+ 	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+ 
+  REFERENCE:
+ 	Published calculations made with XOP should refer:
+ 
+ 	M. Sanchez del Rio and R. J. Dejus 
+         "Status of XOP: an x-ray optics software toolkit"
+         SPIE Proceedings Vol. 5536 (2004) pp.171-174
+ 
+         http://dx.doi.org/10.1117/12.560903
+ 
+  LAST MODIFICATION: srio@esrf.eu 2008-02-01
+ 
+ 
+
+

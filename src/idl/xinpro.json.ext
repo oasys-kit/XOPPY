@@ -1,0 +1,4 @@
+['Crystal material: ','Calculation mode:','Energy [eV]:','Miller index H:','Miller index K:','Miller index L:','Asymmetry angle:','Crystal thickness [microns]:','Crystal temperature [K]:','Number of points: ','Angular limits: ','Theta min [arcsec]:','Theta max [arcsec]:']
+['True','True','True','True','True','True','True','True','True','True','True','self.SCALE  ==  1','self.SCALE  ==  1']
+['CRYSTAL_MATERIAL','MODE','ENERGY','MILLER_INDEX_H','MILLER_INDEX_K','MILLER_INDEX_L','ASYMMETRY_ANGLE','THICKNESS','TEMPERATURE','NPOINTS','SCALE','XFROM','XTO']
+['True','True','True','True','True','True','True','True','True','True','True','self.SCALE  ==  1','self.SCALE  ==  1']

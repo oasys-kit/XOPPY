@@ -1,0 +1,75 @@
+----- header of xcrystal.pro extracted on: Fri May 31 15:31:06 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/optics/xcrystal.pro -----
+=================================   xcrystal   ================================
+
+
+   Xcrystal is a widget based graphical interface to calculate diffraction
+   profiles of perfect and mosaic crystals. It allows Bragg and Laue
+   geometries and (in the case of perfect crystals) diffracted and
+   transmitted intensity calculations.  The diffracted intensity can be
+   calculated as a function of either rock angle or photon energy.
+   It uses the DABAX database to define the crystal structure and to 
+   retrieve the scattering factors to build the crystal structure factors.
+
+   It interfaces diff_pat, a computer program written by M. Sanchez del Rio
+   (srio@esrf.fr) derived from the SHADOW application bragg.
+
+
+ DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
+
+  File:
+    Xcrystal input parameters: This option allows to save the current
+		parameters to a file for later loading. It also allows
+		to save the current parameters as defaults for being
+		used when the application is initialized. In the last
+		case, the file is named "application".xop (where 
+		"application " is the name of the current XOP
+		application) and is written in the directory pointed
+		by the XOP_DEFAULTS_DIR environment variable (which
+		must be set). The parameter file is ASCII and can be
+		read and edited with care.
+  Quit: to exit from the program
+
+ Set_Parameters:
+  Set Parameters: to define the parameters for the calculation.
+		The same result is obtained pressing the "Set Parameters"
+		button in the main XCrystal window. 
+               Please refer to the information under the HELP
+		button for a complete description of the parameters. After 
+		pressing the ACCEPT button, diff_pat starts running.
+  Set Defaults: Sets the default parameters.
+
+  Show: Display results
+   Diffraction Curve: starts a graphical window with the calculation results.
+   Crystal Parameters: shows output parameters of the calculation.
+   Crystallographic Parameters: shows numerical values used to build the 
+		crystal structure factor.
+
+  Help:   Shows the xcrystal help (this text).
+
+  COPYRIGHT:
+ 	XCRYSTAL belongs to XOP package and it is distributed within XOP.
+ 	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+ 
+  REFERENCE:
+ 	Published calculations made with XOP should refer:
+ 
+ 	M. Sanchez del Rio and R. J. Dejus 
+         "Status of XOP: an x-ray optics software toolkit"
+         SPIE Proceedings Vol. 5536 (2004) pp.171-174
+ 
+         http://dx.doi.org/10.1117/12.560903
+
+
+	In addition, published calculations with the xcrystal_bent aplication 
+	should also cite:
+	  M. Sanchez del Rio, C. Ferrero and V. Mocella. 
+	  "Computer simulations of bent perfect crystal diffraction profiles" 
+	  SPIE proceedings vol. 3151, pp.312-323, 1997. 
+
+ 
+  LAST MODIFICATION: srio@esrf.eu 2008-02-01
+ 
+ 
+

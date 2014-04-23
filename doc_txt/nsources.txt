@@ -1,0 +1,66 @@
+
+===============================   NSOURCES   ===================================
+
+
+ NEUTRON REACTOR SPECTRA a widget based graphical interface to calculate the 
+ neutron spectrum from a reactor as a function of the neutron energy. 
+
+ DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
+
+ File:
+   NSources input parameters: This option allows to save the current
+	parameters to a file for later loading. It also allows to save 
+	the current parameters as defaults for being used when the 
+	application is initialised. In the last case, the file is named 
+	"application".xop (where "application" is the name of the current 
+	XOP application: nsources) and is written in the directory pointed 
+	by the XOP_DEFAULTS_DIR environment variable (which must be set). 
+	The parameter file is ASCII and can be read and edited with care.
+   Quit: to exit from the program
+
+Set_Parameters:
+   Set Parameters: to define the parameters for the calculation. The same 
+	result is obtained pressing the "Set Parameters" button in the main  
+	distribution window. 
+   Set Defaults: Sets the default parameters.
+
+Show: Display results
+   Plot Results: Plots the reactor spectra results: 
+   View Results: Displays the outputs.
+
+Help: Shows the NSOURCES (NEUTRON REACTOR SPECTRA) help (this text).
+
+METHOD: 
+   Thermal neutron flux is a Maxwellian distribution valid for E < 0.2 eV
+   Epithermal neutron flux is proportional to 1/energy and is valid for 
+	0.2 eV < E < 0.5 MeV
+   Fast neutron flux, valid for E > 0.5 MeV and proportional to 
+	exp(-E sinh( Sqrt(2E)))
+
+   See, for example, "The Production of Neutrons", C.J. Carlide, 
+	Neutron Data Booklet, Ch. 3.1, edited by the ILL. 
+      
+
+ COPYRIGHT:
+	NSOURCES belongs to XOP package and it is distributed within XOP.
+	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+
+ REFERENCE:
+	Published calculations made with XOP should refer:
+
+    1)  L. Alianelli, M. Sanchez del Rio and R. Felici
+        "NOP: A new software tool for neutron optics"
+        Physica B 350 (2004) pp. E739-E741
+         
+        http://dx.doi.org/10.1016/j.physb.2004.03.260
+
+
+    2)  M. Sanchez del Rio and R. J. Dejus 
+        "Status of XOP: an x-ray optics software toolkit"
+        SPIE Proceedings Vol. 5536 (2004) pp.171-174
+
+        http://dx.doi.org/10.1117/12.560903
+
+
+LAST MODIFICATION: srio@esrf.eu 2008-01-28
+

@@ -1,0 +1,87 @@
+----- header of xcrosssec.pro extracted on: Fri May 31 15:31:06 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/dabax/xcrosssec.pro -----
+
+==================================  XCrossSec      ============================
+
+ XCrossSec is a widget based graphical interface to calculate Photon-Atom
+ Cross Sections, Mass Absorption Coefficients amd Liner Absorption Coeff.
+ for elements, compounds and mixtures.
+ The data are taken from the DABAX data base. 
+ It uses the following DABAX files:
+    CrossSec_*.dat  (for tabulated Cross Sections. 
+                       Presently *={EPDL,XCOM,McMaster}
+    Compounds.dat   (for mixture and compounds list)
+    AtomicConstants.dat (for atomic Mass and Density)
+
+ Possible calculations:
+	Cross Section [barn/atom]
+	Cross Section [cm^2]
+	Mass Absorption Coefficient [cm^2/g]
+	Linear Absorption Coefficient [cm^-1]
+	Energy Transfer (Linear and Mass) Coeff [cm^2/g,cm^-1]: This 
+	 option is only allowed by using the DABAX file 
+	 CrossSec_EDPL.dat, where these values are tabulated. 
+	 See doc on this file for additional information.
+
+
+ CUSTOMIZATION OF XCROSSSEC INPUT PARAMETERS:
+  -If you want to add(remove) another CrossSec_* file, just add(remove) it
+	in any(all) directory of $DABAX_PATH. Note that the CrossSec
+	files containing all the partial cross section (the ones used
+	here) only have a single underscore (_). 
+ -If you want to modify the mixture table  list, do the following:
+     > a) copy the Compounds.dat DABAX file to a given directory 
+	(e.g., current directory ".")
+     > b) Modify this file to add/remove/change the entries.
+     > c) Redefine $DABAX_PATH to include your new directoty:
+	setenv  DABAX_PATH = .:$DABAX_PATH
+     > d) Restart the application.
+
+
+ DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
+
+  File:
+    XCrossSec input parameters: This option allows to save the current
+		parameters to a file for later loading. It also allows
+		to save the current parameters as defaults for being
+		used when the application is initialized. In the last
+		case, the file is named "application".xop (where 
+		"application " is the name of the current XOP
+		application) and is written in the directory pointed
+		by the XOP_DEFAULTS_DIR environment variable (which
+		must be set). The parameter file is ASCII and can be
+		read and edited with care.
+  Quit: to exit from the program
+
+ Set_Parameters:
+  Set Parameters: to define the parameters for the calculation.
+		The same result is obtained pressing the "Set Parameters"
+		button in the main XCrossSec window. 
+               Please refer to the information under the HELP
+		button for a complete description of the parameters. After 
+		pressing the ACCEPT button, xcrosssec starts running and
+		creates a graphic window with the results.
+  Set Defaults: Sets the default parameters.
+
+  Help:   Shows the XCrossSec help (this text).
+
+
+
+  COPYRIGHT:
+ 	XCROSSSEC belongs to XOP package and it is distributed within XOP.
+ 	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+ 
+  REFERENCE:
+ 	Published calculations made with XOP should refer:
+ 
+ 	M. Sanchez del Rio and R. J. Dejus 
+         "Status of XOP: an x-ray optics software toolkit"
+         SPIE Proceedings Vol. 5536 (2004) pp.171-174
+ 
+         http://dx.doi.org/10.1117/12.560903
+ 
+  LAST MODIFICATION: srio@esrf.eu 2008-02-01
+ 
+ 
+

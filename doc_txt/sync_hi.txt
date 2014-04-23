@@ -1,0 +1,38 @@
+----- header of sync_hi.pro extracted on: Fri May 31 15:31:07 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/sources/sync_hi.pro -----
+ NAME:
+       SYNC_HI
+
+ PURPOSE:
+       Calculates the function Hi(x) used for Synchrotron radiation 
+	Hi(x) = x^i * BeselK(x/2,2/3) (for total polarization)
+
+
+ CATEGORY:
+       Mathematics.
+
+ CALLING SEQUENCE:
+       Result = sync_hi(x [,i] )
+
+ INPUTS:
+       x:      the argument of the function. All calculations are done in doble
+               precision.
+	i:	the exponent. If this optional argument is not entered, it 
+		is set to 2.
+
+ KEYWORD PARAMETERS:
+	POLARIZATION: 0 Total 
+		      1 Parallel       (l2=1, l3=0, in Sokolov&Ternov notation)
+		      2 Perpendicular  (l2=0, l3=1)
+
+ OUTPUTS:
+       returns the value  of the sync_hi function
+
+ PROCEDURE:
+       Uses the relation ship Hi(x) =  x^i * sync_f(0,x)
+
+ MODIFICATION HISTORY:
+       Written by:     M. Sanchez del Rio, srio@esrf.fr, 2002-05-23
+
+

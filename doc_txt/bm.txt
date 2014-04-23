@@ -1,0 +1,63 @@
+
+==================================   BM   ======================================
+
+
+ BM is an widget based graphical interface to calculate the spectum 
+ of Bending Magnets as a function of the photon energy.
+
+ DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
+
+  File:
+   BM input parameters: This option allows to save the current
+		parameters to a file for later loading. It also allows
+		to save the current parameters as defaults for being
+		used when the application is initialized. In the last
+		case, the file is named "application".xop (where 
+		"application " is the name of the current XOP
+		application) and is written in the directory pointed
+		by the XOP_DEFAULTS_DIR environment variable (which
+		must be set). The parameter file is ASCII and can be
+		read and edited with care.
+   Write Files for XOP/Optics: Saves the current undulator
+		spectrum in the SRCOMPE (flux) and SRCOMPW (Power) files
+		to be used for the other XOP application from Optics
+		menu.
+   Quit: to exit from the program
+
+  Set_Parameters:
+   Set Parameters: to define the parameters for the calculation.
+		The same result is obtained pressing the "Set Parameters"
+		button in the main BM window. 
+                Please refer to the information under the HELP
+		button for a complete description of the parameters. 
+   Set Defaults: Sets the default parameters.
+
+  Show: Display results. Several options are available
+   Plot energy spectra
+   Plot angular distribution (all wavelengths) 
+   Plot angular distribution (one wavelength) 
+   Plot (angular,energy) distribution 
+   2D plot flux (anglular-energy) distribution
+   2D plot power (anglular-energy) distribution
+   View numerical values
+
+  Help:   Shows the BM help (this text).
+
+
+
+ COPYRIGHT:
+	BM belongs to XOP package and it is distributed within XOP.
+	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+
+ REFERENCE:
+	Published calculations made with XOP should refer:
+
+	M. Sanchez del Rio and R. J. Dejus 
+        "Status of XOP: an x-ray optics software toolkit"
+        SPIE Proceedings Vol. 5536 (2004) pp.171-174
+
+        http://dx.doi.org/10.1117/12.560903
+
+ LAST MODIFICATION: srio@esrf.eu 2008-01-28
+
+

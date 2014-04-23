@@ -1,0 +1,118 @@
+
+Contents: 
+    1) Calculation method (for mixtures)
+    2) Important notice (for mixtures)
+    3) Description of the input parameters
+
+
+    1) Calculation method (for mixtures)
+    ====================================
+
+ <extracted from doc of cross_calc_mix>
+	i) calculate attenuation mass coefficient for each elements by
+	   calling cross_calc
+	ii) Calculate the weight composition wi of each element in the 
+	   mixture by calling parse_mixture 
+	iii) The attenuation mass coefficient mu_m for the mixture is the 
+	   averaged attenuation from the elements (mu_i):
+		mu_m = Sum{ wi * mu_i } 
+	iv) Returns the value in the correspondent units:
+		UNIT=3 (cm-1) returns density*mu_m
+		UNIT=2 (cm2/g) returns mu_m
+		UNIT=1 (cm2) returns mu_m*(MW/NA) being MW the molecular
+			weight and NA the Avogadro's number. 
+		UNIT=0 (barns/at) returns mu_m*(MW/NA)*1e24
+	
+	The MW (molecular weight) is MW = Sum { fi * Ai), being Ai
+		the atomic weight of the i-th element and fi the 
+		number of atoms of the i-th type in the molecule.
+
+
+    2) Important notice (for mixtures)
+    ==================================
+
+
+ <extracted from doc of cross_calc_mix>
+
+	   The attenuation coefficient is dependent on 
+	   the fractional weigths, so the result is independent if how the 
+	   mixture is defined, either 
+		i) as a function of the weight fractions 
+		ii) as a molecular mixture. 
+	   Therefore, water can be either defined as "H2O" (molecule) 
+		or "H(0.11)O(0.89)" (weight). 	
+
+	   However, for calculating the cross section of the mixture
+		(UNIT = 0 or 1) the molecular weigth enters in the 
+		calculation, and this value is different depending how the 
+		mixture is defined, because DABAX does not know the molecular 
+		weight, but calculates it from the mixture formula:
+		For example, for water:
+		   i) Molecular weight (H2O): 18.015280
+		   ii)  Molecular weight (H(0.11)O(0.89)):  14.350339
+
+		THEREFORE, FOR CROSS SECTIONS (UNIT=0,1), THE MIXTURE SHOULD BE
+		DEFINED IN ITS MOLECULAR FORM (like "H2O") AND NOT IN ITS 
+		WEIGHT FRACTION (like "H(0.11)O(0.89)"). 
+
+		PLEASE NOTE THAT THE PRE-DEFINED COMPOUNDS (IN DABAX
+		FILE Compounds.dat CONTAIN THE MIXTURE FORMULA, AND IN
+		SOME CASES (THE COMPOUNDS OBTAINED FROM NIST DATABASE)
+		THE MOLECULAR FORMULA IS NOT PRESENT (ONLY WEIGHT FORMULA)
+		THEREFORE THE CROSS SECTION VALUES (UNIT=0,1) MAY BE WRONG.
+
+
+
+    3) Description of the input parameters
+    ======================================
+
+datasets: 
+	Select a DABAX file from where the Photon-Atom Cross section
+	will be read. The "all" option is also available, and 
+	in this case all datasets are used (useful for comparisons).
+
+material: Select the desired material type. Three options are available:
+	a) Element(formula) calculation for a single element. 
+	b) Mixture(formula) calculation for a compound or a mixture. The user 
+		defines the mixture formula. 
+		The syntaxis is the following: string with the chemical
+		formula of the compound(s) with their weight fraction between 
+		parenthesis.
+		Examples:
+		H20
+		SiO2(0.807)B2O3(0.129)Na2O(0.038)Al2O3(0.022)K2O(0.004)
+		H2O(0.99)Cl2(0.01)
+		H(0.11189834)O(0.88810166)
+	c) Mixture(table) calculation for a compound or a mixture defined
+		in the included mixture-table (from dabax file Compounds.dat)
+
+table: Compound table, only available if the c) option in material is chosen.
+
+formula: The element or compound or mixture formula, depending the "material"
+		selection.
+
+calculate: type the calculation magnitude. The typed word will be
+		compared with the magnitude name in the DABAX file, and if 
+		they match, the corresponding data are loaded. 
+		The "all" option is also available, and in this case all 
+		datasets are used (useful for comparisons). 
+
+Energy [eV] grid: the abscissas values for the calculations. Two 
+		options are available: 
+		a) Standard, which is the energy grid defined in the 
+		   DABAX file read in first place.
+		b) User-defined, with the parameters described below.
+		c) Single-value, with the energy to be entered in 
+		   "Starting Energy [eV]" box.
+
+Stating Energy [eV]: the initial energy value (only available if either
+		b) or c) is chosen in the "Energy [eV] grid" entry.
+
+To: the last energy value (only available if b) is chosen in the
+		"Energy [eV] grid" entry.
+
+Number of points: the number of energy points (only available if b) is 
+		chosen in the "sin_theta/lambda grid" entry.
+
+Units: the units in which the Cross Sections are presented
+

@@ -1,0 +1,593 @@
+
+XCOM Documentation
+
+M. J. Berger and J. H. Hubbell
+
+A computer program and data base are presented which can
+be used to calculate, with a personal computer, photon
+cross sections for scattering, photoelectric
+absorbtion and pair production, as well as total
+attenuation coefficients, in any element, compound, or
+mixture, at energies from 1 keV to 100 GeV.
+____________________________________________________
+Table of Contents:
+
+I.	Disclaimer
+II.	Why you should use the Web
+III.	Version History
+IV.	Files for XCOM
+V.	Setup
+VI.	Running XCOM
+VII.	Program Notes
+____________________________________________________
+I. Disclaimer:
+
+The National Institute of Standards and Technology (NIST)
+uses its best efforts to deliver a high quality copy of
+the Database and to verify that the data contained therein
+have been selected on the basis of sound scientific
+judgement. However, NIST makes no warranties to that
+effect, and NIST shall not be liable for any damage that
+may result from errors or omissions in the Database.
+____________________________________________________
+II. Why you should use the Web:
+
+	Simple and convenient user interface
+	Graphing
+	Updated regularly
+
+Check out the online version at:
+
+http://physics.nist.gov/XCOM
+____________________________________________________
+III. Version History:
+
+	Description
+	Version Number
+	Date
+	Programmer(s)
+
+	Programming Update
+	Version 3.1
+	June 1999
+	Martin J. Berger and Stephen M. Seltzer
+	
+	NIST Standard Reference Database 8
+	Version 2.0
+	June 1990
+	Martin J. Berger and John H. Hubbell
+
+	Original Release
+	Version 1.2
+	July 1987
+	Martin J. Berger and John H. Hubbell
+
+
+For more comprehensive version history information see the
+online documentation:
+
+http://physics.nist.gov/PhysRefData/Xcom/Text/version.html
+____________________________________________________
+IV. Files for XCOM:
+
+XCOM.f		Fortan Source
+ATWTS.DAT	Atomic Weights Data File
+ENB.DAT		Data File
+HASH1.DAT	Data File
+HASH2.DAT	Data File
+INDEX.DAT	Data File
+MDATX3.xxx	Cross Sections Data for each element
+		where "xxx" is the atomic number
+
+for PC only
+
+XCOM.exe	Photon Cross Sections Program
+makedisk.bat	Application that can be used to copy the
+		XCOM program to a floppy disk without
+		including any extraneous files
+____________________________________________________
+V. Setup:
+
+1. Make a directory for XCOM
+2. Unzip the XCOM zip into that directory
+
+Note: PC users can skip step 3
+
+3. Compile (and link) XCOM.f
+
+To run the program, run XCOM and follow command line
+instructions
+____________________________________________________
+VI. Running XCOM:
+
+Follow comand line instructions
+
+Note on: Format for entry from prepared input file
+	- First, the number of energies in the list
+	- Then, energies in MeV
+	- All items separated by blank spaces
+____________________________________________________
+VII. Program Notes:
+
+For calculation information such as the method used
+see the online documentation:
+
+http://physics.nist.gov/PhysRefData/Xcom/Text/intro.html
+
+================================================================================
+
+                XCOM: Photon Cross Sections on a Personal Computer 
+   
+   
+                       M. J. Berger and J. H. Hubbell 
+                        Center for Radiation Research 
+                        National Bureau of Standards 
+                           Gaithersburg, MD 20899 
+   
+   
+   
+                 A computer  program and data base  are presented  
+                 which can be used to calculate, with  a personal 
+                 computer, photon cross  sections for scattering, 
+                 photoelectric absorption and pair production, as 
+                 well as total  attenuation  coefficients, in any  
+                 element,  compound or mixture, at  energies from  
+                 1 keV to 100 GeV. 
+   
+   
+                                1. Introduction 
+   
+       Data  on the scattering and absorption of photons (x-rays,  gamma rays, 
+  bremsstrahlung)  are  required for many scientific,  engineering and medical 
+  applications.  The  number  of materials for which photon cross sections are 
+  needed is large and ever increasing. Available tables [1-11] usually include 
+  cross sections for many (but not all) elements.  Some tables [1,2,6,11] also 
+  contain data for a limited number of compounds and mixtures.  In practice it 
+  is  not  possible to meet all cross-section requirements adequately by means 
+  of printed tables.  Moreover,  the cross sections are often needed at photon 
+  energies other than those included in the tables. 
+   
+       Photon  cross  sections  for compounds can of course be obtained rather 
+  accurately  (except  at energies close to absorption edges) as weighted sums 
+  of  the  cross sections for the atomic constituents.  However,  the required 
+  numerical work  is tedious,  and the task is further complicated by the fact 
+  that  photoabsorption  cross sections and total attenuation coefficients are 
+  discontinuous  at  absorption  edges.  The presence of these discontinuities 
+  makes  it  desirable  that cross section tables for compounds include photon 
+  energies  immediately  above  and below all the absorption edges for all the 
+  atomic constituents, and this requires much additional interpolation.   
+   
+       A convenient alternative approach is to generate the cross sections and 
+  attenuation  coefficients  for  compounds   and mixtures as needed,  using a 
+  personal  computer.  This  paper  describes   a computer program called XCOM 
+  which  carries  out  this task quickly on IBM-compatible personal computers, 
+  for any element, compound or mixture, at energies between 1 keV and 100 GeV. 
+  The  program makes use of a database of cross sections for the elements that 
+  is stored in compressed form on a single floppy disk. 
+   
+       The  XCOM program can generate cross sections on a standard energy grid 
+  (spaced  approximately  logarithmically), or on a grid selected by the user, 
+  or for a mix of both grids. Cross sections at energies immediately above and 
+  below  all  absorption edges are automatically included.  XCOM provides  two 
+  forms of output:  (a) tables which  correspond closely in format to existing 
+  tables in the literature;  (b) user-selected arrays which are convenient for
+  further computer calculations. 
+   
+       The  program provides total cross sections and attenuation coefficients 
+  as  well  as partial cross sections for the following processes:  incoherent 
+  scattering,   coherent  scattering,   photoelectric  absorption,  and   pair 
+  production in the field of the atomic nucleus and in the field of the atomic 
+  electrons.  For  compounds,  the  quantities tabulated are partial and total 
+  mass  interaction  coefficients,  which   are   equal  to the product of the 
+  corresponding  cross  sections times the number of target molecules per unit 
+  mass of the material.  The reciprocals of these interaction coefficients are 
+  the  mean free paths between scatterings,  between photo-electric absorption 
+  events,  or  between  pair  production   events.  The sum of the interaction 
+  coefficients  for the individual processes is equal to the total attenuation 
+  coefficient.  Total  attenuation  coefficients without the contribution from 
+  coherent scattering are also given, because they are often used in gamma-ray 
+  transport calculations.  
+   
+       The  interaction  coefficients  and  total attenuation coefficients for 
+  compounds  or  mixtures are obtained as sums of the corresponding quantities 
+  for the atomic constituents.  The weighting factors,  that is, the fractions 
+  by  weight  of  the  constituents,  are calculated by XCOM from the chemical 
+  formula entered by the user. For mixtures, however, the user must supply the 
+  fractions by weight of the various components. 
+   
+       Some  limitations  should be noted.  The cross sections for elements in 
+  the  XCOM  database pertain to isolated neutral atoms,  and do not take into 
+  account  molecular and solid-state effects  which modify the cross sections,
+  especially  in the  vicinity  of absorption  edges.  Relatively  small cross
+  sections, such as those for Delbruck scattering, two-photon Compton scatter-
+  ing or photo-meson production, are not included. Also omitted is the nuclear
+  photoeffect  which, in the giant-dipole  resonance region from  5 to 30 MeV, 
+  can contribute a few percent to the total attenuation coefficient.  Finally, 
+  XCOM does not calculate  energy  absorption  coefficients that represent the
+  conversion of photon energy to kinetic energy of secondary Compton-, photo-,
+  and pair-electrons. 
+        
+                            2. Database for Elements 
+   
+       A comprehensive database for all elements over a wide range of energies 
+  was constructed through the combination of incoherent and coherent scattering 
+  cross  sections  from  Refs. [12]  and  [13], photoelectric absorption  from 
+  Scofield  [14],  and  pair  production  cross  sections  from Ref. [8].  For 
+  scattering and pair production, the same cross sections are used as in other 
+  recent tabulations in Refs. [6, 8, and 11], whereas for photoelectric absorp-
+  tion  there is a small difference (omission of a renormalization correction)
+  which is discussed below. 
+   
+       The  incoherent  (Compton) scattering  cross sections in Ref. [12] were 
+  obtained from a combination of the Klein-Nishina formula and nonrelativistic 
+  Hartree-Fock incoherent scattering functions.  Radiative and double Compton-
+  scattering   corrections  were  also  included.   The   coherent  (Rayleigh)
+  scattering cross sections in Ref. [13] were calculated from a combination of 
+  the Thompson formula and relativistic Hartree-Fock atomic form factors.  The 
+  photoelectric cross sections were obtained by Scofield [14] by a phase-shift
+  calculation  for  a  central  potential  and a Hartree-Slater atomic  model.  
+  Scofield's results extend only up to 1.5 MeV.  At higher energies, where the
+  photoelectric  cross section is quite small, a  semi-empirical  formula from
+  Ref. [2] connects Scofield's values at 1.5 MeV to the asymptotic high-energy
+  limit calculated by Pratt [15].  Cross sections for pair production given in
+  Ref. [8] are  based on  complicated  combinations  of formulas  from  Bethe-
+  Heitler  theory with various other  theoretical models to  take into account
+  screening, Coulomb, and radiative  corrections.  Different combinations were
+  used in the  near-threshold, intermediate and high-energy  regions to obtain
+  the best possible agreement with experimental cross sections. 
+   
+       For  elements with atomic numbers from 2 to 54, Scofield [14] presented 
+  correction  factors   for  individual  atomic  subshells,   with  which  the  
+   photo-effect cross  sections  can be  renormalized so  that they  correspond 
+  approximately  to a relativistic Hartree-Fock model rather than the Hartree- 
+  Slater model used in the original calculation.  This renormalization is most 
+  significant for the outer atomic shells;  the total cross section is lowered 
+  by  no  more  than  10  percent   at energies above 1 keV.  Scofield did not 
+  actually  apply  the  renormalization   to   the cross sections given in his 
+  tables.  The  renormalization   was   used,  however,  in the tabulations in 
+  Refs. [6, 8, and 11].  Recent reviews [16,17]  indicate that,  on the whole, 
+  agreement with experiment is better when the renormalization is not done. We 
+  have  therefore  omitted  the renormalization  in the database  for the XCOM 
+  program. 
+   
+                        3. Interpolation and Combination 
+   
+       For  the  purpose  of interpolation with respect to photon energy,  the 
+  coherent  and incoherent scattering cross sections and the total attenuation 
+  coefficients  are  approximated by log-log cubic-spline fits as functions of 
+  energy.  For the pair-production cross sections,  the fitted quantity is the 
+  logarithm of the quantity ((1-E'/E)**3)*SPAIR(E), where E is the photon energy, 
+  E' the  threshold  energy  for pair  production,  and SPAIR(E)  is the cross 
+  section.  The fitting is done separately for pair production in the field of 
+  the atomic nucleus (E' = 1.022 MeV) and in the field of the atomic electrons
+  (E' = 2.044 MeV). 
+   
+       The  combined  photoelectric absorption cross section for all shells is 
+  similarly  interpolated  with use of log-log cubic-spline fits,  but only at 
+  energies above the K-shell absorption edge. Below this energy, interpolation 
+  is  applied  to  the logarithm of the photoelectric absorption cross section 
+  for each separate shell, fitted as a linear function of the logarithm of the 
+  photon energy. The separate fitting for each shell is necessary to avoid the 
+  error  that  would  be   incurred  by interpolating across absorption edges. 
+  Linear  log-log  fitting  is  equivalent  to assuming that the photoelectric 
+  cross section is proportional to a power of the photon energy, and was found 
+  to  provide  more satisfactory fits than a log-log cubic-spline fit near the 
+  absorption edges. 
+   
+       The  interaction  coefficients  and  total attenuation coefficients for 
+  compounds  are obtained as weighted sums over the corresponding coefficients 
+  for  elements.  XCOM automatically calculates the weight  factors, i.e., the 
+  fractions  by weights of the atomic constituents,  from the chemical formula 
+  for the compound entered by the user.  For mixtures, the user must enter the 
+  fractions by weight of the components. 
+   
+   
+                       4. Overview of the XCOM Program 
+   
+       The hardware requirements for running the XCOM program are moderate. It 
+  is  sufficient  to have an IBM-compatible personal computer with a memory of 
+  at least 256K bytes,  and with at least one 5.25-inch floppy-disk drive.  It 
+  is  assumed  that  the  computer  is   operated with the PC-DOS or an MS-DOS 
+  operating system,  version 2.0 or later.  A mathematical co-processor (Intel 
+  8087  or  80287 chip) is not required,  but is highly desirable,  because it 
+  speeds up to execution of XCOM by a factor of twenty or better. 
+   
+       The  XCOM program is distributed on two 5.25-inch floppy disks.  One of 
+  these  is  the  Database  Disk,  and   contains 100 data files designated as 
+  MDAT.001,  MDAT.002, ..., MDAT.100.  These  files,  generated  by  a Fortran 
+  program and written in binary format, contain the cross-section database for
+  the  elements  with  atomic  numbers  Z = 1 to 100.  The  other disk  is the
+  Program Disk, and contains an executable file called XCOM.EXE.  
+   
+       The Program Disk also contains a copy of this report, in file XCOM.DOC, 
+  and  the Fortran source code for XCOM.  The source code is not needed to run 
+  XCOM.  It  is  included  to make it possible for the user to make modify the 
+  program,  and  to  adapt  the  program to for use with a different operating 
+  system or computer. 
+   
+  The main program, XCOM, uses the following subroutines: 
+   
+    SPEC    Allows the user to specify the composition of the material, 
+            the energy list, desired output etc. 
+   
+    FORM    Translates the chemical symbols for elements or chemical 
+            formulas for compounds into the composition of the material 
+            specified in terms of atomic numbers, atomic weights, and  
+            fractions by weight of the atomic constituents. 
+   
+    MERGE   Creates a merged energy list arranged according to magnitude. 
+            This list combines a standard energy grid (approximately 
+            logarithmic) with the set of absorption-edge energies for 
+            all the atomic constituents for a given compound or mixture, 
+            and with the set of additional energies which the user wishes  
+            to add. 
+   
+    REV     Utility routine for reversing the order of certain arrays. 
+   
+    SCOF    Routine for generating coefficients for cubic-spline fits. 
+   
+    BSPOL   Interpolation routine (based on binary search) making use of 
+            cubic-spline interpolation coefficients from SCOF.FOR. 
+   
+    BLIN    Linear interpolation routine, based on binary search.  
+               
+       Also  included  on the Program Disk are five additional files which are 
+  "included" in the main program or in subroutines at the time of compilation. 
+  ENB.DAT and INDEX.DAT are for inclusion in XCOM,  HASH1.DAT and HASH2.DAT in 
+  FORM, and ATWTS.DAT in XCOM and FORM. 
+   
+   
+   
+                       5. How to Run the XCOM Program 
+   
+       If  the program is to be run using only floppy disks,  the Program Disk 
+  should be inserted into drive A.  After the appearance of the A> prompt, the 
+  program can be started by entering "XCOM". 
+   
+       If the program is to be run from a hard disk,  it is recommended that a 
+  special  subdirectory  be created for running XCOM.  First,  the user should 
+  copy  the  file  XCOM.EXE  from  the  Program  Disk  and  the   data   files 
+  MDAT.001, MDAT.002, ..., MDAT.100  from the  Database Disk  into the special 
+  directory.  After  the special directory is made the current  directory, the 
+  program can be started by entering XCOM. 
+   
+       From this point on,  the program proceeds interactively.  The user must 
+  respond to prompts (indicated by -->) by entering requested input data or by 
+  making  choices from various options.  The requested information pertains to 
+  the name and characterization of the substance of interest,  the desired set 
+  of energies at which cross sections are to be computed,  and the form of the
+  output. 
+   
+       The  prompts are largely self-explanatory.  In order to indicate to the 
+  user  what  to  expect,  we show  in this  report  a record  of prompts  and
+  responses  that  appeared  on the  monitor screen  in three  sample runs  of
+  XCOM,  for  an  element  (lead)  in  Appendix A,  for  a  compound  (calcium
+  tungstate) in Appendix B, and for a mixture (pyrex glass) in Appendix C. The
+  XCOM program could probably be run without further explanations.  Additional
+  information  is provided in  the remainder of this  Section, which will help 
+  the user to formulate his responses to the prompts. 
+   
+  5.1. Name of Substance. 
+   
+       The  name can be freely chosen,  may include imbedded blanks,  and must 
+  consist  of  no more than 72 characters.  The name will appear on the top of 
+  the output table.
+    
+  5.2. Elements, Compounds and Mixtures. 
+   
+       The  substance  for  which  cross   sections  are to be computed can be 
+  designated to be an element, compound or mixture. Elements can optionally be 
+  indicated  by  their   atomic   number,  or by their chemical  symbol. These 
+  symbols,  or chemical formulas for compounds,  should be entered in standard 
+  chemical notation,  with appropriate upper and lower case.  However, because 
+  of  hardware limitations,  subscripts must be written on line.  For example, 
+  the formula for calcium tungstate must be entered as CaWO4. 
+   
+       Substances  consisting of molecules with only a single species of atoms 
+  can be designated as either as elements or compounds. For example, molecular 
+  nitrogen  could  be treated as an "element" with symbol N,  or as a compound 
+  with formula N2 (entered as N2). 
+   
+  5.3. Mixtures. 
+   
+       Mixtures  are  assumed  to  consist of two or more components,  each of 
+  which can be either an element or a compound.  Whether the mixture is broken 
+  down  into  "elemental"  components  or "compound" components is a matter of 
+  convenience  (depending on the readily available information),  but does not 
+  change the results.  
+   
+       The user  must indicate  how many components  there are in the mixture,
+  and must specify the chemical symbol or formula, as well as  the fraction by 
+  weight,  for each component,  as prompted. The program then uses these input 
+  data  to  compute  the   fractions   by  weight of for the individual atomic 
+  constituents,  as  well  as the sum of these fractions.  This information is 
+  displayed on the monitor screen. The input data might be faulty in the sense 
+  that  the  sum of the fractions by weight does not add up to unity.  In this 
+  case the user is given two choices:  1) The input data can be "accepted", in 
+  which  case  the program renormalizes all of the fractions by weight so that 
+  they add up to unity;  2) Another set of fractions by weight for the mixture
+  can be entered.  
+   
+  5.4. Quantities and Units. 
+   
+       For  elements,  the  user is  given  three  choices:  1) the output can
+  consist  of  cross  sections  for  individual  processes,  and  total  cross 
+  sections, in units of  barns/atom, where 1 barn =10E-24 cm2;  2) the output 
+  can consist of cross sections for individual processes,  in barns/atom,  and 
+  mass  attenuation  coefficients,  in  cm2/g;  3)   the output can consist of 
+  partial  mass  interaction  coefficients   and,  total   mass    attenuation 
+  coefficients,  in  cm2/g.  For   compounds   and  mixtures the output always 
+  consists  of  partial  mass interaction coefficients,  and total attenuation 
+  coefficients, in cm2/g. 
+   
+  5.5. Energy List. 
+   
+       The user can 1) limit the output to the standard energy grid, 2) add to 
+  the standard grid selected energies of his choice, or 3) request output only 
+  for the set of energies selected by him.  In case 2) the additional energies 
+  are merged into the standard energy grid according to magnitude. In case 3), 
+  the  energies  will  appear  in  the output table exactly in the sequence in 
+  which they were entered by the user. 
+   
+       If  additional  energies  are  entered  by the user,  this can be done, 
+  optionally,  either  from the keyboard,  or from a previously prepared input 
+  file.  This  file (stored in any desired directory on a floppy or hard disk) 
+  should contain, as first item, the number of additional energies, and then a 
+  list of energies, which items separated by blank spaces.  
+   
+  5.6.  Database Input Data 
+   
+       The  program  will  prompt  the   user  as to the  location of the file 
+  containing the database files.  The user can request that these data be read 
+  from  a  floppy  disk drives (A or B),  or from the current directory in the 
+  hard disk.  Even  when the program is run from the  special directory on the 
+  hard disk,  the data can still come from drives A or B.  If the data  are to
+  come from  the  hard  disk,  they  must have been  previously  stored in the
+  special directory, i.e.,  the current directory  from which the XCOM run was
+  started. 
+   
+  5.7.  Output Table 
+   
+       The  user  is  asked  by a prompt where the file with the cross section 
+  table is to be stored.  The file specification can include the letter of the 
+  drive,  the subdirectory,  and the file name.  If the current directory on a 
+  hard  disk is to be used,  only the file name need be supplied.  If the user 
+  wants  to  see the output table only on the monitor screen,  the output file 
+  should  be designated as "CON".  If the user wants neither to inspect nor to 
+  save  the  output table (because only the output arrays discussed in section 
+  5.8 are wanted), the output file should be designated as "NUL".  
+   
+       On the top of each page of the table the name of the substance is given, 
+  followed  by a listing of the atomic numbers and fractions by weight of  the 
+  atomic  constituents.  The  main body of the  table is supplied  with enough 
+  headings  to be  self-explanatory.  This left-most column gives the designa-
+  tions of  the  absorption  edges  (K, L1, L2, L3, M1, M2,..) as  well as the
+  atomic number Z  of the  pertinent  atomic constituent.  Data  for  energies
+  immediately below and above each edge, are given on two lines separated by a 
+  blank  line.  It should be noted that the standard energy grid automatically 
+  includes  at  least one  other  energy between any two successive absorption 
+  edges.  For  materials  of low atomic number,  there are no absorption edges 
+  above 1 keV, and the column indicating the names of edges is absent.  
+   
+       Typical output tables are shown in Table 1 (for an element,  lead),  in 
+  Table  2 (for a compound,  calcium tungstate) and in Table 3 (for a mixture, 
+  pyrex glass:  0.807 SiO2, 0.129 B2O3, 0.038 Na2O, 0.022 Al2O3, and 0.004 K2O 
+  by  weight).  On  the top of each page,  the name of the substance is given, 
+  followed  by  a listing of the atomic numbers and fractions by weight of the 
+  atomic constituents.  Fig. 1 shows some of the results from Table 2, namely, 
+  the  total  mass attenuation coefficient plotted as a function of the photon 
+  energy.
+
+                         5.8 Additional Output Arrays 
+   
+       The cross section tables described  in Section 5.7 are directly compar-
+  able in format  to printed  tables found  in the  literature,  and  are most
+  convenient for visual inspection of the data.  If these  data are to be used
+  in subsequent  computer  calculations,  the appropriate cross section arrays
+  must be extracted for the tables.  XCOM provides an option which facilitates
+  this task.
+       After  the  production  of the  cross  section table  is completed, the
+  program prompts the  user to indicate whether  additional output in the form
+  of arrays of selected quantities is  desired.  If the answer is affirmative,
+  a selection menu is presented.  The arrays which can be  selected correspond
+  to the columns in the  cross section table.  After each selection, this menu
+  is presented again.
+       The user  is also  asked to  provide the name  of the file in which the
+  additional arrays are to be stored. At the beginning of this file, preceding
+  the arrays, the following information  is stored.  The first record consists
+  of the name of the substance.  The second record gives  the number of atomic
+  constituents,  the  third  contains a  list of atomic numbers of the consti-
+  tuents and the fourth a list of fractions by weight.
+       The fifth  record gives the number of  sub-arrays into which each array
+  is divided, and the sixth contains the lengths of all successive sub-arrays.
+  Each  sub-array  contains   data  for  all  energies  between  two  adjacent
+  absorption edges.  This partitioning  facilitates the setting up of interpo-
+  lation schemes in which interpolation  across  absorption edges is  avoided. 
+       Subsequent records  contain, for  each of the  quantities  selected, an
+  identifier (such as "energy list," "total attenuation coefficient") followed
+  by one or more sub-arrays.  
+   
+       Even though the arrangement of the file, as described above, may appear
+  somewhat complicated,  it can easily  be understood  by comparison  with the
+  corresponding  output table.  A typical set of output arrays,  consisting of
+  photon  energies  and  total   mass  attenuation  coefficients  for  calcium
+  tungstate,  is given  Table 4.   These arrays  are the same  as the  data in
+  columns 2 and 7 in Table 2, and were used to produce the plot in Fig. 1.   
+   
+                              Acknowledgement.   
+   
+       This work  was supported by the  NBS Office of Standard Reference Data,
+  and by the U.S. Department of Energy (OHER). 
+
+                                References 
+   
+   1.  Hubbell, J.H. and Berger, M.J., Sections 4.1 and 4.2 in Jaeger, R.G. 
+       (ed.): Engineering Compendium on Radiation Shielding (IAEA, Vienna), 
+       Vol. 1, Ch. 4, pp. 167-202, Springer, Berlin (1968). 
+   
+   2.  Hubbell, J.H., Photon Cross Sections, Attenuation Coefficients and Energy
+       Absorption Coefficients  from 10 keV to 100 GeV, Natl. Stand. Ref. Data
+       Ser. 29 (1969). 
+   
+   3.  McMaster, W.H., Del  Grande,  N.K.,Mallett,  J.H,  and  Hubbell,  J.H. 
+       Compilation of  X-ray Cross  Sections, Lawrence  Livermore Lab., Report
+       UCRL-50174, (1969). 
+   
+   4.  Storm, E. and Israel, H.I., Photon Cross Sections from 1 keV to 100 MeV 
+       for Elements Z=1 to Z=100, Nucl. Data Tables A7, 565-681 (1970). 
+   
+   5.  Veigele, W.J., Photon Cross Sections from 0.1 keV to 1 MeV for Elements 
+       Z=1 to Z=94, Atomic Data 5, 51-111 (1973). 
+   
+   6.  Hubbell, J.H., Photon Mass Attenuation and Mass Energy-Absorption 
+       Coefficients for H,C,N,O,Ar and Seven Mixtures from 0.1 keV to 20 MeV, 
+       Radiat. Res. 70, 58-81 (1977).
+   
+   7.  Leroux, J, and Thinh, T.P., Revised Tables of X-ray Mass Attenuation 
+       Coefficients, Corporation Scientifique Classique, Quebec (1977). 
+   
+   8.  Hubbell, J.H.,  Gimm., H.A.,  and Overbo,  I., Pair,  Triplet and Total
+       Atomic  Cross Sections (and Mass Attenuation Coefficients) for 1 MeV-100
+       GeV Photons in Elements Z=1 to 100, J. Phys. Chem. Ref. Data 9, 1023-1147
+       (1980). 
+   
+   9.  Plechaty, E.F., Cullen, D.E., and Howerton, R.J., Tables and Graphs of 
+       Photon-Interaction Cross Sections from 0.1 keV to 100 MeV Derived from 
+       the LLL Evaluated-Nuclear-Data Library, Report UCRL-50400, Vol. 6, 
+       Rev. 3 (1981). 
+   
+  10.  Henke, B.L., Lee, P., Tanaka, T.J., Shimabukuro, R.L. and Fujikawa, B.K.,
+       Low Energy X-ray Interaction Coefficients:  Photoabsorption, Scattering
+       and Reflection, Atomic Data and Nuclear Data Tables, 27,1-144 (1982). 
+   
+  11.  Hubbell, J.H., Photon Mass Attenuation and Energy Absorption Coefficients
+       from 1 keV to 20 MeV, Int. J. Appl. Radiation & Isotopes, 33, 1269-1290
+       (1982). 
+   
+  12.  Hubbell, J.H.,  Veigele, W.J., Briggs, E.A., Brown, R.T., Cromer, D.T.,
+       and Howerton, R.J.,Atomic Form Factors, Incoherent Scattering Functions,
+       and Photon Scattering Cross Sections, J. Phys. Chem. Ref. Data 4, 471-538
+       (1975); erratum in 6, 615-616 (1977). 
+   
+  13.  Hubbell, J.H. and Overbo, Relativistic Atomic  Form Factors  and Photon
+       Coherent  Scattering Cross Sections, J. Phys. Chem. Ref. Data 8, 
+       69-105, (1979). 
+     
+  14.  Scofield, J.H.,  Theoretical Photoionization  Cross Sections  from 1 to
+       1500 keV, Lawrence Livermore National Laboratory Rep. UCRL-51326 (1973).
+   
+  15.  Pratt, R.H., Atomic Photoelectric Effect at High Energies, Phys. Rev. 
+       117, 1017-1028 (1960). 
+   
+  16.  Saloman, E.B.  and Hubbell, J.H., Critical Analysis of Soft X-ray Cross
+       Section Data, Nucl. Instr. Meth. A255, 38-42 (1987). 
+   
+  17.  E.B. Saloman and J.H.Hubbell, X-ray Attenuation Coefficients (Total Cross
+       Sections): Comparison of the Experimental Data Base with Recommended Values
+       of Henke and the  Theoretical Values  of Scofield  for Energies between
+       0.1-100 keV, National Bureau of Standards Report NBSIR 86-3431 (1986). 
+   
+
+
+
+

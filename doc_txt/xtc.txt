@@ -1,0 +1,68 @@
+----- header of xtc.pro extracted on: Fri May 31 15:31:05 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/sources/xtc.pro -----
+====================================  Xtc   ===================================
+
+   Xtc is an widget based graphical user interface to calculate on-axis
+   brilliance tuning curves for an ideal undulator insertion device using
+   the Bessel function approximation (regular planar device or helical device).
+   The calculation is performed by the program TC ("tuning curves") which is
+   executed from the XTC interface. The effects of the particle beam
+   emittance and beam energy spread are taken into account.
+
+
+ DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
+
+  File:
+    Xtc input parameters: This option allows to save the current
+		parameters to a file for later loading. It also allows
+		to save the current parameters as defaults for being
+		used when the application is initialized. In the last
+		case, the file is named "application".xop (where 
+		"application " is the name of the current XOP
+		application) and is written in the directory pointed
+		by the XOP_DEFAULTS_DIR environment variable (which
+		must be set). The parameter file is ASCII and can be
+		read and edited with care.
+    TC file: This option allows to load/write the current parameter
+		and result files for further calculations. The used file
+		formats are those used by TC. Therefore, they
+		can be used to run TC without the interface or to
+		import TC files created outside the XTC application.
+  Quit: to exit from the program
+
+ Set_Parameters:
+  Set Parameters: to define the parameters for the calculation.
+		The same result is obtained pressing the "Set Parameters"
+		button in the main XTC window. 
+               Please refer to the information under the HELP
+		button for a complete description of the parameters. After 
+		pressing the ACCEPT button, TC starts running.
+  Set Defaults: Sets the default parameters.
+
+  Show: Display results
+    Plot ...: Plots the different TC results.
+    View Results: Displays the TC result file, tc.out, in a scrollable 
+		window. The file may be printed from this window.
+
+  Help:   Shows the TC help and the XTC help (this text).
+
+
+  COPYRIGHT:
+	XTC belongs to XOP package and it is distributed within XOP.
+	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+
+  REFERENCE:
+	Published calculations made with XOP should refer:
+
+	M. Sanchez del Rio and R. J. Dejus 
+        "Status of XOP: an x-ray optics software toolkit"
+        SPIE Proceedings Vol. 5536 (2004) pp.171-174
+
+        http://dx.doi.org/10.1117/12.560903
+
+
+  LAST MODIFICATION: RJD 2008-08-14
+
+
+

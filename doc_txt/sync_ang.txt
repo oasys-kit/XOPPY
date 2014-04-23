@@ -1,0 +1,51 @@
+----- header of sync_ang.pro extracted on: Fri May 31 15:31:07 2013
+----- Documentation for /scisoft/xop2.3/src_idl/sources/sync_ang.pro -----
+
+ NAME:
+       SYNC_ANG
+
+ PURPOSE:
+       Calculates the synchrotron radiation angular distribution
+
+ CATEGORY:
+       Mathematics.
+
+ CALLING SEQUENCE:
+       Result = sync_ang(flag, angle )
+
+ INPUTS:
+	flag: 	0 Flux fully integrated in photon energy
+		1 Flux at a given photon energy
+       angle:  the angle array [in mrad]
+
+ KEYWORD PARAMETERS:
+	POLARIZATION: 0 Total 
+		      1 Parallel       (l2=1, l3=0, in Sokolov&Ternov notation)
+		      2 Perpendicular  (l2=0, l3=1)
+
+	IF FLAG=0 THE FOLLOWING KEYWORDS MUST BE ENTERED
+		E_GeV= The electron energy [in GeV]  (default=1.0)
+		I_A= the electron beam intensity [in A] (default=1.0D-3)
+		HDiv_mrad= the horizontal divergence [in mrad] (default=1)
+		R_M= the bending magnet radius [in m] (default=1.0)
+
+	IF FLAG=1 THE FOLLOWING KEYWORDS MUST BE ENTERED
+		All keyworsd for FLAG=0 plus:
+		Energy = the energy value [in eV] (default=1)
+		EC_eV= The critical energy [eV] (default=1)
+
+ OUTPUTS:
+       returns the array with the flux [photons/sec/0.1%bw]
+
+ PROCEDURE:
+
+	References: 
+		G K Green, "Spectra and optics of synchrotron radiation" 
+			BNL 50522 report (1976)
+		A A Sokolov and I M Ternov, Synchrotron Radiation, 
+			Akademik-Verlag, Berlin, 1968
+
+ MODIFICATION HISTORY:
+       Written by:     M. Sanchez del Rio, srio@esrf.fr, 2002-06-03
+
+

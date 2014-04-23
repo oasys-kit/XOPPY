@@ -1,0 +1,105 @@
+----- header of xyaup.pro extracted on: Fri May 31 15:31:05 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/sources/xyaup.pro -----
+
+==============================  Xyaup   =======================================
+
+  Xyaup is a widget based graphical interface to calculate spectra of a 
+  tapered undulator insertion devices.
+
+  It interfaces the program YAUP 1.3.1 written by B. Boyanov (see Help/Yaup)
+
+
+ DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
+
+  File:
+    XYaup input parameters: This option allows to save the current
+		parameters to a file for later loading. It also allows
+		to save the current parameters as defaults for being
+		used when the application is initialized. In the last
+		case, the file is named "application".xop (where 
+		"application " is the name of the current XOP
+		application) and is written in the directory pointed
+		by the XOP_DEFAULTS_DIR environment variable (which
+		must be set). The parameter file is ASCII and can be
+		read and edited with care.
+    Yaup file: This option allows to load/write the current parameter
+		and result files for further calculations. The used file
+		formats are those used by YAUP. Therefore, they
+		can be used to run YAUP without the interface or to
+		import YAUP files created outside the XYAUP application.
+    Write Files for XOP/Optics: Saves the current undulator
+		spectrum in the SRCOMPE (flux) and SRCOMPW (Power) files
+		to be used for the other XOP application from Optics
+		menu.
+  Quit and preserve files: Quits without cleaning current directory
+		(i.e., preserving the created data files.)
+  Quit: to exit from the program
+
+ BField:
+         	from ASCII file: 
+		Yaup needs a file with tha magnetic field. This may be 
+		obtain from a user's file (column-formatted, containing
+		three colums: z, B(z), and phi(z), where the z s are 
+		equidistant with step PERIOD/NPTS. 
+		See Help/Yaup for definitions of PERIOD and NPTS.  
+		There should be NPTS*NPER+1 lines in the ASCII file.
+
+		from XBFIELD Preprocessor: calls XBFIELD, an interface for the 
+		program BFIELD distributed in the YAUP package. This program
+		creates the magnetic field starting from the undulator
+		oparameters.
+
+		from Linear B field: Creates a magnetic field modulated with a 
+		straight line with the given B or K extrema.
+
+ Set_Parameters:
+  Set Parameters: to define the parameters for the calculation.
+		The same result is obtained pressing the "Set Parameters"
+		button in the main XYAUP window. 
+               Please refer to the information under the HELP
+		button for a complete description of the parameters. After 
+		pressing the ACCEPT button, YAUP starts running.
+  Set Defaults: Sets the default parameters.
+
+  Show: Display results
+		Plot B field: Plots the computed B field.
+		Plot Trajectory: Plots the electron trajectory in the 
+		defined magnetic field.
+		Show Trajectory Numerical Data: display the trajectory 
+		output file.
+		Plot Results: Makes 2-D or 3-D plots of the results,
+		depending on the mode and other defined parameters.
+		Show Results Numerical Data: display the yaup result file.
+
+  Help:   Shows the YAUP help and the XYAUP help (this text).
+
+ COPYRIGHT:
+	XYAUP and XBFIELD belongs to XOP package and it is distributed 
+       within XOP.
+	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+
+ REFERENCE:
+	Published calculations made with XOP should refer:
+
+	M. Sanchez del Rio and R. J. Dejus 
+        "Status of XOP: an x-ray optics software toolkit"
+        SPIE Proceedings Vol. 5536 (2004) pp.171-174
+
+        http://dx.doi.org/10.1117/12.560903
+
+
+	In addition, published calculations using the XYAUP package 
+	should also cite:
+
+	  B. I. Boyanov, G. Bunker, J. M. Lee, and T. I. Morrison
+	  "Numerical Modeling of Tapered Undulators"
+	  Nucl. Instr. Meth. A339,  596-603, 1994
+
+
+
+ LAST MODIFICATION: srio@esrf.eu 2008-02-01
+
+
+
+

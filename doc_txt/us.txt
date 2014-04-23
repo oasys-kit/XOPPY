@@ -1,0 +1,198 @@
+Last modification date of this file: Mon Nov 17 00:19:40 CST 1997
+Roger J. Dejus (dejus@aps.anl.gov)
+C+
+C PROGRAM DESCRIPTION:	
+C  Program to calculate undulator spectra within the Bessel function 
+C  approximation for an ideal planar undulator or an ideal elliptical
+C  undulator (including polarization in both cases).  
+C  The program may be executed from the xop interface.
+C 
+C AUTHORS: 
+C  Roger J. Dejus
+C  The Advanced Photon Source
+C  Experimental Facilities Division
+C  Argonne National Laboratory
+C 
+C CREATION DATE: 
+C  25-MAR-1991
+C 
+C INPUT PARAMETERS:
+C  The input parameters are divided into sections related to the storage ring,
+C  the undulator device, and the quantity to be calculated. Note: When modifying
+C  parameters under the Xus interface, double click the field and make sure to
+C  press the RETURN key so that the new parameter is accepted.
+C Machine Parameters:
+C  Storage ring energy 			(GeV)
+C  Storage ring current			(mA)
+C  RMS beam size (horizontal)		(mm)
+C  RMS beam size (vertical)		(mm)
+C  RMS beam divergence (horizontal)	(mrad)
+C  RMS beam divergence (vertical)	(mrad)
+C Undulator Parameters:
+C  Period length			(cm)
+C  Number of periods
+C  Deflection parameter (hor.  field) Kx (= 0.0 for a regular planar device)
+C  Deflection parameter (vert. field) Ky
+C Scan Parameters:
+C  Minimum energy			(eV)
+C  Maximum energy			(eV)
+C  Number of energy points
+C Pinhole Parameters:
+C  Distance from the source		(m)
+C    (d=0.0 => angular units)
+C  X-coordinate for center of pinhole	(mm) or (mrad)
+C  Y-coordinate for center of pinhole	(mm) or (mrad)
+C  X-size of pinhole (full width)	(mm) or (mrad)
+C  Y-size of pinhole (full width)	(mm) or (mrad)
+C    (for angular units (d=0.0) values are entered in mrad)
+C    (X is for horizontal direction)
+C    (Y is for the vertical direction)
+C  Number of subdivisions of pinhole in X (max 50)
+C  Number of subdivisions of pinhole in Y (max 50)
+C    (for plotting 3d results with Xus, the X-size, Y-size, and the number of
+C     of subdivisions in the two directions should be equal)
+C
+C Mode:
+C  Depending on the mode selected, some of the pinhole parameters may be
+C  set to different values by the program; see the output file us.plt.
+C  MODE    1    Angular/spatial flux density distribution
+C  MODE    2    Angular/spatial flux density spectrum
+C  MODE    3    On-axis brilliance spectrum
+C  MODE    4    Flux spectrum through a pinhole
+C  MODE    5    Flux spectrum integrated over all angles
+C  MODE    6    Power density and integrated power
+C
+C  Angular/spatial flux density distribution
+C    - Flux distribution at the energy chosen as minimum energy.
+C  Angular/spatial flux density spectrum
+C    - Spectrum at any given point in space as selected by the X and Y
+C      coordinate for the center of the pinhole. X is horizontal and Y is
+C      vertical.
+C  On-axis brilliance spectrum
+C  Flux spectrum through a pinhole
+C    - Spectrum through a pinhole centered at X-center and Y-center with
+C      size X-size and Y-size.  The energy range is from the minimum to the
+C      maximum energy.
+C  Flux spectrum integrated over all angles.
+C    -  The pinhole parameters have no significance here.
+C  Power density and integrated power
+C    -  Integrated over all energies, thus the energy parameters have no
+C       significance here.
+C
+C Method:
+C  METHOD  1    Non-zero emittance; finite-N
+C  METHOD  2    Non-zero emittance; infinite-N
+C  METHOD  3    Zero emittance;     finite-N
+C  METHOD  4    Non-zero emittance; infinite-N + convolution (Dejus' approach)
+C  METHOD 14    Non-zero emittance; infinite-N + convolution (Walker's approach)
+C
+C  Non-zero emittance; finite-N
+C    - Use only for "Angular/spatial flux density distribution" and for
+C      "Power density and integrated power".
+C  Non-zero emittance; infinite-N
+C    - For test purposes; do not use (will be removed from menu).
+C  Zero emittance; finite-N
+C    - Use for zero emittance calculations.
+C  Non-zero emittance; infinite-N/convolution
+C    - Generally, use for cases where emittance should be included.
+C
+C Harmonic Number:
+C  IHARM   0    All harmonics
+C  IHARM  -1    Lowest order harmonic (except MODE=6, include to -IHARM)
+C  IHARM   I    I'th harmonic
+C
+C  All harmonics
+C    - Selects all contributing harmonics (generally used).
+C  Lowest order harmonic
+C    - Selects the lowest order contributing harmonic.
+C  Harmonic #
+C    - Selects the harmonic number displayed.
+C  Edit harmonic number
+C    - Modifies the displayed harmonic number.
+C   
+C Intrinsic Parameters:
+C  Several parameters used in the calculations.  Usually not modified by the
+C  user.  Please see me (RJD) for further information.
+C
+C Polarization:
+C  The normalized Stokes parameters are calculated including the 
+C  unpolarized component.
+C  
+C DESIGN ISSUES:
+C  Program is based on the Bessel function approximation and is valid in the
+C  far-field for an ideal sinusoidal magnetic field profile.
+C  
+C COPYRIGHT:
+C  Unless part of the XOP software package, this routine must only be used 
+C  at The Advanced Photon Source and must not be tranferred or used at any 
+C  other location without the written consent of the author.
+C  
+C FILES USED:
+C  Input file - us.dat  File in the user's current directory containing the
+C                       input parameters.
+C  Output file - us.plt File in the user's current directory containing the 
+C                       results of the calculation.  The header contains
+C                       all input parameters and the calculated zero emittance
+C			on-axis first harmonic energy (e1), corresponding
+C                       wavelength (l1), total power (ptot), and the on-axis
+C                       power density (pd).
+C KEYWORDS:
+C  Undulator Spectrum, Bessel Function Approximation
+C  
+C LINK/LIBRARY ISSUES:
+C  Calls routines BRIGHTE and HUNT.  BRIGHTE calculates the brilliance and HUNT
+C  searches an array of real numbers (from Numerical Recipes).
+C  
+C PORTABILITY ISSUES:
+C  Runs on DEC 3000/400 AXP alpha (Unix v. 3.2c), SUNs (SUN-OS 4.1.3), 
+C  HP 9000/735-series (HP-UX 9.03).
+C  
+C TIMING:
+C  Execution times vary considerably depending on computer and the 
+C  quantity being calculated.  The zero emittance calculations are fast
+C  (few seconds), whereas the non-zero emittance calculations may range from
+C  seconds (on-axis brilliance) to an hour (flux spectrum through a pinhole).
+C
+C VERSION:
+C  1.9
+C  
+C MODIFICATION HISTORY:
+C 
+C	 Date     | Name  | Description
+C ----------------+-------+-----------------------------------------------------
+C 06-JUL-1994     | RJD   | Modified value for E1MIN for angle-integrated
+C                 |       | spectrum (MODE=5) to be non-zero; gamma*theta 
+C                 |       | corresponds to sqrt(200) (somewhat arbitrarily
+C                 |       | chosen)
+C ----------------+-------+-----------------------------------------------------
+C 04-OCT-1994     | RJD   | Modified program to include polarization properties.
+C                 |       | The four Stokes parameters are now calculated.
+C                 |       | Program is for an ideal planar undulator or an ideal
+C                 |       | elliptical undulator. Many other changes. The value
+C                 |       | of the parameter IHARM has a different meaning.
+C                 |       | IHARM=0 now gives 'all harmonics' and IHARM= <0
+C                 |       | gives the lowest order harmonic except for the power
+C                 |       | option. For the power option, a negative IHARM means
+C                 |       | include all harmonics up to and including -IHARM.
+C                 |       | This version is 1.6.
+C ----------------+-------+-----------------------------------------------------
+C 21-JUN-1995     | RJD   | Modified print-out of "Contributing harmonics" in
+C		  |       | subroutine PRINT_OUT. Routine incorrectly calculated 
+C		  |       | IMIN and IMAX for METHOD 4 (Dejus' method) for
+C		  |       | "Spectral distributions". The spectra and integrated
+C		  |       | quantities were calculated correctly and are 
+C		  |       | unaffected by this modification.
+C                 |       | The current version is 1.7.
+C ----------------+-------+-----------------------------------------------------
+C 04-JAN-1996     | RJD   | Modified the number of decimal places for the sigx1
+C                 |       | and sigy1 variables to four in the printout. Added
+C                 |       | one more digit for the emax variable to avoid
+C                 |       | overflow on rare occasions. Formats 260 and 256 were
+C                 |       | changed accordingly.
+C                 |       | The current version is 1.8.
+C ----------------+-------+-----------------------------------------------------
+C 11-NOV-1997     | RJD   | Changed notation: Brightness -> Brilliance.
+C                 |       | The current version is 1.9.
+C ----------------+-------+-----------------------------------------------------
+C [change_entry]
+C-

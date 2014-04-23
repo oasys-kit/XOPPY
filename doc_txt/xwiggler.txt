@@ -1,0 +1,82 @@
+----- header of xwiggler.pro extracted on: Fri May 31 15:31:05 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/sources/xwiggler.pro -----
+
+==============================  Xwiggler   ====================================
+
+ Xwiggler is a widget based graphical interface to calculate
+ the spectrum of a Wiggler Synchrotron Radiation source.
+
+ The Flux and Spectral Power values calculated with XWiggler
+ correspond to the integration in FULL vertical and horizontal 
+ emission angles. 
+
+ XWiggler calculations are done using the IDL program wiggler_spectrum. 
+ This program is an IDL version of the Fortran program with the same 
+ name available in the SHADOW ray-tracing package. 
+
+
+ DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
+
+  File:
+    XWiggler input parameters: This option allows to save the current
+		parameters to a file for later loading. It also allows
+		to save the current parameters as defaults for being
+		used when the application is initialized. In the last
+		case, the file is named "application".xop (where 
+		"application " is the name of the current XOP
+		application) and is written in the directory pointed
+		by the XOP_DEFAULTS_DIR environment variable (which
+		must be set). The parameter file is ASCII and can be
+		read and edited with care.
+    Write Files for XOP/Optics: Saves the current undulator
+		spectrum in the SRCOMPE (flux) and SRCOMPW (Power) files
+		to be used for the other XOP application from Optics
+		menu.
+  Quit: to exit from the program
+
+ Set_Parameters:
+  K(gap) Tool: This tool permits to calculate the deflection
+		parameter K as a function of the magnet gap.
+  Set Parameters: to define the parameters for the calculation.
+		The same result is obtained pressing the "Set Parameters"
+		button in the main XWiggler window. 
+               Please refer to the information under the HELP
+		button for a complete description of the parameters. After 
+		pressing the ACCEPT button, wiggler_spectrum starts running.
+  Set Defaults: Sets the default parameters.
+
+  Show: Display results
+    Spectra: Plots the calculated wiggler spectra.
+    Trajectories: Plots the calculated electron trajectories (individual paths
+			and 3D view) 
+    Parameters: Show the input parameters and some calculated values.
+
+  Help:   Shows the XWiggler help (this text).
+
+
+ COPYRIGHT:
+	XWIGGLER belongs to XOP package and it is distributed within XOP.
+	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+
+ REFERENCE:
+	Published calculations made with XOP should refer:
+
+	 M. Sanchez del Rio and R. J. Dejus 
+         "Status of XOP: an x-ray optics software toolkit"
+         SPIE Proceedings Vol. 5536 (2004) pp.171-174
+
+         http://dx.doi.org/10.1117/12.560903
+
+	In addition, published calculations using this aplication 
+	should also cite:
+
+	  C. Welnak, G.J. Chen and F. Cerrina, "SHADOW: a synchrotron 
+          radiation X-ray Optics simulation tool",
+	  Nucl. Instr. and Meth. in Phys. Res. A347 91994) 344
+	or
+	  SHADOW WEB Page: http://www.nanotech.wisc.edu/shadow/
+
+ LAST MODIFICATION: srio@esrf.eu 2008-02-01
+
+

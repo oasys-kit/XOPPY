@@ -1,0 +1,186 @@
+----- header of fufifa.pro extracted on: Fri May 31 15:31:07 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/wutil/fufifa.pro -----
+
+                         ===============================
+                         = Functional Fitting Facility =
+                         ===============================
+
+ FuFiFa 
+
+
+ Fufifa is an application to fit interactively a SEVERAL spectra to a FUNCTION.
+
+ It uses MPFIT (from Craig Markwardt) as fitting engine: 
+ http://cow.physics.wisc.edu/~craigm/idl/fitting.html
+
+
+ The goal is to provide with a point-and-click application for fitting many 
+ data sets (usually imported from a SPEC file, that can be prepared with 
+ Xop/EWxodus) with a user-defined function. 
+
+ The function can be built interactively using a set of components (straight 
+ line, polynomial, peaks (gaussian, lotentzian and pseudovoigt), steps (error 
+ function and arc tangent) or any user-define function). 
+
+ The application allows to fit simultaneously several data sets and to
+ refine individually the fits. A plot of the fitted parameters and chi square 
+ versus the data set index can help to estimate the quality of the fits. 
+
+ To operate with fufifa follow the following steps:
+
+ 1) Start the application by either: 
+
+ i) Start xop and from the Xop->Tools->FuFiFa, This will create the fufifa 
+    window.
+ ii) Enter "xop fufifa" at the unix prompt
+
+ 2) Import your data.
+   Press the load button in the data sector (top right of the main window).
+   You should select a file (SPEC type) which has been previously "cleaned".
+   "Cleaned SPEC file" means that:
+     i) you have removed the unwanted scans (only kept those used for fitting)
+     ii) Each scans has ONLY two or three columns
+         The first one is the abscissas X
+         The second one is the ordinates Y
+         The third (optional) one contains the errors of Y. The errors used for
+            the fit are defined in the Fit->Preferences menu item. 
+    You can use the EXODUS application (available in the XOP/XAID-XAFS toolbox)
+         for this purpose (i.e., cleaning your SPEC file).
+
+    Example: Using the file cat3.spec I
+             extracted (using EXODUS) the scans [82,83,92,93,111,112 and 113] 
+             I used column 1 for X and column 16 for Y. The result was 
+             written to file exodus.spec. This file was imported into fififa. 
+             Then I selected all scans (by pressing ctrl-click iteratively or 
+             doing multiple selection with shift-click). 
+             The result of these operations are in Fig1.
+
+ 3) Define your model:
+    Using the bottom sector of your fufifa window, I defined a function 
+    consisting in a step function (errorF) and a lorentzian peak. For this 
+    I clicked "Add function" twice, one for each functional component. 
+    I did not adjust the input parameters. 
+
+    First I select my first scan (clicking on the list at the top right sector).
+    The meaning of the small buttons for each model line are the following:
+    "x" : removes the model line
+    "G" Get the guess values (using the mouse for peaks and straight lines)
+    Each parameter can be modified directly by enteing a new number, or by 
+    pressing:
+    "F" Fixes this parameter (not changed during the fit)
+    "B" Edit parameter boundaries
+
+ 4) First attempt to fit.
+    If you press "**Fit**" you fit the function parameters to data. 
+    Then you can press "Copy Pars To All DataSets" that copies the fitted 
+    values for the first scan to the rest of scans. 
+
+    If you want to fit all spectra, just make a multiple selection and press 
+    the fit button. Then you can select individual scans to see better the 
+    results.
+    Perhaps some scans are not well fitted. You can select by hand the guess
+    parameters and fit again. 
+
+    Note: when using multiple selection, you can use the "Fit2" button 
+    instead of "**Fit**". In this case, the guess values for the i-th
+    selected set will be the fitted values of the (i-1)-th dataset. 
+    For single selection there is no difference between "Fit2" and "**Fit**".
+    This option gives better results (smoother) when looking to the evolution 
+    of the fitted values versus the dataset index.
+
+ 5) Refinement of the fit. 
+    You can preprocess the data using the "Data" menu items to:
+      i) perform some operation (like normalization).
+      ii) Cut unwanted data and redefine your interval. Use it to remove 
+          points of the pre-edge and the incomplete last oscillation. 
+      iii) Substract a linear background (not needed in this case). 
+
+      After doing that, I added two more lorentzian peaks. I got results shown
+      in Fig4. Much better!
+
+      iv) You can ignore a part of the data for fitting purposes bu using the
+      option "Include [a,b] and/or exclude {a,b} regions"
+
+ 6) Visualizing and saving results:
+     By pressing "Pars vs Data Sets" you can mahe plots of the parameters and 
+     the reduced Chi square versus the scan number. 
+     This permits you to see if there are drastic changes in some parameters.  
+
+     In order to save the full information, you can use FuFiFa->Save as... 
+     It will
+     create a SPEC-type file with all scans, error used, and models. 
+     In the scan header you can find the information on the fitted parameters 
+     and chi**2. The last scan (numbered 1000) contains the variation of 
+     the parameters versus the scan index. 
+     Of course, you can use Xplot to view this resulting file. 
+     This file can be reloaded in FuFiFa.
+
+
+
+  Non Interactive use:
+	; load ASCII Files
+	fufifa,Parent=p
+	fufifa_loadfile,p,isel=0 ; import ascii file (start browser)
+	fufifa_loadfile,p,isel=0,File='CuFoilRef.txt',append=0 ; import ascii 
+
+	; load SPEC Files
+	fufifa_loadfile,p,isel=1,File='fufifa.spec',Append=0
+
+
+
+ Some functionality already implemented
+ - Load components of the function from an external (customizable) file
+ - Access to boundaries of parameters for the fit
+ - "Expert" mode (do not show information windows)
+ - Integrated in xplot and in xop 
+ - Prints single or multiple plots
+ - Exports fitting data to a Excel file
+
+ ToDo:
+ - Allow MCI inputs
+ - Abort button (when fitting...)
+ - Customize colors
+ - Polynomial inputs from mouse
+ - Interactive help
+
+  COPYRIGHT:
+ 	FUFIFA belongs to XOP package and it is distributed within XOP.
+ 	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+ 
+  REFERENCE:
+ 	Published calculations made with XOP should refer:
+ 
+ 	M. Sanchez del Rio and R. J. Dejus 
+         "Status of XOP: an x-ray optics software toolkit"
+         SPIE Proceedings Vol. 5536 (2004) pp.171-174
+ 
+         http://dx.doi.org/10.1117/12.560903
+ 
+  LAST MODIFICATION: srio@esrf.eu 2008-12-12
+ 
+ HISTORY:
+ 
+ srio@esrf.fr 7 December 2001
+ Modified:
+     2003/12/09 srio@esrf.fr Fix an incompatibility problem for IDL >=5.6
+     2006/03/02 srio@esrf.fr Allows non-interactive use:  FUFIFA_LOADFILE
+     2006/10/02 srio@esrf.fr Many upgrades. Version 1.00
+     2006/10/10 srio@esrf.fr Direct export to FuFiFa
+     2006/11/07 srio@esrf.fr Debug load file with model.
+     2008/09/03 srio@esrf.fr Added "fit2" button (recurrent fit)
+     2008/12/03 srio@esrf.fr Added covariance calculations. Bug fixed when reading
+                polynomial from file. Loads/reads preferences to file. v1.03
+
+
+
+ PRO fufifa_loadfile,parent,isel=isel,Dialog_Parent=dialog_Parent,file=file
+
+ 06-03-02 srio@esrf.fr
+ 08-12-11 srio@esrf.eu import preferences from spec file
+
+ isel: 0 ASCII FILE(S)
+ isel: 1 SPEC CLEANED FILE
+ isel: 2 DATA block (use Title keyword)
+
+

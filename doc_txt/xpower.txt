@@ -1,0 +1,70 @@
+----- header of xpower.pro extracted on: Fri May 31 15:31:06 2013
+----- Documentation for /scisoft/xop2.3/src_idl/optics/xpower.pro -----
+
+
+==============================  Xpower   =====================================
+
+ Xpower is a widget based graphical interface to calculate the transmission 
+ in terms of flux or spectral power energy as a function pf photon
+ energy for a set of up to five attenuators and mirrors. 
+
+ It uses the DABAX files to get reflectivities and transmissions.
+
+ DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
+
+  File:
+    Xpower input parameters: This option allows to save the current
+		parameters to a file for later loading. It also allows
+		to save the current parameters as defaults for being
+		used when the application is initialized. In the last
+		case, the file is named "application".xop (where 
+		"application " is the name of the current XOP
+		application) and is written in the directory pointed
+		by the XOP_DEFAULTS_DIR environment variable (which
+		must be set). The parameter file is ASCII and can be
+		read and edited with care.
+  Quit: to exit from the program
+
+ Set_Parameters:
+  Set Parameters: to define the parameters for the calculation.
+		The same result is obtained pressing the "Set Parameters"
+		button in the main XPower window. 
+               Please refer to the information under the HELP
+		button for a complete description of the parameters. After 
+		pressing the ACCEPT button, XPower starts running.
+
+		If you whish to calculate values for a single energy point 
+		instead of an array of energy points [default], set the energy 
+		minimum equal to the energy maximum. In this case, the 
+		results will be presented in a common text window for all the 
+		three options in the "Show" menu.
+  Set Defaults: Sets the default parameters.
+
+  Show: Produces a graphic of the results (Local properties, cumulated
+	properties) and shows text parameters. In the case that a single
+	energy point is calculated (by setting the minimum energy equal
+	to the maximum energy), the three menu entries will display the
+	same text parameters.
+      
+       Two values of delta/beta paremeter (in local properties) are given:
+         i) delta/betaPCE where betaPCE is the "total" beta, i.e., calculated
+            from the total cross section (photoelectric+compton+rayleigh)
+         i) delta/betaPC where betaPC soes not consider coherent scattering,
+            i.e., from photoelectric + compton scattering.
+
+  Help:   Shows the xpower help (this text).
+
+
+ COPYRIGHT:
+	xpower  belongs to XOP package and it is distributed within XOP.
+	PLEASE REFER TO THE XOP COPYRIGHT NOTICE BEFORE USING IT.
+
+ CREDITS:
+	Published calculations made with XOP should refer:
+
+	  M. Sanchez del Rio and R. J. Dejus "XOP: Recent Developments"
+	  SPIE proceedings vol. 3448, pp.340-345, 1998.
+
+ LAST MODIFICATION: msr/msr/99-03-16
+
+

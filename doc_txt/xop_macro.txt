@@ -1,0 +1,61 @@
+----- header of xop_macro.pro extracted on: Fri May 31 15:31:07 2013
+----- Documentation for /scisoft/xop2.3/src_idl/util/xop_macro.pro -----
+
+
+	NAME:
+		XOP_MACRO
+	PURPOSE:
+		Edits and runs an XOP macro
+ 	CATEGORY:
+		Widgets. 
+	CALLING SEQUENCE:
+		XOP_MACRO [,inCode]
+	INPUTS: 
+		inCode: an array of strings with the code to be processed.
+	KEYWORD_PARAMETERS:
+		GROUP:	The widget ID of the group leader of the widget.  
+			If this keyword is specified, the death of the group 
+			leader results in the death of XOP_MACRO.
+		No_Block: If this keyword is set, then it is passed to 
+			XManager. 
+		File: name of the file with the code to be loaded (if
+			this keyword is set, the inCode variable is not 
+			considered).
+		Title: the window title (Default: XOP_MACRO)		
+
+	OUTPUTS:
+		Open the widget utility.
+	COMMON BLOCKS:
+		None
+	SIDE EFFECTS:
+		If not active, starts Xmanager
+	RESTRICTIONS:
+		Unknown.
+	PROCEDURE
+		Uses xop_macro_compact for creating the compacted code 
+               and xop_execute to execute it.
+
+
+  COPYRIGHT:
+       XOP_MACRO belongs to XOP package and it is distributed within XOP.
+ 	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+ 
+  REFERENCE:
+ 	Published calculations made with XOP should refer:
+ 
+ 	M. Sanchez del Rio and R. J. Dejus 
+         "Status of XOP: an x-ray optics software toolkit"
+         SPIE Proceedings Vol. 5536 (2004) pp.171-174
+ 
+         http://dx.doi.org/10.1117/12.560903
+ 
+  LAST MODIFICATION: srio@esrf.eu 2008-02-01
+ 
+ 
+	MODIFICATION HISTORY:
+		Written by  Manuel Sanchez del Rio. ESRF. 22 May 2000
+		
+		2007-10-11 srio@esrf.eu adds option to track/copy
+			variables to main level. Use of xop_execute()
+
+

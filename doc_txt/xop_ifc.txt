@@ -1,0 +1,35 @@
+----- header of xop_ifc.pro extracted on: Fri May 31 15:31:07 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/xoplib/xop_ifc.pro -----
+
+   ===========================  xop_ifc   =========================
+
+   xop_ifc is a generic widget based graphical interface.
+   It allows to include xop-like interfaces in xop at run time.
+   It reads the inputs from a file <application>.ifc which must be
+   sitting in the $XOP_IFC directory or alternatively (is $XOP_IFC
+   is undefined) in $XOP_HOME/ifc directory.
+
+   See the file $XOP_HOME/ifc/mlayer.ifc as an example of how to write
+   these files.
+
+	srio@esrf.fr 97-04-07
+       Modification history:
+	97-09-12 srio@esrf.fr makes no_block keyword. Adds the option
+	  state.ifc.run='<none>' to avoid spawning (to be used in 
+	  applications fully written in IDL). Uses $XOP_IFC as a 
+	  directory from where the *.ifc file is read. If $XOP_IFC
+	  is not set, uses $XOP_HOME/ifc. xop_ifc_run accepts
+	  now 21 (a0,...,a20) generic variables... Use of sdep.pro
+	  for getting system dependencies.
+	97-11-07 srio@esrf.fr ifc files are in $XOP_HOME/ifc and not
+	  longer in $XOP_HOME/data.
+	97-11-07 srio@esrf.fr fixes a bug when loading/writing files. 
+	98-11-04 srio@esrf.fr uses Catch.
+	98-11-24 srio@esrf.fr changes to new input file system (xop2.0)
+	00-07-17 srio@esrf.fr the tags nrows and ncol in the ifc
+		structure are now optional. One of them must be set.
+	02-05-23 srio@esrf.fr bug fixed: writes to a file the correct 
+		version (not 1.0). Added optional input ifc to xop_ifc_run
+
+

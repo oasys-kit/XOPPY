@@ -1,0 +1,10 @@
+               Description of the input parameters for XTUBE_W:
+               ================================================
+
+
+VOLTAGE:     anode voltage in kiloVolts (in the 30-140 interval)
+VOLTAGE RIPPLE: RMS value in %
+AL FILTER: Al filtration: layer thickness in mm
+
+
+

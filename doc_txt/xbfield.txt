@@ -1,0 +1,80 @@
+----- header of xbfield.pro extracted on: Fri May 31 15:31:07 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/sources/xbfield.pro -----
+
+==============================  Xbfield   =====================================
+
+   Xbfield is an widget based graphical interface to calculate 
+   field of an tappered undulator insertion devices.
+
+************************* IMPORTANT NOTICE ************************************
+   This utility (coming with the YAUP distribution), in the tapered case, 
+   generates a B field assumed be an amplitude-modulated sinusoid, e.g.
+   Btot(z) = B(z)*sin(2*pi/period*z) and a linearly modulated gap is 
+   assumed.  DG is the degree of gap taper:
+   gap=gzmin*(1.0+z*dg/ulen)
+   r=gap/per
+   ampl=0.95*3.44*exp(-r*(5.08-1.54*r)) (for Nb-Fe-B magnets) or
+   ampl=0.95*3.33*exp(-r*(5.47-1.80*r)) (for Sm-Co magnets). This
+   approximation comes from "6 GeV Synchrotron X-ray Source, Conceptual
+   Design Report Supplement A", LS-52, Argonne National Laboratory,
+   (March 1986), and you can also find it in the ESRF Foundation Phase
+   Report (The red book), pag CIV-314
+   
+   If these parameters does not fit with the user's requirements, then
+   the user should either customize it or create another bfield 
+   program which writes the output magnetic field in the format 
+   accepted by yaup.
+*******************************************************************************
+
+ DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
+
+  File:
+    XBField input parameters: This option allows to save the current
+		parameters to a file for later loading. It also allows
+		to save the current parameters as defaults for being
+		used when the application is initialized. In the last
+		case, the file is named "application".xop (where 
+		"application " is the name of the current XOP
+		application) and is written in the directory pointed
+		by the XOP_DEFAULTS_DIR environment variable (which
+		must be set). The parameter file is ASCII and can be
+		read and edited with care.
+  Quit: to exit from the program
+
+ Set_Parameters:
+  Set Parameters: to define the parameters for the calculation.
+		The same result is obtained pressing the "Set Parameters"
+		button in the main XBField window. 
+               Please refer to the information under the HELP
+		button for a complete description of the parameters. After 
+		pressing the ACCEPT button, BFIELD starts running.
+  Set Defaults: Sets the default parameters.
+
+  Show: Display results
+    Plot Results: Plots the BFIELD results.
+    Show Numerical Results: Displays the BFIELD result file.
+
+  Help:   Shows the BFIELD help and the XBFIELD help (this text).
+
+
+ COPYRIGHT:
+	xyaup and xbfield belong to XOP package and are distributed within XOP.
+	PLEASE REFER TO THE XOP COPYRIGHT NOTICE BEFORE USING IT.
+
+ CREDITS:
+	Published calculations made with XOP should refer:
+
+	  M. Sanchez del Rio and R. J. Dejus "XOP: Recent Developments"
+	  SPIE proceedings vol. 3448, pp.340-345, 1998.
+
+	In addition, published calculations using the YAUP package 
+	should also cite:
+
+	  B. I. Boyanov, G. Bunker, J. M. Lee, and T. I. Morrison
+	  "Numerical Modeling of Tapered Undulators"
+	  Nucl. Instr. Meth. A339,  596-603, 1994
+
+ LAST MODIFICATION: msr/msr/99-03-16
+
+

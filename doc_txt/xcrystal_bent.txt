@@ -1,0 +1,107 @@
+----- header of xcrystal_bent.pro extracted on: Fri May 31 15:31:06 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/optics/xcrystal_bent.pro -----
+=============================   Xcrystal_bent   ===============================
+
+
+  Xcrystal_bent is a common widget based graphical interface to different
+  codes that perform curved crystal diffraction calculations.
+
+  The idea is to perform bent crystal calculations with different
+  modules (computer codes) using the same interface. The different 
+  modules use different theories. The initial considered theories are:
+
+  1) Lamellar theory.  
+  2) Penning Polder theory.  
+  3) Takagi-Taupin theory. 
+  In addition, and for comparison purposes, a module to calculate
+  flat perfect crystals, based on the Zachariasen's theory has been
+  included. For FLAT crystals calculations it is recommended to use
+  the xcrystal application in XOP>
+
+  Plase note that:
+    The Penning-Polder model is only available for LAUE crystals
+    The Takagi-Taupin model is under testing for BRAGG crystals, and
+	it may not produce correct results.
+
+  XCrystal_bent uses the codes crystal_za (Zachariasen), crystal_ml 
+  (Multi-lamellar) crystal_pp (Penning-Polder) and crystal_tt (Takagi-Taupin).
+
+
+ DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
+
+  File:
+    xcrystal_bent input parameters: This option allows to save the current
+		parameters to a file for later loading. It also allows
+		to save the current parameters as defaults for being
+		used when the application is initialized. In the last
+		case, the file is named "application".xop (where 
+		"application " is the name of the current XOP
+		application) and is written in the directory pointed
+		by the XOP_DEFAULTS_DIR environment variable (which
+		must be set). The parameter file is ASCII and can be
+		read and edited with care.
+  Quit: to exit from the program
+
+ Set_Parameters:
+  Set Parameters: to define the parameters for the calculation.
+		The same result is obtained pressing the "Set Parameters"
+		button in the main crystal_bent window. 
+               Please refer to the information under the HELP
+		button for a complete description of the parameters. After 
+		pressing the ACCEPT button, the corresponding code starts 
+		running.
+  Set Defaults: Sets the default parameters.
+  Takagi-Taupin specific parameters: two items (Set Parameters &
+		Set Defaults) allows to define the specific parameters
+		for Takagi-Taupin calculations. They are placed in different
+		windows to allow a too complicated main window.
+
+  Show: Plot, View or Print the results.
+    Diffraction Curves: display calculated diffraction curves.
+    Bent Crystal Parameters: shows numerical parameters of the 
+		calculations.
+    Crystallographic Parameters: shows numerical parameters used
+		for the calculation of the crystal structure factor.
+    Takagi-Taupin: Some specific outputs only available if using
+		the Takagi-Taupin theory.
+        Integration Network: Shows the integration network with the
+		electric field corresponding to y=0. 
+		This option is only available when the calculations is 
+		requested in the TAKAGI-TAUPIN/SET PARAMETERS option.
+        All Reflectivity Curves: Shows an array of diffraction
+		profiles corresponding, each one, to one knot in the 
+		incident surface.
+		This option is useful to check that the "window" parameter 
+		is large enough to avoid border effects in the main (central) 
+		diffraction profile.
+		This option is only available when the calculations is 
+		requested in the TAKAGI-TAUPIN/SET PARAMETERS option.
+
+  Help:   Shows the xcrystal_bent help (this text).
+
+
+
+  COPYRIGHT:
+ 	XCRYSTAL_BENT belongs to XOP package and it is distributed within XOP.
+ 	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+ 
+  REFERENCE:
+ 	Published calculations made with XOP should refer:
+ 
+ 	M. Sanchez del Rio and R. J. Dejus 
+         "Status of XOP: an x-ray optics software toolkit"
+         SPIE Proceedings Vol. 5536 (2004) pp.171-174
+ 
+         http://dx.doi.org/10.1117/12.560903
+ 
+	In addition, published calculations with the xcrystal_bent aplication 
+	should also cite:
+	  M. Sanchez del Rio, C. Ferrero and V. Mocella. 
+	  "Computer simulations of bent perfect crystal diffraction profiles" 
+	  SPIE proceedings vol. 3151, pp.312-323, 1997. 
+
+  LAST MODIFICATION: srio@esrf.eu 2008-02-01
+ 
+ 
+

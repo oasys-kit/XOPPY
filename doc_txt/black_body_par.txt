@@ -1,0 +1,13 @@
+               Description of the input parameters for BLACK_BODY:
+               ===================================================
+
+TITLE:   Information title
+
+TEMPERATURE [K]: The emitter temperature in Kelvin
+
+MIN ENERGY [eV]:  Minimum photon energy for the calculated spectrum, in eV.
+
+MAX ENERGY [eV]:  Maximum photon energy for the calculated spectrum, in eV.
+
+NUMBER OF POINTS: Number of energy points for the energy spectra
+

@@ -1,0 +1,79 @@
+----- header of xurgent.pro extracted on: Fri May 31 15:31:05 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/sources/xurgent.pro -----
+
+==============================  Xurgent   =====================================
+
+ Xurgent is an widget based graphical interface to calculate
+ spectra of an undulator insertion devices.
+ 
+ It interfaces the program URGENT written by R.P.Walker and B.Diviacco
+ (see Help/Urgent)
+
+ DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
+
+  File:
+    Xurgent input parameters: This option allows to save the current
+		parameters to a file for later loading. It also allows
+		to save the current parameters as defaults for being
+		used when the application is initialized. In the last
+		case, the file is named "application".xop (where 
+		"application " is the name of the current XOP
+		application) and is written in the directory pointed
+		by the XOP_DEFAULTS_DIR environment variable (which
+		must be set). The parameter file is ASCII and can be
+		read and edited with care.
+    Urgent file: This option allows to load/write the current parameter
+		and result files for further calculations. The used file
+		formats are those used by URGENT. Therefore, they
+		can be used to run URGENT without the interface or to
+		import URGENT files created outside the XUrgent application.
+    Write Files for XOP/Optics: Saves the current undulator
+		spectrum in the SRCOMPE (flux) and SRCOMPW (Power) files
+		to be used for the other XOP application from Optics
+		menu.
+  Quit: to exit from the program
+
+ Set_Parameters:
+  K(gap) Tool: This tool permits to calculate the deflection
+		parameter K as a function of the magnet gap.
+  Set Parameters: to define the parameters for the calculation.
+		The same result is obtained pressing the "Set Parameters"
+		button in the main XUrgent window. 
+               Please refer to the information under the HELP
+		button for a complete description of the parameters. After 
+		pressing the ACCEPT button, URGENT starts running.
+  Set Defaults: Sets the default parameters.
+
+  Show: Display results
+    Plot Results: Plots the URGENT results.
+    Show Numerical Results: Displays the URGENT result file.
+
+  Help:   Shows the URGENT help and the XURGENT help (this text).
+
+
+ COPYRIGHT:
+	XURGENT belongs to XOP package and it is distributed within XOP.
+	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+
+ REFERENCE:
+	Published calculations made with XOP should refer:
+
+	M. Sanchez del Rio and R. J. Dejus 
+        "Status of XOP: an x-ray optics software toolkit"
+        SPIE Proceedings Vol. 5536 (2004) pp.171-174
+
+        http://dx.doi.org/10.1117/12.560903
+
+	In addition, published calculations using the URGENT aplication 
+	should also cite:
+
+	  R.P.Walker and B.Diviacco, "Urgent- A computer program for 
+	  calculating undulator radiation spectral, angular, polarization, 
+	  and power density properties.
+	  Rev. Sci. Instrum. 63(1), pp. 392-395, 1992.
+
+ LAST MODIFICATION: srio@esrf.eu 2008-02-01
+
+
+

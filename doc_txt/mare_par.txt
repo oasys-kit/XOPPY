@@ -1,0 +1,33 @@
+Description of the input parameters for MARE:
+==============================================
+
+Crystal:           crystal type
+
+H main
+K main
+L main             (H,K,L) of the primary reflection [deg] 
+
+H max:             max H for calculated reflection curves. 
+K max:             max K
+L max:             max L
+
+Eliminate reflections with fh less than: 
+                   Numerical value for discarding low intensity reflections. 
+                   Default 1d-8, eliminates zero (i.e., forbidden) reflections.
+                   Look at the outputs using "Edit buffer" button in the 
+                   output windows to see the used fh (real part of the 
+                   structure factor).
+
+Display:           select thetype of output
+
+Wavelength [A]:        The wavelength (in A) for calculating the 
+                       unweg pattern (the line wavelength=constant
+                       intersect the curves in the spaghetti plot).
+Delta Wavelength [A]:  The band width around Wavelength.
+
+Phi [deg] (for Glitches):   Phi value for the vertical cut of the
+                            spaghetti plot. 
+
+Delta Phi [deg]:       the band width around Phi.
+
+

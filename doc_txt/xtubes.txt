@@ -1,0 +1,147 @@
+
+================================   xtubes   ====================================
+
+
+ xtubes is an widget based graphical interface to calculate the spectum 
+ of an X-ray tube with Mo, Rh or W target in the energy range 18-40 keV.
+
+ It uses the method descibed in the manuscript:
+ "Molybdenum, rhodium, and tungsten anode spectral models using interpolating
+ polynomials with application to mammography"
+ J.M. Boone T.H. Fewell and R. J. Jennings 
+ Medical Physics 24(12) pp. 1863-1874, 1997. 
+
+ The program interfaced by XTubeW has been downloaded from:
+ ftp://ftp.aip.org/epaps/medical-phys/E-MPHYA-24-1863
+
+ DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
+
+  File:
+    xtubes input parameters: This option allows to save the current
+		parameters to a file for later loading. It also allows
+		to save the current parameters as defaults for being
+		used when the application is initialized. In the last
+		case, the file is named "application".xop (where 
+		"application " is the name of the current XOP
+		application) and is written in the directory pointed
+		by the XOP_DEFAULTS_DIR environment variable (which
+		must be set). The parameter file is ASCII and can be
+		read and edited with care.
+    Write Files for XOP/Optics: Saves the current undulator
+		spectrum in the SRCOMPE (flux) and SRCOMPW (Power) files
+		to be used for the other XOP application from Optics
+		menu.
+  Quit: to exit from the program
+
+ Set_Parameters:
+  Set Parameters: to define the parameters for the calculation.
+		The same result is obtained pressing the "Set Parameters"
+		button in the main xtubes window. 
+               Please refer to the information under the HELP
+		button for a complete description of the parameters. After 
+		pressing the ACCEPT button, xtubes starts running.
+  Set Defaults: Sets the default parameters.
+
+  Show: Display results
+    Plot Results: Plots the xtubes results (see note on units).
+
+  Help:   Shows the xtubes help (this text).
+
+ NOTE ON RESULT UNITS:
+     The units of the fluence in the results are not very clear 
+     in the Boone's paper. This has creates some problems for users,
+     and originated a discussion between Sutter (sutter@ntmail.desy.de) and 
+     Boone. You can find below a short version of the discussion:
+
+     In the paper for the W (only) [XOP program xtube_w] Boone's paper clearly 
+     states that the flux per sec per 1keV bandwidth and per mm2 collected at 
+     1m from the target. The result looks very reasonable, and I (srio@esrf.fr)
+     have checked one result against the example in the doc of "Catalogue of 
+     diagnostic x-ray spectra and other data", Cranley et al., Report 78, The
+     Institute of Physics and Engineering in Medicine, with quite reasonable
+     agreement.  However, in the paper on Mo, W and Rh [code Xtubes] the units 
+     are not clearly stated. Moreover, both programs produced different 
+     results for W @ > 41 keV (one case that can be calculated with both codes).
+
+     I (sutter@ntmail.desy.de) have had several interesting exchanges with 
+     Dr. Boone. 
+       The units: The paper on Mo, W, and Rh states that the spectra
+       collected on these tubes were binned into 500 eV intervals. (See Fig. 2
+       for an example of these spectra for the Mo anode.) In addition, the 
+       caption of Fig. 2 states that all the spectra were normalized to a 
+       constant value of mA x sec, but does not reveal what this value was. 
+       When I asked Boone about this, he said that his reason for not revealing
+       it was the following: 
+       "You are correct, I intentionally did not "reveal" the absolute output
+       efficiency of the x-ray sources because x-ray tubes are so variable -
+       the calibration of the mA (and the time) is often imperfect (and hence 
+       the mR/mAs term would be in error) and the amount of inherent x-ray 
+       tube filtration (we deal with tubes in the clinical environment, which 
+       have collimators and other structures over the x-ray tube port which 
+       make it difficult and impractical to visually check exactly what 
+       filters are in the beam.  Thus, the total inherent (and added) 
+       filtration is often not known.)"
+       When I pressed him for at least an approximate value for the normalizing
+       constant, he stated that it was 1 mA x sec. However, the above warning 
+       about the variability of X-ray tubes should be kept in mind.
+
+       In short, the units for the fluence, strictly speaking, should be:
+       photons/mm2/500 eV/(mA.s). 
+
+       One final note: Boone stated in another message to me that the fluence 
+       from a point source drops off with the inverse square law. This 
+       indicates that the area unit (mm2) in the fluence refers to the number 
+       of photons per unit surface area on a sphere of given radius centered 
+       on the anode, rather than to the number of photons produced per unit 
+       illuminated area on the anode.
+
+       Another quantity that isn't given with certainty in Boone's first 
+       paper is the distance between the Mo, Rh, and W tubes and the detector. 
+       When I asked Boone for this quantity, he said it was "probably 50 cm," 
+       this being a common distance for mammography measurements. 
+       The measurements for the W tube in Boone's second paper, corresponding 
+       to the XOP program "xtubes_w", however, are clearly stated to have been 
+       made at 1 m from the tube. 
+       Perhaps this explains the discrepancy between the results from
+       the two calculation routines xtube_w and Xtubes . Does this make sense?
+       (The fact that 500-eV bins are used in the first paper, while the
+       fluence in the second is given per 1 keV bandwidth, will also influence 
+       the results.)
+
+       Added srio@esrf.fr: Following this arguments, in order to
+       transform the units of xtubes (fluence @0.5m with 0.5keV bandwidth) 
+       into xtube_w units (fluence @1m with 1keV bandwidth) one should 
+       multiply by (0.5/1.0)^2 * 2 = 1/2 (in other words, at 1m we have
+       1/4 times the flux of at 0.5m multiplied again by 2 because we use the
+       double of bandwidth). However, a strage factor of about 1000 is found: 
+
+       W @ 41 kV
+       Photon_Energy[keV]   Fluence[xtube_w]    Fluence[xtubes]
+       25                   1.24e4              1.23e7
+       35                   7.02e3              4.39e6
+      
+      I have no explanation for this discrepancy. 
+      
+ COPYRIGHT:
+	XTUBES belongs to XOP package and it is distributed within XOP.
+	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+
+ REFERENCE:
+	Published calculations made with XOP should refer:
+
+	M. Sanchez del Rio and R. J. Dejus 
+        "Status of XOP: an x-ray optics software toolkit"
+        SPIE Proceedings Vol. 5536 (2004) pp.171-174
+
+        http://dx.doi.org/10.1117/12.560903
+
+	In addition, published calculations using the xtubes aplication 
+	should also cite:
+
+	J.M. Boone T.H. Fewell and R. J. Jennings "Molybdenum, rhodium, and 
+	tungsten anode spectral models using interpolating polynomials with 
+	application to mammography"
+	Medical Physics 24(12) pp. 1863-1874, 1997. 
+
+
+ LAST MODIFICATION: srio@esrf.eu 2008-01-28

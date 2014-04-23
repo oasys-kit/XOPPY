@@ -1,0 +1,55 @@
+----- header of iplot.pro extracted on: Fri May 31 15:31:08 2013
+----- Documentation for /sware/com/idl-7.0/idl70/lib/itools/iplot.pro -----
+
+ NAME:
+   IPLOT
+
+ PURPOSE:
+   Fire up the plot iTool.
+
+ CALLING SEQUENCE:
+   IPLOT, [[x],y] (for 2D plot)
+ OR
+   IPLOT, x,y,z (for 3D plot)
+
+ INPUTS:
+
+ KEYWORD PARAMETERS:
+
+   SCATTER
+   Set this keyword to generate a scatter plot.  This is equivalent
+   to setting LINESTYLE=6 (no line) and SYM_INDEX=3 (Period symbol).
+
+   [XYZ]ERROR
+   Set this keyword to either a vector or a 2xN array of error
+   values to be displayed as error bars for the [XYZ] dimension
+   of the plot.  The length of this array must be equal in length
+   to the number of vertices of the plot or it will be ignored.
+   If the value is a vector, the value will be applied as both a
+   negative and positive error and the error bar will be symmetric
+   about the plot vertex.  If the value is a 2xN array the [0,*]
+   values define the negative error and the [1,*] values define
+   the positive error, allowing asymmetric error bars.;
+
+   RGB_TABLE
+   Set this keyword to the number of the predefined IDL color table (0 to 40),
+   or to either a 3 by 256 or 256 by 3 byte array containing color values
+   to use for vertex colors. If the values supplied are not of type byte,
+   they are scaled to the byte range using BYTSCL. Use the VERT_COLORS
+   keyword to specify indices that select colors from the values specified
+   with RGB_TABLE.
+
+   VERT_COLORS
+   Set this keyword to a vector of indices into the color table
+   to select colors to use for vertex colors or a 3xN or 4xN array of
+   colors values to use directly.  If the number of indices or
+   colors is less than the number of vertices, the colors are
+   repeated cyclically.
+
+ MODIFICATION HISTORY:
+   Written by:  CT, RSI, March 2002
+   Modified:    AY, RSI, February 2003: Update to allow 3D data
+   Modified: CT, Oct 2006: Added helper function, TEST keyword,
+       allow RGB_TABLE to be a Loadct table number.
+
+

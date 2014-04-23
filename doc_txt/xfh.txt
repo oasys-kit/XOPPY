@@ -1,0 +1,84 @@
+----- header of xfh.pro extracted on: Fri May 31 15:31:06 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/dabax/xfh.pro -----
+
+==================================  xfh      ==================================
+
+ XFH is a widget based graphical interface to calculate structure
+ factor of crystals.
+
+ The data are taken from the DABAX data base.
+
+ It access the following DABAX files:
+	CrystalStructures.dat
+	CrystalCell.dat
+	f1f2_*.dat
+	f0_CromerMann.dat,f0_CromerMann_old1968.dat,f0_WaasKirf.dat
+
+
+ CUSTOMIZATION OF XFH INPUT PARAMETERS:
+  -If you want to add(remove) another f1f2* file, just add(remove) it
+   in any(all) directory of $DABAX_PATH. 
+  -If you want to add(remove) another f0 file, follow the inscructions
+	given before.
+  -If you want to modify the crystal list, do the following:
+        a) copy the CrystalStructures.dat and CrystalCell.dat files to
+           a given directory (i.e. current directory ".")
+        b) Modify these files to add/remove/change the entries. Both
+	    files must have the same entries (or "scans").
+        c) Redefine $DABAX_PATH to include your new directoty:
+           setenv  DABAX_PATH = .:$DABAX_PATH
+        d) Restart the application.
+
+ DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
+
+  File:
+    Xfh input parameters: This option allows to save the current
+		parameters to a file for later loading. It also allows
+		to save the current parameters as defaults for being
+		used when the application is initialized. In the last
+		case, the file is named "application".xop (where 
+		"application " is the name of the current XOP
+		application) and is written in the directory pointed
+		by the XOP_DEFAULTS_DIR environment variable (which
+		must be set). The parameter file is ASCII and can be
+		read and edited with care.
+  Quit: to exit from the program
+
+ Set_Parameters:
+  Set Parameters: to define the parameters for the calculation.
+		The same result is obtained pressing the "Set Parameters"
+		button in the main Xfh window. 
+               Please refer to the information under the HELP
+		button for a complete description of the parameters. After 
+		pressing the ACCEPT button, xfh starts running and
+		creates a graphical window with the results.
+  Set Defaults: Sets the default parameters.
+
+  Show: Diaplay results
+    Plot crystal parameters: performs a plot of the energy-dependent parameters
+		(this option os only available for a number of energy points 
+		 nonequal to one)
+    Show crystal parameters: Show text information of the crystal parameters
+    Show crystallographic parameters: Show parameters used to build the 
+		structure factor. 
+  Help:   Shows the xfh help (this text).
+
+
+  COPYRIGHT:
+ 	XFH belongs to XOP package and it is distributed within XOP.
+ 	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+ 
+  REFERENCE:
+ 	Published calculations made with XOP should refer:
+ 
+ 	M. Sanchez del Rio and R. J. Dejus 
+         "Status of XOP: an x-ray optics software toolkit"
+         SPIE Proceedings Vol. 5536 (2004) pp.171-174
+ 
+         http://dx.doi.org/10.1117/12.560903
+ 
+  LAST MODIFICATION: srio@esrf.eu 2008-02-01
+ 
+ 
+

@@ -1,0 +1,57 @@
+               Description of the input parameters for BM:
+               ===========================================
+
+MACHINE NAME:   Information title
+
+B FROM:For selecting B field from either Magnetic radius of the bending 
+	magnet or magnetic field.
+	(The three precedent parameters are related by:
+	Radius [m] = (10/3) * Energy[GeV] / B[Tesla])
+
+MACHINE RADIUS: The radius of the Bending Magnet in meters.
+
+MAGNETIC FIELD: The magnetic field of the bending magnet in Tesla.
+
+BEAM ENERGY:    The electron beam energy in GeV.
+
+BEAM CURRENT:   The electron beam current in Ampers.
+
+HORIZ DIV:      The horizontal divergence in mrad.
+
+PSI (VERTICAL DIV) FOR ENERGY SPECTRA: For the calculation of the FLux and 
+		Power density spectra, different options of Psi can be selected:
+	Full (integrated in Psi): Spectra are calculated integrated from all 
+		space over Psi
+	At Psi=0: Spectra (pre mrad in Psi) at the center of the beam Psi=0 
+	In [Psi_Min,Psi_max]: Spectra integrated over a given interval in Psi. 
+		The values of the interval (Psi_Min and Psi_max) must be 
+		entered and also the mumber of points for integration in Psi. 
+
+MIN PHOTON ENERGY:  Minimum photon energy for the calculated spectrum, in eV.
+
+MAX PHOTON ENERGY:  Maximum photon energy for the calculated spectrum, in eV.
+
+NUMBER OF ENERGY POINTS: Number of energy points for the energy spectra
+
+SEPARATION BETWEEN ENERGY POINTS: Two options are available for creating the 
+		energy array: 
+	Lin: Energy points are a linear array (constant step)
+	Log: Energy points are a logarithmic array (step changes as log)
+
+MAX Psi[mrad] FOR ANGULAR PLOTS: Define the maximum value of Psi in mrad to 
+		be used when selecting the angular distribution plots, i.e.:
+	Plot angular distribution (all wavelengths) 
+	Plot angular distribution (one wavelength) 
+
+Psi min [mrad]: minimum value of Psi [mrad] for integration. Used in
+	Plot energy spectra in [Psi_Min,Psi_Max] angular range
+	Plot (angular,energy) distribution
+    Use also this entry to place the Psi value to be used when calculating 
+	Plot energy spectra at Psi=Psi_Min
+
+NUMBER OF PSI POINTS: Number of points for Psi integration or for the 
+	(angular,energy) mesh distribution. Please note that in the case that 
+	an integration over an angular interval [Psi_Min,Psi_Max] is chosen, 
+	the accuracy of the result may depends on this number of points in 
+	the integration grid.
+

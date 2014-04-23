@@ -1,0 +1,145 @@
+Parameters that specify the undulator 
+=====================================
+
+-  PERIOD is the magnet period in centimeters (real) 
+-  NPER is the number of periods (integer, 150 max) 
+-  NPTS is the number of points PER PERIOD at which the trajectory
+	is to be calculated (integer, 10 min, 100 max, 40 sugg.). The
+	magnetic-field modulation and phase-error functions (see eq. 1)
+	must then be given at NPTS points per period (NPTS*NPER-1 points
+	total).
+
+
+Parameters that define the photon energy range 
+==============================================
+
+-  EMIN is the photon starting energy in eV (real) 
+-  EMAX is the final photon energy in eV (real) 
+-  NE is the number of points in energy at which the spectrum will
+	be calculated (integer, used in spectral calculations, 500 max)
+
+
+Particle beam parameters 
+========================
+
+-  ENERGY is the electron energy in GeV (real) 
+-  CURRENT is the beam current in Amps (real) 
+-  SIGX is the horizontal beam size in mm (real) 
+-  SIGY is the vertical beam size in mm (real)
+-  SIGX1 is the horizontal beam divergence in mrad (real) 
+-  SIGY1 is the vertical beam divergence in mrad (real)
+
+
+Pinhole size and position 
+=========================
+
+-  DISTANCE is the distance to the observation point in meters. If
+	=0 then all pinhole sizes (defined below) are assumed to be in
+	angular units (mrad).  Otherwise the pinhole sizes are in
+	millimeters AND ALL BRIGHTNESS/POWER DENSITY DATA IS PER MM^2
+	RATHER THAN PER MRAD^2, E.G. PH/S/MM^2/0.1%BW.
+-  XPC is the horizontal position of the pinhole center in mrad or
+	mm (real)
+-  YPC is the vertical position of the pinhole center in mrad or
+	mm (real)
+-  XPS is the horizontal pinhole size in mrad or mm (real) -  YPS
+	is the vertical pinhole size in mrad or mm (real) 
+-  NXP is the number of pinhole subintervals in the horizontal 
+	direction (integer, 100 max)
+-  NYP is the number of pinhole subintervals in the vertical
+	direction (integer, 100 max)
+
+
+Control parameters
+==================
+
+-  MODE=0-7 specifies the calculation mode (integer) 
+	MODE=0 - trajectory calculation only. The settings of 
+		all parameters on lines 2-4 are irrelevant in
+		this case.
+ 	MODE=1 - spectrum of the brightness from EMIN to 
+		EMAX at NE points  at position XPC,YPC.  In this 
+		case XPS,YPS, NXP, and NYP are irrelevant (see
+		Section VII).
+ 	MODE=2 - angular distribution of the brightness at 
+		EMIN. In this case EMAX and NE are irrelevant.
+ 	MODE=3 - spectral AND angular distribution of the 
+		brightness.
+ 	MODE=4 - spectrum of the flux through a pinhole at 
+		NE points in the range [EMIN,EMAX].
+ 	MODE=5 - spectral distribution of the radiated power 
+		at XPC,YPC.  In this mode XPS, YPS, NXP and NYP
+		are irrelevant (see Section VII). 
+	MODE=6 - spectral AND angular distribution of the 
+		radiated power.
+ 	MODE=7 - angular distribution of the radiated power 
+		integrated from EMIN to EMAX.  In this case NE 
+		determines the number of energy points at which the 
+		spectrum will be calculated prior to the integration.  
+
+-  NSIG is the number of standard deviations of beam divergence to
+	include in the calculation (integer, max=5). NSIG=0 gives the
+	zero-emittance spectrum (in this case SIGX, SIGY, SIGX1, SIGY1
+	are irrelevant).
+
+-  TRAJECTORY  is a trajectory-calculation flag 
+ 	TRAJECTORY=OLD - read the trajectory from the disk 
+		file specified by the keyword TFILE (see below).
+ 	TRAJECTORY=NEW - read the B-field distribution from a 
+		file specified by the keyword BFILE and calculate 
+		the trajectory  without saving it.
+ 	TRAJECTORY=NEW+KEEP - read the B-field distribution from 
+		a file specified with the keyword BFILE, calculate 
+	 	the trajectory and store it in a file specified by 
+		the keyword TFILE.  
+
+-  XSYM=YES,NO flags whether horizontal symmetry of the spectrum
+	should be enforced (integer). Vertical symmetry is always
+	enforced. XSYM=NO - do not enforce horizontal symmetry XSYM=YES
+	- enforce horizontal symmetry
+
+-  HANNING=0,1,...,NPER/2 is the number of periods at the entrance
+	and exit of the undulator over which a Hanning window will be
+	applied to the solution for the trajectory prior to the FFT.  If
+	HANNING=0 no window will be  applied (default).  USE WITH
+	EXTREME CAUTION.
+
+
+I/O filename specifications
+===========================
+
+-  BFILE - when TRAJECTORY=NEW or NEW+KEEP this keyword must
+	specify a complete directory specification of the disk file
+	containing the B-field distribution (<80 chars).  If
+	TRAJECTORY=OLD the value of BFILE is irrelevant and may be
+	omitted.  THE FILE NAME MUST BE ENCLOSED IN DOUBLE QUOTES.
+
+-  TFILE - when TRAJECTORY=OLD or NEW+KEEP this keyword must
+	specify a complete directory specification of the disk file
+	containing the trajectory or to which the trajectory will be
+	written. The maximum length of the filenames is 80 characters.
+	THE FILE NAME MUST BE ENCLOSED IN DOUBLE QUOTES.  If TRAJECTORY
+	= NEW this keyword may be omitted.
+
+NOTE:  unless told otherwise YAUP converts all input to upper case. On
+case-sensitive systems (e.g. UNIX) this may cause problems with the
+interpretation of file names.  In such cases (or any time you want to
+keep the file names case-sensitive and/or want to use file names
+containing blanks) enclose the file names in DOUBLE quotes, e.g.
+BFILE= "/users/myname/myfile.b"
+
+
+Miscellaneous keywords
+======================
+
+- QUIET=YES,NO - when YAUP encounters a word that it does not
+	recognize it will complain loudly.  You may prevent it from
+	doing so by using the QUIET flag.  By default QUIET is set to
+	NO. Setting QUIET=YES will cause all unrecognized keywords to be
+	ignored.  It is your responsibility to avoid all typos and
+	accidental occurrences of text containing keywords.  It is
+	probably a good idea to set QUIET=NO (default) and comment out
+	all additional text in YAUP.INP
+
+- END - all input following the keyword END is ignored
+

@@ -1,0 +1,96 @@
+This is a description of the input parameters for xcrystal_bent
+
+DABAX f0 file: 
+	Select a DABAX file from where the f0 component of the structure 
+	factor will be read.
+
+DABAX f1f2 file: Select a DABAX file from where the f1f2 components of 
+	the structure factor will be read.
+
+Crystal: Select a crystal from this list of crystals.
+
+h Miller index: obvious
+k Miller index: obvious
+l Miller index: obvious
+
+Include absorption: Recommended to select *ALWAYS* Yes.
+
+Temperature factor: Three possibilites:
+       1) Enter the exp(-M) value (a positive value between 0 and 1)
+       2) Enter the absolute temperatute in Kelvin, WITH A MINUS SIGN.
+	  The minus sign tells to the code that the number entered
+	  refers to a temperature and not to the full debye-waller exp(-M)
+	  factor. The minus sign will not be considered for the numerial
+	  calculations. 
+	  In this case, the Debye-Waller factor is calculated 
+	  as a function of the temperature, using a well-known approximation 
+	  as a function of sin(theta/lambda)=1/(2d), temperature, atomic 
+	  mass and Debye-temperature. In the case of crystal structures 
+	  with more that one atomic sites, an independent Debye-Waller 
+	  factor is calculated for each atomic site and then putting them 
+	  together by averaging the M's. Values for atomic mass and 
+	  Debye temperatures are obtained from the DABAX file
+	  AtomicConstants.dat. For more info, see the documentation in the
+	  function DebyeWaller.pro
+       3) Enter a question mark (?). 
+	  In this case, the code will perform the calculation as in 
+	  point 2), but it will pop-up a window that will permit to modify 
+	  the Debye-Waller ingredients (i.e., the sin(theta/lambda)=1/(2d) 
+	  ratio, temperatute, atomic mass and Debye temperature). 
+	  In the case of crystal structures with several atomic types, 
+	  several values of atomic mass and Debye temperature should be entered.
+	  The default values are taken from the DABAX file AtomicConstants.dat. 
+	  The interest of this option is to allow the user to "improve"
+	  the default value of the temperature factor, which is 
+	  mostly "structure" dependent rather than dependent on the atomic 
+	  types. For example, in the case of AlphaQuartz (SiO2), The Debye 
+	  temperature of the oxygen is not defined by default in the 
+	  AtomicConstants.dat DABAX file because oxigen does not exist in
+	  crystalline state. Therefore the averaged value seems not realistic.
+	  This option allows to customize the Debye temperatures from 
+	  default (note that values of Debye temperature found in bibliography 
+	  change significatively from one reference to another) and also allows
+	  to enter average values of atomic mass and Debye temperature by 
+	  entering identical values foe all atomic sites. 
+	  Note that if values are changed in this window, they are not
+	  saved for further runs, nor saved to input files like
+	  xcrystal_bent.xop. 
+
+Calculation Theory: Select the desired theoretical model for the bent
+	crystal calculations. The options here are initialized in the 
+	$XOP_HOME/data/crystal_bent_theories.dat. Some models have 
+	limitations that must be kept in mind, because the application
+	does not tell the user about a wrong use. 
+	For example, Zachariasen theory is only for FLAT crystals (so
+	the bent radius and Poisson ration values are ignored) and 
+	Penning-Polder theory is only for crystals in LAUE geometry.
+
+Geometry: Select between LAUE or BRAGG.
+
+Min Y value: min value for the rock angle scanning in function of the 
+	Y variable. 
+
+Max Y value: max value for the rock angle scanning in function of the 
+	Y variable. 
+
+Number of points: the number of points in Y.
+
+Photon EnergY [eV]: The photon energy in eV
+
+Asymmetry Angle [deg]: the angle between the Bragg planes and the crystal 
+	surface. It is 0.0 for the symmetrical Bragg case and 90.0 for 
+	the symmetrical Laue case.
+
+Polarization: use Sigma for polarization factor P=1.
+	Pi for P=cos(2*theta_bragg)
+	Total for non-polarized incident ligth P=0.5(1+cos(2*theta_bragg)).
+
+Radius of Curvature [m]: The crystal radius in meters.
+
+Crystal Thickness [mm]: the crystal thickness in mm
+
+Poisson Ratio: The Poisson ration (elastic constant) for the selected crystal.
+	Plase note that only homogeneous materials are considered in the
+	deformation model. 
+
+

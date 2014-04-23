@@ -1,0 +1,130 @@
+----- header of mare.pro extracted on: Fri May 31 15:31:06 2013
+----- Documentation for /scisoft/xop2.3/src_idl/dabax/mare.pro -----
+
+
+================================   MARE    =====================================
+
+
+ MARE is an widget based graphical interface to calculate: 
+  - Spaghetti plots (lambda versis Psi for multiple crystal reflection)
+  - The Umweganregung peak location plot (the diffracted wavelength 
+       lambda vs. Psi) for a given primary reflection,i.e., an 
+       horizontal cut of the spaghetti plot.  
+  - The Glitches spectrum (the negative intensity for versus the
+        wavelength) or a vertical cut of the spaghetti plot. 
+
+  Psi is the azimutal angle of totation, i.e., the totation around
+    the H vector (main reflection)
+
+
+
+ In other words, if a crystal is set with a particular Bragg angle to match 
+ a given reflection (inputs: H,K,L) at a given wavelength (input: WaveLength), 
+ many other (secondary) reflections are excited when the crystal is rotated 
+ around the azimutal angle Psi, without changing the Bragg angle. 
+
+ The plot (WaveLength,Psi) of the possible reflections is calculated and
+ contain all possible reflection curves up to a maximum reflection 
+ (input: H Max,  K Max, L Max). 
+
+ Umweg plot: 
+ The intersection of these curves with an horizontal line at the wavelength 
+ of the primary reflection (input: WaveLength) gives the position of the 
+ peaks in the unweg plot. The width of each peak depends on the pendent of 
+ the curve at the intersection. For that, the Psi1 and Psi2 intersection 
+ angles with a band of width (input: DeltaWaveLength) are calculated. With 
+ this width and the intensity of the diffraction line, it is possible to 
+ compute a Gaussian that "roughly" describe the peak.
+ 
+ Glitches plot: 
+ The intersection of these curves with a vertical line at a given Psi 
+ gives the position of the peaks in the glitches plot. The width of each 
+ peak is the difference between the wavelength values for Psi+/-DeltaPsi
+ With this width and the intensity of the diffraction line, it is possible to 
+ compute a Gaussian that "roughly" describe the peak.
+ 
+
+ The program computes first all Miller indices hkl associated to the
+ different crystal planes which meet the diffraction condition (multiple
+ diffraction events) in the two-beam multiple diffraction approximation.
+
+ The structure factor, independent of the energy (i.e., no anomalous
+ scattering) is calculated for each reflection. 
+
+ In the spaghetti plot all reflections, except all that have structure
+ factor zero (i.e., forbidden reflections) are plotted. 
+
+ The azimuthal angle Psi is calculated relative to an arbitrarily chosen 
+ reference direction perpendicular to the scattering vector of the primary 
+ reflection.  (See Ref). The considered reflection is displayed in the 
+ header of the xop macro that produces the plot.  
+
+ The theoretical frame of the program is essentially provided in:
+     B.H. Cole et al, "Simultaneous Diffraction: Indexing Umweganregungen 
+     Peaks in Simple Cases", Acta Cryst. (1962), 15, 138-144
+
+ The peak intensity is calculated approximately, as Fh^2*L*P, 
+ being L the lorentz factor, and P the polarization factor. The latter
+  values are computed in the function bragg_lorentz(). 
+
+ Note that this intensity is very approximated, because: 
+       - The formula is not valid for perfect crystals, only for powders.
+       - The total intensity must be the sum of the primary reflection
+         plus the intensity of the so-called operative reflections plus the
+         contribution of the cooperative ones. 
+       - Anomalous scattering factors are not considered. 
+       - The lorentz and polarization factor are not correctly used
+
+ Therefore the resulting plots should be taken with care. 
+ For a more detailed and accurate method, the following references may be used: 
+       Rossmanith, Acta Cryst (1992) A48 596-610
+       Rossmanith, Acta Cryst (2006) A62 174-177
+       Rossmanith, J. Appl. Cryst. (2003) 36, 1467-1474  
+
+ The program should deal with any crystal geometry, however, only the 
+ cubic geometries have been tested. 
+
+
+ DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
+
+  File:
+   MARE input parameters: This option allows to save the current
+		parameters to a file for later loading. It also allows
+		to save the current parameters as defaults for being
+		used when the application is initialized. In the last
+		case, the file is named "application".xop (where 
+		"application " is the name of the current XOP
+		application) and is written in the directory pointed
+		by the XOP_DEFAULTS_DIR environment variable (which
+		must be set). The parameter file is ASCII and can be
+		read and edited with care.
+  Quit: to exit from the program
+
+ Set_Parameters:
+  Set Parameters: to define the parameters for the calculation.
+		The same result is obtained pressing the "Set Parameters"
+		button in the main BM window. 
+               Please refer to the information under the HELP
+		button for a complete description of the parameters. 
+  Set Defaults: Sets the default parameters.
+
+  Help:   Shows the BM help (this text).
+
+
+  COPYRIGHT:
+ 	MARE belongs to XOP package and it is distributed within XOP.
+ 	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+ 
+  REFERENCE:
+ 	Published calculations made with XOP should refer:
+ 
+ 	M. Sanchez del Rio and R. J. Dejus 
+         "Status of XOP: an x-ray optics software toolkit"
+         SPIE Proceedings Vol. 5536 (2004) pp.171-174
+ 
+         http://dx.doi.org/10.1117/12.560903
+ 
+  LAST MODIFICATION: srio@esrf.eu 2012-03-01
+ 
+ 
+

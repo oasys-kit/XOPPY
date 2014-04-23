@@ -1,0 +1,995 @@
+----- header of xplot.pro extracted on: Fri May 31 15:31:07 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/wutil/xplot.pro -----
+
+
+      ============================= XPLOT  ======================
+
+
+ XPLOT is a general package for creating X-Y plots that also allows for
+ sophisticated data visualization, processing, manipulation and analysis.
+ Some of the XPLOT features are:
+
+  1) Direct loading of data from multicolumn ASCII files. Multiple sets of
+ data can be accessed from several files and merged together. Interactive
+ action on data columns with the creation of new data from scratch or by
+ manipulating existing data
+  2) Access to SPEC data files
+  3) Direct printing from Unix workstations and PCs, and creation of
+ PostScript and encapsulated PostScript files
+  4) Linear and logarithmic X- and Y-axes. Apply and change symbols, line
+ styles, colors, thickness, fonts etc.
+  5) Label, annotate, add legends, titles, etc. to the plots. Zoom, shift,
+ switch columns, and over-plot data.
+  6) Save and restore plots and attributes in a XPLOT backup file.
+  7) Data analysis: extrema, moments, integrals, derivatives, CDFs,
+ smoothing, user-defined operations, interactive Fourier filtering,
+ interpolations, convolutions and correlations. It also includes several
+ fitting routines: linear regression, polynomial fit, Gaussian fit and
+ nonlinear fit (the gradient-expansion algorithm or the Powell method) with an
+ on-line user-defined function.
+
+
+ XPLOT also includes some packages for specific data analysis. At present
+ the XAID package for XAFS (X-ray Absorption Fine Structure)
+ analysis is available. New applications and interfaces for data
+ processing applied to different synchrotron techniques are under
+ development, and they will be integrated in future releases.
+
+
+ On line help is available in most of the cases. A Web Xplot page and
+ documentation can be found at:
+ http://www.esrf.fr/computing/scientific/xop/xplot
+
+
+ Overplotting with Xplot
+ =======================
+
+ One of the most important features of Xplot is the capability to display
+ multi-line graphs with data coming fro different origins. Data in Xplot
+ is structured in the so-called sets.
+
+ A set is an array or matrix containing N points (or rows) and M columns.
+
+ Xplot stores the data in multiple sets, and each set may hold a
+ different number of points or columns. Xplot allows multi-line plots, in
+ which the data for each line is a couple of columns from a given set.
+ Xplot options Calculations and File/Load Data File... allows to create
+ new columns in defined sets and new sets from files or from operations
+ between existing sets.
+
+ You can change the X and Y columns for the plot in the current set of
+ data by just typing the column numbers in the bottom of the Xplot
+ window. It is very important to enter <Enter> after modifying any text
+ widget in Xplot. That permits Xplot to understand you have finished with
+ the editing, and process the event.
+
+ If you want to do a plot with multiple lines, first load the data set
+ with the first line. Then use the "Save Plot" button to store this set
+ as a "saved set". At this moment, the saved set is copied to the
+ current set, and both will be displayed. Then, you can change columns
+ of even load a new data set using File/Load menu and the new data set
+ will be overplotted on the saved one. Repeat this process as many times
+ as you want. Once a set is saved, the Xplot controls do do affect it.
+ The window created by pressing the "Plot Mgr" (Plot manager) button
+ permits to delete save sets, or to promote a saved set to the current
+ set.
+
+
+ Xplot has been written by:
+   Manuel Sanchez del Rio
+   European Synchrotron Radiation Facility
+   BP 200
+   38043 Grenoble-Cedex 9
+   Email: srio@esrf.eu
+
+  COPYRIGHT:
+ 	XPLOT belongs to XOP package and it is distributed within XOP.
+ 	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+ 
+  REFERENCE:
+ 	Published calculations made with XOP should refer:
+ 
+ 	M. Sanchez del Rio and R. J. Dejus 
+         "Status of XOP: an x-ray optics software toolkit"
+         SPIE Proceedings Vol. 5536 (2004) pp.171-174
+ 
+         http://dx.doi.org/10.1117/12.560903
+ 
+  LAST MODIFICATION: srio@esrf.eu 2008-12-12
+ 
+ 
+
+
+      ================= USE OF XPLOT FROM THE IDL PROMPT  ==========
+
+
+
+   NAME:
+     XPLOT
+   PURPOSE:
+     to plot and interactive manipulate data
+   CALLING SEQUENCE:
+     XPLOT [,indata] [,keywords]
+   OPTIONAL INPUT PARAMETERS:
+   indata can be one of the following:
+     1) filename: a string containing the file name to be
+     plotted or an idl variable [fltarr(n_points,n_columns]
+     with data. The file must be ascii data arranged in
+     columns. Lines starting with characters [except . + -]
+     are comments and not considered for the plot.
+     2) an idl variable containing the numerical data
+     set (a fltarr(n_columns,n_points)
+     3) x,y two arrays with the  abscissas and ordinate
+     arrays.
+     4) h an IDL handler pointing to a set or to a number
+     of sets.
+
+   KEYWORD PARAMETERS:
+     GROUP = The widget ID of the widget that calls Xplot.
+     When this ID is specified, a death of the caller results
+     in a death of Xplot.
+     WINDOW_SIZE = a 2-dim vector containing the width and
+     height of the graphical window (in pixels).
+     XCOL = for multicolumn entries, the column number to be
+     plotted in the X axis (default=1)
+     YCOL = for multicolumn entries, the column number to be
+     plotted in the Y axis (default=last column)
+     WTITLE = title for the main window. As an option, the 
+		standard legend (Xop xx Id:xx) can be added by
+		placing "%C" in the wtitle string. Ex, 
+		Wtitle='Hello %C' will display 'Hello Xplot 2.95 Id:45'
+     TITLE = title for the plot
+     XTITLE = abscissas title. In the case that xtitle is
+      set as XTITLE='-1', then xplot will place
+      the text of COLTITLES corresponding to the
+      plotted column.
+     YTITLE = ordinates title. In the case that ytitle is
+                       set as YTITLE='-1', then xplot will place
+                       the text of COLTITLES corresponding to the
+                       plotted column.
+     COLTITLES = string array with column labels.
+     LEGEND = A legend call to the LEGEND procedure by
+       F K Knight (knight@ll.mit.edu)
+     STATE = a xplot state structure (only for internal
+      use of Xplot (when creating clones))
+     PARENT = The wiggler id of the main Xplot window
+      created. This is useful to pass this id
+      as parent of other widgets that must die when
+      the present XPlot window dies.
+     [XY]LOG = when set to 1, initializes [XY] logaritmic axis.
+     SPEC = input, initialize xplot with a SPEC file. Input
+      may be a file name (string) or a spec handler (str).
+      Example, IDL> xplor,spec='file.dat'
+               XRANGE=[xmin,xmax] range of the x variable for the plot
+               YRANGE=[ymin,ymax]              y
+
+
+   OUTPUTS:
+     Open a widget utility and present a graphic.
+   COMMON BLOCKS:
+
+   SIDE EFFECTS:
+     If not active, starts Xmanager
+   RESTRICTIONS:
+     Unknown.
+   PROCEDURE:
+     Uses the PLOTFILE routine for producing the plot
+   KNOWN BUGS:
+
+     When starting xplot with coltitles keyword, the "clone"
+       option does not work.
+     [xy]title='-1' does not work properly with spec/mca data.
+
+     Using Edit/Data and removing data causes xplot to
+     crash when SPEC data is used or "-1" is used in titles.
+     The automatic selection in Edit/Data does not work for
+     data set in which the abscissas are reversed.
+
+     The Save/Restore backup option is not very robust. It may
+     give problems using complicated plots. It does not work with
+     SPEC files. It may present incompatibilities between different
+     xplot versions.
+
+   MODIFICATION HISTORY:
+       by  Manuel Sanchez del Rio. ESRF. December 1993
+     94-01-21 MSR improves the evaluate option
+     94-02-02 MSR add style options in LIMITS menu
+     94-02-18 MSR removes common blocks and allow
+      multiple copies of the widget
+     94-05-19 MSR fix a bug in the print buffer managment
+      found by R. Dejus.
+     94-06-27 MSR adds the /Calculations/correlation function
+      option.
+     94-11-17 MSR adds Tools/Xplot and Tools/IDL_command options
+     95-02-11 MSR adds Calculations/Fitting option, check
+      existence of input files.
+     95-03-08 MSR: updating of fourierfilter: we pass now also
+      the abscissas values.
+     95-08-08 MSR: adds LEGEND keyword.
+
+     95-09-14 MSR Releases Xplot version 2.0
+     Nov 1995  version 2.1 major upgrades:
+      - Integration and interfacing of spec_acces
+      - COLTITLES keyword
+      - Options Polynomial and Gaussian fit integrated
+      in a single one.
+      - new interface of non-linear fit.
+     96-01-18 srio@esrf.fr changes xtext call by xedit from RJD.
+     96-01-19 srio@esrf.fr adds options [xy]title='-1'
+     96-01-22 srio@esrf.fr adds the possibility to edit column
+      titles for SPEC files, and number the columns.
+     96-04-12 srio@esrf.fr adds /xlog and /ylog kws. Change
+      fieldlen in settitles.
+     96-05-29 srio@esrf.fr xplot/title: when using spec files,
+      the symbol #x (i.e. #S) is interpreted as its
+      corresponding value in the spec scan header.
+     96-07-09 srio@esrf.fr Adds SPEC keyword.
+     96-08-13 srio@esrf.fr changes "'" by '"' in xplot_plot
+     96-08-20 srio@esrf.fr makes the main window resizable,
+      and removes the ZoomSel button (now automatic selection
+      of zooming area by dragging the mouse with the left
+      button down). Do not write intermediate files
+      for view/showData. Introduce xhelp.
+     96-12-04 srio@esrf.fr add "catch" in xplot_event to
+      avoid crassing the application when there is an error.
+     97-01-15 srio@esrf.fr complete the list of spec functions in
+      xplot_compile().
+     97-02-17 srio@esrf.fr debugging: log->lin change when saving,
+      dynamic_resize of column widgets, correct cursor
+      read-out when switching between Xplot windows. Add
+      path to pickfile and uses xhelp for help.  Version 2.2
+     97-06-27 srio@esrf.fr added View/Mesh option. version 2.2.
+      Use copy_structure to restore backup file (assures
+      compatibility between save files from different xplot
+      versions).
+     97-09-07 srio@esrf.fr added non-interactive use of xplot.
+      Version 2.4
+     97-09-30 srio@esrf.fr substitutes read_ascii to rascii
+     97-10-27 srio@esrf.fr version 2.5, with lots of modifications:
+      New zoom rubberband code. Re-load file. Apply
+      button in many windows. Changed many calculations
+      windows (smooth, convolution, etc), non-linaer fit
+      with fixed parameters, new Plot Manager button
+      obsoleting the Set Current one, fixed many bugs
+      regarding zoom limits and resizing, etc, etc.
+     97-11-10 srio@esrf.fr adds Edit/Data... menu using xtable.
+     97-12-03 srio@esrf.fr adds xplot_cleardata() and fix
+      a bug with non-interactice use of plotmgr. V 2.5.1.
+      Adds xplot_setlimits().
+     98-02-18 srio@esrf.fr adds NOREFRESH keyword to
+       xplot_[setlimits,loadfile,changecol,exebuffer,
+      errorbars,addcol,plotmgr] routines.
+      Fix a bug (not displaying error bars in saved
+      sets.)
+     98-03-25 srio@esrf.fr small changes to allow starting
+      xplot when spec_access is not available.
+     98-04-07 srio@esrf.fr removed /no_copy kw in main
+      widget_draw definition (problems in w95).
+     98-09-18 srio@esrf.fr Avoid changing columns when reloading.
+      Improved SPEC window.  Avoid changing columns
+      after column operations. Corrected bug in
+      displaying calculations,FWHM.../Max x.
+      Improved save/asciioption. Improved oper w columns.
+      Correct managment of ![x,y].style. Many other things.
+      Version 2.6.Beta1.
+     98-09-25 xplot_mesh and xplot_shift added
+     98-09-30 bug when selecting columns after adding cols fixed.
+      Use of psysvar when overplotting after fit.
+      Shortened "command" in xplot_plot
+      Other cosmetics.
+     98-09-30 reintroduced changes for PSD (done in revision 1.35
+      but lost). Version 2.6Beta3.
+     98-11-16 fixed a bug when applying oper w cols and the
+      coltitles kw is set. Shorts the number of
+      characters in the column pulldown menus.
+      Version 2.6Beta4.
+     98-11-20 fixed a bug when save/restore backup file.
+      Added "add to file" for spec files. Version 2.6Beta5.
+     99-01-08 substituted cw_clr_index by cw_clr_index1 to allow
+      entering the index by simple typing.
+
+     99-01-13 Removed calls to xaid.
+     99-03-12 Added non-modal window for setting limits. Help
+      menu updated. Pemoved xplot_compile. Added
+      option to Wrile/Load qattributes from file.
+      Aded hardware and TT fonts. Version 2.7B1
+     00-03-21 Improved Calculation|Interpolation/Spline option
+     01-01-22 Improving Edit|Cut
+     01-01-24 Allows printing a zoomed image. Improves
+      operations with sets...
+      Fixed bugs in Edit|Columns (with columns labels and
+      SPEC)
+     02-03-08 srio@esrf.fr adds AutoReLoadFile option. The autoreload
+      if the file has been modified works only for idl >= 5.5
+     02-03-13 srio@esrf.fr changed PolyFitW by Poly_Fit
+     02-05-27 srio@esrf.fr Bug fixed: Added /SORT kw to
+      Int_Tabulated calculations (before it returned wrong
+      values when the array was sorted in descendent order)
+     02-06-20 srio@esrf.fr manages the spec keywords with
+      more than one character in the xplot title label.
+     04-03-10 srio@esrf.fr adds "calculations/list of points"
+     05-05-24 srio@xanum.uam.mx added xplot_settitles
+     06-02-21 srio@esrf.fr forces double type in RASCII()
+     06-05-22 srio@esrf.fr Export to EXODUS. Modified wids structure.
+     06-06-07 srio@esrf.fr Debugging SPEC/MCA input. v.2.87
+     06-08-22 srio@esrf.fr Improvements in Set Limits window v 2.88
+     06-10-06 srio@esrf.fr Added background substraction
+     07-02-07 srio@esrf.fr Added support for EDF files.
+     07-03-07 srio@esrf.fr Added PSYM=11 (Peak-line).
+     07-10-10 srio@esrf.fr Added bitmap buttons.
+     08-03-06 srio@esrf.eu Added Calculations->Interpolation by triangulation
+     20-03-06 srio@esrf.eu Added xplot_calibrate
+     12-12-08 srio@esrf.eu Child windows centered. Error bars improved.  v2.99
+
+
+
+      ================= NON-INTERACTIVE MANIPULATION OF XPLOT ==========
+
+   Since Xplot version 2.4, the Xplot internals are being modified
+   to allow also non-interactive manipulation of Xplot.
+   This is very useful when using Xplot from other widget applications
+   and one wants to prepare sophisticated plots with options not
+   availables as keywords in the main Xplot call. Typical examples
+   are to overplot several plots, to add commands in the EXEbuffer,
+   or to display error bars.
+   The access is done by a set of routines with general syntaxis:
+
+   xplot_<name>, parent [,other_inputs, keywords]
+
+   where <name> indicates the action to be performed (i.e. loadfile,
+   quit, etc.), parent is the widget id of the manin Xplot window to
+   be manipulated and the other information  is passed using the
+   other inputs and keywords.
+
+   EXAMPLE:
+     ; you can execute these commands as an example
+     tmp = fltarr(5,100)
+     tmp(0,*) = findgen(100)
+     tmp(1,*) = tmp(0,*)^2     ; first curve
+     tmp(2,*) = tmp(0,*)^2+100 ; second curve
+     tmp(3,*) = tmp(0,*)^2-500 ; bottom of error bars
+     tmp(4,*) = tmp(0,*)^2+500 ; top of error bars
+     xplot,parent=p,/no_block  ; starts xplot, retrieved parent id
+     xplot_loadfile,p,tmp      ; load the data in xplot
+     xplot_changecol,p,ycol=3  ; set Y as column 3
+     xplot_controls_action,p,linestyle=1 ; set dotted line
+     xplot_savecurrent,p       ; save this plot
+     xplot_changecol,p,ycol=2  ; overplot column 2
+     xplot_controls_action,p,linestyle='0' ; overplotted line to solid
+     xplot_errorbars,p,4,5     ; plot error bars
+     xplot_exebuffer,p,setbuffer=$ ; add an annotation
+      "xyouts,.2,.7,'Example of non-interactive label',/norm"
+
+   Available routines are:
+     xplot_quit
+     xplot_refresh
+     xplot_cleardata
+     xplot_setlimits
+     xplot_loadfile
+     xplot_savecurrent
+     xplot_changecol
+     xplot_exebuffer
+     xplot_errorbars
+     xplot_addcol
+     xplot_plotmgr
+     xplot_saveascii
+     xplot_mesh
+     xplot_shift
+     xplot_controls_action
+     xplot_reloadfile
+     xplot_autoreloadfile
+     xplot_getcurrentdata
+     xplot_settitles
+     xplot_calibrate
+
+   The routines help id listed below.
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_QUIT
+   PURPOSE: Quits the Xplot window and destroy the internal handlers.
+   CALLING SEQUENCE: XPLOT_QUIT,parent
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named variable)
+   MODIFICATION HISTORY:
+     97-09-11 srio@esrf.fr initial version from xplot code
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_REFRESH
+   PURPOSE: Refreshes the Xplot window 
+   CALLING SEQUENCE: XPLOT_REFRES,parent
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named variable)
+   KEYWORDS: 
+     zoom_on: 0, 1 flag to set (unset) limits to zoom selection
+   OUTPUT KEYWORDS: 
+     printbuffer: buffer for printing. Note that this output variable
+       must be pre-initialize to a string different from '' , e.g.: 
+       IDL> buff='   '
+       IDL> xplot_refresh,2977L,printbuffer=buff
+       IDL> help,buff
+       BUFF            STRING    = Array[18]
+       
+   MODIFICATION HISTORY:
+     08-01-14 srio@esrf.eu initial version from xplot code
+     08-03-26 srio@esrf.eu adds printbuffer kw. Updated doc.
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_CLEARDATA
+   PURPOSE: clears graphs in xplot
+   CALLING SEQUENCE: XPLOT_CLEARDATA,parent
+   INPUTS:
+   KEYWORD PARAMETERS:
+     CONFIRM = When set, display a confirmation window.
+   MODIFICATION HISTORY:
+     97-12-03 srio@esrf.fr initial version from xplot code
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_SETLIMITS
+   PURPOSE: Sets the xrange and/or yrange to xplot.
+   CALLING SEQUENCE: XPLOT_SETLIMITS,parent
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named
+     variable)
+
+   KEYWORD PARAMETERS:
+     XRANGE = [xmin,xmax] The extrema in X
+     YRANGE = [ymin,ymax] The extrema in Y
+     XSTYLE = The XSTYLE Graphic Keyword (see IDL doc)
+     YSTYLE = The YSTYLE Graphic Keyword (see IDL doc)
+     NOREFRESH set this keyword to avoid refreshing the graph
+      after the loading process. Useful when loading
+      many curves.
+
+   MODIFICATION HISTORY:
+     97-12-03 srio@esrf.fr initial version from xplot code.
+     99-03-10 srio@esrf.fr adds xplot_setlimits_interactive
+      for non-modal interactie change of limits.
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_LOADFILE
+   PURPOSE: load a file or variable in xplot
+   CALLING SEQUENCE: XPLOT_LOADFILE,parent [,input,spec=spec]
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named variable)
+
+     INPUT  it can either be:
+        1) a string with the ASCII file name
+        2) an idl variable with a multi-column set (i.e.  fltarr(2,100) )
+   KEYWORD PARAMETERS:
+     SPEC set this keyword to a SPEC file name. In this case the
+     file is loaded and interpreted as SPEC file. IN this case,
+     "INPUT" is not used.
+     PLOTNAME set this keyword to a string that identifies the
+      plot (to be used by plotmgr).
+     NOREFRESH set this keyword to avoid refreshing the graph
+      after the loading process. Useful when loading
+      many curves.
+     SCANID When using SPEC input, set this keyword to the
+      scan id to be loaded (e.g., 'CURRENT').  Default='LAST'
+     WTTILE Title for the main window bar
+
+   MODIFICATION HISTORY:
+     97-09-11 srio@esrf.fr initial version from xplot code
+     97-12-03 srio@esrf.fr adds plotname keyword.
+     98-02-17 srio@esrf.fr adds norefresh keyword. Xplot v 2.5.2
+     01-02-23 srio@esrf.fr adds wTitle keyword.
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_SAVECURRENT
+   PURPOSE: to save the current displayed plot in xplot (same
+     effect as pressing the "Save Current" button on the xplot
+     window)
+   CALLING SEQUENCE: XPLOT_SAVECURRENT,parent
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named variable)
+
+   MODIFICATION HISTORY:
+     97-09-11 srio@esrf.fr initial version from xplot code
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_CHANGECOL
+   PURPOSE: to change the X or Y displayed column in xplot
+     It works aso with SPEC files, including MCA. In the last
+     case the (X) column for Channels is ncol+1 and for Energy
+     is ncol+2, being ncol the number of channels.
+   CALLING SEQUENCE: XPLOT_CHANGECOL,parent ,XCOL=xcol, YCOL=ycol
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named variable)
+
+   KEYWORD PARAMETERS [USE AT LEAST ONE]:
+     XCOL The column index for X (starting from col 1, not 0)
+     YCOL The column index for Y (starting from col 1, not 0)
+     NOREFRESH set this keyword to avoid refreshing the graph
+      after the loading process. Useful when loading
+      many curves.
+
+   MODIFICATION HISTORY:
+     97-09-11 srio@esrf.fr initial version from xplot code
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_EXEBUFFER
+   PURPOSE: to set a buffer or to add commands to the buffer
+     The EXEbuffer is a set of IDL commands that are executed
+     after the plot. It is used to make labels, annotations, etc.
+   CALLING SEQUENCE: XPLOT_EXEBUFFER,parent, ADDBUFFER=addbuffer, $
+     SETBUFFER=setbuffer
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named variable)
+
+   KEYWORD PARAMETERS [MUST USE ONLY ONE (MUTUALLY EXCLUSIVE)]:
+     ADDBUFFER A string array with the commands to be added to the buffer
+
+     SETBUFFER A string array with the commands to be set to the buffer.
+      If the buffer contained commands, they are deleted before.
+     NOREFRESH set this keyword to avoid refreshing the graph
+      after the loading process. Useful when loading
+      many curves.
+
+   MODIFICATION HISTORY:
+     97-09-11 srio@esrf.fr initial version from xplot code
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_ERRORBARS
+   PURPOSE: create error bars on a given plot
+   CALLING SEQUENCE: XPLOT_ERRORBARS,parent, col1, col2
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named
+      variable)
+     COL1 the column containing the bottom limit of the error bars
+     COL2 the column containing the upper limit of the error bars
+     NOREFRESH set this keyword to avoid refreshing the graph
+      after the loading process. Useful when loading
+      many curves.
+   MODIFICATION HISTORY:
+     97-09-11 srio@esrf.fr initial version from xplot code
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_ADDCOL
+   PURPOSE: load a numerical array and include it as new column in
+     Xplot.
+   CALLING SEQUENCE: XPLOT_ADDCOL,parent,input
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named
+     variable)
+
+     INPUT  an array with the new column.
+
+   KEYWORD PARAMETERS:
+
+   MODIFICATION HISTORY:
+     97-10-21 srio@esrf.fr initial version slightly modifying
+      the old xplot_addcol.
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_PLOTMGR
+   PURPOSE: manage the saved set (delete or move to current).
+   CALLING SEQUENCE: XPLOT_PLOTMGR,parent [,selected ]
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named variable)
+
+     SELECTED = the saved set number (starting from 1) to be
+     edited (moved or deleted).
+   KEYWORD PARAMETERS
+     [THE FOLLOWING ONES ARE EXCLUSIVE. AT LEAST ONE IS MANDATORY]:
+     DELETE_SEL will delete the selected saved set.
+     DELETE_ALL will delete all the saved sets.
+     MOVE will move the selected saved set to the current set.
+     [GENERAL KWYWORDS]:
+     NOREFRESH set this keyword to avoid refreshing the graph
+      after the loading process. Useful when loading
+      many curves.
+
+   MODIFICATION HISTORY:
+     97-10-24 srio@esrf.fr initial version from xplot code
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_SAVEASCII
+   PURPOSE: save to an ascii or microsoft/excel file the current set
+   CALLING SEQUENCE: XPLOT_SAVEASCII,parent
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named variable)
+
+   MODIFICATION HISTORY:
+     98-08-25 srio@esrf.fr initial version from xplot code
+     2006-04-17 srio@esrf.fr adds EXCEL file support.
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_MESH
+   PURPOSE: displays mesh data
+   CALLING SEQUENCE: XPLOT_MESH,parent
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named variable)
+
+   KEYWORD PARAMETERS [USE AT LEAST ONE]:
+     FLAG 0 displays data in usual mode (no-mesh)
+          1 displays data in mesh mode
+     KIND 0 show mesh plot with lines
+          1 shadow mesh plot with a surface
+          2 shadow mesh plot with contour curves
+          3 shadow mesh plot with a shaded surface
+     POINTS set this keyword to the number of points of each individual
+      curve in the total data
+     COL set this keyword to a column indicating containing the index
+      to recognise individual curves
+      (the COL and POINTS keyword are exclusive. If both are set,
+      only COL is used.)
+     INTERACTIVE 0: Non interactive use, 1(Default): Interactive (i.e., 
+     opens a dialog window)
+     KEYWORDS string with extra keywords to be passed to the graphical
+      routines.
+
+   MODIFICATION HISTORY:
+     2007 srio@esrf.eu first version from xplot code
+     2008-01-15 srio@esrf.eu  added interactive keyword
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_SETTITLES
+   PURPOSE: adds titles
+   CALLING SEQUENCE: XPLOT_SETTITLES,parent
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     Xplot,...,PARENT=parent ;stores widget id in parent (named variable)
+
+   KEYWORD PARAMETERS [USE AT LEAST ONE]:
+     TITLE:   The top title
+     XTITLE:  The X title
+     YTITLE:  The y title
+     ALLTITLES: a 3-string vector with: ['top title','x title','y title']
+     NOREFRESH: set to 1 to avoir refreshing the xplot screen
+
+   MODIFICATION HISTORY:
+     05-05-24 srio@xanum.uam.mx initial version from xplot code
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_SHIFT
+   PURPOSE: adds a horizontal and vertical shift to the current set
+   CALLING SEQUENCE: XPLOT_SHIFT,parent [,openwindow,set_value=set_value]
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named variable)
+
+   KEYWORD PARAMETERS:
+     OPENWINDOW when set, opens a widget window for interactive
+     manipulation
+     SET_VALUE a 2-element array [h,v] with the shift to be applied
+     to the horizontal (h) and vertical (v) axes.
+
+   MODIFICATION HISTORY:
+     98-09-17 srio@esrf.fr initial version.
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_CALIBRATE
+   PURPOSE: calibrate multichannel analyser SPEC data
+   CALLING SEQUENCE: XPLOT_CALIBRATE,parent, coeffs
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named variable)
+   OPTIONAL INPUTS:
+     COEFFS set to a an array containing [A,B,C], with:
+            energy = A+B*channel+C*chennel^2
+   KEYWORD PARAMETERS 
+     INTERACTIVE 0: Non interactive use, 1(Default): Interactive (i.e., 
+     opens a dialog window)
+
+   MODIFICATION HISTORY:
+     March 2008 srio@esrf.eu first version 
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_CONTROLS_ACTION
+   PURPOSE: to change plot attributes in XPlot (i.e. Log plots,
+     symbols, thicknesses, colors, etc). In other words,
+     permits the non-interactive manipulations of all the
+     controls under the "Show Controls" button.
+     If the "Show Controls" window is opened, it also updates it.
+
+   CALLING SEQUENCE: XPLOT_CONTROLS_ACTION,parent [, keywords]
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named variable)
+
+   KEYWORD PARAMETERS [USE AT LEAST ONE]:
+     Note that some keyword values are assigned to zero. For
+     setting them use KEYWORD='0', because KEYWORD=0 means not
+     setting the keyword. For non-zero values, both KEYWORD='n'
+     and KEYWORD=n are, in general, accepted.
+
+     PSYMSIGN set plot to concected (PSYMSIGN='0') or disconnected
+      (PSYMSIGN='1') line.  This keyword does not make any
+      effect if PSYMBOL='0'
+     PSYMBOL set symbol:
+      '0' line
+      1 +
+      2 *
+      3 Period
+      4 Diamond
+      5 Triangle
+      6 Square
+      7: X
+      8: User-defined
+      9: undefined
+      10: histogram
+     LINESTYLE define the line style:
+      '0' Solid
+      1 Dotted
+      2 Dashed
+      3 Dash-Dot
+      4 -...-...
+      5 Long dash
+     KIND log or lin plots in X/Y:
+      '0' lin/lin
+      1   lin/log
+      2   log/lin
+      3   log/log
+     TICKLEN internal/external ticks or grid
+      '0' internal
+      1   external
+      2   grid
+     THICK <float> the line thickness
+     CHARSIZE <float> the character size
+     CLR_BACK <integer> the background color
+     CLR_AXIS <integer> the axis color
+     CLR_LINES <integer> the lines color
+     CLR_RESET set this keyword to reset the original background,
+      axis and lines colors.
+     CLR_DEFAULT set this keyword to set the color table to the
+      default one (B&W + Tek_Color)
+     FONT selects a font
+                       Index 0 -> 3:  Simplex Roman
+                       Index 1 -> 4:  Simplex Greek
+                       Index 2 -> 5:  Duplex Roman
+                       Index 3 -> 6:  Complex Roman
+                       Index 4 -> 7:  Complex Greek
+                       Index 5 -> 8:  Complex Italic
+                       Index 6 -> 9:  Math and Special
+                       Index 7 -> 10: Special
+                       Index 8 -> 11: Gothic English
+                       Index 9 -> 12: Simplex Script
+                       Index 10 -> 13: Complex Script
+                       Index 11 -> 14: Gothic Italian
+                       Index 12 -> 15: Gothic German
+                       Index 13 -> 16: Cyrillic
+                       Index 14 -> 17: Triplex Roman
+                       Index 16 -> 18: Triplex Italic
+                       Index 16 -> hardware font
+                       Index 17,18,... -> TT Fonts (as returned by
+          TT_Font_manager)
+     NOREFRESH set this keyword to avoid refreshing the graph
+      after the loading process. Useful when loading
+      many curves.
+
+   MODIFICATION HISTORY:
+     97-09-11 srio@esrf.fr initial version from xplot code
+     99-03-12 srio@esrf.fr adds Hardware and TT fonts
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_RELOADFILE
+   PURPOSE: re-load a file or variable in xplot
+   CALLING SEQUENCE: XPLOT_RELOADFILE,parent
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named variable)
+
+   KEYWORD PARAMETERS:
+
+   MODIFICATION HISTORY:
+     2002-03-06 srio@esrf.fr initial version from xplot code
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_AUTORELOADFILE
+   PURPOSE: re-load a file or variable in xplot
+   CALLING SEQUENCE: XPLOT_RELOADFILE,parent
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named variable)
+
+   KEYWORD PARAMETERS:
+     Action = One of the following strigns (case sensitive):
+      'Preferences...' Pops-up the preferences window
+      'Start' Start timer (autoreload) mode
+      'Stop' Stop autoreload mode
+     SET_CHECK: Flag for controlling the updating (autoreload):
+      0: ALways reload file
+      1: Reload file if it has been modified
+     SET_TIMER: Time [sec] waited between realods
+
+   EXAMPLE:
+
+     xplot,Parent=p,/No_Block
+     xplot_Loadfile,p,'xplot.dat'
+     xplot_AutoReLoadFile,p,Set_timer=1.0
+     xplot_AutoReLoadFile,p,Action='Start'
+     xplot_AutoReLoadFile,p,Action='Stop'
+
+   MODIFICATION HISTORY:
+     2002-03-08 srio@esrf.fr initial version
+
+
+
+
+   This routine is part of the xplot package. It is used internally
+   by xplot, but it also permits to manipulate non-interactively
+   the xplot window. Only the last feature is documented here.
+
+   NAME: XPLOT_GETCURRENTDATA
+   PURPOSE: stores in a variable the current data in Xplot.
+   CALLING SEQUENCE: XPLOT_GETCURRENTDATA,parent,data
+   INPUTS:
+     PARENT the widget id of the main Xplot window to
+     It has to be retrieved when the main window is created:
+     PARENT = 0 ; initializes the variable
+     Xplot,...,PARENT=parent ;stores widget id in parent (named
+     variable)
+
+   OUTPUTS:
+     DATA  an array with the data.
+
+   KEYWORD PARAMETERS:
+     ALLCOLUMNS: When set, returns all the columns in the
+      current set. Otherwise (default) returns only
+      the two columns in the current graph.
+
+   MODIFICATION HISTORY:
+     2003-11-17 srio@esrf.fr initial version
+
+

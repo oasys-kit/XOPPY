@@ -1,0 +1,37 @@
+----- header of icontour.pro extracted on: Fri May 31 15:31:08 2013
+----- Documentation for /sware/com/idl-7.0/idl70/lib/itools/icontour.pro -----
+
+ NAME:
+   iContour
+
+ PURPOSE:
+   Implements the icontour wrapper interface for the tools sytem.
+
+ CALLING SEQUENCE:
+   IContour
+
+ INPUTS:
+   Z[,X,Y] [,...] (see IDLgrContour)
+
+ KEYWORD PARAMETERS:
+   IDENTIFIER  [out] - The identifier of the created tool.
+
+   RGB_TABLE
+   Set this keyword to the number of the predefined IDL color
+   table (0 to 40), or to either a 3 by 256 or 256 by 3 array containing
+   color values to use for contour level colors.
+
+   RGB_INDICES
+   Set this keyword to a vector of indices into the color table
+   to select colors to use for vertex colors.  If the number of
+   colors selected is less than the number of vertices, the
+   colors are repeated cyclically.
+
+   All other keywords are passed to the tool during creation.
+
+ MODIFICATION HISTORY:
+   Written by:  Alan, RSI, January 2003
+   Modified: CT, Oct 2006: Added helper function, TEST keyword,
+       allow RGB_TABLE to be a Loadct table number.
+
+

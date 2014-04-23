@@ -1,0 +1,391 @@
+import sys
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
+from Orange.widgets import widget, gui
+from Orange.widgets.settings import Setting
+import numpy as np
+
+class OWxurgent(widget.OWWidget):
+    name = "xurgent"
+    id = "orange.widgets.dataxurgent"
+    description = "xoppy application to compute..."
+    icon = "icons/xoppy.png"
+    author = "create_widget.py"
+    maintainer_email = "srio@esrf.eu"
+    priority = 10
+    category = ""
+    keywords = ["list", "of", "keywords"]
+    #outputs = [{"name": "xoppy_data",
+    #            "type": np.ndarray,
+    #            "doc": ""}]
+    outputs = [{"name": "xoppy_data",
+                "type": np.ndarray,
+                "doc": ""},
+               {"name": "xoppy_file",
+                "type": str,
+                "doc": ""}]
+
+    #inputs = [{"name": "Name",
+    #           "type": type,
+    #           "handler": None,
+    #           "doc": ""}]
+
+    want_main_area = False
+
+    TITLE = Setting("ESRF HIGH BETA UNDULATOR")
+    ENERGY = Setting(6.039999961853027)
+    CUR = Setting(0.100000001490116)
+    SIGX = Setting(0.400000005960464)
+    SIGY = Setting(0.079999998211861)
+    SIGX1 = Setting(0.016000000759959)
+    SIGY1 = Setting(0.00899999961257)
+    ITYPE = Setting(1)
+    PERIOD = Setting(0.046000000089407)
+    N = Setting(32)
+    KX = Setting(0.0)
+    KY = Setting(1.700000047683716)
+    PHASE = Setting(0.0)
+    EMIN = Setting(10000.0)
+    EMAX = Setting(50000.0)
+    NENERGY = Setting(100)
+    D = Setting(27.0)
+    XPC = Setting(0.0)
+    YPC = Setting(0.0)
+    XPS = Setting(3.0)
+    YPS = Setting(3.0)
+    NXP = Setting(25)
+    NYP = Setting(25)
+    MODE = Setting(4)
+    ICALC = Setting(2)
+    IHARM = Setting(-1)
+    NPHI = Setting(0)
+    NSIG = Setting(0)
+    NALPHA = Setting(0)
+    DALPHA = Setting(0.0)
+    NOMEGA = Setting(0)
+    DOMEGA = Setting(0.0)
+
+
+    def __init__(self):
+        super().__init__()
+
+        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
+        #widget buttons: compute, set defaults, help
+        gui.button(box0, self, "Compute", callback=self.compute)
+        gui.button(box0, self, "Set defaults", callback=self.resetSettings)
+        gui.button(box0, self, "Help", callback=self.help1)
+        self.process_showers()
+        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
+        
+        
+        idx = -1 
+        
+        #widget index 0 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "TITLE",
+                     label=self.unitLabels()[idx], addSpace=True)
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 1 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "ENERGY",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 2 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "CUR",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 3 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "SIGX",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 4 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "SIGY",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 5 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "SIGX1",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 6 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "SIGY1",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 7 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "ITYPE",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=int, validator=QIntValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 8 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "PERIOD",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 9 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "N",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=int, validator=QIntValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 10 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "KX",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 11 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "KY",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 12 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "PHASE",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 13 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "EMIN",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 14 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "EMAX",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 15 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "NENERGY",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=int, validator=QIntValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 16 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "D",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 17 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "XPC",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 18 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "YPC",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 19 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "XPS",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 20 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "YPS",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 21 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "NXP",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=int, validator=QIntValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 22 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "NYP",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=int, validator=QIntValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 23 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "MODE",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=int, validator=QIntValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 24 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "ICALC",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=int, validator=QIntValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 25 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "IHARM",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=int, validator=QIntValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 26 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "NPHI",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=int, validator=QIntValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 27 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "NSIG",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=int, validator=QIntValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 28 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "NALPHA",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=int, validator=QIntValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 29 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "DALPHA",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 30 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "NOMEGA",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=int, validator=QIntValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 31 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "DOMEGA",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+
+        gui.rubber(self.controlArea)
+
+    def unitLabels(self):
+         return ['Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title']
+
+
+    def unitFlags(self):
+         return ['True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True']
+
+
+    def unitNames(self):
+         return ['TITLE','ENERGY','CUR','SIGX','SIGY','SIGX1','SIGY1','ITYPE','PERIOD','N','KX','KY','PHASE','EMIN','EMAX','NENERGY','D','XPC','YPC','XPS','YPS','NXP','NYP','MODE','ICALC','IHARM','NPHI','NSIG','NALPHA','DALPHA','NOMEGA','DOMEGA']
+
+
+    def help1(self):
+        try:
+            from xoppy_calc import xoppy_doc
+        except ImportError:
+            print("help pressed.")
+            print("Error importing: xoppy_doc")
+            raise
+
+        xoppy_doc('xurgent')
+
+
+    def compute(self):
+        try:
+            from xoppy_calc import xoppy_calc_xurgent
+        except ImportError:
+            print("compute pressed.")
+            print("Error importing: xoppy_calc_xurgent")
+            raise
+            
+        fileName = xoppy_calc_xurgent(TITLE=self.TITLE,ENERGY=self.ENERGY,CUR=self.CUR,SIGX=self.SIGX,SIGY=self.SIGY,SIGX1=self.SIGX1,SIGY1=self.SIGY1,ITYPE=self.ITYPE,PERIOD=self.PERIOD,N=self.N,KX=self.KX,KY=self.KY,PHASE=self.PHASE,EMIN=self.EMIN,EMAX=self.EMAX,NENERGY=self.NENERGY,D=self.D,XPC=self.XPC,YPC=self.YPC,XPS=self.XPS,YPS=self.YPS,NXP=self.NXP,NYP=self.NYP,MODE=self.MODE,ICALC=self.ICALC,IHARM=self.IHARM,NPHI=self.NPHI,NSIG=self.NSIG,NALPHA=self.NALPHA,DALPHA=self.DALPHA,NOMEGA=self.NOMEGA,DOMEGA=self.DOMEGA)
+        print("Loading file:  ",fileName)
+        out = np.loadtxt(fileName)
+        print("out.shape: ",out.shape)
+        self.send("xoppy_data",out)
+
+    def process_showers(self):
+
+        from PyQt4.QtGui import QLayout
+        self.layout().setSizeConstraint(QLayout.SetFixedSize)
+
+        for shower in getattr(self, "showers", []):
+            shower()
+
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    w = OWxurgent()
+    w.show()
+    app.exec()
+    w.saveSettings()

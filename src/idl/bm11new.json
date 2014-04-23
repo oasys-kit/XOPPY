@@ -1,0 +1,10 @@
+{
+"BEAM_ENERGY_GEV":6.039999961853027,
+"CURRENT_A":0.1000000014901161,
+"RB_CHOICE":["0","Magnetic Radius","Magnetic Field"],
+"MACHINE_R_M":25.0,
+"BFIELD_T":0.800000011920929,
+"__FLAGS":["True", "True", "True", "self.RB_CHOICE == 0", "self.RB_CHOICE == 1"],
+"__LABELS":["Electron energy [GeV]","Electron current [A]","B from","Magnetic radius [m]","Magnetic field [T]"]
+}
+

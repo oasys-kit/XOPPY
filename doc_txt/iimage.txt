@@ -1,0 +1,140 @@
+----- header of iimage.pro extracted on: Fri May 31 15:31:08 2013
+----- Documentation for /sware/com/idl-7.0/idl70/lib/itools/iimage.pro -----
+
+ NAME:
+   iImage
+
+ PURPOSE:
+   Implements the iimage wrapper interface for the tools sytem.
+
+ CALLING SEQUENCE:
+   iImage[, Image][,X, Y]
+
+ INPUTS:
+    Image   - Either a vector, two-dimensional array, or
+      three-dimensional array representing the sample values to be
+      displayed as an image.
+
+      If Image is a vector:
+        The X and Y arguments must also be present and contain the same
+        number of elements.  In this case, a dialog will be presented that
+        offers the option of gridding the data to a regular grid (the
+        results of which will be displayed as a color-indexed image).
+
+      If Image is a two-dimensional array:
+        If either dimension is 3:
+          Image represents an array of XYZ values (either:
+          [[x0,y0,z0],[x1,y1,z1],.], or [[x0,x1,.],[y0,y1,.],[z0,z1,.]]).
+          In this case, the X and Y arguments, if present, will be ignored.
+          A dialog will be presented that allows the option of gridding the
+          data to a regular grid (the results of which will be displayed as
+          a color-indexed image, using the Z values as the image data
+          values).
+
+        If neither dimension is 3:
+          If X and Y are provided, the sample values are defined as a
+          function of the corresponding (X, Y) locations; otherwise, the
+          sample values are implicitly treated as a function of the array
+          indices of each element of Image.
+
+      If Image is a three-dimensional array:
+        If one of the dimensions is 3:
+          Image is an array (3xMxN, or Mx3xN, or MxNx3) representing the
+          red, green, and blue channels of the RGB image to be displayed.
+
+        If one of the dimensions is 4:
+          Image is an array (4xMxN, or Mx4xN, or MxNx4) representing the
+          red, green, blue, and alpha channels of the RGBA image to be
+          displayed.
+    X       - Either a vector or a two-dimensional array representing the
+      X coordinates of the image grid.
+
+      If the Image argument is a vector:
+        X must be a vector with the same number of elements.
+
+      If the Image argument is a two-dimensional array (for which neither
+      dimension is 3):
+        If X is a vector, each element of X specifies the X coordinates for
+        a column of Image (e.g., X[0] specifies the X coordinate for
+        Image[0, *]).
+        If X is a two-dimensional array, each element of X specifies the
+        X coordinate of the corresponding point in Image (Xij specifies the
+        X coordinate of Imageij).
+
+      If the Image argument is a three-dimensional RGB or RGBA array:
+        X is a vector where each element specifies the X coordinate for
+        a row of Image (e.g., X[0] specifies the X coordinate for
+        Image[*,0,*]).
+
+    Y      - Either a vector or a two-dimensional array representing the
+      Y coordinates of the image grid.
+
+      If the Image argument is a vector:
+        Y must be a vector with the same number of elements.
+
+      If the Image argument is a two-dimensional array:
+        If Y is a vector, each element of Y specifies the Y coordinates for
+        a column of Image (e.g., Y[0] specifies the Y coordinate for
+        Image[*,0]).
+        If Y is a two-dimensional array, each element of Y specifies the Y
+        coordinate of the corresponding point in Image (Yij specifies the
+        Y coordinate of Imageij).
+
+      If the Image argument is a three-dimensional RGB or RGBA array:
+        Y is a vector where each element specifies the Y coordinate for
+        a column of Image (e.g., Y[0] specifies the Y coordinate for
+        Image[*,*,0]).
+
+ KEYWORD PARAMETERS:
+
+    ALPHA_CHANNEL - Set this keyword to a two-dimensional array
+      representing the alpha channel pixel values for the image to
+      be displayed.  This keyword is ignored if the Image argument is
+      present, and is intended to be used in conjunction with some
+      combination of the RED_CHANNEL, GREEN_CHANNEL, and BLUE_CHANNEL
+      keywords.
+
+    BLUE_CHANNEL - Set this keyword to a two-dimensional array
+      representing the blue channel pixel values for the image to
+      be displayed.  This keyword is ignored if the Image argument is
+      present, and is intended to be used in conjunction with some
+      combination of the ALPHA_CHANNEL, RED_CHANNEL, and GREEN_CHANNEL
+      keywords.
+
+    GREEN_CHANNEL - Set this keyword to a two-dimensional array
+      representing the green channel pixel values for the image to
+      be displayed.  This keyword is ignored if the Image argument is
+      present, and is intended to be used in conjunction with some
+      combination of the ALPHA_CHANNEL, RED_CHANNEL, and BLUE_CHANNEL
+      keywords.
+
+    IDENTIFIER  [out] - The identifier of the created tool.
+
+    IMAGE_LOCATION - Set this keyword to a two-element vector, [x,y],
+      specifying the location of the lower-left corner of the image
+      in data units.  The default is [0,0].
+
+    IMAGE_DIMENSIONS - Set this keyword to a two-element vector,
+      [width,height], specifying the dimensions of the image in
+      data units.  The default is the pixel dimensions of the image.
+
+    RED_CHANNEL - Set this keyword to a two-dimensional array
+      representing the red channel pixel values for the image to be
+      displayed.  This keyword is ignored if the Image argument is
+      present, and is intended to be used in conjunction with some
+      combination of the ALPHA_CHANNEL, GREEN_CHANNEL, and BLUE_CHANNEL
+      keywords.
+
+   RGB_TABLE - Set this keyword to the number of the predefined IDL color
+       table (0 to 40), or to a 3x256 or 256x3 byte array of RGB color values.
+       If no color tables are supplied, the tool will provide a
+       default 256-entry linear grayscale ramp.
+
+    All other keywords are passed to the tool during creation.
+
+ MODIFICATION HISTORY:
+   Written by:  CT, RSI, March 2002
+   Modified: CT, Nov 2006: Allow X and Y params with RGB and RGBA images.
+       Add TEST keyword, allow RGB_TABLE to be a Loadct table number.
+
+

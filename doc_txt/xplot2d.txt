@@ -1,0 +1,415 @@
+----- header of xplot2d.pro extracted on: Fri May 31 15:31:07 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/wutil/xplot2d.pro -----
+ ============================== XPLOT2D =======================================
+
+ XPLOT2D
+
+ A software tool for analysing scientific images.
+
+ Functionality:
+    - Load and visualize several images
+    - Several file types: EDF, MAR, BINARY, XRD, etc.
+    - Automatically handles gzip MAR compressed files
+    - Loads multiple files
+    - When an image is load, it can be added to the image stack or
+      substitute the first image in the stack.
+    - Visualize images in frames.
+    - Apply several color tables and adjust their limits to data.
+      button: "c f" color full range
+      button: "c s" color stretched range
+    - Define ROIS (rectangle, circle, cake, polygon)
+    - Mask data to ROI or complement of ROI (1-ROI)
+    - Applies mask from another image
+    - Calculations:
+        -azimuthal integration 
+        -histograms
+        -horizontal or vertical integration, etc.
+        -horizontal, vertical and transversal profiles
+    - Simulations: Overplot rings from external x-ray diffraction profiles,
+      defined in with either "twotheta" or "d-spacing" files,
+      containing columns with :
+         twotheta [deg], intensity [,color index]  or
+         d-spacing [A], intensity [,color indexa] , respectively.
+    - Makes a generic operation with one image.
+    - Define/edit image titles
+    -Full calibration using circles (detector perpendicular to beam) or
+     ellimses (detector oblique to the beam)
+    -Allows non interactive use
+    -One level undo
+
+ To be done:
+   - Zoom
+   - Mask algebra
+   - Printing
+   - Documentation
+
+ Authors: M. Sanchez del Rio, F. Matulic and V. Favre-Nicolin
+
+ Version History:
+   Version 1.0 Beta 1  (March 15 2004)
+   Version 1.0 Beta 2  (June 11 2004)
+   Version 1.0 Beta 3  (April 20 2005, UAM-I, Mexico)
+   Version 1.00  (December 19 2007, srio@esrf.eu)
+   Version 1.03  April 2008. Added cartesian to polar
+   Version 1.06  May 2010 srio added possiblity to fix pars in calib
+   Version 1.07  May 2010 srio upgrades rikagu-axis and "+" button.
+                               adds external reader and integral to _azi.spec
+   Version 1.08  June 2010 overplotted diffractogram. Sorted preferences.
+
+ Modifications history:
+   - V. Favre-Nicolin, 01/2002 (skeleton)
+   - M. Sanchez del Rio, 07/2002 (painted skeleton)
+   - F. Matulic 24.09.02 completed development of the main prototype
+   - 04-03-15 First beta version.
+   - 04-05-11 2nd beta version.
+   - 04-04-20 3rd beta version: Fast azimuth integral,...
+   - 2007-12-19 First released version 1.00
+   - 2008-02-06 srio@esrf.eu adds support for multichannel images 
+         (loaded into different images).
+   - 2008-02-25 srio@esrf.eu adds peak width in simul. Check for file
+         existence when overplotting rings. v 1.02
+   - 2008-04-30 srio@esrf.eu Added cartesian to polar
+   - 2008-06-06 srio@esrf.eu Dump azi integral to differnet file format. 
+         Added negative stretch values. Added DABAX and rruff database.
+   - 2008-06-26 srio@esrf.eu Added findpeaks facility. Set calculations->
+         corrections (dark and flat fields, warping and rebinning). 
+         Upgraded generic operation to access all images.  v 1.05
+   - 2010-05-05 srio@esrf.eu added possibility to calib with fixed pars
+   - 2010-05-25 srio@esrf.eu upgrades rikagu-axis and "+" button.
+
+===================== Non interactive use of xplot2d ==========================
+
+ EXAMPLE OF NON-INTERACTIVE USE:
+
+     print,'>> opening xplot2d...'
+     xplot2d,parent=p
+     
+     print,'>> setting imageformat...'
+     xplot2d_imageformat,p,interactive=0,getStr=str
+     str.filter='*.stl'
+     tmp = str.format
+     tmp[0]='3'
+     str.format=tmp
+     xplot2d_imageformat,p,interactive=0,putStr=str
+     
+     print,'>> loading image...'
+     xplot2d_loadimage,p,file='al2o3_002.stl'
+     
+     print,'>> loading inputs...'
+     xplot2d_loadinputfile,p,file='Al2O3.xop'
+     
+     print,'>> azimuthal integration...'
+     xplot2d_azimuth_integral,p
+     
+     print,'>> others: '
+     xplot2d_annulus,p
+     xplot2d_calibrate_onering,p
+     xplot2d_calibrate_multiring,p
+     xplot2d_displayct,p
+     xplot2d_calc_corrections_sequence,p   ; this applies iteratively:
+             xplo2d_calc_substract,p
+             xplo2d_calc_divide,p
+             xplo2d_calc_warping,p
+             xplo2d_calc_rebin,p
+     
+     print,'>> saving image...'
+     xplot2d_saveimage,p,format='EDF',file='tmp.edf'
+     
+     print,'>> quitting application...
+     xplot2d_quit,p
+
+
+  COPYRIGHT:
+ 	XPLOT2D belongs to XOP package and it is distributed within XOP.
+ 	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
+ 
+  REFERENCE:
+ 	Published calculations made with XOP should refer:
+ 
+ 	M. Sanchez del Rio and R. J. Dejus 
+         "Status of XOP: an x-ray optics software toolkit"
+         SPIE Proceedings Vol. 5536 (2004) pp.171-174
+ 
+         http://dx.doi.org/10.1117/12.560903
+ 
+  LAST MODIFICATION: srio@esrf.eu 2010-05-26
+ 
+ 
+
+ 
+
+ PRO xplot2d_annulus,wid, roi_text=roi_text, $   ; inputs
+     color=color, $                              ; inputs
+     img=img, $                                  ; input/output
+     center=center,axes=axes, $                  ; output
+     extractRoi=extractRoi, histogram=histo , $  ; flag to analyze filling points  
+     roi_indices=roi, weights=weights, x=x, y=y  ; outputawhen extractRoi=1
+
+
+ 
+ PRO XPLOT2D_APPLY_IMAGE_TO_MASK,wXplot2D,maskarray=mask,refresh=refresh
+
+
+
+ PRO XPLOT2D_AZIMUTH_INTEGRAL,wXplot2d,method=method, window=nwindow, $
+    diffractogram=diffractogram, $ ; output: [2theta,Intensity]
+    id_xplot=id_xplot              ; output: id of the xplot window
+
+
+
+
+ PRO XPLOT2D_CREATE_GRID_IMAGE,wXplot2d
+
+
+
+
+ PRO XPLOT2D_CREATE_TEST_IMAGE,wXplot2d
+
+
+
+
+ PRO xplot2d_calibrate_onering,Xplot2DId,$
+    interactive=interactive, $
+    annulus=annulus,     $     ;  0=use ellipse line, 1=use annular region
+    GuessFlag=GuessFlag, $     ;  0=use ellipse line, 1=use current detector parameters
+    dspacing=dspacing          ;  d-spacing for the selected ring
+
+
+
+
+ PRO xplot2d_calibrate_multiring,Xplot2DId,interactive=interactive,  $
+   action=action,v0=v0,vS=vS ; outputs
+
+
+
+
+ PRO xplot2d_calibrate_scan,Xplot2DId
+
+
+
+
+ PRO XPLOT2D_DISPLAYCT,wid,MINRANGE=minrange,MAXRANGE=maxrange
+
+
+
+
+ PRO xplot2d_imageformat, wId, interactive=interactive, putStr=str, $
+   getStr=tmp, action=action ; output
+
+
+
+
+ PRO xplot2d_loadimage,wXplot2d, reload=reload, file=file, increment=increment
+   imageArray=img, imageArr2=img2 ; outputs
+
+
+
+
+
+ PRO xplot2d_loadinputfile,wid,file=file,path=path,group=group
+
+
+
+
+ PRO xplot2d_overplotrings,wid,dataSize=ssize,  $
+   x0=x0,y0=y0,axis1=axis1,axis2=axis2,phi=phi,$ ; output arrays (dim=number of rings)
+   dspacing=dspacing,twoTheta=twoTheta           ; output arrays (dim=number of rings)
+
+
+
+
+ FUNCTION XPLOT2D_GETIMAGE,wXplot2d,index=index, pointer=ipointer
+
+
+
+
+ PRO XPLOT2D_CALC_SUBSTRACT,wXplot2d, interactive=interactive
+
+
+
+
+
+ PRO XPLOT2D_CALC_DIVIDE,wXplot2d, interactive=interactive
+
+
+
+
+ PRO XPLOT2D_CALC_WARPING,wXplot2d,interactive=interactive
+
+
+
+
+ PRO XPLOT2D_CALC_REBIN,wXplot2d, interactive=interactive
+
+
+
+
+ PRO XPLOT2D_CALC_GENERIC_OPERATION,wXplot2d, interactive=interactive
+
+
+
+
+ PRO XPLOT2D_CALC_CORRECTIONS_SEQUENCE,wXplot2d, interactive=interactive
+
+
+
+
+ FUNCTION xplot2d_calc_cm,wId,image=img, roi=roi
+
+
+
+
+ PRO xplot2d_crop,wXplot2d, $
+     outputTo=outputTo, $   ; 0=New window, 1=Substiture current image, 2=Add image
+     roi=roi                ; roi=[x1,y1,x2,y2] selected rectangle
+
+
+
+
+ PRO XPLOT2D_PROFILE,wXplot2d,profile=profile
+
+
+
+
+ PRO XPLOT2D_QUIT,wXplot2d
+
+
+
+
+PRO XPLOT2D_ROI_MOUSE,wXplot2d,iFlag=iFlag, $
+   center=center,axes=axes,phi=phi, coeff=coeff ; output keywords
+
+
+
+
+ PRO xplot2d_roi_plot,wXplot2d, coeffs=coeff, $
+     refresh=refresh,noPlot=noPlot,noEnvelope=noEnvelope, $
+     points=points,roi_text=roi_text, $ ; output
+     center=center, axes=axes, phi=phi  ; output
+
+
+
+
+ PRO xplot2d_saveimage,wid, $,
+     format=format, $ ; Accepted values: 'EDF','XRD', 'Oth' (other).
+     file=filename
+
+
+
+
+ PRO xplot2d_saveinputfile,wid
+
+
+
+
+ PRO xplot2d_scale,wId,scale,max=iMax
+
+
+
+
+ PRO xplot2d_setcolorlimits,wid, $
+   interactive=interactive,  $
+   min=min1,max=max1, $
+   fullrange=fullrange,refresh=refresh,  $
+   stretch=stretch, changeStretch=changeStretch
+
+
+
+
+ PRO XPLOT2D_SET_COMMENT,wXplot2d,comment
+
+
+
+
+ PRO XPLOT2D_REFRESH,wXplot2d,print=print1, noMessage=noMessage, $
+    imageInside=imageInside, imageArray=img, $ ; outputs
+    imageArr2=img2, $ ; outputs
+    xrange=xrange, yrange=yrange ; outputs
+
+
+
+
+ PRO XPLOT2D_CHANGE_IMAGE,wXplot2d,index,min=min,max=max,log=log,linear=linear
+
+
+
+
+ PRO XPLOT2D_LAST_IMAGE,wXplot2d
+
+
+
+
+ PRO XPLOT2D_FIRST_IMAGE,wXplot2d
+
+
+
+
+ PRO XPLOT2D_NEXT_IMAGE,wXplot2d
+
+
+
+
+ PRO XPLOT2D_PREVIOUS_IMAGE,wXplot2d
+
+
+
+ PRO XPLOT2D_ADD_IMAGE,wXplot2d, $
+    indata,title=title,substitute=substitute, $
+    refresh=refresh
+
+
+
+
+ PRO XPLOT2D_REPLACE_IMAGE,wXplot2d,indata, refresh=refresh
+
+
+
+
+ PRO XPLOT2D_SET_SCALE,wXplot2d,min=min,max=max,log=log,linear=linear
+
+
+
+
+ PRO XPLOT2D_ROTATE_IMAGE,wXplot2d,direction
+
+ Rotates the currently displayed image, with an optionnal mirror:
+
+ Depending on the value of 'direction'
+ dir mirror  rotation
+ 0   No       None         X0    Y0
+ 1   No       90�         -Y0    X0
+ 2   No       180�        -X0   -Y0
+ 3   No       270�         Y0   -X0
+ 4   Yes      None         Y0    X0
+ 5   Yes      90�         -X0    Y0
+ 6   Yes      180�        -Y0   -X0
+ 7   Yes      270�         X0   -Y0
+
+
+
+
+ PRO XPLOT2D_APPLY_SELECTION_TO_MASK,wXplot2d,Complementary=complementary
+   Sets the current selection to act as a mask on the image 
+   (sets its pixels to -1)
+
+
+ 
+
+ PRO xplot2d_setrings,wid, dspacingList, $
+         input_type=input_type         ; 0=Clear, 1=FromDabax, 2=FromFile
+                                       ; 3=set from Input (dspacingList, in)
+                                       ; 4=get list (dSpacingList, out)
+                                       ; 5=list to xplot, 6=edit list 
+
+
+
+ PRO XPLOT2D,indata, parent=wXplot2d, $
+     wtitle=wtitle,no_block=no_block, $
+     group=group,window_size=window_size,$
+     scale=scale,mincolor=mincolor,maxcolor=maxcolor,$
+     imagetitle=imagetitle,axis=axis, $
+     cursor=cursor1, $ ; 0:pixel, 1:twoTheta dspc, 2 XYaxes 
+     stretch=stretch   ; color stretch
+
+
