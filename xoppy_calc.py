@@ -61,7 +61,7 @@ def xoppy_calc_xtube_w(VOLTAGE=100.0,RIPPLE=0.0,AL_FILTER=0.0):
     print("Inside xoppy_calc_xtube_w. ")
     pwd = os.getcwd()
     os.chdir(home_wd)
-    with open("xoppy.inp","wt") as f:
+    with open("xtube_w_tmp.inp","wt") as f:
         f.write("%f\n%f\n%f\n"%(VOLTAGE,RIPPLE,AL_FILTER))
     command = os.path.join(home_bin,'tasmip') + " < xoppy.inp"
     print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
