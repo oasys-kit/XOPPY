@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #python version
-MYPYTHON="python"
+MYPYTHON="python3"
 echo "Using python: $MYPYTHON"
 
 # initialize
@@ -21,10 +21,10 @@ do
    #$MYPYTHON create_widget_srio.py-old1 $i.json
    $MYPYTHON create_widget_srio.py $i.json
    #install
-   cp -i $i.py ./../../widgets/
+   mv $i.py ./../../widgets/$i.py
    echo "file installed: "
    ls -l ../../widgets/$i.py
 done
 
 #clean *json*
-/bin/rm *json*
+#/bin/rm *json*

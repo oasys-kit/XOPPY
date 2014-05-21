@@ -1,26 +1,40 @@
 import sys
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from Orange.widgets import widget, gui
 from Orange.widgets.settings import Setting
+from Orange.data import Table, Domain, ContinuousVariable
 import numpy as np
+
+try:
+    from ..tools.xoppy_calc import xoppy_doc
+except ImportError:
+    print("Error importing: xoppy_doc")
+    raise
+
+try:
+    from ..tools.xoppy_calc import xoppy_calc_xtube_w
+except ImportError:
+    print("compute pressed.")
+    print("Error importing: xoppy_calc_xtube_w")
+    raise
 
 class OWnsources(widget.OWWidget):
     name = "nsources"
     id = "orange.widgets.datansources"
     description = "xoppy application to compute..."
-    icon = "icons/xoppy.png"
+    icon = "icons/xoppy_nsources.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
     priority = 10
     category = ""
-    keywords = ["list", "of", "keywords"]
-    #outputs = [{"name": "xoppy_data",
-    #            "type": np.ndarray,
-    #            "doc": ""}]
-    outputs = [{"name": "xoppy_data",
-                "type": np.ndarray,
+    keywords = ["xoppy", "nsources"]
+    outputs = [#{"name": "xoppy_data",
+               # "type": np.ndarray,
+               # "doc": ""},
+               {"name": "xoppy_table",
+                "type": Table,
                 "doc": ""},
-               {"name": "xoppy_file",
+               {"name": "xoppy_specfile",
                 "type": str,
                 "doc": ""}]
 
@@ -45,7 +59,7 @@ class OWnsources(widget.OWWidget):
         box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
         #widget buttons: compute, set defaults, help
         gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Set defaults", callback=self.resetSettings)
+        gui.button(box0, self, "Defaults", callback=self.defaults)
         gui.button(box0, self, "Help", callback=self.help1)
         self.process_showers()
         box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
@@ -112,42 +126,42 @@ class OWnsources(widget.OWWidget):
          return ['True','True','self.ZONE  ==  2','self.ZONE  ==  1','self.ZONE  ==  0','True']
 
 
-    def unitNames(self):
-         return ['TEMPERATURE','ZONE','MAXFLUX_F','MAXFLUX_EPI','MAXFLUX_TH','NPOINTS']
-
-
-    def help1(self):
-        try:
-            from xoppy_calc import xoppy_doc
-        except ImportError:
-            print("help pressed.")
-            print("Error importing: xoppy_doc")
-            raise
-
-        xoppy_doc('nsources')
+    #def unitNames(self):
+    #     return ['TEMPERATURE','ZONE','MAXFLUX_F','MAXFLUX_EPI','MAXFLUX_TH','NPOINTS']
 
 
     def compute(self):
-        try:
-            from xoppy_calc import xoppy_calc_nsources
-        except ImportError:
-            print("compute pressed.")
-            print("Error importing: xoppy_calc_nsources")
-            raise
-            
         fileName = xoppy_calc_nsources(TEMPERATURE=self.TEMPERATURE,ZONE=self.ZONE,MAXFLUX_F=self.MAXFLUX_F,MAXFLUX_EPI=self.MAXFLUX_EPI,MAXFLUX_TH=self.MAXFLUX_TH,NPOINTS=self.NPOINTS)
+        #send specfile
+        self.send("xoppy_specfile",fileName)
+
         print("Loading file:  ",fileName)
+        #load spec file with one scan, # is comment
         out = np.loadtxt(fileName)
-        print("out.shape: ",out.shape)
-        self.send("xoppy_data",out)
+        print("data shape: ",out.shape)
+        #get labels
+        txt = open(fileName).readlines()
+        tmp = [ line.find("#L") for line in txt]
+        itmp = np.where(np.array(tmp) != (-1))
+        labels = txt[itmp[0]].replace("#L ","").split("  ")
+        print("data labels: ",labels)
+        #
+        # build and send orange table
+        #
+        domain = Domain([ ContinuousVariable(i) for i in labels ])
+        table = Table.from_numpy(domain, out)
+        self.send("xoppy_table",table)
 
-    def process_showers(self):
+    def defaults(self):
+         self.resetSettings()
+         self.compute()
+         return
 
-        from PyQt4.QtGui import QLayout
-        self.layout().setSizeConstraint(QLayout.SetFixedSize)
+    def help1(self):
+        print("help pressed.")
+        xoppy_doc('nsources')
 
-        for shower in getattr(self, "showers", []):
-            shower()
+
 
 
 

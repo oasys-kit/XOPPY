@@ -4,7 +4,7 @@ import time
 import os
 from PyQt4.QtCore import QByteArray, Qt, pyqtSignal as Signal, pyqtProperty, SIGNAL, QDir
 from PyQt4.QtGui import QDialog, QPixmap, QLabel, QVBoxLayout, QSizePolicy, \
-    qApp, QFrame, QStatusBar, QHBoxLayout, QIcon, QTabWidget
+    qApp, QFrame, QStatusBar, QHBoxLayout, QIcon, QTabWidget, QScrollArea
 
 from Orange.canvas.utils import environ
 from Orange.widgets import settings, gui
@@ -172,17 +172,51 @@ class OWWidget(QDialog, metaclass=WidgetMetaClass):
             self.leftWidgetPart.setSizePolicy(
                 QSizePolicy(QSizePolicy.Fixed, QSizePolicy.MinimumExpanding))
             self.leftWidgetPart.updateGeometry()
+
+
+##-------------------------------------
+
+
+#########################################
+# ADDED BY LUCA REBUFFI 22-2-2104 - begin
+
+#            self.mainArea = gui.widgetBox(self.topWidgetPart,
+#                                          orientation="vertical",
+#                                          sizePolicy=QSizePolicy(QSizePolicy.Expanding,
+#                                                                 QSizePolicy.Expanding),
+#                                          margin=0)
+            scrollarea = QScrollArea()
+            self.topWidgetPart.layout().addWidget(scrollarea)
             self.mainArea = gui.widgetBox(self.topWidgetPart,
                                           orientation="vertical",
                                           sizePolicy=QSizePolicy(QSizePolicy.Expanding,
                                                                  QSizePolicy.Expanding),
-                                          margin=0)
+                                          margin=0, addToLayout=False)
+            scrollarea.setWidget(self.mainArea)
+            scrollarea.setWidgetResizable(1)
+############################################
+
             self.mainArea.layout().setMargin(4)
             self.mainArea.updateGeometry()
 
+############################################
+#        if self.want_control_area:
+#            self.controlArea = gui.widgetBox(self.leftWidgetPart,
+#                                             orientation="vertical", margin=4)
+
         if self.want_control_area:
-            self.controlArea = gui.widgetBox(self.leftWidgetPart,
-                                             orientation="vertical", margin=4)
+            scrollarea = QScrollArea()
+            self.leftWidgetPart.layout().addWidget(scrollarea)
+            self.controlArea = gui.widgetBox(
+                self.leftWidgetPart, orientation="vertical", margin=4, addToLayout=False)
+            scrollarea.setWidget(self.controlArea)
+            scrollarea.setWidgetResizable(1)
+
+# ADDED BY LUCA REBUFFI 22-2-2104 - end
+#########################################
+
+
+##-------------------------------------
 
         if self.want_graph and self.show_save_graph:
             graphButtonBackground = gui.widgetBox(self.leftWidgetPart,
@@ -490,6 +524,10 @@ class OWWidget(QDialog, metaclass=WidgetMetaClass):
         if not hasattr(self, "showers"):
             self.showers = []
         self.showers.append(shower)
+
+    def process_showers(self):
+        for shower in getattr(self, "showers", []):
+            shower()
 
 
     def openContext(self, *a):

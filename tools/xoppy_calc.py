@@ -2,13 +2,7 @@ import os
 import numpy
 from Orange import __file__ as orange_init
 
-#file paths
-home_orange =  orange_init.strip("__init__.py").strip("__init__.pyc")
-home_bin = os.path.join(home_orange,'XOPPY','bin.linux')
-home_doc = os.path.join(home_orange,'XOPPY','doc_txt')
-home_data = os.path.join(home_orange,'XOPPY','data')
-home_wd = os.path.join(home_orange,'XOPPY','tmp')
-
+from Orange.XOPPY import *
 
 
 def xoppy_calc_black_body(TITLE="Thermal source: Planck distribution",TEMPERATURE=1200000.0,E_MIN=10.0,E_MAX=1000.0,NPOINTS=500):

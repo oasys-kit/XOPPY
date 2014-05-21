@@ -1,26 +1,40 @@
 import sys
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from Orange.widgets import widget, gui
 from Orange.widgets.settings import Setting
+from Orange.data import Table, Domain, ContinuousVariable
 import numpy as np
+
+try:
+    from ..tools.xoppy_calc import xoppy_doc
+except ImportError:
+    print("Error importing: xoppy_doc")
+    raise
+
+try:
+    from ..tools.xoppy_calc import xoppy_calc_xtube_w
+except ImportError:
+    print("compute pressed.")
+    print("Error importing: xoppy_calc_xtube_w")
+    raise
 
 class OWxcrystal(widget.OWWidget):
     name = "xcrystal"
     id = "orange.widgets.dataxcrystal"
     description = "xoppy application to compute..."
-    icon = "icons/xoppy.png"
+    icon = "icons/xoppy_xcrystal.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
     priority = 10
     category = ""
-    keywords = ["list", "of", "keywords"]
-    #outputs = [{"name": "xoppy_data",
-    #            "type": np.ndarray,
-    #            "doc": ""}]
-    outputs = [{"name": "xoppy_data",
-                "type": np.ndarray,
+    keywords = ["xoppy", "xcrystal"]
+    outputs = [#{"name": "xoppy_data",
+               # "type": np.ndarray,
+               # "doc": ""},
+               {"name": "xoppy_table",
+                "type": Table,
                 "doc": ""},
-               {"name": "xoppy_file",
+               {"name": "xoppy_specfile",
                 "type": str,
                 "doc": ""}]
 
@@ -65,7 +79,7 @@ class OWxcrystal(widget.OWWidget):
         box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
         #widget buttons: compute, set defaults, help
         gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Set defaults", callback=self.resetSettings)
+        gui.button(box0, self, "Defaults", callback=self.defaults)
         gui.button(box0, self, "Help", callback=self.help1)
         self.process_showers()
         box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
@@ -298,42 +312,42 @@ class OWxcrystal(widget.OWWidget):
          return ['True','self.I_ABSORP  >  0','self.I_ABSORP  >  1','True','True','True','True','True','True','True','True','True','self.SCAN  <=  2','True','True','True','True','(self.MOSAIC  ==  0) OR (self.MOSAIC  >  1)','True','self.MOSAIC  ==  1','self.MOSAIC  >  1','self.MOSAIC  >  1','self.MOSAIC  >  1','self.MOSAIC  >  1  &  self.ANISOTROPY  ==  0','self.MOSAIC  >  1  &  self.ANISOTROPY  ==  2','self.MOSAIC  >  1  &  self.ANISOTROPY  ==  3']
 
 
-    def unitNames(self):
-         return ['FILEF0','FILEF1F2','FILECROSSSEC','CRYSTAL_MATERIAL','MILLER_INDEX_H','MILLER_INDEX_K','MILLER_INDEX_L','I_ABSORP','TEMPER','MOSAIC','GEOMETRY','SCAN','UNIT','SCANFROM','SCANTO','SCANPOINTS','ENERGY','ASYMMETRY_ANGLE','THICKNESS','MOSAIC_FWHM','RSAG','RMER','ANISOTROPY','POISSON','CUT','FILECOMPLIANCE']
-
-
-    def help1(self):
-        try:
-            from xoppy_calc import xoppy_doc
-        except ImportError:
-            print("help pressed.")
-            print("Error importing: xoppy_doc")
-            raise
-
-        xoppy_doc('xcrystal')
+    #def unitNames(self):
+    #     return ['FILEF0','FILEF1F2','FILECROSSSEC','CRYSTAL_MATERIAL','MILLER_INDEX_H','MILLER_INDEX_K','MILLER_INDEX_L','I_ABSORP','TEMPER','MOSAIC','GEOMETRY','SCAN','UNIT','SCANFROM','SCANTO','SCANPOINTS','ENERGY','ASYMMETRY_ANGLE','THICKNESS','MOSAIC_FWHM','RSAG','RMER','ANISOTROPY','POISSON','CUT','FILECOMPLIANCE']
 
 
     def compute(self):
-        try:
-            from xoppy_calc import xoppy_calc_xcrystal
-        except ImportError:
-            print("compute pressed.")
-            print("Error importing: xoppy_calc_xcrystal")
-            raise
-            
         fileName = xoppy_calc_xcrystal(FILEF0=self.FILEF0,FILEF1F2=self.FILEF1F2,FILECROSSSEC=self.FILECROSSSEC,CRYSTAL_MATERIAL=self.CRYSTAL_MATERIAL,MILLER_INDEX_H=self.MILLER_INDEX_H,MILLER_INDEX_K=self.MILLER_INDEX_K,MILLER_INDEX_L=self.MILLER_INDEX_L,I_ABSORP=self.I_ABSORP,TEMPER=self.TEMPER,MOSAIC=self.MOSAIC,GEOMETRY=self.GEOMETRY,SCAN=self.SCAN,UNIT=self.UNIT,SCANFROM=self.SCANFROM,SCANTO=self.SCANTO,SCANPOINTS=self.SCANPOINTS,ENERGY=self.ENERGY,ASYMMETRY_ANGLE=self.ASYMMETRY_ANGLE,THICKNESS=self.THICKNESS,MOSAIC_FWHM=self.MOSAIC_FWHM,RSAG=self.RSAG,RMER=self.RMER,ANISOTROPY=self.ANISOTROPY,POISSON=self.POISSON,CUT=self.CUT,FILECOMPLIANCE=self.FILECOMPLIANCE)
+        #send specfile
+        self.send("xoppy_specfile",fileName)
+
         print("Loading file:  ",fileName)
+        #load spec file with one scan, # is comment
         out = np.loadtxt(fileName)
-        print("out.shape: ",out.shape)
-        self.send("xoppy_data",out)
+        print("data shape: ",out.shape)
+        #get labels
+        txt = open(fileName).readlines()
+        tmp = [ line.find("#L") for line in txt]
+        itmp = np.where(np.array(tmp) != (-1))
+        labels = txt[itmp[0]].replace("#L ","").split("  ")
+        print("data labels: ",labels)
+        #
+        # build and send orange table
+        #
+        domain = Domain([ ContinuousVariable(i) for i in labels ])
+        table = Table.from_numpy(domain, out)
+        self.send("xoppy_table",table)
 
-    def process_showers(self):
+    def defaults(self):
+         self.resetSettings()
+         self.compute()
+         return
 
-        from PyQt4.QtGui import QLayout
-        self.layout().setSizeConstraint(QLayout.SetFixedSize)
+    def help1(self):
+        print("help pressed.")
+        xoppy_doc('xcrystal')
 
-        for shower in getattr(self, "showers", []):
-            shower()
+
 
 
 

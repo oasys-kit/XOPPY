@@ -1,26 +1,40 @@
 import sys
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from Orange.widgets import widget, gui
 from Orange.widgets.settings import Setting
+from Orange.data import Table, Domain, ContinuousVariable
 import numpy as np
+
+try:
+    from ..tools.xoppy_calc import xoppy_doc
+except ImportError:
+    print("Error importing: xoppy_doc")
+    raise
+
+try:
+    from ..tools.xoppy_calc import xoppy_calc_xtube_w
+except ImportError:
+    print("compute pressed.")
+    print("Error importing: xoppy_calc_xtube_w")
+    raise
 
 class OWxtc(widget.OWWidget):
     name = "xtc"
     id = "orange.widgets.dataxtc"
     description = "xoppy application to compute..."
-    icon = "icons/xoppy.png"
+    icon = "icons/xoppy_xtc.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
     priority = 10
     category = ""
-    keywords = ["list", "of", "keywords"]
-    #outputs = [{"name": "xoppy_data",
-    #            "type": np.ndarray,
-    #            "doc": ""}]
-    outputs = [{"name": "xoppy_data",
-                "type": np.ndarray,
+    keywords = ["xoppy", "xtc"]
+    outputs = [#{"name": "xoppy_data",
+               # "type": np.ndarray,
+               # "doc": ""},
+               {"name": "xoppy_table",
+                "type": Table,
                 "doc": ""},
-               {"name": "xoppy_file",
+               {"name": "xoppy_specfile",
                 "type": str,
                 "doc": ""}]
 
@@ -66,7 +80,7 @@ class OWxtc(widget.OWWidget):
         box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
         #widget buttons: compute, set defaults, help
         gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Set defaults", callback=self.resetSettings)
+        gui.button(box0, self, "Defaults", callback=self.defaults)
         gui.button(box0, self, "Help", callback=self.help1)
         self.process_showers()
         box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
@@ -292,42 +306,42 @@ class OWxtc(widget.OWWidget):
          return ['True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True']
 
 
-    def unitNames(self):
-         return ['TITLE','ENERGY','CUR','SIGE','TEXT_MACHINE','SIGX','SIGY','SIGX1','SIGY1','TEXT_BEAM','PERIOD','NP','TEXT_UNDULATOR','EMIN','EMAX','N','TEXT_ENERGY','IHMIN','IHMAX','IHSTEP','TEXT_HARM','IHEL','METHOD','IK','NEKS','TEXT_PARM','RUN_MODE_NAME']
-
-
-    def help1(self):
-        try:
-            from xoppy_calc import xoppy_doc
-        except ImportError:
-            print("help pressed.")
-            print("Error importing: xoppy_doc")
-            raise
-
-        xoppy_doc('xtc')
+    #def unitNames(self):
+    #     return ['TITLE','ENERGY','CUR','SIGE','TEXT_MACHINE','SIGX','SIGY','SIGX1','SIGY1','TEXT_BEAM','PERIOD','NP','TEXT_UNDULATOR','EMIN','EMAX','N','TEXT_ENERGY','IHMIN','IHMAX','IHSTEP','TEXT_HARM','IHEL','METHOD','IK','NEKS','TEXT_PARM','RUN_MODE_NAME']
 
 
     def compute(self):
-        try:
-            from xoppy_calc import xoppy_calc_xtc
-        except ImportError:
-            print("compute pressed.")
-            print("Error importing: xoppy_calc_xtc")
-            raise
-            
         fileName = xoppy_calc_xtc(TITLE=self.TITLE,ENERGY=self.ENERGY,CUR=self.CUR,SIGE=self.SIGE,TEXT_MACHINE=self.TEXT_MACHINE,SIGX=self.SIGX,SIGY=self.SIGY,SIGX1=self.SIGX1,SIGY1=self.SIGY1,TEXT_BEAM=self.TEXT_BEAM,PERIOD=self.PERIOD,NP=self.NP,TEXT_UNDULATOR=self.TEXT_UNDULATOR,EMIN=self.EMIN,EMAX=self.EMAX,N=self.N,TEXT_ENERGY=self.TEXT_ENERGY,IHMIN=self.IHMIN,IHMAX=self.IHMAX,IHSTEP=self.IHSTEP,TEXT_HARM=self.TEXT_HARM,IHEL=self.IHEL,METHOD=self.METHOD,IK=self.IK,NEKS=self.NEKS,TEXT_PARM=self.TEXT_PARM,RUN_MODE_NAME=self.RUN_MODE_NAME)
+        #send specfile
+        self.send("xoppy_specfile",fileName)
+
         print("Loading file:  ",fileName)
+        #load spec file with one scan, # is comment
         out = np.loadtxt(fileName)
-        print("out.shape: ",out.shape)
-        self.send("xoppy_data",out)
+        print("data shape: ",out.shape)
+        #get labels
+        txt = open(fileName).readlines()
+        tmp = [ line.find("#L") for line in txt]
+        itmp = np.where(np.array(tmp) != (-1))
+        labels = txt[itmp[0]].replace("#L ","").split("  ")
+        print("data labels: ",labels)
+        #
+        # build and send orange table
+        #
+        domain = Domain([ ContinuousVariable(i) for i in labels ])
+        table = Table.from_numpy(domain, out)
+        self.send("xoppy_table",table)
 
-    def process_showers(self):
+    def defaults(self):
+         self.resetSettings()
+         self.compute()
+         return
 
-        from PyQt4.QtGui import QLayout
-        self.layout().setSizeConstraint(QLayout.SetFixedSize)
+    def help1(self):
+        print("help pressed.")
+        xoppy_doc('xtc')
 
-        for shower in getattr(self, "showers", []):
-            shower()
+
 
 
 

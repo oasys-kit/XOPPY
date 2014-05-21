@@ -1,26 +1,40 @@
 import sys
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from Orange.widgets import widget, gui
 from Orange.widgets.settings import Setting
+from Orange.data import Table, Domain, ContinuousVariable
 import numpy as np
+
+try:
+    from ..tools.xoppy_calc import xoppy_doc
+except ImportError:
+    print("Error importing: xoppy_doc")
+    raise
+
+try:
+    from ..tools.xoppy_calc import xoppy_calc_xtube_w
+except ImportError:
+    print("compute pressed.")
+    print("Error importing: xoppy_calc_xtube_w")
+    raise
 
 class OWmare(widget.OWWidget):
     name = "mare"
     id = "orange.widgets.datamare"
     description = "xoppy application to compute..."
-    icon = "icons/xoppy.png"
+    icon = "icons/xoppy_mare.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
     priority = 10
     category = ""
-    keywords = ["list", "of", "keywords"]
-    #outputs = [{"name": "xoppy_data",
-    #            "type": np.ndarray,
-    #            "doc": ""}]
-    outputs = [{"name": "xoppy_data",
-                "type": np.ndarray,
+    keywords = ["xoppy", "mare"]
+    outputs = [#{"name": "xoppy_data",
+               # "type": np.ndarray,
+               # "doc": ""},
+               {"name": "xoppy_table",
+                "type": Table,
                 "doc": ""},
-               {"name": "xoppy_file",
+               {"name": "xoppy_specfile",
                 "type": str,
                 "doc": ""}]
 
@@ -52,7 +66,7 @@ class OWmare(widget.OWWidget):
         box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
         #widget buttons: compute, set defaults, help
         gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Set defaults", callback=self.resetSettings)
+        gui.button(box0, self, "Defaults", callback=self.defaults)
         gui.button(box0, self, "Help", callback=self.help1)
         self.process_showers()
         box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
@@ -176,42 +190,42 @@ class OWmare(widget.OWWidget):
          return ['True','True','True','True','True','True','True','True','True','self.DISPLAY  ==  1 OR self.DISPLAY  ==  3','self.DISPLAY  ==  1 OR self.DISPLAY  ==  3','self.DISPLAY  ==  2 OR self.DISPLAY  ==  3','self.DISPLAY  ==  2 OR self.DISPLAY  ==  3']
 
 
-    def unitNames(self):
-         return ['CRYSTAL','H','K','L','HMAX','KMAX','LMAX','FHEDGE','DISPLAY','LAMBDA','DELTALAMBDA','PHI','DELTAPHI']
-
-
-    def help1(self):
-        try:
-            from xoppy_calc import xoppy_doc
-        except ImportError:
-            print("help pressed.")
-            print("Error importing: xoppy_doc")
-            raise
-
-        xoppy_doc('mare')
+    #def unitNames(self):
+    #     return ['CRYSTAL','H','K','L','HMAX','KMAX','LMAX','FHEDGE','DISPLAY','LAMBDA','DELTALAMBDA','PHI','DELTAPHI']
 
 
     def compute(self):
-        try:
-            from xoppy_calc import xoppy_calc_mare
-        except ImportError:
-            print("compute pressed.")
-            print("Error importing: xoppy_calc_mare")
-            raise
-            
         fileName = xoppy_calc_mare(CRYSTAL=self.CRYSTAL,H=self.H,K=self.K,L=self.L,HMAX=self.HMAX,KMAX=self.KMAX,LMAX=self.LMAX,FHEDGE=self.FHEDGE,DISPLAY=self.DISPLAY,LAMBDA=self.LAMBDA,DELTALAMBDA=self.DELTALAMBDA,PHI=self.PHI,DELTAPHI=self.DELTAPHI)
+        #send specfile
+        self.send("xoppy_specfile",fileName)
+
         print("Loading file:  ",fileName)
+        #load spec file with one scan, # is comment
         out = np.loadtxt(fileName)
-        print("out.shape: ",out.shape)
-        self.send("xoppy_data",out)
+        print("data shape: ",out.shape)
+        #get labels
+        txt = open(fileName).readlines()
+        tmp = [ line.find("#L") for line in txt]
+        itmp = np.where(np.array(tmp) != (-1))
+        labels = txt[itmp[0]].replace("#L ","").split("  ")
+        print("data labels: ",labels)
+        #
+        # build and send orange table
+        #
+        domain = Domain([ ContinuousVariable(i) for i in labels ])
+        table = Table.from_numpy(domain, out)
+        self.send("xoppy_table",table)
 
-    def process_showers(self):
+    def defaults(self):
+         self.resetSettings()
+         self.compute()
+         return
 
-        from PyQt4.QtGui import QLayout
-        self.layout().setSizeConstraint(QLayout.SetFixedSize)
+    def help1(self):
+        print("help pressed.")
+        xoppy_doc('mare')
 
-        for shower in getattr(self, "showers", []):
-            shower()
+
 
 
 

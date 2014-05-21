@@ -1,0 +1,4 @@
+['Title','Beam energy (GeV)','Beam current (mA)','Period (cm)','Number of periods','Kx','Ky','Min energy (eV)','Max energy (eV)','Number of energy steps','Distance (m)','X-pos. (mm)','Y-pos. (mm)','X slit [mm or mrad]','Y slit [mm or mrad]','Integration points X','Integration points Y']
+['True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True']
+['TITLE','ENERGY','CUR','PERIOD','N','KX','KY','EMIN','EMAX','NEE','D','XPC','YPC','XPS','YPS','NXP','NYP']
+['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1']

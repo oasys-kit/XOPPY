@@ -1,0 +1,4 @@
+['datasets:','material','table','formula','sin_theta/lambda grid:','From: ','To: ','Number of points']
+['True','True','self.MAT_FLAG  ==  2','self.MAT_FLAG  !=  2','True','self.GRID  !=  0','self.GRID  !=  0','self.GRID  !=  0']
+['DATASETS','MAT_FLAG','MAT_LIST','DESCRIPTOR','GRID','GRIDSTART','GRIDEND','GRIDN']
+['True','True','self.MAT_FLAG  ==  2','self.MAT_FLAG  !=  2','True','self.GRID  !=  0','self.GRID  !=  0','self.GRID  !=  0']

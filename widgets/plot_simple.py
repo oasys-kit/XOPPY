@@ -21,7 +21,11 @@ class OWPlotSimple(widget.OWWidget):
     inputs = [{"name": "xoppy_data",
                 "type": np.ndarray,
                 "doc": "",
-                "handler": "do_plot" }]
+                "handler": "do_plot" },
+              {"name": "xoppy_specfile",
+                "type": str,
+                "doc": "",
+                "handler": "do_plot_spec" } ]
 
 
     def __init__(self):
@@ -41,7 +45,32 @@ class OWPlotSimple(widget.OWWidget):
         self.figure_canvas = FigureCanvas(fig) #plt.figure())
         self.mainArea.layout().addWidget(self.figure_canvas)
         
-        
+    def do_plot_spec(self,file):
+        #load spec file with one scan, # is comment
+        out = np.loadtxt(file)
+        print("data shape: ",out.shape)
+        #get labels
+        txt = open(file).readlines()
+        tmp = [ line.find("#L") for line in txt]
+        itmp = np.where(np.array(tmp) != (-1))
+        labels = txt[itmp[0]].replace("#L ","").replace("\n","").split("  ")
+        print("data labels: ",labels)
+
+
+
+        x = out[:, 0]
+        y = out[:, 1]
+        x.shape = -1
+        y.shape = -1
+        fig = plt.figure()
+        plt.plot(x,y,linewidth=1.0, figure=fig)
+        plt.grid(True)
+        plt.xlabel(labels[0])
+        plt.ylabel(labels[1])
+        if self.figure_canvas is not None:
+            self.mainArea.layout().removeWidget(self.figure_canvas)
+        self.figure_canvas = FigureCanvas(fig) #plt.figure())
+        self.mainArea.layout().addWidget(self.figure_canvas)
 
 #import os        
 #name = os.path.split(__file__)[0] + "foo.json"

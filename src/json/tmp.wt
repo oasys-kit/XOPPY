@@ -1,0 +1,106 @@
+widget_template = """import sys
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
+from Orange.widgets import widget, gui
+from Orange.widgets.settings import Setting
+from Orange.data import Table, Domain, ContinuousVariable
+import numpy as np
+
+try:
+    from ..tools.xoppy_calc import xoppy_doc
+except ImportError:
+    print("Error importing: xoppy_doc")
+    raise
+
+try:
+    from ..tools.xoppy_calc import xoppy_calc_{widget_class_name}
+except ImportError:
+    print("compute pressed.")
+    print("Error importing: xoppy_calc_{widget_class_name}")
+    raise
+
+class OW{widget_class_name}(widget.OWWidget):
+    name = "{widget_name}"
+    id = "orange.widgets.data{widget_id_name}"
+    description = "xoppy application to compute..."
+    icon = "icons/xoppy.png"
+    author = "create_widget.py"
+    maintainer_email = "srio@esrf.eu"
+    priority = 10
+    category = ""
+    keywords = ["list", "of", "keywords"]
+    outputs = [#{"name": "xoppy_data",
+               # "type": np.ndarray,
+               # "doc": ""},
+               {"name": "xoppy_table",
+                "type": Table,
+                "doc": ""},
+               {"name": "xoppy_specfile",
+                "type": str,
+                "doc": ""}]
+
+    #inputs = [{{"name": "Name",
+    #           "type": type,
+    #           "handler": None,
+    #           "doc": ""}}]
+
+    want_main_area = False
+
+{settings}
+
+    def __init__(self):
+        super().__init__()
+
+{controls}
+        gui.rubber(self.controlArea)
+
+    def unitLabels(self):
+         return {labels}
+
+    def unitFlags(self):
+         return {flags}
+
+    #def unitNames(self):
+    #     return {mynames}
+
+
+    def compute(self):
+        fileName = xoppy_calc_{widget_class_name}({calc_args})
+        #send specfile
+        self.send("xoppy_specfile",fileName)
+
+        print("Loading file:  ",fileName)
+        #load spec file with one scan, # is comment
+        out = np.loadtxt(fileName)
+        print("data shape: ",out.shape)
+        #get labels
+        txt = open(fileName).readlines()
+        tmp = [ line.find("#L") for line in txt]
+        itmp = np.where(np.array(tmp) != (-1))
+        labels = txt[itmp[0]].replace("#L ","").replace("\n","").split("  ")
+        print("data labels: ",labels)
+        #
+        # build orange table
+        # domain = Domain([ContinuousVariable("x"), ContinuousVariable("y")])
+        #domain = Domain([ContinuousVariable(labels[0]), ContinuousVariable(labels[1])])
+        domain = Domain([ ContinuousVariable(i) for i in labels ])
+        table = Table.from_numpy(domain, out)
+
+        #self.send("xoppy_data",out)
+        self.send("xoppy_table",table)
+
+    def defaults(self):
+         self.resetSettings()
+         self.compute()
+         return
+
+    def help1(self):
+        print("help pressed")
+        xoppy_doc('{widget_class_name}')
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    w = OW{widget_class_name}()
+    w.show()
+    app.exec()
+    w.saveSettings()
+"""

@@ -1,0 +1,84 @@
+widget_template = """import sys
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
+from Orange.widgets import widget, gui
+from Orange.widgets.settings import Setting
+import numpy as np
+
+class OW{widget_class_name}(widget.OWWidget):
+    name = "{widget_name}"
+    id = "orange.widgets.data{widget_id_name}"
+    description = "xoppy application to compute..."
+    icon = "icons/xoppy.png"
+    author = "create_widget.py"
+    maintainer_email = "srio@esrf.eu"
+    priority = 10
+    category = ""
+    keywords = ["list", "of", "keywords"]
+    #outputs = [{{"name": "xoppy_data",
+    #            "type": np.ndarray,
+    #            "doc": ""}}]
+    outputs = [{{"name": "xoppy_data",
+                "type": np.ndarray,
+                "doc": ""}},
+               {{"name": "xoppy_file",
+                "type": str,
+                "doc": ""}}]
+
+    #inputs = [{{"name": "Name",
+    #           "type": type,
+    #           "handler": None,
+    #           "doc": ""}}]
+
+    want_main_area = False
+
+{settings}
+
+    def __init__(self):
+        super().__init__()
+
+{controls}
+        gui.rubber(self.controlArea)
+
+    def unitLabels(self):
+         return {labels}
+
+    def unitFlags(self):
+         return {flags}
+
+    def unitNames(self):
+         return {mynames}
+
+    def help1(self):
+        try:
+            from xoppy_calc import xoppy_doc
+        except ImportError:
+            print("help pressed.")
+            print("Error importing: xoppy_doc")
+            raise
+
+        xoppy_doc('{widget_class_name}')
+
+
+    def compute(self):
+        try:
+            from xoppy_calc import xoppy_calc_{widget_class_name}
+        except ImportError:
+            print("compute pressed.")
+            print("Error importing: xoppy_calc_{widget_class_name}")
+            raise
+            
+        fileName = xoppy_calc_{widget_class_name}({calc_args})
+        print("Loading file:  ",fileName)
+        out = np.loadtxt(fileName)
+        print("out.shape: ",out.shape)
+        self.send("xoppy_data",out)
+
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    w = OW{widget_class_name}()
+    w.show()
+    app.exec()
+    w.saveSettings()
+"""

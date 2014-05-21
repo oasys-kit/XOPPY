@@ -1,0 +1,4 @@
+['Name','Substance:','Description:','fraction','grid','grid points','grid points [MeV]/file name','Output quantity']
+['True','True','True','self.SUBSTANCE  ==  3','True','self.GRID  !=  0','(self.GRID  !=  0)','self.SUBSTANCE  <=  1']
+['NAME','SUBSTANCE','DESCRIPTION','FRACTION','GRID','GRIDINPUT','GRIDDATA','ELEMENTOUTPUT']
+['True','True','True','self.SUBSTANCE  ==  3','True','self.GRID  !=  0','(self.GRID  !=  0)','self.SUBSTANCE  <=  1']

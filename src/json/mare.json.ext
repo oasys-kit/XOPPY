@@ -1,0 +1,4 @@
+['Crystal:','h main','k main','l main','h max','k max','l max','Eliminate reflection with fh less than ','Display','Wavelength [A] (for Unweg)','Delta Wavelength [A]','Phi [deg] (for Glitches)','Delta Phi [deg]']
+['True','True','True','True','True','True','True','True','True','self.DISPLAY  ==  1 OR self.DISPLAY  ==  3','self.DISPLAY  ==  1 OR self.DISPLAY  ==  3','self.DISPLAY  ==  2 OR self.DISPLAY  ==  3','self.DISPLAY  ==  2 OR self.DISPLAY  ==  3']
+['CRYSTAL','H','K','L','HMAX','KMAX','LMAX','FHEDGE','DISPLAY','LAMBDA','DELTALAMBDA','PHI','DELTAPHI']
+['True','True','True','True','True','True','True','True','True','self.DISPLAY  ==  1 OR self.DISPLAY  ==  3','self.DISPLAY  ==  1 OR self.DISPLAY  ==  3','self.DISPLAY  ==  2 OR self.DISPLAY  ==  3','self.DISPLAY  ==  2 OR self.DISPLAY  ==  3']

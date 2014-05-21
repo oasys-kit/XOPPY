@@ -63,7 +63,7 @@ def create_controls(json):
     controls += '        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") \n'
     controls += '        #widget buttons: compute, set defaults, help\n'
     controls += '        gui.button(box0, self, "Compute", callback=self.compute)\n'
-    controls += '        gui.button(box0, self, "Set defaults", callback=self.resetSettings)\n'
+    controls += '        gui.button(box0, self, "Defaults", callback=self.defaults)\n'
     controls += '        gui.button(box0, self, "Help", callback=self.help1)\n'
     controls += '        self.process_showers()\n'
 
@@ -126,6 +126,7 @@ def main():
     mynames = lines[2]
     flagsold = lines[3]
     open(py_name, "wt").write(widget_template.format_map(vars()))
+    #open(py_name, "wt").write(widget_template)
     open(calc_name, "a").write(calc_template.format_map(vars()))
 
 
@@ -152,29 +153,44 @@ list_template = control_template.format("comboBox") + """,
 """
 
 
+
 widget_template = """import sys
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from Orange.widgets import widget, gui
 from Orange.widgets.settings import Setting
+from Orange.data import Table, Domain, ContinuousVariable
 import numpy as np
+
+try:
+    from ..tools.xoppy_calc import xoppy_doc
+except ImportError:
+    print("Error importing: xoppy_doc")
+    raise
+
+try:
+    from ..tools.xoppy_calc import xoppy_calc_xtube_w
+except ImportError:
+    print("compute pressed.")
+    print("Error importing: xoppy_calc_xtube_w")
+    raise
 
 class OW{widget_class_name}(widget.OWWidget):
     name = "{widget_name}"
     id = "orange.widgets.data{widget_id_name}"
     description = "xoppy application to compute..."
-    icon = "icons/xoppy.png"
+    icon = "icons/xoppy_{widget_class_name}.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
     priority = 10
     category = ""
-    keywords = ["list", "of", "keywords"]
-    #outputs = [{{"name": "xoppy_data",
-    #            "type": np.ndarray,
-    #            "doc": ""}}]
-    outputs = [{{"name": "xoppy_data",
-                "type": np.ndarray,
+    keywords = ["xoppy", "{widget_class_name}"]
+    outputs = [#{{"name": "xoppy_data",
+               # "type": np.ndarray,
+               # "doc": ""}},
+               {{"name": "xoppy_table",
+                "type": Table,
                 "doc": ""}},
-               {{"name": "xoppy_file",
+               {{"name": "xoppy_specfile",
                 "type": str,
                 "doc": ""}}]
 
@@ -199,41 +215,41 @@ class OW{widget_class_name}(widget.OWWidget):
     def unitFlags(self):
          return {flags}
 
-    def unitNames(self):
-         return {mynames}
+    #def unitNames(self):
+    #     return {mynames}
+
+    def compute(self):
+        fileName = xoppy_calc_{widget_class_name}({calc_args})
+        #send specfile
+        self.send("xoppy_specfile",fileName)
+
+        print("Loading file:  ",fileName)
+        #load spec file with one scan, # is comment
+        out = np.loadtxt(fileName)
+        print("data shape: ",out.shape)
+        #get labels
+        txt = open(fileName).readlines()
+        tmp = [ line.find("#L") for line in txt]
+        itmp = np.where(np.array(tmp) != (-1))
+        labels = txt[itmp[0]].replace("#L ","").split("  ")
+        print("data labels: ",labels)
+        #
+        # build and send orange table
+        #
+        domain = Domain([ ContinuousVariable(i) for i in labels ])
+        table = Table.from_numpy(domain, out)
+        self.send("xoppy_table",table)
+
+    def defaults(self):
+         self.resetSettings()
+         self.compute()
+         return
 
     def help1(self):
-        try:
-            from xoppy_calc import xoppy_doc
-        except ImportError:
-            print("help pressed.")
-            print("Error importing: xoppy_doc")
-            raise
-
+        print("help pressed.")
         xoppy_doc('{widget_class_name}')
 
 
-    def compute(self):
-        try:
-            from xoppy_calc import xoppy_calc_{widget_class_name}
-        except ImportError:
-            print("compute pressed.")
-            print("Error importing: xoppy_calc_{widget_class_name}")
-            raise
-            
-        fileName = xoppy_calc_{widget_class_name}({calc_args})
-        print("Loading file:  ",fileName)
-        out = np.loadtxt(fileName)
-        print("out.shape: ",out.shape)
-        self.send("xoppy_data",out)
-
-    def process_showers(self):
-
-        from PyQt4.QtGui import QLayout
-        self.layout().setSizeConstraint(QLayout.SetFixedSize)
-
-        for shower in getattr(self, "showers", []):
-            shower()
 
 
 
@@ -244,7 +260,6 @@ if __name__ == "__main__":
     app.exec()
     w.saveSettings()
 """
-
 calc_template = """
 
 

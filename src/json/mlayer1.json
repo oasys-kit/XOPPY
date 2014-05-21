@@ -1,0 +1,1 @@
+{"MODE":["0","Periodic Layers","Individual Layers"],"SCAN":["0","Grazing Angle","Photon Energy"],"F12_FLAG":["0","Create on the fly","Use existing file: mlayers.f12"],"SUBSTRATE":"Si","ODD_MATERIAL":"Si","EVEN_MATERIAL":"W","ENERGY":8050.0,"THETA":0.0,"SCAN_STEP":0.009999999776483,"NPOINTS":600,"ODD_THICKNESS":25.0,"EVEN_THICKNESS":25.0,"NLAYERS":50,"FILE":"layers.dat"}

@@ -1,0 +1,4 @@
+['DABAX f0 file:','DABAX f1f2 file:','DABAX CrossSec file:','Crystal:','h miller index','k miller index','l miller index','Include absorption:','Temperature factor [see help]:','From Energy [eV]','To energy [eV]','Number of points']
+['True','True','True','True','True','True','True','True','True','True','True','True']
+['FILEF0','FILEF1F2','FILECROSSSEC','ILATTICE','HMILLER','KMILLER','LMILLER','I_ABSORP','TEMPER','ENERGY','ENERGY_END','NPOINTS']
+['True','True','True','True','True','True','True','True','True','True','True','True']
