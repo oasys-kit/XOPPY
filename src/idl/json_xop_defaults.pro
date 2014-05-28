@@ -1,11 +1,15 @@
-pro json_xop_defaults,application, noinfo=noinfo, dabax=dabax
+pro json_xop_defaults,application, noinfo=noinfo, dabax=dabax, xsh_preprocessors=xsh_preprocessors
 
 if n_elements(application) eq 0 then application = 'xinpro'
 
-if keyword_set(dabax) then begin
-    str = dabax_defaults(application)
+if keyword_set(xsh_preprocessors) then begin
+    str = xsh_defaults_preprocessors(application)
 endif else begin
-    str = xop_defaults(application)
+    if keyword_set(dabax) then begin
+        str = dabax_defaults(application)
+    endif else begin
+        str = xop_defaults(application)
+    endelse
 endelse
 
 application = strlowcase(application) ; changed in xop_defaults...

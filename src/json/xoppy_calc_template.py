@@ -130,3 +130,27 @@ def xoppy_calc_xfh(FILEF0=0,FILEF1F2=0,FILECROSSSEC=0,ILATTICE=0,HMILLER=1,KMILL
 def xoppy_calc_mare(CRYSTAL=2,H=2,K=2,L=2,HMAX=3,KMAX=3,LMAX=3,FHEDGE=1e-08,DISPLAY=0,LAMBDA=1.54,DELTALAMBDA=0.009999999776483,PHI=-20.0,DELTAPHI=0.1):
     print("Inside xoppy_calc_mare. ")
     return(None)
+
+
+
+def xoppy_calc_xsh_bragg(DESCRIPTOR="Si",H_MILLER_INDEX=1,K_MILLER_INDEX=1,L_MILLER_INDEX=1,TEMPERATURE_FACTOR=1.0,E_MIN=5000.0,E_MAX=15000.0,E_STEP=100.0,SHADOW_FILE="bragg.dat"):
+    print("Inside xoppy_calc_xsh_bragg. ")
+    return(None)
+
+
+
+def xoppy_calc_xsh_pre_mlayer(FILE="mlayer.dat",E_MIN=5000.0,E_MAX=20000.0,S_DENSITY="2.33",S_MATERIAL="Si",E_DENSITY="2.40",E_MATERIAL="B4C",O_DENSITY="9.40",O_MATERIAL="Ru",GRADE_DEPTH=0,N_PAIRS=70,THICKNESS=33.1,GAMMA=0.483,ROUGHNESS_EVEN=3.3,ROUGHNESS_ODD=3.1,FILE_DEPTH="myfile_depth.dat",GRADE_SURFACE=0,FILE_SHADOW="mlayer1.sha",FILE_THICKNESS="mythick.dat",FILE_GAMMA="mygamma.dat",AA0=1.0,AA1=0.0,AA2=0.0):
+    print("Inside xoppy_calc_xsh_pre_mlayer. ")
+    return(None)
+
+
+
+def xoppy_calc_xsh_prerefl(SYMBOL="SiC",DENSITY="3.217",FILE="reflec.dat",E_MIN=100.0,E_MAX=20000.0,E_STEP=100.0):
+    print("Inside xoppy_calc_xsh_prerefl. ")
+    return(None)
+
+
+
+def xoppy_calc_xsh_conic(P=3000.0,Q=1000.0,THETA=3.0,TYPE=2,CONVEX=0,CYL=0,CYLANGLE=0.0,WIDTH=6.0,LENGTH=300.0,NX=10,NY=200,SAG=0,FILE="presurface.dat"):
+    print("Inside xoppy_calc_xsh_conic. ")
+    return(None)

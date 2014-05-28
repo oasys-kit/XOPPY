@@ -28,7 +28,7 @@ Notes
 -installing orange3 in ubuntu 14.04 gave a problem when installing the scikit-learn package. It can be installed from sources using: 
 pip install git+https://github.com/scikit-learn/scikit-learn.git
 
--xoppy working directory is Orange/xoppy/tmp
+-xoppy working directory is Orange/XOPPY/tmp
 
 srio@esrf.eu 20140423  (Cervantes death anniversary)
 srio@esrf.eu 20140521  changes after visit to Ljubljana

@@ -88,6 +88,28 @@ for i=0,n_elements(list)-1 do begin
   json_xop_defaults,list[i],/dabax
 endfor
 
+
+;===============================================================================
+;
+; applications in xsh_defaults_preprocessors containing titles and flags
+; 
+;===============================================================================
+
+; this section was used but the files mofidied by hand.
+; commented to avoid overwriting
+;list  =  [ $
+;'xsh_bragg', $ 
+;'xsh_pre_mlayer', $
+;'xsh_prerefl', $
+;'xsh_conic']
+;
+;for i=0,n_elements(list)-1 do begin
+;  print,'Calling xsh_defaults_preprocessors,/xsh_preprocessors with application: ',list[i]
+;  printf,unit,list[i]
+;  json_xop_defaults,list[i],/xsh_preprocessors
+;endfor
+
+
 free_lun,unit
 print,'File written to disk: go_all.txt'
 

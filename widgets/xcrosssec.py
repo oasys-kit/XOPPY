@@ -12,10 +12,10 @@ except ImportError:
     raise
 
 try:
-    from ..tools.xoppy_calc import xoppy_calc_xtube_w
+    from ..tools.xoppy_calc import xoppy_calc_xcrosssec
 except ImportError:
     print("compute pressed.")
-    print("Error importing: xoppy_calc_xtube_w")
+    print("Error importing: xoppy_calc_xcrosssec")
     raise
 
 class OWxcrosssec(widget.OWWidget):

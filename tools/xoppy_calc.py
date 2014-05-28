@@ -31,6 +31,48 @@ def xoppy_calc_nsources(TEMPERATURE=300.0,ZONE=0,MAXFLUX_F=200000000000000.0,MAX
 
 def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.0,KX=0.0,KY=8.739999771118164,EMIN=1000.0,EMAX=100000.0,NEE=2000,D=30.0,XPC=0.0,YPC=0.0,XPS=2.0,YPS=2.0,NXP=10,NYP=10):
     print("Inside xoppy_calc_ws. ")
+    pwd = os.getcwd()
+    os.chdir(home_wd)
+    with open("ws.inp","wt") as f:
+        f.write("%s\n"%(TITLE))
+        f.write("%f     %f\n"%(ENERGY,CUR))
+        f.write("%f  %d  %f  %f\n"%(PERIOD,N,KX,KY))
+        f.write("%f  %f   %f\n"%(EMIN,EMAX,NEE))
+        f.write("%f  %f  %f  %f  %f  %f  %f\n"%(D,XPC,YPC,XPS,YPS,NXP,NYP))
+        f.write("%d  \n"%(4))
+    command = os.path.join(home_bin,'ws')
+    print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
+    print("\n--------------------------------------------------------\n")
+    os.system(command)
+    print("\n--------------------------------------------------------\n")
+
+    # write spec file
+    txt = open("ws.out").readlines()
+    f = open("ws.spec","w")
+
+    f.write("#F ws.spec\n")
+    f.write("\n")
+    f.write("#S 1 ws results\n")
+    f.write("#N 6\n")
+    f.write("#L  Energy(eV)  Flux(ph/s/0.1%bw)  p1  p2  p3  p4")
+    for i in txt:
+        tmp = i.strip(" ")
+        if tmp[0].isdigit():
+           f.write(tmp)
+        else:
+           f.write("#UD "+tmp)
+    f.close()
+    print("File written to disk: ws.spec")
+
+    os.chdir(pwd)
+    outFile = os.path.join(home_wd,"ws.spec")
+    return(outFile)
+
+
+
+
+
+
     return(None)
 
 
@@ -99,8 +141,22 @@ def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,M
     print("\n--------------------------------------------------------\n")
     os.system(command)
     print("\n--------------------------------------------------------\n")
+    #add SPEC header
+    txt = open("inpro.dat").read()
+    f = open("inpro.spec","w")
+    f.write("#F inpro.spec\n")
+    f.write("\n")
+    f.write("#S 1 inpro results\n")
+    f.write("#N 3\n")
+    f.write("#L Theta-TetaB  s-polarized reflectivity  p-polarized reflectivity\n")
+    f.write(txt)
+    f.close()
+    print("File written to disk: inpro.dat, inpro.par, inpro.spec")
+
+     #exit
     os.chdir(pwd)
-    outFile = os.path.join(home_wd,"inpro.dat")
+    outFile = os.path.join(home_wd,"inpro.spec")
+
     return(outFile)
 
 
@@ -119,6 +175,101 @@ def xoppy_calc_xwiggler(FIELD=0,NPERIODS=12,ULAMBDA=0.125,K=14.0,ENERGY=6.04,PHO
 
 def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:Al2O3:K2O",FRACTION="0.807:0.129:0.038:0.022:0.004",GRID=1,GRIDINPUT=0,GRIDDATA="0.0804:0.2790:0.6616:1.3685:2.7541",ELEMENTOUTPUT=0):
     print("Inside xoppy_calc_xxcom. ")
+
+    pwd = os.getcwd()
+    os.chdir(home_wd)
+    with open("xoppy.inp","wt") as f:
+        f.write( os.path.join(home_data,'xcom')+os.sep+"\n" )
+        f.write( NAME+"\n" )
+        f.write("%d\n"%(1+SUBSTANCE))
+        if (1+SUBSTANCE) != 4:
+            f.write( DESCRIPTION+"\n")
+            if (1+SUBSTANCE) <= 2:
+                f.write("%d\n"%(1+ELEMENTOUTPUT))
+        else:
+            nn = DESCRIPTION.split(":")
+            mm = FRACTION.split(":")
+            f.write("%d\n"%( len(nn)))
+            print(">>>>>>>",nn,len(nn))
+            for i in range(len(nn)):
+                print("<><><><>",i,nn[i],mm[i])
+                f.write(nn[i]+"\n")
+                f.write(mm[i]+"\n")
+            f.write("1\n")
+        f.write("%d\n"%(1+GRID))
+        if (1+GRID) != 1:
+            f.write("%d\n"%(1+GRIDINPUT))
+            if (1+GRIDINPUT) == 1:
+                nn = GRIDDATA.split(":")
+                f.write("%d\n"%( len(nn)))
+                for i in nn:
+                    f.write(i+"\n")
+                if (1+GRID) != 1:
+                    f.write("N\n")
+        f.write("xcom.out\n")
+        f.write("1\n")
+        f.close()
+
+    command = os.path.join(home_bin,'xcom') + " < xoppy.inp"
+    print("Running command '%s' in directory: %s "%(command,os.getcwd()))
+    print("\n--------------------------------------------------------\n")
+    os.system(command)
+    print("\n--------------------------------------------------------\n")
+    # write spec file
+
+    if (1+SUBSTANCE) <= 2:
+        if (1+ELEMENTOUTPUT) == 1:
+            titles = "Photon Energy [Mev]  Coherent scat [b/atom]  " \
+                     "Incoherent scat [b/atom]  Photoel abs [b/atom]  " \
+                     "Pair prod in nucl field [b/atom]  Pair prod in elec field [b/atom]  " \
+                     "Tot atten with coh scat [b/atom]  Tot atten w/o coh scat [b/atom]"
+        elif (1+ELEMENTOUTPUT) == 2:
+            titles = "Photon Energy [Mev]  Coherent scat [b/atom]  " \
+                     "Incoherent scat [b/atom]  Photoel abs [b/atom]  " \
+                     "Pair prod in nucl field [b/atom]  Pair prod in elec field [b/atom]  " \
+                     "Tot atten with coh scat [cm2/g]  Tot atten w/o coh scat [cm2/g]"
+        elif (1+ELEMENTOUTPUT) == 3:
+            titles = "Photon Energy [Mev]  Coherent scat [cm2/g]  " \
+                     "Incoherent scat [cm2/g]  Photoel abs [cm2/g]  " \
+                     "Pair prod in nucl field [cm2/g]  Pair prod in elec field [cm2/g]  " \
+                     "Tot atten with coh scat [cm2/g]  Tot atten w/o coh scat [cm2/g]"
+        else:
+            titles = "Photon Energy [Mev]  Coherent scat [cm2/g]  " \
+                     "Incoherent scat [cm2/g]  Photoel abs [cm2/g]  " \
+                     "Pair prod in nucl field [cm2/g]  Pair prod in elec field [cm2/g]  " \
+                     "Tot atten with coh scat [cm2/g]  Tot atten w/o coh scat [cm2/g]"
+    else:
+       titles = "Photon Energy [Mev]  Coherent scat [cm2/g]  " \
+                "Incoherent scat [cm2/g]  Photoel abs [cm2/g]  " \
+                "Pair prod in nucl field [cm2/g]  Pair prod in elec field [cm2/g]  " \
+                "Tot atten with coh scat [cm2/g]  Tot atten w/o coh scat [cm2/g]"
+
+
+    txt = open("xcom.out").readlines()
+    f = open("xcom.spec","w")
+
+    f.write("#F xcom.spec\n")
+    f.write("\n")
+    f.write("#S 1 xcom results\n")
+    f.write("#N 8\n")
+    f.write("#L  "+titles+"\n")
+    for i in txt:
+        tmp = i.strip(" ")
+        if tmp[0].isdigit():
+           f.write(tmp)
+        else:
+           f.write("#UD "+tmp)
+    f.close()
+    print("File written to disk: xcom.spec")
+
+
+    os.chdir(pwd)
+    outFile = os.path.join(home_wd,"xcom.spec")
+    return(outFile)
+
+
+
+
     return(None)
 
 
@@ -186,6 +337,29 @@ def xoppy_calc_xfh(FILEF0=0,FILEF1F2=0,FILECROSSSEC=0,ILATTICE=0,HMILLER=1,KMILL
 def xoppy_calc_mare(CRYSTAL=2,H=2,K=2,L=2,HMAX=3,KMAX=3,LMAX=3,FHEDGE=1e-08,DISPLAY=0,LAMBDA=1.54,DELTALAMBDA=0.009999999776483,PHI=-20.0,DELTAPHI=0.1):
     print("Inside xoppy_calc_mare. ")
     return(None)
+
+def xoppy_calc_xsh_bragg(STRUCTURE=0,LATTICE_CTE_A=5.4309401512146,LATTICE_CTE_C=1.0,H_MILLER_INDEX=1,K_MILLER_INDEX=1,L_MILLER_INDEX=1,SYMBOL_1ST="Si",SYMBOL_2ND="Si",ABSORPTION=1,TEMPERATURE_FACTOR=1.0,E_MIN=5000.0,E_MAX=15000.0,E_STEP=100.0,SHADOW_FILE="reflec.dat",RC=1,MOSAIC=0,RC_MODE=1,RC_ENERGY=8000.0,MOSAIC_FWHM=0.100000001490116,THICKNESS=0.009999999776483,ASYMMETRIC_ANGLE=0.0,ANGULAR_RANGE=100.0,NUMBER_OF_POINTS=200,SEC_OF_ARC=0,CENTERED_CURVE=0,IONIC_ASK=0):
+    print("Inside xoppy_calc_xsh_bragg. ")
+    return(None)
+
+
+
+def xoppy_calc_xsh_pre_mlayer(FILE="mlayer.dat",E_MIN=5000.0,E_MAX=20000.0,S_DENSITY="2.33",S_MATERIAL="Si",E_DENSITY="2.40",E_MATERIAL="B4C",O_DENSITY="9.40",O_MATERIAL="Ru",GRADE_DEPTH=0,N_PAIRS=70,THICKNESS=33.1,GAMMA=0.483,ROUGHNESS_EVEN=3.3,ROUGHNESS_ODD=3.1,FILE_DEPTH="myfile_depth.dat",GRADE_SURFACE=0,FILE_SHADOW="mlayer1.sha",FILE_THICKNESS="mythick.dat",FILE_GAMMA="mygamma.dat",AA0=1.0,AA1=0.0,AA2=0.0):
+    print("Inside xoppy_calc_xsh_pre_mlayer. ")
+    return(None)
+
+
+
+def xoppy_calc_xsh_prerefl(SYMBOL="SiC",DENSITY="3.217",FILE="reflec.dat",E_MIN=100.0,E_MAX=20000.0,E_STEP=100.0):
+    print("Inside xoppy_calc_xsh_prerefl. ")
+    return(None)
+
+
+
+def xoppy_calc_xsh_conic(P=3000.0,Q=1000.0,THETA=3.0,TYPE=2,CONVEX=0,CYL=0,CYLANGLE=0.0,WIDTH=6.0,LENGTH=300.0,NX=10,NY=200,SAG=0,FILE="presurface.dat"):
+    print("Inside xoppy_calc_xsh_conic. ")
+    return(None)
+
 
 def xoppy_doc(app):
     filename1 = os.path.join(home_doc,app+'.txt')

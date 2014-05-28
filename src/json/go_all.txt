@@ -20,3 +20,7 @@ xcrosssec
 xf1f2
 xfh
 mare
+xsh_bragg
+xsh_pre_mlayer
+xsh_prerefl
+xsh_conic

@@ -53,6 +53,10 @@ class OWPlotSimple(widget.OWWidget):
         txt = open(file).readlines()
         tmp = [ line.find("#L") for line in txt]
         itmp = np.where(np.array(tmp) != (-1))
+        #print(">>>>>>>>>>>>>>>>>>>>",itmp,np.array(itmp),len(itmp))
+        #if len(itmp) == 0:
+        #    labels = None
+        #else:
         labels = txt[itmp[0]].replace("#L ","").replace("\n","").split("  ")
         print("data labels: ",labels)
 

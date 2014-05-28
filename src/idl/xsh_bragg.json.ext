@@ -1,0 +1,4 @@
+['Crystal descriptor','H miller index','K miller index','L miller index','Temperature factor','From Energy [eV]','To Energy to [eV]','Energy step [eV]','File name (for SHADOW)']
+['True','True','True','True','True','True','True','True','True']
+['DESCRIPTOR','H_MILLER_INDEX','K_MILLER_INDEX','L_MILLER_INDEX','TEMPERATURE_FACTOR','E_MIN','E_MAX','E_STEP','SHADOW_FILE']
+['True','True','True','True','True','True','True','True','True']

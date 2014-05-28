@@ -168,10 +168,10 @@ except ImportError:
     raise
 
 try:
-    from ..tools.xoppy_calc import xoppy_calc_xtube_w
+    from ..tools.xoppy_calc import xoppy_calc_{widget_class_name}
 except ImportError:
     print("compute pressed.")
-    print("Error importing: xoppy_calc_xtube_w")
+    print("Error importing: xoppy_calc_{widget_class_name}")
     raise
 
 class OW{widget_class_name}(widget.OWWidget):
