@@ -1,0 +1,21 @@
+{
+  "__name": "BC_BendingMagnet",
+  "__title": "_Bending Magnet source",
+  "__labels": [
+    "Bending magnet magnetic field [T}",
+    "File with magnetic field errors",
+    "Length (angular) of the BM [mrad]"
+  ],
+  "__flags": [
+    "True",
+    "True",
+    "True"
+  ],
+  "__help": [
+    "Photon energy in eV",
+    "Photon energy in eV"
+  ],
+  "MagneticField": 1.0,
+  "MagneticFieldErrors": "myfile.dat",
+  "HorizontalArc": 1.0
+}

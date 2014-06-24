@@ -1,0 +1,22 @@
+{
+  "__name": "BC_Mirror",
+  "__title": "Mirror",
+  "__labels": [
+    "coating material",
+    "coating thickness",
+    "coating density"
+  ],
+  "__flags": [
+    "True",
+    "True",
+    "True"
+  ],
+  "__help": [
+    "String describing the coating material (e.g., Cu, B4C, etc).",
+    "Coating thickness [m]",
+    "Coating density [g/cm^3]"
+  ],
+  "coating": "Rh",
+  "thickness": 1e-06,
+  "density": 10.0
+}

@@ -1,0 +1,61 @@
+{
+  "__name": "InsertionDevice",
+  "__title": "Insertion Device source",
+  "__labels": [
+    "Type of ID",
+    "B from",
+    "ID period [m]",
+    "Number of periods",
+    "K value (Horizontal)",
+    "K value (vertical)",
+    "Phase between H and V magnets",
+    "Gap taper (Horizontal)",
+    "Gap taper (vertical)",
+    "File with harmonics",
+    "File with magnetic field"
+  ],
+  "__flags": [
+    "True",
+    "True",
+    "True",
+    "True",
+    "True",
+    "True",
+    "True",
+    "True",
+    "True",
+    "True",
+    "True"
+  ],
+  "__help": [
+    " ",
+    " ",
+    " ",
+    " ",
+    " ",
+    " ",
+    " ",
+    " ",
+    " ",
+    " ",
+    " "
+  ],
+  "IDType": [
+    "0",
+    "Wiggler",
+    "Undulator"
+  ],
+  "InputType": [
+    "0",
+    "K values",
+    "B from harmonics",
+    "B from table"
+  ],
+  "PeriodID": 1.0,
+  "N": 100,
+  "phase": 0.0,
+  "taperH": 0.0,
+  "taperV": 0.0,
+  "Bharmonics": "myfile.dat",
+  "Btable": "myfile.dat"
+}

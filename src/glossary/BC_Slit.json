@@ -1,0 +1,52 @@
+{
+  "__name": "BC_Slit",
+  "__title": "Slit or aperture",
+  "__labels": [
+    "Center (Horizontal)",
+    "Center (Vertical)",
+    "Shape",
+    "aperture of beam stop",
+    "gap/obstruction (Horizontal) [m]",
+    "gap/obstruction (vertical) [m]",
+    "polygone coordinates (Horizontal)",
+    "polygone coordinates (Vertical)"
+  ],
+  "__flags": [
+    "True",
+    "True",
+    "True",
+    "True",
+    "True",
+    "True",
+    "True",
+    "True"
+  ],
+  "__help": [
+    " ",
+    " ",
+    " ",
+    " ",
+    " ",
+    " ",
+    " ",
+    " "
+  ],
+  "centerH": 0.0,
+  "centerV": 0.0,
+  "shape": [
+    "0",
+    "None (fully opened)",
+    "rectangular",
+    "elliptical",
+    "free form (polygon"
+  ],
+  "Stop": [
+    "0",
+    "Aperture/slit",
+    "beam stop"
+  ],
+  "gapH": 1.0,
+  "gapV": 1.0,
+  "coorH": 0.0,
+  "coorV": 0.0
+}

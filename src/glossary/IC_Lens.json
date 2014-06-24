@@ -1,0 +1,18 @@
+{
+  "__name": "IC_Lens",
+  "__title": "Ideal lens",
+  "__labels": [
+    "Focal length in horizontal",
+    "Focal length in vertical"
+  ],
+  "__flags": [
+    "True",
+    "True"
+  ],
+  "__help": [
+    "Focal length in the horizontal plane",
+    "Focal length in the vertical plane"
+  ],
+  "FH": 1.0,
+  "FV": 1.0
+}

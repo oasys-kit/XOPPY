@@ -1,0 +1,14 @@
+{
+  "__name": "IC_DriftSpace",
+  "__title": "Drift space in vacuum",
+  "__labels": [
+    "Length"
+  ],
+  "__flags": [
+    "True"
+  ],
+  "__help": [
+    "Drift space length"
+  ],
+  "d": 0.0
+}
