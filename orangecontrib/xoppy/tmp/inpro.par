@@ -1,0 +1,89 @@
+ ================================================
+ =================  Inpro output ================
+ ================================================
+  
+  
+ ============ ==  Crystal Data ==================
+ Crystal: SI  
+ temperature:    300.000000000000       Kelvin
+ Debye-Waller factor (SI):   0.988111    
+ lambda:   0.154981763533790       nm
+ k0    :    6.45237205461256       nm^-1
+ Energy:    7.99999911343562       keV
+ Miller Indeces:            1           1           1
+ Theta Bragg:    14.3080292398703       degrees
+ Asymmetry angle:   0.000000000000000E+000  degrees
+ Interplanar distance d:   0.313557136505695       nm
+ polarization factor ( unpolarized radiation):   0.938924388188821     
+ polarization factor (100% p-polarized)     :   0.877848776377641     
+ asymmetry factor b:   -1.00000000000000     
+ refraction correction:    6.61757154177632       arcsec
+  
+  
+ ====== Scattering factors and related items ====
+ 
+ scattering factors for SI
+ 
+ f0:    10.7102         f1:   0.271473         f2:   0.333962    
+ 
+ cross section:    2916.84056072483       barn
+ absorption coefficient:    14.5670218355466       mm^(-1)
+ specific absorption:    62.5486340780974       cm^2/g
+ 
+ mean absorption coefficient:    14.5670218355466       mm^(-1)
+  
+  
+ ======== Dielectric susceptibilities: ==========
+ 
+ chi0r =  -0.153548E-04  chi0i =  -0.359312E-06
+ 
+  real and imaginary part of chih(real):
+   -0.583740E-05     0.583740E-05
+ 
+  real and imaginary part of chih(imag):
+   -0.177520E-06     0.177520E-06
+ 
+  modulus of chih(real):
+   -0.825533E-05
+ 
+  modulus of chih(imag):
+   -0.251051E-06
+ 
+  real and imaginary part of chih(real) bar:
+   -0.583740E-05    -0.583740E-05
+ 
+  real and imaginary part of chih(imag) bar:
+   -0.177520E-06    -0.177520E-06
+ 
+  modulus of chih(real) bar:
+   -0.825533E-05
+ 
+  modulus of chih(imag) bar:
+   -0.251051E-06
+  
+ 
+  Psi_0:
+   -0.153548E-04    -0.359312E-06
+ 
+  Psi_h:
+   -0.601492E-05     0.565988E-05
+ 
+  Psi_h_bar:
+   -0.565988E-05    -0.601492E-05
+  
+ =============== Other values: ==================
+  
+  sigma-polarization:
+     Darwin width (symmetrical case):   7.11724674370467       arc sec
+     extinction depth:   0.737731867811877       microns
+     extinction length:    2.98513949906959       microns
+     pendelloesung period:    4.63530603247374       microns
+  
+  pi-polarization:
+     Darwin width (symmetrical case):   6.24786634513890       arc sec
+     extinction depth:   0.840386052431555       microns
+     extinction length:    3.40051678534825       microns
+     pendelloesung period:    5.28030129699660       microns
+  
+  absorption depth:    8.48268161691333       microns
+  angular offset/effective thickness:    43.4781102818501       arcsec/mm
