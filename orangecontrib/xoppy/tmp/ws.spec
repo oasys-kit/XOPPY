@@ -2,7 +2,7 @@
 
 #S 1 ws results
 #N 6
-#L  Energy(eV)  Flux(ph/s/0.1%bw)  p1  p2  p3  p4#UD ****************** Start WS v. 1.61 at 2014-10-14 09:05:28 ******************
+#L  Energy(eV)  Flux(ph/s/0.1%bw)  p1  p2  p3  p4#UD ****************** Start WS v. 1.61 at 2014-10-14 11:07:32 ******************
 #UD 
 #UD Wiggler A at APS
 #UD energy   7.000 GeV   current 100.0 mA
