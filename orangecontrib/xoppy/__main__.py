@@ -7,7 +7,7 @@ import pkg_resources
 
 def widget_discovery(discovery):
     dist = pkg_resources.get_distribution("Orange")
-    pkgs = ["orangecontrib.xoppy.widgets"]
+    pkgs = ["orangecontrib.xoppy.widgets.xoppy", "orangecontrib.xoppy.widgets.viewers"]
     for pkg in pkgs:
         discovery.process_category_package(pkg, distribution=dist)
 

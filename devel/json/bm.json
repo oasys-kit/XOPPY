@@ -1,1 +1,19 @@
-{"MACHINE_NAME":"ESRF bending magnet","RB_CHOICE":["0","Magnetic Radius","Magnetic Field"],"MACHINE_R_M":25.0,"BFIELD_T":0.800000011920929,"BEAM_ENERGY_GEV":6.039999961853027,"CURRENT_A":0.100000001490116,"HOR_DIV_MRAD":1.0,"VER_DIV":["0","Full (integrated in Psi)","At Psi=0","In [PsiMin,PsiMax]","At Psi=Psi_Min"],"PHOT_ENERGY_MIN":100.0,"PHOT_ENERGY_MAX":100000.0,"NPOINTS":500,"LOG_CHOICE":["1","Lin","Log"],"PSI_MRAD_PLOT":1.0,"PSI_MIN":-1.0,"PSI_MAX":1.0,"PSI_NPOINTS":500}
+{
+"TYPE_CALC":[ "0", "Energy or Power spectra", "Angular distribution (all wavelengths)", "Angular distribution (one wavelength)", "2D flux and power (angular,energy) distribution"],
+"MACHINE_NAME":"ESRF bending magnet",
+"RB_CHOICE":["0","Magnetic Radius","Magnetic Field"],
+"MACHINE_R_M":25.0,
+"BFIELD_T":0.8,
+"BEAM_ENERGY_GEV":6.0,
+"CURRENT_A":0.1,
+"HOR_DIV_MRAD":1.0,
+"VER_DIV":["0","Full (integrated in Psi)","At Psi=0","In [PsiMin,PsiMax]","At Psi=Psi_Min"],
+"PHOT_ENERGY_MIN":100.0,
+"PHOT_ENERGY_MAX":100000.0,
+"NPOINTS":500,
+"LOG_CHOICE":["1","Lin","Log"],
+"PSI_MRAD_PLOT":1.0,
+"PSI_MIN":-1.0,
+"PSI_MAX":1.0,
+"PSI_NPOINTS":500}
+

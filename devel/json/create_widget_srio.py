@@ -162,13 +162,13 @@ from Orange.data import Table, Domain, ContinuousVariable
 import numpy as np
 
 try:
-    from ..util.xoppy_calc import xoppy_doc
+    from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
 except ImportError:
     print("Error importing: xoppy_doc")
     raise
 
 try:
-    from ..util.xoppy_calc import xoppy_calc_{widget_class_name}
+    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_{widget_class_name}
 except ImportError:
     print("compute pressed.")
     print("Error importing: xoppy_calc_{widget_class_name}")

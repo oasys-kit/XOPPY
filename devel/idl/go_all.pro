@@ -11,7 +11,7 @@ openw,unit,'go_all.txt',/get_lun
 
 list  =  [ $
 'black_body', $
-'bm', $
+;'bm', $       ; modified bu hand to include kind of calculation
 'mlayer', $
 'nsources', $
 'ws', $
@@ -20,7 +20,7 @@ list  =  [ $
 'xtube_w' ] 
 
 for i=0,n_elements(list)-1 do begin
-  print,'Calling ifc_json with application: ',list[i]
+  print,'Calling json_ifc with application: ',list[i]
   printf,unit,list[i]
   json_ifc,list[i]
 endfor

@@ -3,6 +3,7 @@ import numpy
 from Orange import __file__ as orange_init
 
 from orangecontrib.xoppy import *
+from orangecontrib.xoppy.util import srfunc
 
 
 def xoppy_calc_black_body(TITLE="Thermal source: Planck distribution",TEMPERATURE=1200000.0,E_MIN=10.0,E_MAX=1000.0,NPOINTS=500):
@@ -10,10 +11,172 @@ def xoppy_calc_black_body(TITLE="Thermal source: Planck distribution",TEMPERATUR
     return(None)
 
 
-
-def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.0,BFIELD_T=0.800000011920929,BEAM_ENERGY_GEV=6.039999961853027,CURRENT_A=0.100000001490116,HOR_DIV_MRAD=1.0,VER_DIV=0,PHOT_ENERGY_MIN=100.0,PHOT_ENERGY_MAX=100000.0,NPOINTS=500,LOG_CHOICE=1,PSI_MRAD_PLOT=1.0,PSI_MIN=-1.0,PSI_MAX=1.0,PSI_NPOINTS=500):
+def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.0,BFIELD_T=0.8,BEAM_ENERGY_GEV=6.04,CURRENT_A=0.1,HOR_DIV_MRAD=1.0,VER_DIV=0,PHOT_ENERGY_MIN=100.0,PHOT_ENERGY_MAX=100000.0,NPOINTS=500,LOG_CHOICE=1,PSI_MRAD_PLOT=1.0,PSI_MIN=-1.0,PSI_MAX=1.0,PSI_NPOINTS=500,TYPE_CALC=0):
     print("Inside xoppy_calc_bm. ")
-    return(None)
+
+    outFile = "bm.spec"
+
+    # electron energy in GeV
+    gamma = BEAM_ENERGY_GEV*1e3/srfunc.codata_mee
+
+    r_m = MACHINE_R_M      # magnetic radius in m
+    if RB_CHOICE == 1:
+        r_m = srfunc.codata_me * srfunc.codata_c / srfunc.codata_ec / BFIELD_T * numpy.sqrt( gamma*gamma - 1)
+
+    # calculate critical energy in eV
+    ec_m = 4.0*numpy.pi*r_m/3.0/numpy.power(gamma,3) # wavelength in m
+    ec_ev = srfunc.m2ev/ec_m
+
+
+    if TYPE_CALC == 0:
+
+
+        if LOG_CHOICE == 0:
+            energy_ev = numpy.linspace(PHOT_ENERGY_MIN,PHOT_ENERGY_MAX,NPOINTS) # photon energy grid
+        else:
+            energy_ev = numpy.logspace(numpy.log10(PHOT_ENERGY_MIN),numpy.log10(PHOT_ENERGY_MAX),NPOINTS) # photon energy grid
+
+        a5 = srfunc.sync_ene(VER_DIV,energy_ev,ec_ev=ec_ev,polarization=0,  \
+               e_gev=BEAM_ENERGY_GEV,i_a=CURRENT_A,hdiv_mrad=HOR_DIV_MRAD, \
+               psi_min=PSI_MIN, psi_max=PSI_MAX, psi_npoints=PSI_NPOINTS)
+
+        a5par = srfunc.sync_ene(VER_DIV,energy_ev,ec_ev=ec_ev,polarization=1,  \
+               e_gev=BEAM_ENERGY_GEV,i_a=CURRENT_A,hdiv_mrad=HOR_DIV_MRAD, \
+               psi_min=PSI_MIN, psi_max=PSI_MAX, psi_npoints=PSI_NPOINTS)
+
+        a5per = srfunc.sync_ene(VER_DIV,energy_ev,ec_ev=ec_ev,polarization=2,  \
+               e_gev=BEAM_ENERGY_GEV,i_a=CURRENT_A,hdiv_mrad=HOR_DIV_MRAD, \
+               psi_min=PSI_MIN, psi_max=PSI_MAX, psi_npoints=PSI_NPOINTS)
+
+        if VER_DIV == 0:
+            coltitles=['Photon Energy [eV]','Photon Wavelength [A]','E/Ec','Flux_spol/Flux_total','Flux_ppol/Flux_total','Flux[Phot/sec/0.1%bw]','Power[Watts/eV]']
+            title='integrated in Psi,'
+        if VER_DIV == 1:
+            coltitles=['Photon Energy [eV]','Photon Wavelength [A]','E/Ec','Flux_spol/Flux_total','Flux_ppol/Flux_total','Flux[Phot/sec/0.1%bw/mradPsi]','Power[Watts/eV/mradPsi]']
+            title='at Psi=0,'
+        if VER_DIV == 2:
+            coltitles=['Photon Energy [eV]','Photon Wavelength [A]','E/Ec','Flux_spol/Flux_total','Flux_ppol/Flux_total','Flux[Phot/sec/0.1%bw]','Power[Watts/eV]']
+            title='in Psi=[%e,%e]'%(PSI_MIN,PSI_MAX)
+
+        if VER_DIV == 3:
+            coltitles=['Photon Energy [eV]','Photon Wavelength [A]','E/Ec','Flux_spol/Flux_total','Flux_ppol/Flux_total','Flux[Phot/sec/0.1%bw/mradPsi]','Power[Watts/eV/mradPsi]']
+            title='at Psi=%e mrad'%(PSI_MIN)
+
+        a6=numpy.zeros((7,len(energy_ev)))
+        a1 = energy_ev
+        a6[0,:] = (a1)
+        a6[1,:] = srfunc.m2ev*1e10/(a1)
+        a6[2,:] = (a1)/ec_ev # E/Ec
+        a6[3,:] = (a5par)/(a5)
+        a6[4,:] = (a5per)/(a5)
+        a6[5,:] = (a5)
+        a6[6,:] = (a5)*1e3*srfunc.codata_ec
+
+
+
+
+    if TYPE_CALC == 1:  # angular distributions over over all energies
+        angle_mrad = numpy.linspace(-PSI_MRAD_PLOT, +PSI_MRAD_PLOT,NPOINTS) # angle grid
+
+        a6 = numpy.zeros((6,NPOINTS))
+        a6[0,:] = angle_mrad # angle in mrad
+        a6[1,:] = angle_mrad*gamma/1e3 # Psi[rad]*Gamma
+        a6[2,:] = srfunc.sync_f(angle_mrad*gamma/1e3)
+        a6[3,:] = srfunc.sync_f(angle_mrad*gamma/1e3,polarization=1)
+        a6[4,:] = srfunc.sync_f(angle_mrad*gamma/1e3,polarization=2)
+        a6[5,:] = srfunc.sync_ang(0,angle_mrad,i_a=CURRENT_A,hdiv_mrad=HOR_DIV_MRAD,e_gev=BEAM_ENERGY_GEV, r_m=r_m)
+
+        coltitles=['Psi[mrad]','Psi[rad]*Gamma','F','F s-pol','F p-pol','Power[Watts/mrad(Psi)]']
+
+    if TYPE_CALC == 2:  # angular distributions at a single energy
+        angle_mrad = numpy.linspace(-PSI_MRAD_PLOT, +PSI_MRAD_PLOT,NPOINTS) # angle grid
+
+        a6 = numpy.zeros((7,NPOINTS))
+        a6[0,:] = angle_mrad # angle in mrad
+        a6[1,:] = angle_mrad*gamma/1e3 # Psi[rad]*Gamma
+        a6[2,:] = srfunc.sync_f(angle_mrad*gamma/1e3)
+        a6[3,:] = srfunc.sync_f(angle_mrad*gamma/1e3,polarization=1)
+        a6[4,:] = srfunc.sync_f(angle_mrad*gamma/1e3,polarization=2)
+        tmp = srfunc.sync_ang(1,angle_mrad,energy=PHOT_ENERGY_MIN,i_a=CURRENT_A,hdiv_mrad=HOR_DIV_MRAD,e_gev=BEAM_ENERGY_GEV, ec_ev=ec_ev)
+        tmp.shape = -1
+        a6[5,:] = tmp
+        a6[6,:] = a6[5,:]*srfunc.codata_ec*1e3
+
+        coltitles=['Psi[mrad]','Psi[rad]*Gamma','F','F s-pol','F p-pol','Flux[Ph/sec/0.1%bw/mradPsi]','Power[Watts/eV/mradPsi]']
+
+
+    if TYPE_CALC == 3:  # angular,energy distributions flux
+        angle_mrad = numpy.linspace(-PSI_MRAD_PLOT, +PSI_MRAD_PLOT,NPOINTS) # angle grid
+
+        if LOG_CHOICE == 0:
+            energy_ev = numpy.linspace(PHOT_ENERGY_MIN,PHOT_ENERGY_MAX,NPOINTS) # photon energy grid
+        else:
+            energy_ev = numpy.logspace(numpy.log10(PHOT_ENERGY_MIN),numpy.log10(PHOT_ENERGY_MAX),NPOINTS) # photon energy grid
+
+        tmp1, fm, a = srfunc.sync_ene(2,energy_ev,ec_ev=ec_ev,e_gev=BEAM_ENERGY_GEV,i_a=CURRENT_A,\
+                                      hdiv_mrad=HOR_DIV_MRAD,psi_min=PSI_MIN,psi_max=PSI_MAX,psi_npoints=PSI_NPOINTS)
+
+        a6 = numpy.zeros((4,len(a)*len(energy_ev)))
+        ij = -1
+        for i in range(len(a)):
+            for j in range(len(energy_ev)):
+                ij += 1
+                a6[0,ij] = a[i]
+                a6[1,ij] = energy_ev[j]
+                a6[2,ij] = fm[i,j]*srfunc.codata_ec*1e3
+                a6[3,ij] = fm[i,j]
+
+        coltitles=['Psi [mrad]','Photon Energy [eV]','Power [Watts/eV/mradPsi]','Flux [Ph/sec/0.1%bw/mradPsi]']
+
+
+
+        import matplotlib.pylab as plt
+        from mpl_toolkits.mplot3d import Axes3D  # need for example 6
+
+        toptitle='Flux vs vertical angle and photon energy'
+        xtitle  ='angle [mrad]'
+        ytitle  ='energy [eV]'
+        ztitle = "Photon flux [Ph/s/mrad/0.1%bw]"
+        pltN = 0
+        fig = plt.figure(pltN)
+        ax = fig.add_subplot(111, projection='3d')
+        fa, fe = numpy.meshgrid(a, energy_ev)
+        surf = ax.plot_surface(fa, fe, fm.T, \
+            rstride=1, cstride=1, \
+            linewidth=0, antialiased=False)
+
+        plt.title(toptitle)
+        ax.set_xlabel(xtitle)
+        ax.set_ylabel(ytitle)
+        ax.set_zlabel(ztitle)
+        plt.show()
+
+
+
+    # write spec file
+    ncol = len(coltitles)
+    npoints = len(a6[0,:])
+
+    f = open(outFile,"w")
+    f.write("#F "+outFile+"\n")
+    f.write("\n")
+    f.write("#S 1 bm results\n")
+    f.write("#N %d\n"%(ncol))
+    f.write("#L")
+    for i in range(ncol):
+        f.write("  "+coltitles[i])
+    f.write("\n")
+
+    for i in range(npoints):
+            f.write((" %e "*ncol+"\n")%(tuple(a6[:,i].tolist())))
+    f.close()
+    print("File written to disk: "+outFile)
+
+
+    return(outFile)
+
+
+
 
 
 
@@ -32,7 +195,7 @@ def xoppy_calc_nsources(TEMPERATURE=300.0,ZONE=0,MAXFLUX_F=200000000000000.0,MAX
 def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.0,KX=0.0,KY=8.739999771118164,EMIN=1000.0,EMAX=100000.0,NEE=2000,D=30.0,XPC=0.0,YPC=0.0,XPS=2.0,YPS=2.0,NXP=10,NYP=10):
     print("Inside xoppy_calc_ws. ")
     pwd = os.getcwd()
-    os.chdir(home_wd)
+    # os.chdir(home_wd)
     with open("ws.inp","wt") as f:
         f.write("%s\n"%(TITLE))
         f.write("%f     %f\n"%(ENERGY,CUR))
@@ -64,8 +227,8 @@ def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.
     f.close()
     print("File written to disk: ws.spec")
 
-    os.chdir(pwd)
-    outFile = os.path.join(home_wd,"ws.spec")
+    #os.chdir(pwd)
+    outFile = "ws.spec"
     return(outFile)
 
 
@@ -80,7 +243,7 @@ def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.
 def xoppy_calc_xtubes(ITUBE=0,VOLTAGE=30.0):
     print("Inside xoppy_calc_xtubes. ")
     pwd = os.getcwd()
-    os.chdir(home_wd)
+    #os.chdir(home_wd)
     with open("xoppy.inp","wt") as f:
         f.write("%d\n%f\n"%(ITUBE+1,VOLTAGE))
     command = os.path.join(home_bin,'xtubes') + " < xoppy.inp"
@@ -89,14 +252,14 @@ def xoppy_calc_xtubes(ITUBE=0,VOLTAGE=30.0):
     os.system(command)
     print("\n--------------------------------------------------------\n")
     os.chdir(pwd)
-    outFile = os.path.join(home_wd,"xtubes_tmp.dat")
+    outFile = "xtubes_tmp.dat"
     return(outFile)
 
 
 def xoppy_calc_xtube_w(VOLTAGE=100.0,RIPPLE=0.0,AL_FILTER=0.0):
     print("Inside xoppy_calc_xtube_w. ")
     pwd = os.getcwd()
-    os.chdir(home_wd)
+    #os.chdir(home_wd)
     with open("xoppy.inp","wt") as f:
         f.write("%f\n%f\n%f\n"%(VOLTAGE,RIPPLE,AL_FILTER))
     command = os.path.join(home_bin,'tasmip') + " < xoppy.inp"
@@ -105,7 +268,7 @@ def xoppy_calc_xtube_w(VOLTAGE=100.0,RIPPLE=0.0,AL_FILTER=0.0):
     os.system(command)
     print("\n--------------------------------------------------------\n")
     os.chdir(pwd)
-    outFile = os.path.join(home_wd,"tasmip_tmp.dat")
+    outFile = "tasmip_tmp.dat"
     return(outFile)
 
 
@@ -113,7 +276,7 @@ def xoppy_calc_xtube_w(VOLTAGE=100.0,RIPPLE=0.0,AL_FILTER=0.0):
 def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,MILLER_INDEX_K=1,MILLER_INDEX_L=1,ASYMMETRY_ANGLE=0.0,THICKNESS=500.0,TEMPERATURE=300.0,NPOINTS=100,SCALE=0,XFROM=-50.0,XTO=50.0):
     print("Inside xoppy_calc_xinpro. ")
     pwd = os.getcwd()
-    os.chdir(home_wd)
+    #os.chdir(home_wd)
     with open("xoppy.inp","wt") as f:
         f.write("%s\n"% (os.path.join(home_data,"inpro"+os.sep)))
         if MODE == 0:
@@ -154,8 +317,8 @@ def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,M
     print("File written to disk: inpro.dat, inpro.par, inpro.spec")
 
      #exit
-    os.chdir(pwd)
-    outFile = os.path.join(home_wd,"inpro.spec")
+    #os.chdir(pwd)
+    outFile = "inpro.spec"
 
     return(outFile)
 
@@ -168,8 +331,33 @@ def xoppy_calc_xcrystal(FILEF0=0,FILEF1F2=0,FILECROSSSEC=0,CRYSTAL_MATERIAL=0,MI
 
 
 def xoppy_calc_xwiggler(FIELD=0,NPERIODS=12,ULAMBDA=0.125,K=14.0,ENERGY=6.04,PHOT_ENERGY_MIN=100.0,PHOT_ENERGY_MAX=100100.0,NPOINTS=100,LOGPLOT=1,NTRAJPOINTS=101,CURRENT=200.0,FILE="?"):
+
     print("Inside xoppy_calc_xwiggler. ")
-    return(None)
+
+    outFileTraj = "xwiggler_traj.spec"
+    outFile = "xwiggler.spec"
+
+    if FIELD == 0:
+        t0,p = srfunc.wiggler_trajectory(b_from=0, nPer=NPERIODS, nTrajPoints=NTRAJPOINTS,  \
+                                 ener_gev=ENERGY, per=ULAMBDA, kValue=K, \
+                                 trajFile=outFileTraj)
+    if FIELD == 1:
+        # magnetic field from B(s) map
+        t0,p = srfunc.wiggler_trajectory(b_from=1, nPer=NPERIODS, nTrajPoints=NTRAJPOINTS,  \
+                       ener_gev=ENERGY4, inData=FILE,trajFile=outFileTraj)
+    if FIELD == 2:
+        # magnetic field from harmonics
+        # hh = srfunc.wiggler_harmonics(b_t,Nh=41,fileOutH="tmp.h")
+        t0,p = srfunc.wiggler_trajectory(b_from=2, nPer=NPERIODS, nTrajPoints=NTRAJPOINTS,  \
+                       ener_gev=ENERGY, per=ULAMBDA, inData="",trajFile=outFileTraj)
+    print(p)
+    #
+    # now spectra
+    #
+    e, f0 = srfunc.wiggler_spectrum(t0,enerMin=PHOT_ENERGY_MIN,enerMax=PHOT_ENERGY_MAX,nPoints=NPOINTS, \
+                 electronCurrent=CURRENT*1e-3, outFile=outFile, elliptical=False)
+
+    return(outFile)
 
 
 
@@ -177,7 +365,7 @@ def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:
     print("Inside xoppy_calc_xxcom. ")
 
     pwd = os.getcwd()
-    os.chdir(home_wd)
+    #os.chdir(home_wd)
     with open("xoppy.inp","wt") as f:
         f.write( os.path.join(home_data,'xcom')+os.sep+"\n" )
         f.write( NAME+"\n" )
@@ -263,8 +451,8 @@ def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:
     print("File written to disk: xcom.spec")
 
 
-    os.chdir(pwd)
-    outFile = os.path.join(home_wd,"xcom.spec")
+    #os.chdir(pwd)
+    outFile = "xcom.spec"
     return(outFile)
 
 

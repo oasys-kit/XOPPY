@@ -8,6 +8,10 @@ echo "Using python: $MYPYTHON"
 cp ./../idl/go_all.txt  .
 cp ./../idl/*.json*  .
 rm xoppy_calc_template.py
+#
+# add to the list the json files modified or created by hand
+#
+echo "bm" >> go_all.txt
 
 
 # clean
@@ -22,9 +26,9 @@ do
    $MYPYTHON create_widget_srio.py $i.json
 
    #install
-   mv $i.py ../../orangecontrib/xoppy/widgets/$i.py
+   mv $i.py ../../orangecontrib/xoppy/widgets/xoppy/$i.py
    echo "file installed: "
-   ls -l ../../orangecontrib/xoppy/widgets/$i.py
+   ls -l ../../orangecontrib/xoppy/widgets/xoppy/$i.py
 done
 
 #clean *json*
