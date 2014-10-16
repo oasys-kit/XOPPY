@@ -12,6 +12,7 @@ rm xoppy_calc_template.py
 # add to the list the json files modified or created by hand
 #
 echo "bm" >> go_all.txt
+#echo "xsh_und_gauss" >> go_all.txt
 
 
 # clean
