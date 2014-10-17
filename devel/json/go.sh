@@ -27,7 +27,7 @@ do
    $MYPYTHON create_widget_srio.py $i.json
 
    #install
-   mv $i.py ../../orangecontrib/xoppy/widgets/xoppy/$i.py
+   cp $i.py ../../orangecontrib/xoppy/widgets/xoppy/$i.py
    echo "file installed: "
    ls -l ../../orangecontrib/xoppy/widgets/xoppy/$i.py
 done

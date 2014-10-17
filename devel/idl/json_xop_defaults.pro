@@ -1,9 +1,12 @@
-pro json_xop_defaults,application, noinfo=noinfo, dabax=dabax, xsh_preprocessors=xsh_preprocessors
+pro json_xop_defaults,application, noinfo=noinfo, dabax=dabax, xsh_preprocessors=xsh_preprocessors,xsh_defaults=xsh_defaults
 
 if n_elements(application) eq 0 then application = 'xinpro'
 
 if keyword_set(xsh_preprocessors) then begin
     str = xsh_defaults_preprocessors(application)
+endif else if keyword_set(xsh_defaults) then begin
+    str = xsh_defaults(application)
+    noinfo = 1
 endif else begin
     if keyword_set(dabax) then begin
         str = dabax_defaults(application)

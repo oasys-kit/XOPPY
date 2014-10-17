@@ -98,3 +98,14 @@ def getPhotonSizes(SIGMAX=1e-4,SIGMAZ=1e-4,SIGDIX=1e-6,SIGDIZ=1e-6,UND_E0=15000.
     print('   RMS size H/V [um]: '+ repr(photon_h*1e6) + '  /  '+repr(photon_v*1e6))
     print('   RMS divergence H/V [um]: '+ repr(photon_hp*1e6) + '  /  '+repr(photon_vp*1e6))
     return (photon_h/userunit_to_m,photon_v/userunit_to_m,photon_hp,photon_vp)
+
+
+def calc_xshundul(LAMBDAU=0.032,K=0.25,E_ENERGY=6.039999961853027,NPERIODS=50,EMIN=10500.0,EMAX=10550.0,INTENSITY=0.2,MAXANGLE=0.015,NG_E=101,NG_T=51,NG_P=11,NG_PLOT=0,UNDUL_PHOT_FLAG=0,SEED=36255,SX=0.04,SZ=0.001,EX=4e-07,EZ=4e-09,FLAG_EMITTANCE=1,NRAYS=15000,F_BOUND_SOUR=0,FILE_BOUND="NONESPECIFIED",SLIT_DISTANCE=1000.0,SLIT_XMIN=-1.0,SLIT_XMAX=1.0,SLIT_ZMIN=-1.0,SLIT_ZMAX=1.0,NTOTALPOINT=10000000):
+    print("Inside calc_xshundul. ")
+    return(None)
+
+
+def calc_xshwig(NPOINT=5000,ISTAR1=5676561,FLAG_EMITTANCE=1,SIGMAX=0.0056,SIGMAZ=0.0005,EPSI_X=2.88e-07,EPSI_Z=2.88e-09,EPSI_DX=0.0,EPSI_DZ=0.0,BENER=2.01,PH1=10000.0,PH2=10010.0,PERIODS=50,WAVLEN=0.04,K=7.85,WIGGLER_TYPE=0,FILE_B="wiggler.b",FILE_H="wiggler.h",F_BOUND_SOUR=0,FILE_BOUND="NONESPECIFIED",SLIT_DISTANCE=1000.0,SLIT_XMIN=-1.0,SLIT_XMAX=1.0,SLIT_ZMIN=-1.0,SLIT_ZMAX=1.0,NTOTALPOINT=10000000):
+    print("Inside calc_xshwig. ")
+    return(None)
+

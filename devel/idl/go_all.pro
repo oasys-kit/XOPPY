@@ -1,6 +1,11 @@
 ;===============================================================================
 ;
 ; applications in xop_ifc
+;
+; IDL> .compile xop_ifc
+; IDL> .compile json_xop_defaults
+;
+;
 ; 
 ;===============================================================================
 
@@ -107,6 +112,15 @@ endfor
 ;  print,'Calling xsh_defaults_preprocessors,/xsh_preprocessors with application: ',list[i]
 ;  printf,unit,list[i]
 ;  json_xop_defaults,list[i],/xsh_preprocessors
+;endfor
+
+; this section was used but the files mofidied by hand.
+; commented to avoid overwriting
+;list  =  [ 'xshwig','xshundul']
+;for i=0,n_elements(list)-1 do begin
+;  print,'Calling xsh_defaults_preprocessors,/xsh_preprocessors with application: ',list[i]
+;  printf,unit,list[i]
+;  json_xop_defaults,list[i] ,/xsh_defaults
 ;endfor
 
 
