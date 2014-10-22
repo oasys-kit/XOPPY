@@ -21,7 +21,7 @@ Installation instructions (tentative, under development)
 1) Recommended (not mandatory) to use the following folder structure:
    $HOME/Oasys 
    $HOME/Oasys/OASYS1  orange3 fork, get from: 
-     git clone http://github.com/lucarebuffi/Orange-Shadow
+     git clone http://github.com/lucarebuffi/OASYS1
    $HOME/Oasys/Orange-XOPPY XOPPY package , get from: 
      git clone http://github.com/srio/Orange-XOPPY
    $HOME/Oasys/OrangeRun create this directory to put the running time files
