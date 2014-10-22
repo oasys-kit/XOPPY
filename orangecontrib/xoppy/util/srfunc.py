@@ -27,7 +27,7 @@ srfunc: calculates synchrotron radiation emission (radiation and angle
                                given the trajectory.
 
              wiggler_nphoton: computes the number of photons emtted versus
-                              bending radius per (1mA 1mrad (horizontal) 1eV)
+                              bending radius per (1mA 1mrad (horizontal) 0.1% bandwidth)
              wiggler_harmonics: computes the harmonic decomposition of the 
                               magnetic field B(s)
 
@@ -940,6 +940,187 @@ def wiggler_spectrum(traj, enerMin=1000.0, enerMax=100000.0, nPoints=100, \
         print("File with wiggler spectrum written to file: "+outFile)
 
     return out[0,:],out[1,:]
+
+
+def wiggler_cdf(traj, enerMin=10000.0, enerMax=10010.0, enerPoints=101, \
+                outFile="", elliptical=False):
+    r"""
+     NAME:
+           wiggler_cdf
+    
+     PURPOSE:
+           Calculates the cdf (cumulative density function) of a wiggler 
+           using a trajectory as input. 
+    
+     CATEGORY:
+           Synchrotron radiation. Shadow preprocessors
+    
+     CALLING SEQUENCE:
+    	wiggler_spectrum(traj)
+    
+     INPUTS:
+    
+           traj:      The array with the electron trajectory
+    		       (created by wiggler_trajectory)
+           enerMin:    Minimum photon energy [eV]
+           enerMax:    Maximum photon energy [eV]
+           enerPoints: Number of points in photon energy, for internal 
+                       integration.
+           outFile:    If != "", the name of the file where results
+                       are stored in ASCII, in the format: 
+
+                       np step bener 1.0/curv_max 1.0/curv_min enerMin enerMax
+                       np fields with: 
+                           x[i] y[i] cdf[i] angle[i] curv[i]
+
+                       where
+                           np: number of points in trajectory
+                           step: the step in y in m  from trajectory
+                           bener: the electron energy in GeV
+                           curv_max: trajectory maximum curvature in m^-1
+                           curv_min: trajectory maximum curvature in m^-1
+
+                           x,y: electron coordinates in m
+                           cdf: cumulative distribution function
+                           angle: the deviation angle of the electron in rad
+                           curv: the trajectory curvature in m^-1
+
+           elliptical: False (for elliptical wigglers, not yet implemented)
+    
+     OUTPUTS:
+           None. If wanted (as usual), a file with the resulting info to be 
+           used by Shadow.
+    
+     PROCEDURE:
+    	   Based on SHADOW's one. Uses wiggler_nphoton 
+    
+     MODIFICATION HISTORY:
+           Written by:     M. Sanchez del Rio, srio@esrf.eu, 2014-10-21
+    
+    """
+
+    x = traj[0,:]
+    y = traj[1,:]
+    z = traj[2,:]
+    betax = traj[3,:]
+    betay = traj[4,:]
+    betaz = traj[5,:]
+    curv =  traj[6,:]
+    b_t =  traj[7,:]
+
+    np = len(x)
+
+    step = numpy.sqrt(numpy.power(y[2]-y[1],2) +  \
+                      numpy.power(x[2]-x[1],2) +  \
+                      numpy.power(z[2]-z[1],2))
+    #;
+    #; Compute gamma and the beam energy
+    #;
+    gamma = 1.0/numpy.sqrt(1 - numpy.power(betay[1],2) - \
+                               numpy.power(betax[1],2) - \
+                               numpy.power(betaz[1],2))
+    bener = gamma*(9.109e-31)*numpy.power(2.998e8,2)/(1.602e-19)*1.0e-9
+    print("\nwiggler_cdf: Electron beam energy (from velocities) = %f GeV "%(bener))
+    print("\nwiggler_cdf: gamma (from velocities) = %f GeV "%(gamma))
+
+
+    #;
+    #; Figure out the limit of photon energy.
+    #;
+    curv_max = 0.0
+    curv_min = 1.0e20
+
+    curv_max = numpy.abs(curv).max()
+    curv_min = numpy.abs(curv).min()
+
+
+    print("wiggler_cdf: Radius of curvature (max) = %f m "%(1.0/curv_min))
+    print("wiggler_cdf:                     (min) = %f m "%(1.0/curv_max))
+
+    TOANGS  =  m2ev*1e10 
+    phot_min = TOANGS*3.0*numpy.power(gamma,3)/4.0/numpy.pi/1.0e10*curv_min
+    phot_max = TOANGS*3.0*numpy.power(gamma,3)/4.0/numpy.pi/1.0e10*curv_max
+
+    print("wiggler_cdf: Critical Energy (max.) = %f eV"%(phot_max))
+    print("wiggler_cdf:                 (min.) = %f eV"%(phot_min))
+
+
+    #TODO: here it is necessary to define an array in energy for
+    # performing the energy integration via wiggler_nphoton.
+    # Originally, in Shadow, nphoton gives already the integrated 
+    # values. It could be possible to make more precise integration
+    # by finding the parametrized integral of sync_ene()
+    # (basically the integrat of G1). May be it can be parametrized using
+    # Mathematica? 
+    phot_num = numpy.zeros(np) 
+    energy_array = numpy.linspace(enerMin,enerMax,enerPoints) 
+    energy_step = energy_array[1] - energy_array[0]
+
+
+    rad = numpy.abs(1.0/curv)
+    ang_num = numpy.zeros(len(curv))
+
+    for j in range(len(energy_array)):
+        tmp = wiggler_nphoton(rad,electronEnergy=bener,\
+                      photonEnergy=energy_array[j],polarization=0)
+        ang_num += tmp / (0.001 * energy_array[j]) * energy_step
+
+    phot_num = ang_num*numpy.abs(curv)*numpy.sqrt(1.0+\
+               numpy.power((betax/betay),2) + \
+               numpy.power((betaz/betay),2))*1.0e3
+
+    #!C
+    #!C Computes CDF of the no. of photon along the trajectory S.
+    #!C In the elliptical case, the entire traversed path length (DS) 
+    #!C is computed.
+    #!C In the normal case, only the component (Y) in the direction of 
+    #!C propagation is computed.
+    #!C
+    if False:  # loop version
+        phot_cdf = numpy.zeros(np) 
+        for i in range(1,np):
+            if elliptical: 
+                ds[1] = 0.0
+                dx[i] = x[i] - x[i-1]
+                dy[i] = y[i] - y[i-1]
+                dz[i] = z[i] - z[i-1]
+                ds[i] = numpy.sqrt(numpy.power(dx[i],2) + numpy.power(dy[i],2) + numpy.power(dz[i],2)) + ds[i-1]
+                phot_cdf[i]   = phot_cdf[i-1] +  \
+                    (phot_num[i-1] + phot_num[i]) * 0.5 * (ds[i] - ds[i-1])
+            else:
+                phot_cdf[i]   = phot_cdf[i-1] +  \
+                    (phot_num[i-1] + phot_num[i]) * 0.5 * (y[i] - y[i-1])
+    else: # vector version
+        if elliptical: 
+            pass  # TODO: fill this part
+        else:
+            y0  = numpy.roll(y,1) 
+            y0[0] = y0[1]
+            phot_num0 = numpy.roll(phot_num,1)
+            phot_num0[0] = phot_num0[1]
+            phot_cdf = numpy.cumsum(phot_num0+phot_num) * 0.5 * ( y - y0 ) 
+
+    tot_num   = phot_cdf[-1]
+    print("wiggler_cdf: Total no.of photons = %e "%(tot_num))
+
+    if outFile != "":
+        f = open(outFile,"w")
+        f.write("%d %e %e %e %e %e %e \n"%(np,step,bener,1.0/curv_max, 1.0/curv_min,energy_array[0],energy_array[-1]))
+
+        cdf = phot_cdf / tot_num
+
+        if elliptical: 
+            pass     # TODO: complete elliptical wiggler
+        else:
+            angle = numpy.arctan2( betax, betay )
+            for i in range(np):
+                f.write("%e %e %e %e %e \n"%(x[i],y[i],cdf[i],angle[i],curv[i]))
+
+        f.close()
+        print("wiggler_cdf: File with wiggler cdf written to file: %s "%(outFile))
+
+    return None
+
 
 def wiggler_trajectory(b_from=0, inData="", nPer=12, nTrajPoints=100, \
                        ener_gev=6.04, per=0.125, kValue=14.0, trajFile=""):

@@ -19,6 +19,5 @@ xcrosssec
 xf1f2
 xfh
 mare
-xshwig
-xshundul
 bm
+xshwig

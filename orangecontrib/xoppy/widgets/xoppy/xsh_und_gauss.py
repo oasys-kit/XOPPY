@@ -17,7 +17,7 @@ class OWxsh_und_gauss(widget.OWWidget):
     name = "xsh_und_gauss"
     id = "orange.widgets.dataxsh_und_gauss"
     description = "xoppy application to compute..."
-    icon = "icons/xoppy_xsh_und_gauss.png"
+    icon = "icons/xsh_und_gauss.jpg"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
     priority = 10
