@@ -5,24 +5,25 @@ import os
 import sys
 import subprocess
 
-NAME = 'Orange-Shadow'
+NAME = 'Orange-XOPPY'
 
-VERSION = '4.0'
+VERSION = '1.0'
 ISRELEASED = False
 
-DESCRIPTION = 'Shadow, Ray-tracing simulation software'
+DESCRIPTION = 'XOPPY, X-ray oriented programs'
 README_FILE = os.path.join(os.path.dirname(__file__), 'README.txt')
 LONG_DESCRIPTION = open(README_FILE).read()
-AUTHOR = 'Luca Rebuffi, Manuel Sanchez del Rio and Bioinformatics Laboratory, FRI UL'
-AUTHOR_EMAIL = 'luca.rebuffi@elettra.eu'
+AUTHOR = 'Manuel Sanchez del Rio'
+AUTHOR_EMAIL = 'srio@esrf.eu'
 URL = 'http://orange.biolab.si/'
-DOWNLOAD_URL = 'https://bitbucket.org/biolab/orange/downloads'
+DOWNLOAD_URL = 'http://github.com/srio/Orange-XOPPY'
 LICENSE = 'GPLv3'
 
 KEYWORDS = (
     'data mining',
     'machine learning',
     'artificial intelligence',
+    'oasys',
 )
 
 CLASSIFIERS = (
@@ -30,24 +31,15 @@ CLASSIFIERS = (
     'Environment :: X11 Applications :: Qt',
     'Environment :: Console',
     'Environment :: Plugins',
+    'Programming Language :: Cython',
     'Programming Language :: Python',
-    'Framework :: Orange',
-    'License :: OSI Approved :: '
-    'GNU General Public License v3 or later (GPLv3+)',
-    'Operating System :: POSIX',
-    'Operating System :: Microsoft :: Windows',
+    'Programming Language :: Python :: 3',
     'Topic :: Scientific/Engineering :: Artificial Intelligence',
-    'Topic :: Scientific/Engineering :: Visualization',
-    'Topic :: Software Development :: Libraries :: Python Modules',
-    'Intended Audience :: Education',
     'Intended Audience :: Science/Research',
-    'Intended Audience :: Developers',
 )
 
 INSTALL_REQUIRES = (
     'setuptools',
-    'numpy',
-    'scipy',
 )
 
 if len({'develop', 'release', 'bdist_egg', 'bdist_rpm', 'bdist_wininst',
@@ -68,7 +60,8 @@ PACKAGES = find_packages(
                          exclude = ('*.tests', '*.tests.*', 'tests.*', 'tests'),
                          )
 
-PACKAGE_DATA = {
+PACKAGE_DATA = {"orangecontrib.xoppy.widgets.viewers":["icons/*.png", "icons/*.jpg"],
+                "orangecontrib.xoppy.widgets.xoppy":["icons/*.png", "icons/*.jpg"],
 }
 
 SETUP_REQUIRES = (
@@ -76,13 +69,19 @@ SETUP_REQUIRES = (
                   )
 
 INSTALL_REQUIRES = (
-                    'Orange',
                     'setuptools',
-                    'numpy',
-                    ),
+                   ),
 
 
 NAMESPACE_PACAKGES = ["orangecontrib"]
+
+
+ENTRY_POINTS = {
+    'orangecontrib' : ("xoppy = orangecontrib.xoppy", ),
+    'orange.widgets' : ("XOPPY Viewers = orangecontrib.xoppy.widgets.viewers",
+            "XOPPY Widgets = orangecontrib.xoppy.widgets.xoppy",
+    ),
+}
 
 if __name__ == '__main__':
     setup(
@@ -104,7 +103,7 @@ if __name__ == '__main__':
           install_requires = INSTALL_REQUIRES,
           #extras_require = EXTRAS_REQUIRE,
           #dependency_links = DEPENDENCY_LINKS,
-          #entry_points = ENTRY_POINTS,
+          entry_points = ENTRY_POINTS,
           namespace_packages=NAMESPACE_PACAKGES,
           include_package_data = True,
           zip_safe = False,

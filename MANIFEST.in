@@ -1,0 +1,10 @@
+recursive-include orangecontrib *.pyx
+recursive-include orangecontrib *.py
+
+recursive-include orangecontrib/xoppy/widgets *.png *.svg *.ico *.jpg *.bmp
+
+recursive-include orangecontrib/xoppy/bin.darwin *
+recursive-include orangecontrib/xoppy/bin.linux *
+recursive-include orangecontrib/xoppy/doc_txt *.txt *.par
+
+include README.txt
