@@ -1,0 +1,4 @@
+["Calculate", "Atomic number", "Element or compound name", "Compound name", "Transition notation", "Transition to (iupac)","Transition from (iupac)","Transition (Siegbahn)","Shell","Energy [keV]"]
+["True", "self.FUNCTION <= 3 or self.FUNCTION == 6", "self.FUNCTION == 4 or self.FUNCTION == 5 or self.FUNCTION == 7 or self.FUNCTION == 8 or self.FUNCTION == 10", "self.FUNCTION > 100","self.FUNCTION == 0", "(self.FUNCTION == 0 and self.TRANSITION_IUPAC_OR_SIEGBAHN == 0)", "(self.FUNCTION == 0 and self.TRANSITION_IUPAC_OR_SIEGBAHN == 0)", "(self.FUNCTION == 0 and self.TRANSITION_IUPAC_OR_SIEGBAHN == 1)","self.FUNCTION == 1 or self.FUNCTION == 6","self.FUNCTION >= 4 "]
+["FUNCTION", "ELEMENT", "ELEMENTORCOMPOUND", "COMPOUND","TRANSITION_IUPAC_OR_SIEGBAHN","TRANSITION_IUPAC_TO","TRANSITION_IUPAC_FROM","TRANSITION_SIEGBAHN","SHELL","ENERGY"]
+["True","True","True","True","True","True","True","True","True","True"]

@@ -4,6 +4,7 @@ from Orange.widgets import widget, gui
 from Orange.widgets.settings import Setting
 from Orange.data import Table, Domain, ContinuousVariable
 import numpy as np
+from PyMca5.PyMcaIO import specfilewrapper as specfile
 
 try:
     from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
@@ -198,24 +199,31 @@ class OWxinpro(widget.OWWidget):
     def compute(self):
         fileName = xoppy_calc_xinpro(CRYSTAL_MATERIAL=self.CRYSTAL_MATERIAL,MODE=self.MODE,ENERGY=self.ENERGY,MILLER_INDEX_H=self.MILLER_INDEX_H,MILLER_INDEX_K=self.MILLER_INDEX_K,MILLER_INDEX_L=self.MILLER_INDEX_L,ASYMMETRY_ANGLE=self.ASYMMETRY_ANGLE,THICKNESS=self.THICKNESS,TEMPERATURE=self.TEMPERATURE,NPOINTS=self.NPOINTS,SCALE=self.SCALE,XFROM=self.XFROM,XTO=self.XTO)
         #send specfile
-        self.send("xoppy_specfile",fileName)
 
-        print("Loading file:  ",fileName)
-        #load spec file with one scan, # is comment
-        out = np.loadtxt(fileName)
-        print("data shape: ",out.shape)
-        #get labels
-        txt = open(fileName).readlines()
-        tmp = [ line.find("#L") for line in txt]
-        itmp = np.where(np.array(tmp) != (-1))
-        labels = txt[itmp[0]].replace("#L ","").split("  ")
-        print("data labels: ",labels)
-        #
-        # build and send orange table
-        #
-        domain = Domain([ ContinuousVariable(i) for i in labels ])
-        table = Table.from_numpy(domain, out)
-        self.send("xoppy_table",table)
+        if fileName == None:
+            print("Nothing to send")
+        else:
+            self.send("xoppy_specfile",fileName)
+            sf = specfile.Specfile(fileName)
+            if sf.scanno() == 1:
+                #load spec file with one scan, # is comment
+                print("Loading file:  ",fileName)
+                out = np.loadtxt(fileName)
+                print("data shape: ",out.shape)
+                #get labels
+                txt = open(fileName).readlines()
+                tmp = [ line.find("#L") for line in txt]
+                itmp = np.where(np.array(tmp) != (-1))
+                labels = txt[itmp[0]].replace("#L ","").split("  ")
+                print("data labels: ",labels)
+                #
+                # build and send orange table
+                #
+                domain = Domain([ ContinuousVariable(i) for i in labels ])
+                table = Table.from_numpy(domain, out)
+                self.send("xoppy_table",table)
+            else:
+                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
 
     def defaults(self):
          self.resetSettings()

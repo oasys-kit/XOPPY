@@ -1,9 +1,64 @@
 import os
 import numpy
+from collections import OrderedDict
+
 from Orange import __file__ as orange_init
 
 from orangecontrib.xoppy import *
 from orangecontrib.xoppy.util import srfunc
+from orangecontrib.xoppy.util import srundplug
+
+import xraylib
+import PyMca5.PyMcaPhysics.xrf.Elements as Elements
+
+
+
+def reflectivity_fresnel(refraction_index_delta=1e-5,refraction_index_beta=0.0,\
+                 grazing_angle_mrad=3.0,roughness_rms_A=0.0,photon_energy_ev=10000.0):
+    """
+    Calculates the reflectivity of an interface using Fresnel formulas.
+
+    Code adapted from XOP and SHADOW
+
+    :param refraction_index_delta: scalar or array with delta (n=1-delta+i beta)
+    :param refraction_index_beta: scalar or array with beta (n=1-delta+i beta)
+    :param grazing_angle_mrad: scalar with grazing angle in mrad
+    :param roughness_rms_A: scalar with roughness rms in Angstroms
+    :param photon_energy_ev: scalar or array with photon energies in eV
+    :return: (rs,rp,runp) the s-polarized, p-pol and unpolarized reflectivities
+    """
+    # ;
+    # ; calculation of reflectivity (piece of code adapted from shadow/abrefc)
+    # ;
+    #
+    theta1 = grazing_angle_mrad*1e-3     # in rad
+    rough1 = roughness_rms_A*1e-8 # in cm
+
+    # ; epsi = 1 - alpha - i gamma
+    # alpha = 2.0D0*k*f1
+    # gamma = 2.0D0*k*f2
+    alpha = 2*refraction_index_delta
+    gamma = 2*refraction_index_beta
+
+    rho = (numpy.sin(theta1))**2 - alpha
+    rho += numpy.sqrt((numpy.sin(theta1)**2 - alpha)**2 + gamma**2)
+    rho = numpy.sqrt(rho/2)
+
+    rs1 = 4*(rho**2)*(numpy.sin(theta1) - rho)**2 + gamma**2
+    rs2 = 4*(rho**2)*(numpy.sin(theta1) + rho)**2 + gamma**2
+    rs = rs1/rs2
+
+    ratio1 = 4*rho**2 * (rho*numpy.sin(theta1)-numpy.cos(theta1)**2)**2 + gamma**2*numpy.sin(theta1)**2
+    ratio2 = 4*rho**2 * (rho*numpy.sin(theta1)+numpy.cos(theta1)**2)**2 + gamma**2*numpy.sin(theta1)**2
+    ratio = ratio1/ratio2
+
+    rp = rs*ratio
+    runp = 0.5 * (rs + rp)
+    wavelength_m = srfunc.m2ev/photon_energy_ev
+    debyewaller = numpy.exp( -(4.0*numpy.pi*numpy.sin(theta1)*rough1/(wavelength_m*1e10))**2 )
+
+    return(rs*debyewaller,rp*debyewaller,runp*debyewaller)
+
 
 
 def xoppy_calc_black_body(TITLE="Thermal source: Planck distribution",TEMPERATURE=1200000.0,E_MIN=10.0,E_MAX=1000.0,NPOINTS=500):
@@ -11,7 +66,10 @@ def xoppy_calc_black_body(TITLE="Thermal source: Planck distribution",TEMPERATUR
     return(None)
 
 
-def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.0,BFIELD_T=0.8,BEAM_ENERGY_GEV=6.04,CURRENT_A=0.1,HOR_DIV_MRAD=1.0,VER_DIV=0,PHOT_ENERGY_MIN=100.0,PHOT_ENERGY_MAX=100000.0,NPOINTS=500,LOG_CHOICE=1,PSI_MRAD_PLOT=1.0,PSI_MIN=-1.0,PSI_MAX=1.0,PSI_NPOINTS=500,TYPE_CALC=0):
+def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.0,BFIELD_T=0.8,\
+                  BEAM_ENERGY_GEV=6.04,CURRENT_A=0.1,HOR_DIV_MRAD=1.0,VER_DIV=0,\
+                  PHOT_ENERGY_MIN=100.0,PHOT_ENERGY_MAX=100000.0,NPOINTS=500,LOG_CHOICE=1,\
+                  PSI_MRAD_PLOT=1.0,PSI_MIN=-1.0,PSI_MAX=1.0,PSI_NPOINTS=500,TYPE_CALC=0):
     print("Inside xoppy_calc_bm. ")
 
     outFile = "bm.spec"
@@ -180,19 +238,23 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
 
 
 
-def xoppy_calc_mlayer(MODE=0,SCAN=0,F12_FLAG=0,SUBSTRATE="Si",ODD_MATERIAL="Si",EVEN_MATERIAL="W",ENERGY=8050.0,THETA=0.0,SCAN_STEP=0.009999999776483,NPOINTS=600,ODD_THICKNESS=25.0,EVEN_THICKNESS=25.0,NLAYERS=50,FILE="layers.dat"):
+def xoppy_calc_mlayer(MODE=0,SCAN=0,F12_FLAG=0,SUBSTRATE="Si",ODD_MATERIAL="Si",EVEN_MATERIAL="W",ENERGY=8050.0,\
+                      THETA=0.0,SCAN_STEP=0.009999999776483,NPOINTS=600,ODD_THICKNESS=25.0,EVEN_THICKNESS=25.0,\
+                      NLAYERS=50,FILE="layers.dat"):
     print("Inside xoppy_calc_mlayer. ")
     return(None)
 
 
 
-def xoppy_calc_nsources(TEMPERATURE=300.0,ZONE=0,MAXFLUX_F=200000000000000.0,MAXFLUX_EPI=20000000000000.0,MAXFLUX_TH=200000000000000.0,NPOINTS=500):
+def xoppy_calc_nsources(TEMPERATURE=300.0,ZONE=0,MAXFLUX_F=200000000000000.0,MAXFLUX_EPI=20000000000000.0,\
+                        MAXFLUX_TH=200000000000000.0,NPOINTS=500):
     print("Inside xoppy_calc_nsources. ")
     return(None)
 
 
 
-def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.0,KX=0.0,KY=8.739999771118164,EMIN=1000.0,EMAX=100000.0,NEE=2000,D=30.0,XPC=0.0,YPC=0.0,XPS=2.0,YPS=2.0,NXP=10,NYP=10):
+def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.0,KX=0.0,KY=8.739999771118164,\
+                  EMIN=1000.0,EMAX=100000.0,NEE=2000,D=30.0,XPC=0.0,YPC=0.0,XPS=2.0,YPS=2.0,NXP=10,NYP=10):
     print("Inside xoppy_calc_ws. ")
     pwd = os.getcwd()
     # os.chdir(home_wd)
@@ -273,7 +335,8 @@ def xoppy_calc_xtube_w(VOLTAGE=100.0,RIPPLE=0.0,AL_FILTER=0.0):
 
 
 
-def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,MILLER_INDEX_K=1,MILLER_INDEX_L=1,ASYMMETRY_ANGLE=0.0,THICKNESS=500.0,TEMPERATURE=300.0,NPOINTS=100,SCALE=0,XFROM=-50.0,XTO=50.0):
+def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,MILLER_INDEX_K=1,MILLER_INDEX_L=1,\
+                      ASYMMETRY_ANGLE=0.0,THICKNESS=500.0,TEMPERATURE=300.0,NPOINTS=100,SCALE=0,XFROM=-50.0,XTO=50.0):
     print("Inside xoppy_calc_xinpro. ")
     pwd = os.getcwd()
     #os.chdir(home_wd)
@@ -289,6 +352,7 @@ def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,M
             f.write("-1\n")
         else:
             f.write("ERROR!!\n")
+
         f.write("%f\n%d\n"%(THICKNESS,CRYSTAL_MATERIAL+1))
         f.write("%s\n%f\n"%("EV",ENERGY))
         f.write("%d\n%d\n%d\n"%(MILLER_INDEX_H,MILLER_INDEX_K,MILLER_INDEX_L))
@@ -324,13 +388,19 @@ def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,M
 
 
 
-def xoppy_calc_xcrystal(FILEF0=0,FILEF1F2=0,FILECROSSSEC=0,CRYSTAL_MATERIAL=0,MILLER_INDEX_H=1,MILLER_INDEX_K=1,MILLER_INDEX_L=1,I_ABSORP=2,TEMPER="1.0",MOSAIC=0,GEOMETRY=0,SCAN=2,UNIT=1,SCANFROM=-100.0,SCANTO=100.0,SCANPOINTS=200,ENERGY=8000.0,ASYMMETRY_ANGLE=0.0,THICKNESS=0.7,MOSAIC_FWHM=0.1,RSAG=125.0,RMER=1290.0,ANISOTROPY=0,POISSON=0.22,CUT="2 -1 -1 ; 1 1 1 ; 0 0 0",FILECOMPLIANCE="mycompliance.dat"):
+def xoppy_calc_xcrystal(FILEF0=0,FILEF1F2=0,FILECROSSSEC=0,CRYSTAL_MATERIAL=0,\
+                        MILLER_INDEX_H=1,MILLER_INDEX_K=1,MILLER_INDEX_L=1,\
+                        I_ABSORP=2,TEMPER="1.0",MOSAIC=0,GEOMETRY=0,SCAN=2,UNIT=1,\
+                        SCANFROM=-100.0,SCANTO=100.0,SCANPOINTS=200,ENERGY=8000.0,\
+                        ASYMMETRY_ANGLE=0.0,THICKNESS=0.7,MOSAIC_FWHM=0.1,RSAG=125.0,RMER=1290.0,\
+                        ANISOTROPY=0,POISSON=0.22,CUT="2 -1 -1 ; 1 1 1 ; 0 0 0",FILECOMPLIANCE="mycompliance.dat"):
     print("Inside xoppy_calc_xcrystal. ")
     return(None)
 
 
 
-def xoppy_calc_xwiggler(FIELD=0,NPERIODS=12,ULAMBDA=0.125,K=14.0,ENERGY=6.04,PHOT_ENERGY_MIN=100.0,PHOT_ENERGY_MAX=100100.0,NPOINTS=100,LOGPLOT=1,NTRAJPOINTS=101,CURRENT=200.0,FILE="?"):
+def xoppy_calc_xwiggler(FIELD=0,NPERIODS=12,ULAMBDA=0.125,K=14.0,ENERGY=6.04,PHOT_ENERGY_MIN=100.0,\
+                        PHOT_ENERGY_MAX=100100.0,NPOINTS=100,LOGPLOT=1,NTRAJPOINTS=101,CURRENT=200.0,FILE="?"):
 
     print("Inside xoppy_calc_xwiggler. ")
 
@@ -361,7 +431,9 @@ def xoppy_calc_xwiggler(FIELD=0,NPERIODS=12,ULAMBDA=0.125,K=14.0,ENERGY=6.04,PHO
 
 
 
-def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:Al2O3:K2O",FRACTION="0.807:0.129:0.038:0.022:0.004",GRID=1,GRIDINPUT=0,GRIDDATA="0.0804:0.2790:0.6616:1.3685:2.7541",ELEMENTOUTPUT=0):
+def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:Al2O3:K2O",\
+                     FRACTION="0.807:0.129:0.038:0.022:0.004",GRID=1,GRIDINPUT=0,\
+                     GRIDDATA="0.0804:0.2790:0.6616:1.3685:2.7541",ELEMENTOUTPUT=0):
     print("Inside xoppy_calc_xxcom. ")
 
     pwd = os.getcwd()
@@ -473,6 +545,315 @@ def xoppy_calc_xfilter(EMPTY1="              ",EMPTY2="              ",NELEMENTS
     return(None)
 
 
+#
+# undulators
+#
+
+def xoppy_calc_undulator_flux(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
+                              ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
+                              ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
+                              PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
+                              PHOTONENERGYMIN=3000.0,PHOTONENERGYMAX=55000.0,PHOTONENERGYPOINTS=500,METHOD=0):
+    print("Inside xoppy_calc_undulator_flux. ")
+
+    bl = OrderedDict()
+    bl['ElectronBeamDivergenceH'] = ELECTRONBEAMDIVERGENCEH
+    bl['ElectronBeamDivergenceV'] = ELECTRONBEAMDIVERGENCEV
+    bl['ElectronBeamSizeH'] = ELECTRONBEAMSIZEH
+    bl['ElectronBeamSizeV'] = ELECTRONBEAMSIZEV
+    bl['ElectronCurrent'] = ELECTRONCURRENT
+    bl['ElectronEnergy'] = ELECTRONENERGY
+    bl['ElectronEnergySpread'] = ELECTRONENERGYSPREAD
+    bl['Kv'] = KV
+    bl['NPeriods'] = NPERIODS
+    bl['PeriodID'] = PERIODID
+    bl['distance'] = DISTANCE
+    bl['gapH'] = GAPH
+    bl['gapV'] = GAPV
+
+
+    # tmp = srundplug.calcUndulator(bl,distance=DISTANCE,\
+    #                               photonEnergy=[PHOTONENERGYMIN,0.5*(PHOTONENERGYMIN+PHOTONENERGYMAX),PHOTONENERGYMAX])
+
+    outFile = "undulator_flux.spec"
+    if METHOD == 0:
+        print("Undulator flux calculation using US. Please wait...")
+        e,f = srundplug.calc1dUs(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
+              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
+        print("Done")
+    if METHOD == 1:
+        print("Undulator flux calculation using URGENT. Please wait...")
+        e,f = srundplug.calc1dUrgent(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
+              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
+        print("Done")
+    if METHOD == 2:
+        print("Undulator flux calculation using SRW. Please wait...")
+        e,f = srundplug.calc1dSrw(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
+              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
+        print("Done")
+
+    return(outFile)
+
+
+
+def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
+                                       ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
+                                       ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
+                                       PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
+                                       HSLITPOINTS=101,VSLITPOINTS=51,METHOD=0):
+    print("Inside xoppy_calc_undulator_power_density. ")
+
+    bl = OrderedDict()
+    bl['ElectronBeamDivergenceH'] = ELECTRONBEAMDIVERGENCEH
+    bl['ElectronBeamDivergenceV'] = ELECTRONBEAMDIVERGENCEV
+    bl['ElectronBeamSizeH'] = ELECTRONBEAMSIZEH
+    bl['ElectronBeamSizeV'] = ELECTRONBEAMSIZEV
+    bl['ElectronCurrent'] = ELECTRONCURRENT
+    bl['ElectronEnergy'] = ELECTRONENERGY
+    bl['ElectronEnergySpread'] = ELECTRONENERGYSPREAD
+    bl['Kv'] = KV
+    bl['NPeriods'] = NPERIODS
+    bl['PeriodID'] = PERIODID
+    bl['distance'] = DISTANCE
+    bl['gapH'] = GAPH
+    bl['gapV'] = GAPV
+
+
+    # tmp = srundplug.calcUndulator(bl,distance=DISTANCE,\
+    #                               photonEnergy=[PHOTONENERGYMIN,0.5*(PHOTONENERGYMIN+PHOTONENERGYMAX),PHOTONENERGYMAX])
+
+    outFile = "undulator_power_density.spec"
+    if METHOD == 0:
+        print("Undulator power_density calculation using US. Please wait...")
+        h,v,p = srundplug.calc2dUs(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS)
+        print("Done")
+    if METHOD == 1:
+        print("Undulator power_density calculation using URGENT. Please wait...")
+        h,v,p = srundplug.calc2dUrgent(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS)
+        print("Done")
+    if METHOD == 2:
+        print("Undulator power_density calculation using SRW. Please wait...")
+        h,v,p = srundplug.calc2dSrw(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS)
+        print("Done")
+
+    return(outFile)
+
+def xoppy_calc_xpower(F1F2=0,MU=0,SOURCE=1,DUMMY1="",DUMMY2="",DUMMY3="",ENER_MIN=1000.0,ENER_MAX=50000.0,ENER_N=100,\
+                      SOURCE_FILE="?",NELEMENTS=1,\
+                      EL1_FOR="Be",EL1_FLAG=0,EL1_THI=0.5,EL1_ANG=3.0,EL1_ROU=0.0,EL1_DEN="?",\
+                      EL2_FOR="Rh",EL2_FLAG=1,EL2_THI=0.5,EL2_ANG=3.0,EL2_ROU=0.0,EL2_DEN="?",\
+                      EL3_FOR="Al",EL3_FLAG=0,EL3_THI=0.5,EL3_ANG=3.0,EL3_ROU=0.0,EL3_DEN="?",\
+                      EL4_FOR= "B",EL4_FLAG=0,EL4_THI=0.5,EL4_ANG=3.0,EL4_ROU=0.0,EL4_DEN="?",\
+                      EL5_FOR="Pt",EL5_FLAG=1,EL5_THI=0.5,EL5_ANG=3.0,EL5_ROU=0.0,EL5_DEN="?"):
+    print("Inside xoppy_calc_xpower. ")
+
+    # if ENER_N < 1:
+    #     print("Error: Number of energy points (%d) not allowed. If you wish to calculate a single energy point, then use the same energy values for the minimum and maximum and use a number of points greater that 1 (e.g. 2)"%(ENER_N))
+    #     return None
+
+    if ENER_MAX == ENER_MIN:
+        ENER_N = 2
+
+    #xpower_inp
+
+    nelem = 1+NELEMENTS
+    substance = [EL1_FOR,EL2_FOR,EL3_FOR,EL4_FOR,EL5_FOR]
+    thick     = numpy.array( (EL1_THI,EL2_THI,EL3_THI,EL4_THI,EL5_THI))
+    angle     = numpy.array( (EL1_ANG,EL2_ANG,EL3_ANG,EL4_ANG,EL5_ANG))
+    dens      = [EL1_DEN,EL2_DEN,EL3_DEN,EL4_DEN,EL5_DEN]
+    roughness = numpy.array( (EL1_ROU,EL2_ROU,EL3_ROU,EL4_ROU,EL5_ROU))
+    flags     = numpy.array( (EL1_FLAG,EL2_FLAG,EL3_FLAG,EL4_FLAG,EL5_FLAG))
+
+    for i in range(nelem):
+        try:
+            rho = float(dens[i])
+        except:
+            # rho = 1.0
+            #is element? take density from PyMca
+            rho = 0.0
+            for item in Elements.ElementsInfo:
+                if item[0] == substance[i]: rho = item[6]*1e-3
+            if rho != 0:
+                print("Found density for %s: %d g/cm3"%(substance[i],rho))
+            else:
+                print("Undefined density for %s => taking density = 1.0"%(substance[i]))
+                rho = 1.0
+
+        dens[i] = rho
+
+
+    if SOURCE == 0:
+        energies = numpy.linspace(1,100,495)
+        source = numpy.ones(energies.size)
+        tmp = numpy.vstack( (energies,source))
+    if SOURCE == 1:
+        energies = numpy.linspace(ENER_MIN,ENER_MAX,ENER_N)
+        source = numpy.ones(energies.size)
+        tmp = numpy.vstack( (energies,source))
+
+    if SOURCE >= 2:
+        if SOURCE == 2: source_file = SOURCE_FILE
+        if SOURCE == 3: source_file = "SRCOMPE"
+        if SOURCE == 4: source_file = "SRCOMPF"
+        try:
+            tmp = numpy.loadtxt(source_file)
+            energies = tmp[:,0]
+            source = tmp[:,1]
+        except:
+            print("Error loading file %s "%(source_file))
+            raise
+
+    # if ENER_MIN == ENER_MAX:
+    #     energies = energies[0:2]
+    #     source = source[0:2]
+
+
+    outArray = numpy.hstack( energies )
+    outColTitles = ["Photon Energy [eV]"]
+    outArray = numpy.vstack((outArray,source))
+    outColTitles.append("Source")
+
+    txt = ""
+    txt += "*************************** Xpower Results ******************\n"
+    if energies[0] != energies[-1]:
+        txt += "  Source energy: start=%f keV, end=%f keV, points=%d \n"%(energies[0],energies[-1],energies.size)
+    else:
+        txt += "  Source energy: %f keV\n"%(energies[0])
+    txt += "  Number of optical elements: %d\n"%(nelem)
+
+    if energies[0] != energies[-1]:
+        # I0 = source[0:-1].sum()*(energies[1]-energies[0])
+        I0 = numpy.trapz(source, x=energies, axis=-1)
+        txt += "  Incoming power (integral of spectrum): %f \n"%(I0)
+
+        I1 = I0
+    else:
+        txt += "  Incoming power: %f \n"%(source[0])
+        I0  = source[0]
+        I1 = I0
+
+    outFile = "xpower.spec"
+
+    cumulated = source
+
+    for i in range(nelem):
+        #info oe
+        if flags[i] == 0:
+            txt += '      *****   oe '+str(i+1)+'  [Filter] *************\n'
+            txt += '      Material: %s\n'%(substance[i])
+            txt += '      Density [g/cm^3]: %f \n'%(dens[i])
+            txt += '      thickness [mm] : %f \n'%(thick[i])
+        else:
+            txt += '      *****   oe '+str(i+1)+'  [Mirror] *************\n'
+            txt += '      Material: %s\n'%(substance[i])
+            txt += '      Density [g/cm^3]: %f \n'%(dens[i])
+            txt += '      grazing angle [mrad]: %f \n'%(angle[i])
+            txt += '      roughness [A]: %f \n'%(roughness[i])
+
+
+        if flags[i] == 0: # filter
+            tmp = numpy.zeros(energies.size)
+            for j,energy in enumerate(energies):
+
+                tmp[j] = xraylib.CS_Total_CP(substance[i],energy/1000.0)
+
+            trans = numpy.exp(-tmp*dens[i]*(thick[i]/10.0))
+            outArray = numpy.vstack((outArray,tmp))
+            outColTitles.append("[oe %i] Total CS cm2/g"%(1+i))
+            print(outArray)
+
+            outArray = numpy.vstack((outArray,tmp*dens[i]))
+            outColTitles.append("[oe %i] Mu cm^-1"%(1+i))
+
+
+            outArray = numpy.vstack((outArray,trans))
+            outColTitles.append("[oe %i] Transmitivity "% (1+i))
+            outArray = numpy.vstack((outArray,1.0-trans))
+            outColTitles.append("[oe %i] Absorption "% (1+i))
+
+            cumulated *= trans
+
+        if flags[i] == 1: # mirror
+            tmp = numpy.zeros(energies.size)
+            for j,energy in enumerate(energies):
+                tmp[j] = xraylib.Refractive_Index_Re(substance[i],energy/1000.0,dens[i])
+            delta = 1.0 - tmp
+            outArray = numpy.vstack((outArray,delta))
+            outColTitles.append("[oe %i] 1-Re[n]=delta"%(1+i))
+
+            beta = numpy.zeros(energies.size)
+            for j,energy in enumerate(energies):
+                beta[j] = xraylib.Refractive_Index_Im(substance[i],energy/1000.0,dens[i])
+            outArray = numpy.vstack((outArray,beta))
+            outColTitles.append("[oe %i] Im[n]=beta"%(1+i))
+
+            outArray = numpy.vstack((outArray,delta/beta))
+            outColTitles.append("[oe %i] delta/beta"%(1+i))
+
+            (rs,rp,runp) = reflectivity_fresnel(refraction_index_beta=beta,refraction_index_delta=delta,\
+                                        grazing_angle_mrad=angle[i],roughness_rms_A=roughness[i],\
+                                        photon_energy_ev=energies)
+            outArray = numpy.vstack((outArray,rs))
+            outColTitles.append("[oe %i] Reflectivity-s"%(1+i))
+            outArray = numpy.vstack((outArray,1.0-rs))
+            outColTitles.append("[oe %i] Transmitivity"%(1+i))
+
+            cumulated *= rs
+
+        if energies[0] != energies[-1]:
+            # I2 = cumulated[0:-1].sum()*(energies[1]-energies[0])
+            #txt += "      Outcoming power [Sum]: %f\n"%(I2)
+            #txt += "      Outcoming power [Trapez]: %f\n"%(I2b)
+            I2 = numpy.trapz( cumulated, x=energies, axis=-1)
+            txt += "      Outcoming power: %f\n"%(I2)
+            txt += "      Absorbed power: %f\n"%(I1-I2)
+            txt += "      Normalized Outcoming Power: %f\n"%(I2/I0)
+            if flags[i] == 0:
+                pass
+                txt += "      Absorbed dose Gy.(mm^2 beam cross section)/s %f\n: "%((I1-I2)/(dens[i]*thick[i]*1e-6))
+            I1 = I2
+        else:
+            I2 = cumulated[0]
+            txt += "      Outcoming power: %f\n"%(cumulated[0])
+            txt += "      Absorbed power: %f\n"%(I1-I2)
+            txt += "      Normalized Outcoming Power: %f\n"%(I2/I0)
+            I1 = I2
+
+        outArray = numpy.vstack((outArray,cumulated))
+        outColTitles.append("Intensity after oe #%i"%(1+i))
+
+
+
+        #
+
+    ncol = len(outColTitles)
+    npoints = energies.size
+
+    f = open(outFile,"w")
+    f.write("#F "+outFile+"\n")
+    f.write("\n")
+    f.write("#S 1 xpower: properties of optical elements\n")
+
+    txt2 = txt.splitlines()
+    for i in range(len(txt2)):
+        f.write("#UINFO %s\n"%(txt2[i]))
+
+    f.write("#N %d\n"%(ncol))
+    f.write("#L")
+    for i in range(ncol):
+        f.write("  "+outColTitles[i])
+    f.write("\n")
+
+    for i in range(npoints):
+            f.write((" %e "*ncol+"\n")%(tuple(outArray[:,i].tolist())))
+
+    f.close()
+    print("File written to disk: "+outFile)
+
+    print(txt)
+
+
+    return(outFile)
 
 def xoppy_calc_xtc(TITLE="APS Undulator A, Beam Parameters for regular lattice nux36nuy39.twi, 1.5% cpl.",ENERGY=7.0,CUR=100.0,SIGE=0.000959999975748,TEXT_MACHINE="",SIGX=0.273999989032745,SIGY=0.010999999940395,SIGX1=0.011300000362098,SIGY1=0.00359999993816,TEXT_BEAM="",PERIOD=3.299999952316284,NP=70,TEXT_UNDULATOR="",EMIN=2950.0,EMAX=13500.0,N=20,TEXT_ENERGY="",IHMIN=1,IHMAX=15,IHSTEP=2,TEXT_HARM="",IHEL=0,METHOD=1,IK=1,NEKS=100,TEXT_PARM="",RUN_MODE_NAME="foreground"):
     print("Inside xoppy_calc_xtc. ")
@@ -546,6 +927,136 @@ def xoppy_calc_xsh_prerefl(SYMBOL="SiC",DENSITY="3.217",FILE="reflec.dat",E_MIN=
 
 def xoppy_calc_xsh_conic(P=3000.0,Q=1000.0,THETA=3.0,TYPE=2,CONVEX=0,CYL=0,CYLANGLE=0.0,WIDTH=6.0,LENGTH=300.0,NX=10,NY=200,SAG=0,FILE="presurface.dat"):
     print("Inside xoppy_calc_xsh_conic. ")
+    return(None)
+
+
+
+def xoppy_calc_xraylib_widget(FUNCTION=0,ELEMENT=26,ELEMENTORCOMPOUND="FeSO4",COMPOUND="Ca5(PO4)3",TRANSITION_IUPAC_OR_SIEGBAHN=1,\
+                              TRANSITION_IUPAC_TO=0,TRANSITION_IUPAC_FROM=0,TRANSITION_SIEGBAHN=0,SHELL=0,ENERGY=10.0):
+    print("Inside xoppy_calc_xraylib with FUNCTION=%d. "%(FUNCTION))
+
+    if FUNCTION == 0:
+        if TRANSITION_IUPAC_OR_SIEGBAHN == 0:
+            lines = ['K', 'L1', 'L2', 'L3', 'M1', 'M2', 'M3', 'M4', 'M5', 'N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'P1', 'P2', 'P3', 'P4', 'P5', 'Q1', 'Q2', 'Q3']
+            line = lines[TRANSITION_IUPAC_TO]+lines[TRANSITION_IUPAC_FROM]+"_LINE"
+            command = "result = xraylib.LineEnergy(%d,xraylib.%s)"%(ELEMENT,line)
+            print("executing command: ",command)
+            line = getattr(xraylib,line)
+            result = xraylib.LineEnergy(ELEMENT,line)
+            print("result: %f keV"%(result))
+        if TRANSITION_IUPAC_OR_SIEGBAHN == 1:
+            lines = ['KA1_LINE', 'KA2_LINE', 'KB1_LINE', 'KB2_LINE', 'KB3_LINE', 'KB4_LINE', 'KB5_LINE', 'LA1_LINE', 'LA2_LINE', 'LB1_LINE', 'LB2_LINE', 'LB3_LINE', 'LB4_LINE', 'LB5_LINE', 'LB6_LINE', 'LB7_LINE', 'LB9_LINE', 'LB10_LINE', 'LB15_LINE', 'LB17_LINE', 'LG1_LINE', 'LG2_LINE', 'LG3_LINE', 'LG4_LINE', 'LG5_LINE', 'LG6_LINE', 'LG8_LINE', 'LE_LINE', 'LL_LINE', 'LS_LINE', 'LT_LINE', 'LU_LINE', 'LV_LINE']
+            line = lines[TRANSITION_SIEGBAHN]
+            command = "result = xraylib.LineEnergy(%d,xraylib.%s)"%(ELEMENT,line)
+            print("executing command: ",command)
+            line = getattr(xraylib,line)
+            result = xraylib.LineEnergy(ELEMENT,line)
+            print("result: %f keV"%(result))
+        if TRANSITION_IUPAC_OR_SIEGBAHN == 2:
+            lines = ['K', 'L1', 'L2', 'L3', 'M1', 'M2', 'M3', 'M4', 'M5', 'N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'P1', 'P2', 'P3', 'P4', 'P5', 'Q1', 'Q2', 'Q3']
+            for i1,l1 in enumerate(lines):
+                for i2,l2 in enumerate(lines):
+                    if i1 != i2:
+                        line = l1+l2+"_LINE"
+
+                        try:
+                            line = getattr(xraylib,line)
+                            result = xraylib.LineEnergy(ELEMENT,line)
+                        except:
+                            pass
+                        else:
+                            if result != 0.0: print("%s%s  %f   keV"%(l1, l2, result))
+    if FUNCTION == 1:
+        shells = ['All shells', 'K_SHELL', 'L1_SHELL', 'L2_SHELL', 'L3_SHELL', 'M1_SHELL', 'M2_SHELL', 'M3_SHELL', 'M4_SHELL', 'M5_SHELL', 'N1_SHELL', 'N2_SHELL', 'N3_SHELL', 'N4_SHELL', 'N5_SHELL', 'N6_SHELL', 'N7_SHELL', 'O1_SHELL', 'O2_SHELL', 'O3_SHELL', 'O4_SHELL', 'O5_SHELL', 'O6_SHELL', 'O7_SHELL', 'P1_SHELL', 'P2_SHELL', 'P3_SHELL', 'P4_SHELL', 'P5_SHELL', 'Q1_SHELL', 'Q2_SHELL', 'Q3_SHELL']
+        if SHELL == 0: #"all"
+            for i,myshell in enumerate(shells):
+                if i >= 1:
+                    # command = "result = xraylib.EdgeEnergy(%d,xraylib.%s)"%(ELEMENT,myshell)
+                    # print("executing command: ",command)
+                    shell_index = getattr(xraylib,myshell)
+                    try:
+                        result = xraylib.EdgeEnergy(ELEMENT,shell_index)
+                    except:
+                        pass
+                    else:
+                        if result != 0.0: print("%s  %f   keV"%(myshell, result))
+        else:
+            shell_index = getattr(xraylib,shells[SHELL])
+            try:
+                command = "result = xraylib.EdgeEnergy(%d,xraylib.%s)"%(ELEMENT,shells[SHELL])
+                print("executing command: ",command)
+                result = xraylib.EdgeEnergy(ELEMENT,shell_index)
+            except:
+                pass
+            else:
+                if result != 0.0: print("Z=%d %s : %f   keV"%(ELEMENT, shells[SHELL], result))
+
+    if FUNCTION == 2:
+        result = xraylib.AtomicWeight(ELEMENT)
+        if result != 0.0: print("Atomic weight for Z=%d : %f  g/mol"%(ELEMENT,result))
+    if FUNCTION == 3:
+        result = xraylib.ElementDensity(ELEMENT)
+        if result != 0.0: print("Element density for Z=%d : %f  g/cm3"%(ELEMENT,result))
+
+    if FUNCTION == 4:
+        command = "result = xraylib.CS_Total_CP('%s',%f)"%(ELEMENTORCOMPOUND,ENERGY)
+        print("executing command: ",command)
+        result = xraylib.CS_Total_CP(ELEMENTORCOMPOUND,ENERGY)
+        if result != 0.0: print("Total absorption cross section: %f  g/cm3"%(result))
+
+    if FUNCTION == 5:
+        command = "result = xraylib.CS_Photo_CP('%s',%f)"%(ELEMENTORCOMPOUND,ENERGY)
+        print("executing command: ",command)
+        result = xraylib.CS_Photo_CP(ELEMENTORCOMPOUND,ENERGY)
+        if result != 0.0: print("Photoionization cross section: %f  g/cm3"%(result))
+
+    if FUNCTION == 6:
+        shells = ['All shells', 'K_SHELL', 'L1_SHELL', 'L2_SHELL', 'L3_SHELL', 'M1_SHELL', 'M2_SHELL', 'M3_SHELL', 'M4_SHELL', 'M5_SHELL', 'N1_SHELL', 'N2_SHELL', 'N3_SHELL', 'N4_SHELL', 'N5_SHELL', 'N6_SHELL', 'N7_SHELL', 'O1_SHELL', 'O2_SHELL', 'O3_SHELL', 'O4_SHELL', 'O5_SHELL', 'O6_SHELL', 'O7_SHELL', 'P1_SHELL', 'P2_SHELL', 'P3_SHELL', 'P4_SHELL', 'P5_SHELL', 'Q1_SHELL', 'Q2_SHELL', 'Q3_SHELL']
+        if SHELL == 0: #"all"
+            for i,myshell in enumerate(shells):
+                if i >= 1:
+                    command = "result = xraylib.CS_Photo_Partial(%d,xraylib.%s, ENERGY)"%(ELEMENT,myshell,ENERGY)
+                    shell_index = getattr(xraylib,myshell)
+                    try:
+                        result = xraylib.CS_Photo_Partial(ELEMENT,shell_index,ENERGY)
+                    except:
+                        pass
+                    else:
+                        if result != 0.0: print("%s  %f   cm2/g"%(myshell, result))
+        else:
+            shell_index = getattr(xraylib,shells[SHELL])
+            try:
+                command = "result = xraylib.xraylib.CS_Photo_Partial('%d',xraylib.%s,%f)"%(ELEMENT,shells[SHELL],ENERGY)
+                print("executing command: ",command)
+                result = xraylib.CS_Photo_Partial(ELEMENT,shell_index,ENERGY)
+            except:
+                pass
+            else:
+                if result != 0.0: print("Z=%d, %s at E=%f keV: %f   cm2/g"%(ELEMENT,shells[SHELL], ENERGY, result))
+
+    if FUNCTION == 7:
+        command = "result = xraylib.CS_Rayl_CP('%s',%f)"%(ELEMENTORCOMPOUND,ENERGY)
+        print("executing command: ",command)
+        result = xraylib.CS_Rayl_CP(ELEMENTORCOMPOUND,ENERGY)
+        if result != 0.0: print("Rayleigh cross section: %f  cm2/g"%(result))
+
+    if FUNCTION == 8:
+        command = "result = xraylib.CS_Compt_CP('%s',%f)"%(ELEMENTORCOMPOUND,ENERGY)
+        print("executing command: ",command)
+        result = xraylib.CS_Compt_CP(ELEMENTORCOMPOUND,ENERGY)
+        if result != 0.0: print("Compton cross section: %f  cm2/g"%(result))
+
+    if FUNCTION == 9:
+        command = "result = xraylib.CS_KN(%f)"%(ENERGY)
+        print("executing command: ",command)
+        result = xraylib.CS_KN(ENERGY)
+        if result != 0.0: print("Klein Nishina cross section: %f  cm2/g"%(result))
+
+    if FUNCTION == 10:
+        command = "result = xraylib.CS_Energy_CP('%s',%f)"%(ELEMENTORCOMPOUND,ENERGY)
+        print("executing command: ",command)
+        result = xraylib.CS_Energy_CP(ELEMENTORCOMPOUND,ENERGY)
+        if result != 0.0: print("Mass-energy absorption cross section: %f  cm2/g"%(result))
     return(None)
 
 

@@ -4,6 +4,7 @@ from Orange.widgets import widget, gui
 from Orange.widgets.settings import Setting
 from Orange.data import Table, Domain, ContinuousVariable
 import numpy as np
+from PyMca5.PyMcaIO import specfilewrapper as specfile
 
 try:
     from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
@@ -48,6 +49,7 @@ class OWxus(widget.OWWidget):
     TITLE = Setting("APS Undulator A, Beam Parameters for regular lattice nux36nuy39.twi, 1.5% cpl.")
     ENERGY = Setting(7.0)
     CUR = Setting(100.0)
+    SIGE = Setting(0.000959999975748)
     TEXT_MACHINE = Setting("")
     SIGX = Setting(0.273999989032745)
     SIGY = Setting(0.010999999940395)
@@ -125,11 +127,19 @@ class OWxus(widget.OWWidget):
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "SIGE",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 4 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "TEXT_MACHINE",
                      label=self.unitLabels()[idx], addSpace=True)
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 4 
+        #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "SIGX",
@@ -137,7 +147,7 @@ class OWxus(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 5 
+        #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "SIGY",
@@ -145,7 +155,7 @@ class OWxus(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 6 
+        #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "SIGX1",
@@ -153,7 +163,7 @@ class OWxus(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 7 
+        #widget index 8 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "SIGY1",
@@ -161,14 +171,14 @@ class OWxus(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 8 
+        #widget index 9 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "TEXT_BEAM",
                      label=self.unitLabels()[idx], addSpace=True)
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 9 
+        #widget index 10 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "PERIOD",
@@ -176,7 +186,7 @@ class OWxus(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 10 
+        #widget index 11 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NP",
@@ -184,7 +194,7 @@ class OWxus(widget.OWWidget):
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 11 
+        #widget index 12 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "KX",
@@ -192,7 +202,7 @@ class OWxus(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 12 
+        #widget index 13 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "KY",
@@ -200,14 +210,14 @@ class OWxus(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 13 
+        #widget index 14 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "TEXT_UNDULATOR",
                      label=self.unitLabels()[idx], addSpace=True)
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 14 
+        #widget index 15 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "EMIN",
@@ -215,7 +225,7 @@ class OWxus(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 15 
+        #widget index 16 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "EMAX",
@@ -223,7 +233,7 @@ class OWxus(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 16 
+        #widget index 17 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "N",
@@ -231,14 +241,14 @@ class OWxus(widget.OWWidget):
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 17 
+        #widget index 18 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "TEXT_ENERGY",
                      label=self.unitLabels()[idx], addSpace=True)
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 18 
+        #widget index 19 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "D",
@@ -246,7 +256,7 @@ class OWxus(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 19 
+        #widget index 20 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "XPC",
@@ -254,7 +264,7 @@ class OWxus(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 20 
+        #widget index 21 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "YPC",
@@ -262,7 +272,7 @@ class OWxus(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 21 
+        #widget index 22 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "XPS",
@@ -270,7 +280,7 @@ class OWxus(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 22 
+        #widget index 23 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "YPS",
@@ -278,7 +288,7 @@ class OWxus(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 23 
+        #widget index 24 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NXP",
@@ -286,7 +296,7 @@ class OWxus(widget.OWWidget):
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 24 
+        #widget index 25 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NYP",
@@ -294,14 +304,14 @@ class OWxus(widget.OWWidget):
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 25 
+        #widget index 26 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "TEXT_PINHOLE",
                      label=self.unitLabels()[idx], addSpace=True)
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 26 
+        #widget index 27 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "MODE",
@@ -309,7 +319,7 @@ class OWxus(widget.OWWidget):
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 27 
+        #widget index 28 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "METHOD",
@@ -317,7 +327,7 @@ class OWxus(widget.OWWidget):
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 28 
+        #widget index 29 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "IHARM",
@@ -325,14 +335,14 @@ class OWxus(widget.OWWidget):
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 29 
+        #widget index 30 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "TEXT_MODE",
                      label=self.unitLabels()[idx], addSpace=True)
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 30 
+        #widget index 31 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NPHI",
@@ -340,7 +350,7 @@ class OWxus(widget.OWWidget):
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 31 
+        #widget index 32 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NALPHA",
@@ -348,7 +358,7 @@ class OWxus(widget.OWWidget):
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 32 
+        #widget index 33 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "CALPHA2",
@@ -356,7 +366,7 @@ class OWxus(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 33 
+        #widget index 34 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NOMEGA",
@@ -364,7 +374,7 @@ class OWxus(widget.OWWidget):
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 34 
+        #widget index 35 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "COMEGA",
@@ -372,7 +382,7 @@ class OWxus(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 35 
+        #widget index 36 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NSIGMA",
@@ -380,14 +390,14 @@ class OWxus(widget.OWWidget):
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 36 
+        #widget index 37 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "TEXT_CALC",
                      label=self.unitLabels()[idx], addSpace=True)
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 37 
+        #widget index 38 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "RUN_MODE_NAME",
@@ -397,38 +407,45 @@ class OWxus(widget.OWWidget):
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title']
+         return ['Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title']
 
 
     def unitFlags(self):
-         return ['True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True']
+         return ['True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True']
 
 
     #def unitNames(self):
-    #     return ['TITLE','ENERGY','CUR','TEXT_MACHINE','SIGX','SIGY','SIGX1','SIGY1','TEXT_BEAM','PERIOD','NP','KX','KY','TEXT_UNDULATOR','EMIN','EMAX','N','TEXT_ENERGY','D','XPC','YPC','XPS','YPS','NXP','NYP','TEXT_PINHOLE','MODE','METHOD','IHARM','TEXT_MODE','NPHI','NALPHA','CALPHA2','NOMEGA','COMEGA','NSIGMA','TEXT_CALC','RUN_MODE_NAME']
+    #     return ['TITLE','ENERGY','CUR','SIGE','TEXT_MACHINE','SIGX','SIGY','SIGX1','SIGY1','TEXT_BEAM','PERIOD','NP','KX','KY','TEXT_UNDULATOR','EMIN','EMAX','N','TEXT_ENERGY','D','XPC','YPC','XPS','YPS','NXP','NYP','TEXT_PINHOLE','MODE','METHOD','IHARM','TEXT_MODE','NPHI','NALPHA','CALPHA2','NOMEGA','COMEGA','NSIGMA','TEXT_CALC','RUN_MODE_NAME']
 
 
     def compute(self):
-        fileName = xoppy_calc_xus(TITLE=self.TITLE,ENERGY=self.ENERGY,CUR=self.CUR,TEXT_MACHINE=self.TEXT_MACHINE,SIGX=self.SIGX,SIGY=self.SIGY,SIGX1=self.SIGX1,SIGY1=self.SIGY1,TEXT_BEAM=self.TEXT_BEAM,PERIOD=self.PERIOD,NP=self.NP,KX=self.KX,KY=self.KY,TEXT_UNDULATOR=self.TEXT_UNDULATOR,EMIN=self.EMIN,EMAX=self.EMAX,N=self.N,TEXT_ENERGY=self.TEXT_ENERGY,D=self.D,XPC=self.XPC,YPC=self.YPC,XPS=self.XPS,YPS=self.YPS,NXP=self.NXP,NYP=self.NYP,TEXT_PINHOLE=self.TEXT_PINHOLE,MODE=self.MODE,METHOD=self.METHOD,IHARM=self.IHARM,TEXT_MODE=self.TEXT_MODE,NPHI=self.NPHI,NALPHA=self.NALPHA,CALPHA2=self.CALPHA2,NOMEGA=self.NOMEGA,COMEGA=self.COMEGA,NSIGMA=self.NSIGMA,TEXT_CALC=self.TEXT_CALC,RUN_MODE_NAME=self.RUN_MODE_NAME)
+        fileName = xoppy_calc_xus(TITLE=self.TITLE,ENERGY=self.ENERGY,CUR=self.CUR,SIGE=self.SIGE,TEXT_MACHINE=self.TEXT_MACHINE,SIGX=self.SIGX,SIGY=self.SIGY,SIGX1=self.SIGX1,SIGY1=self.SIGY1,TEXT_BEAM=self.TEXT_BEAM,PERIOD=self.PERIOD,NP=self.NP,KX=self.KX,KY=self.KY,TEXT_UNDULATOR=self.TEXT_UNDULATOR,EMIN=self.EMIN,EMAX=self.EMAX,N=self.N,TEXT_ENERGY=self.TEXT_ENERGY,D=self.D,XPC=self.XPC,YPC=self.YPC,XPS=self.XPS,YPS=self.YPS,NXP=self.NXP,NYP=self.NYP,TEXT_PINHOLE=self.TEXT_PINHOLE,MODE=self.MODE,METHOD=self.METHOD,IHARM=self.IHARM,TEXT_MODE=self.TEXT_MODE,NPHI=self.NPHI,NALPHA=self.NALPHA,CALPHA2=self.CALPHA2,NOMEGA=self.NOMEGA,COMEGA=self.COMEGA,NSIGMA=self.NSIGMA,TEXT_CALC=self.TEXT_CALC,RUN_MODE_NAME=self.RUN_MODE_NAME)
         #send specfile
-        self.send("xoppy_specfile",fileName)
 
-        print("Loading file:  ",fileName)
-        #load spec file with one scan, # is comment
-        out = np.loadtxt(fileName)
-        print("data shape: ",out.shape)
-        #get labels
-        txt = open(fileName).readlines()
-        tmp = [ line.find("#L") for line in txt]
-        itmp = np.where(np.array(tmp) != (-1))
-        labels = txt[itmp[0]].replace("#L ","").split("  ")
-        print("data labels: ",labels)
-        #
-        # build and send orange table
-        #
-        domain = Domain([ ContinuousVariable(i) for i in labels ])
-        table = Table.from_numpy(domain, out)
-        self.send("xoppy_table",table)
+        if fileName == None:
+            print("Nothing to send")
+        else:
+            self.send("xoppy_specfile",fileName)
+            sf = specfile.Specfile(fileName)
+            if sf.scanno() == 1:
+                #load spec file with one scan, # is comment
+                print("Loading file:  ",fileName)
+                out = np.loadtxt(fileName)
+                print("data shape: ",out.shape)
+                #get labels
+                txt = open(fileName).readlines()
+                tmp = [ line.find("#L") for line in txt]
+                itmp = np.where(np.array(tmp) != (-1))
+                labels = txt[itmp[0]].replace("#L ","").split("  ")
+                print("data labels: ",labels)
+                #
+                # build and send orange table
+                #
+                domain = Domain([ ContinuousVariable(i) for i in labels ])
+                table = Table.from_numpy(domain, out)
+                self.send("xoppy_table",table)
+            else:
+                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
 
     def defaults(self):
          self.resetSettings()

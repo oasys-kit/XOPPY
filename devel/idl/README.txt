@@ -9,6 +9,7 @@ IDL> .run go_all
 NOTES
 =====
 20141014 bm removed from the list as it was modified by hand
+20150512 debug xpower
 
 
 

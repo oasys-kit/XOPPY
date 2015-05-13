@@ -8,6 +8,7 @@ xinpro
 xcrystal
 xwiggler
 xxcom
+xpower
 xbfield
 xfilter
 xtc
@@ -20,4 +21,3 @@ xf1f2
 xfh
 mare
 bm
-xshwig

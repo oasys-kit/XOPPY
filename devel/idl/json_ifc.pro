@@ -33,6 +33,8 @@ for i=0,n_elements(flags)-1 do begin
   ;print,flags[i],' <-- ',names[i]
   if strcompress(flags[i]) EQ '1' then begin
     flags[i] = 'True'
+  endif else if strcompress(flags[i]) EQ '0' then begin
+    flags[i] = 'False'
   endif else begin
     line = strupcase(flags[i])
     line = strsubstitute(line,'EQ',' == ')

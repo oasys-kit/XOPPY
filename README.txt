@@ -44,9 +44,18 @@ Installation instructions (tentative, under development)
     (https://github.com/biolab/bottlechest) and sklean
     (pip3 install -U numpy scipy scikit-learn)
 
-4) start XOPPY as:
-   cd $HOME/Oasys/Orange-XOPPY
-   python3 -m orangecontrib.xoppy
+4) install XOPPY as:
+   method 1 (developer):
+       cd $HOME/Oasys/Orange-XOPPY
+       sudo python3 setup.py develop
+   method 2 (user):
+       From the Oasys (Orange) window, got to "Options", "Add-ons" and 
+       check XOPPY. Quit Oasys.
+
+5) start XOPPY as:
+   python3 -m Orange.canvas
+   at this point you should see in the menu panel (on your left) the XOPPY
+   menus.
 
 
 
@@ -58,3 +67,4 @@ pip install git+https://github.com/scikit-learn/scikit-learn.git
 srio@esrf.eu 20140423  (Cervantes death anniversary)
 srio@esrf.eu 20140521  changes after visit to Ljubljana
 srio@esrf.eu 20141022  changes after Luca's visit. Oasys introduced.
+srio@esrf.eu 20150513  New applications in xoppy

@@ -43,7 +43,8 @@ list  =  [ $
 'xinpro', $
 'xcrystal', $
 'xwiggler', $
-'xxcom']
+'xxcom', $
+'xpower']
 
 for i=0,n_elements(list)-1 do begin
   print,'Calling ifc_xop_defaults with application: ',list[i]

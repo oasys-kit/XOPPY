@@ -4,6 +4,7 @@ from Orange.widgets import widget, gui
 from Orange.widgets.settings import Setting
 from Orange.data import Table, Domain, ContinuousVariable
 import numpy as np
+from PyMca5.PyMcaIO import specfilewrapper as specfile
 
 try:
     from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
@@ -60,7 +61,7 @@ class OWxtc(widget.OWWidget):
     TEXT_UNDULATOR = Setting("")
     EMIN = Setting(2950.0)
     EMAX = Setting(13500.0)
-    N = Setting(20)
+    N = Setting(40)
     TEXT_ENERGY = Setting("")
     IHMIN = Setting(1)
     IHMAX = Setting(15)
@@ -313,24 +314,31 @@ class OWxtc(widget.OWWidget):
     def compute(self):
         fileName = xoppy_calc_xtc(TITLE=self.TITLE,ENERGY=self.ENERGY,CUR=self.CUR,SIGE=self.SIGE,TEXT_MACHINE=self.TEXT_MACHINE,SIGX=self.SIGX,SIGY=self.SIGY,SIGX1=self.SIGX1,SIGY1=self.SIGY1,TEXT_BEAM=self.TEXT_BEAM,PERIOD=self.PERIOD,NP=self.NP,TEXT_UNDULATOR=self.TEXT_UNDULATOR,EMIN=self.EMIN,EMAX=self.EMAX,N=self.N,TEXT_ENERGY=self.TEXT_ENERGY,IHMIN=self.IHMIN,IHMAX=self.IHMAX,IHSTEP=self.IHSTEP,TEXT_HARM=self.TEXT_HARM,IHEL=self.IHEL,METHOD=self.METHOD,IK=self.IK,NEKS=self.NEKS,TEXT_PARM=self.TEXT_PARM,RUN_MODE_NAME=self.RUN_MODE_NAME)
         #send specfile
-        self.send("xoppy_specfile",fileName)
 
-        print("Loading file:  ",fileName)
-        #load spec file with one scan, # is comment
-        out = np.loadtxt(fileName)
-        print("data shape: ",out.shape)
-        #get labels
-        txt = open(fileName).readlines()
-        tmp = [ line.find("#L") for line in txt]
-        itmp = np.where(np.array(tmp) != (-1))
-        labels = txt[itmp[0]].replace("#L ","").split("  ")
-        print("data labels: ",labels)
-        #
-        # build and send orange table
-        #
-        domain = Domain([ ContinuousVariable(i) for i in labels ])
-        table = Table.from_numpy(domain, out)
-        self.send("xoppy_table",table)
+        if fileName == None:
+            print("Nothing to send")
+        else:
+            self.send("xoppy_specfile",fileName)
+            sf = specfile.Specfile(fileName)
+            if sf.scanno() == 1:
+                #load spec file with one scan, # is comment
+                print("Loading file:  ",fileName)
+                out = np.loadtxt(fileName)
+                print("data shape: ",out.shape)
+                #get labels
+                txt = open(fileName).readlines()
+                tmp = [ line.find("#L") for line in txt]
+                itmp = np.where(np.array(tmp) != (-1))
+                labels = txt[itmp[0]].replace("#L ","").split("  ")
+                print("data labels: ",labels)
+                #
+                # build and send orange table
+                #
+                domain = Domain([ ContinuousVariable(i) for i in labels ])
+                table = Table.from_numpy(domain, out)
+                self.send("xoppy_table",table)
+            else:
+                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
 
     def defaults(self):
          self.resetSettings()
