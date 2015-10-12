@@ -1,4 +1,3 @@
 XOPPY
-=====
 
-XOP under python+orange3
+XOP under python+oasys

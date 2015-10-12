@@ -1,9 +1,8 @@
 from PyQt4 import QtGui
 from PyQt4.QtGui import QDoubleValidator
-from Orange.widgets import widget, gui
-from Orange.widgets.settings import Setting
+from orangewidget import widget, gui
+from orangewidget.settings import Setting
 import numpy as np
-import Orange
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 

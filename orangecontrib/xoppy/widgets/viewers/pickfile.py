@@ -1,8 +1,8 @@
 import os, sys
 from PyQt4 import QtCore
 from PyQt4 import QtGui
-from Orange.widgets import widget, gui
-from Orange.widgets.settings import Setting
+from orangewidget import widget, gui
+from orangewidget.settings import Setting
 # from Orange.data.table import Table, get_sample_datasets_dir
 # from Orange.data import StringVariable, DiscreteVariable, ContinuousVariable
 

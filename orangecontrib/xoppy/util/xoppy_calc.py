@@ -2,7 +2,7 @@ import os
 import numpy
 from collections import OrderedDict
 
-from Orange import __file__ as orange_init
+from oasys import __file__ as orange_init
 
 from orangecontrib.xoppy import *
 from orangecontrib.xoppy.util import srfunc

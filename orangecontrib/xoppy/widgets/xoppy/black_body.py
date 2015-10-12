@@ -1,8 +1,8 @@
 import sys
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from Orange.widgets import widget, gui
-from Orange.widgets.settings import Setting
-from Orange.data import Table, Domain, ContinuousVariable
+from orangewidget import gui
+from oasys.widgets import widget
+from orangewidget.settings import Setting
 import numpy as np
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 
@@ -29,11 +29,8 @@ class OWblack_body(widget.OWWidget):
     priority = 10
     category = ""
     keywords = ["xoppy", "black_body"]
-    outputs = [#{"name": "xoppy_data",
-               # "type": np.ndarray,
-               # "doc": ""},
-               {"name": "xoppy_table",
-                "type": Table,
+    outputs = [{"name": "xoppy_data",
+                "type": np.ndarray,
                 "doc": ""},
                {"name": "xoppy_specfile",
                 "type": str,
@@ -140,12 +137,7 @@ class OWblack_body(widget.OWWidget):
                 itmp = np.where(np.array(tmp) != (-1))
                 labels = txt[itmp[0]].replace("#L ","").split("  ")
                 print("data labels: ",labels)
-                #
-                # build and send orange table
-                #
-                domain = Domain([ ContinuousVariable(i) for i in labels ])
-                table = Table.from_numpy(domain, out)
-                self.send("xoppy_table",table)
+                self.send("xoppy_data",out)
             else:
                 print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
 
@@ -157,9 +149,6 @@ class OWblack_body(widget.OWWidget):
     def help1(self):
         print("help pressed.")
         xoppy_doc('black_body')
-
-
-
 
 
 if __name__ == "__main__":

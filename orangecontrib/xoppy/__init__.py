@@ -1,3 +1,5 @@
+# namespace declaration.
+__import__("pkg_resources").declare_namespace(__name__)
 import os,sys
 xoppy_home = os.path.dirname(__file__)
 home_bin = os.path.join(xoppy_home,'bin.'+sys.platform)

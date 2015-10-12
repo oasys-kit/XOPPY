@@ -5,24 +5,24 @@ import os
 import sys
 import subprocess
 
-NAME = 'Orange-XOPPY'
+from setuptools import find_packages, setup
 
-VERSION = '1.0'
+NAME = 'XOPPY'
+VERSION = '1.0.0'
 ISRELEASED = False
 
-DESCRIPTION = 'XOPPY, X-ray oriented programs'
+DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
 README_FILE = os.path.join(os.path.dirname(__file__), 'README.txt')
 LONG_DESCRIPTION = open(README_FILE).read()
-AUTHOR = 'Manuel Sanchez del Rio'
+AUTHOR = 'Manuel Sanchez del Rio, Luca Rebuffi, and Bioinformatics Laboratory, FRI UL'
 AUTHOR_EMAIL = 'srio@esrf.eu'
-URL = 'http://orange.biolab.si/'
-DOWNLOAD_URL = 'http://github.com/srio/Orange-XOPPY'
+URL = 'https://github.com/srio/Orange-XOPPY'
+DOWNLOAD_URL = 'https://github.com/srio/Orange-XOPPY'
 LICENSE = 'GPLv3'
 
 KEYWORDS = (
-    'data mining',
-    'machine learning',
-    'artificial intelligence',
+    'X-ray optics',
+    'simulator',
     'oasys',
 )
 
@@ -31,56 +31,39 @@ CLASSIFIERS = (
     'Environment :: X11 Applications :: Qt',
     'Environment :: Console',
     'Environment :: Plugins',
-    'Programming Language :: Cython',
-    'Programming Language :: Python',
     'Programming Language :: Python :: 3',
-    'Topic :: Scientific/Engineering :: Artificial Intelligence',
     'Intended Audience :: Science/Research',
+)
+
+SETUP_REQUIRES = (
+    'setuptools',
 )
 
 INSTALL_REQUIRES = (
     'setuptools',
+    'numpy',
+    'scipy',
+    'matplotlib',
+    'orange-widget-core>=0.0.2',
+    'oasys>=0.1',
 )
 
-if len({'develop', 'release', 'bdist_egg', 'bdist_rpm', 'bdist_wininst',
-        'install_egg_info', 'build_sphinx', 'egg_info', 'easy_install',
-        'upload', 'test'}.intersection(sys.argv)) > 0:
-    import setuptools
-    extra_setuptools_args = dict(
-        zip_safe=False,  # the package can run out of an .egg file
-        include_package_data=True,
-        install_requires=INSTALL_REQUIRES
-    )
-else:
-    extra_setuptools_args = dict()
+PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
 
-from setuptools import find_packages, setup
-
-PACKAGES = find_packages(
-                         exclude = ('*.tests', '*.tests.*', 'tests.*', 'tests'),
-                         )
-
-PACKAGE_DATA = {"orangecontrib.xoppy.widgets.viewers":["icons/*.png", "icons/*.jpg"],
-                "orangecontrib.xoppy.widgets.xoppy":["icons/*.png", "icons/*.jpg"],
+PACKAGE_DATA = {
+    "orangecontrib.xoppy.widgets.viewers":["icons/*.png", "icons/*.jpg"],
+    "orangecontrib.xoppy.widgets.xoppy":["icons/*.png", "icons/*.jpg"],
 }
 
-SETUP_REQUIRES = (
-                  'setuptools',
-                  )
-
-INSTALL_REQUIRES = (
-                    'setuptools',
-                   ),
-
-
-NAMESPACE_PACAKGES = ["orangecontrib"]
-
+NAMESPACE_PACAKGES = ["orangecontrib", "orangecontrib.xoppy", "orangecontrib.xoppy.widgets"]
 
 ENTRY_POINTS = {
-    'orangecontrib' : ("xoppy = orangecontrib.xoppy", ),
-    'orange.widgets' : ("XOPPY Viewers = orangecontrib.xoppy.widgets.viewers",
-            "XOPPY Widgets = orangecontrib.xoppy.widgets.xoppy",
+    'oasys.addons' : ("shadow = orangecontrib.xoppy", ),
+    'oasys.widgets' : (
+        "XOPPY viewers = orangecontrib.xoppy.widgets.viewers",
+        "XOPPY components = orangecontrib.xoppy.widgets.xoppy",
     ),
+    #'oasys.menus' : ("Menu = orangecontrib.shadow.menu",)
 }
 
 if __name__ == '__main__':

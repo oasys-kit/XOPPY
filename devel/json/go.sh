@@ -24,14 +24,8 @@ do
    #clean
    rm $i.py
    #make
-   #$MYPYTHON create_widget_srio.py-old1 $i.json
    $MYPYTHON create_widget_srio.py $i.json
 
-   #install
-   #cp $i.py ../../orangecontrib/xoppy/widgets/xoppy/$i.py
-   #echo "file installed: "
-   #ls -l ../../orangecontrib/xoppy/widgets/xoppy/$i.py
+   #install goes in a separate script
 done
 
-#clean *json*
-#/bin/rm *json*

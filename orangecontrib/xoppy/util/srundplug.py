@@ -118,13 +118,13 @@ m2ev = codata_c*codata_h/codata_ec      # lambda(m)  = m2eV / energy(eV)
 scanCounter = 0
 
 # directory  where to find urgent and us binaries
-home_bin='/scisoft/xop2.4/bin.linux/'
+home_bin='/Users/srio/xop2.4/bin.darwin/'
 #home_bin='/Users/srio/xop2.3/bin.darwin/'
 #check
 if os.path.isfile(home_bin+'us') == False:
-    sys.exit("File not found: "+home_bin+'us')
+    sys.exit("srundplug: File not found: "+home_bin+'us')
 if os.path.isfile(home_bin+'urgent') == False:
-    sys.exit("File not found: "+home_bin+'urgent')
+    sys.exit("srundplug: File not found: "+home_bin+'urgent')
 
 #
 #----------------------------  FUNCTIONS -------------------------------------
