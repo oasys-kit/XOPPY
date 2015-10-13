@@ -256,8 +256,7 @@ def xoppy_calc_nsources(TEMPERATURE=300.0,ZONE=0,MAXFLUX_F=200000000000000.0,MAX
 def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.0,KX=0.0,KY=8.739999771118164,\
                   EMIN=1000.0,EMAX=100000.0,NEE=2000,D=30.0,XPC=0.0,YPC=0.0,XPS=2.0,YPS=2.0,NXP=10,NYP=10):
     print("Inside xoppy_calc_ws. ")
-    pwd = os.getcwd()
-    # os.chdir(home_wd)
+    os.chdir(home_testrun)
     with open("ws.inp","wt") as f:
         f.write("%s\n"%(TITLE))
         f.write("%f     %f\n"%(ENERGY,CUR))
@@ -304,8 +303,7 @@ def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.
 
 def xoppy_calc_xtubes(ITUBE=0,VOLTAGE=30.0):
     print("Inside xoppy_calc_xtubes. ")
-    pwd = os.getcwd()
-    #os.chdir(home_wd)
+    os.chdir(home_testrun)
     with open("xoppy.inp","wt") as f:
         f.write("%d\n%f\n"%(ITUBE+1,VOLTAGE))
     command = os.path.join(home_bin,'xtubes') + " < xoppy.inp"
@@ -313,15 +311,13 @@ def xoppy_calc_xtubes(ITUBE=0,VOLTAGE=30.0):
     print("\n--------------------------------------------------------\n")
     os.system(command)
     print("\n--------------------------------------------------------\n")
-    os.chdir(pwd)
     outFile = "xtubes_tmp.dat"
     return(outFile)
 
 
 def xoppy_calc_xtube_w(VOLTAGE=100.0,RIPPLE=0.0,AL_FILTER=0.0):
     print("Inside xoppy_calc_xtube_w. ")
-    pwd = os.getcwd()
-    #os.chdir(home_wd)
+    os.chdir(home_testrun)
     with open("xoppy.inp","wt") as f:
         f.write("%f\n%f\n%f\n"%(VOLTAGE,RIPPLE,AL_FILTER))
     command = os.path.join(home_bin,'tasmip') + " < xoppy.inp"
@@ -329,7 +325,6 @@ def xoppy_calc_xtube_w(VOLTAGE=100.0,RIPPLE=0.0,AL_FILTER=0.0):
     print("\n--------------------------------------------------------\n")
     os.system(command)
     print("\n--------------------------------------------------------\n")
-    os.chdir(pwd)
     outFile = "tasmip_tmp.dat"
     return(outFile)
 
@@ -338,8 +333,7 @@ def xoppy_calc_xtube_w(VOLTAGE=100.0,RIPPLE=0.0,AL_FILTER=0.0):
 def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,MILLER_INDEX_K=1,MILLER_INDEX_L=1,\
                       ASYMMETRY_ANGLE=0.0,THICKNESS=500.0,TEMPERATURE=300.0,NPOINTS=100,SCALE=0,XFROM=-50.0,XTO=50.0):
     print("Inside xoppy_calc_xinpro. ")
-    pwd = os.getcwd()
-    #os.chdir(home_wd)
+    os.chdir(home_testrun)
     with open("xoppy.inp","wt") as f:
         f.write("%s\n"% (os.path.join(home_data,"inpro"+os.sep)))
         if MODE == 0:
@@ -435,9 +429,7 @@ def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:
                      FRACTION="0.807:0.129:0.038:0.022:0.004",GRID=1,GRIDINPUT=0,\
                      GRIDDATA="0.0804:0.2790:0.6616:1.3685:2.7541",ELEMENTOUTPUT=0):
     print("Inside xoppy_calc_xxcom. ")
-
-    pwd = os.getcwd()
-    #os.chdir(home_wd)
+    os.chdir(home_testrun)
     with open("xoppy.inp","wt") as f:
         f.write( os.path.join(home_data,'xcom')+os.sep+"\n" )
         f.write( NAME+"\n" )
@@ -555,6 +547,7 @@ def xoppy_calc_undulator_flux(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELE
                               PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
                               PHOTONENERGYMIN=3000.0,PHOTONENERGYMAX=55000.0,PHOTONENERGYPOINTS=500,METHOD=0):
     print("Inside xoppy_calc_undulator_flux. ")
+    os.chdir(home_testrun)
 
     bl = OrderedDict()
     bl['ElectronBeamDivergenceH'] = ELECTRONBEAMDIVERGENCEH
@@ -602,6 +595,7 @@ def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=
                                        PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
                                        HSLITPOINTS=101,VSLITPOINTS=51,METHOD=0):
     print("Inside xoppy_calc_undulator_power_density. ")
+    os.chdir(home_testrun)
 
     bl = OrderedDict()
     bl['ElectronBeamDivergenceH'] = ELECTRONBEAMDIVERGENCEH

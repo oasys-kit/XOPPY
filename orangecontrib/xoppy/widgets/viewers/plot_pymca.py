@@ -59,7 +59,7 @@ class OWPlotPymca(widget.OWWidget):
 
     def do_plot(self,xoppy_data):
         x = xoppy_data[:, 0]
-        y = xoppy_data[:, 1]
+        y = xoppy_data[:, -1]
         x.shape = -1
         y.shape = -1
         #fig = plt.figure()

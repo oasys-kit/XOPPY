@@ -155,12 +155,12 @@ list_template = control_template.format("comboBox") + """,
 
 
 widget_template = """import sys
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from Orange.widgets import widget, gui
-from Orange.widgets.settings import Setting
-from Orange.data import Table, Domain, ContinuousVariable
 import numpy as np
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from PyMca5.PyMcaIO import specfilewrapper as specfile
+from orangewidget import gui
+from orangewidget.settings import Setting
+from oasys.widgets import widget
 
 try:
     from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
@@ -185,11 +185,8 @@ class OW{widget_class_name}(widget.OWWidget):
     priority = 10
     category = ""
     keywords = ["xoppy", "{widget_class_name}"]
-    outputs = [#{{"name": "xoppy_data",
-               # "type": np.ndarray,
-               # "doc": ""}},
-               {{"name": "xoppy_table",
-                "type": Table,
+    outputs = [{{"name": "xoppy_data",
+                "type": np.ndarray,
                 "doc": ""}},
                {{"name": "xoppy_specfile",
                 "type": str,
@@ -239,12 +236,7 @@ class OW{widget_class_name}(widget.OWWidget):
                 itmp = np.where(np.array(tmp) != (-1))
                 labels = txt[itmp[0]].replace("#L ","").split("  ")
                 print("data labels: ",labels)
-                #
-                # build and send orange table
-                #
-                domain = Domain([ ContinuousVariable(i) for i in labels ])
-                table = Table.from_numpy(domain, out)
-                self.send("xoppy_table",table)
+                self.send("xoppy_data",out)
             else:
                 print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
 

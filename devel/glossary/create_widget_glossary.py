@@ -193,10 +193,10 @@ list_template = control_template.format("comboBox") + """,
 
 widget_template = """import sys
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from Orange.widgets import widget, gui
-from Orange.widgets.settings import Setting
-from Orange.data import Table, Domain, ContinuousVariable
 import numpy as np
+from orangewidget import gui
+from orangewidget.settings import Setting
+from oasys.widgets import widget
 
 #try:
 #    from ..tools.xoppy_calc import xoppy_doc
@@ -221,11 +221,8 @@ class OW{widget_class_name}(widget.OWWidget):
     priority = 10
     category = ""
     keywords = ["xoppy", "{widget_class_name}"]
-    outputs = [#{{"name": "xoppy_data",
-               # "type": np.ndarray,
-               # "doc": ""}},
-               {{"name": "xoppy_table",
-                "type": Table,
+    outputs = [{{"name": "xoppy_data",
+                "type": np.ndarray,
                 "doc": ""}},
                {{"name": "xoppy_specfile",
                 "type": str,

@@ -1,10 +1,10 @@
 import sys
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from orangewidget import gui
-from oasys.widgets import widget
-from orangewidget.settings import Setting
 import numpy as np
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from PyMca5.PyMcaIO import specfilewrapper as specfile
+from orangewidget import gui
+from orangewidget.settings import Setting
+from oasys.widgets import widget
 
 try:
     from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
@@ -149,6 +149,9 @@ class OWblack_body(widget.OWWidget):
     def help1(self):
         print("help pressed.")
         xoppy_doc('black_body')
+
+
+
 
 
 if __name__ == "__main__":

@@ -1,9 +1,0 @@
-US run
-    6.040000  200.000000  0.001000                            Ring-Energy(GeV) Current(mA) Beam-Energy-Spread 
-  0.395000  0.009900  0.010500  0.003900               Sx Sy Sxp Syp
-    1.800000      222   0.000   1.680000               Period N Kx Ky
-    9972.1   55000.0     500                   Emin Emax Ne
-  30.000000   0.000   0.000   3.000000   3.000000    20    40   D Xpc Ypc Xps Yps Nxp Nyp
-       6       1       0                       Mode Method Iharm
-       0       0     0.0      64     8.0     0 Nphi Nalpha Dalpha2 Nomega Domega Nsigma
-foreground

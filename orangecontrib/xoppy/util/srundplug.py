@@ -77,7 +77,6 @@ try:
     import srwlib
 except ImportError:
     print("Failed to import srwlib. Do not try to use it!")
-    #sys.exit("Import error: srwlib")
 
 #catch standard optput
 try:
@@ -108,9 +107,9 @@ try:
 except ImportError:
     print("Failed to import scipy. Finding alternative ways.")
     codata_c = numpy.array(299792458.0)
-    codata_mee = numpy.array(9.10938291e-31)
-    codata_h = numpy.array(6.62606957e-34)
-    codata_ec = numpy.array(1.602176565e-19)
+    codata_mee = numpy.array(9.10938356e-31)
+    codata_h = numpy.array(6.626070040e-34)
+    codata_ec = numpy.array(1.6021766208e-19)
 
 m2ev = codata_c*codata_h/codata_ec      # lambda(m)  = m2eV / energy(eV)
 
@@ -118,11 +117,16 @@ m2ev = codata_c*codata_h/codata_ec      # lambda(m)  = m2eV / energy(eV)
 scanCounter = 0
 
 # directory  where to find urgent and us binaries
-home_bin='/Users/srio/xop2.4/bin.darwin/'
-#home_bin='/Users/srio/xop2.3/bin.darwin/'
+try:
+    home_bin
+except NameError:
+    home_bin='/users/srio/Oasys/Orange-XOPPY/orangecontrib/xoppy/bin.linux/'
+    #home_bin='/scisoft/xop2.4/bin.linux/'
+    print("srundplug: undefined home_bin. It has been set to ",home_bin)
+
 #check
 if os.path.isfile(home_bin+'us') == False:
-    sys.exit("srundplug: File not found: "+home_bin+'us')
+    print("srundplug: File not found: "+home_bin+'us')
 if os.path.isfile(home_bin+'urgent') == False:
     sys.exit("srundplug: File not found: "+home_bin+'urgent')
 
@@ -145,26 +149,29 @@ def getGlossaryElement(str1=""):
     dict1 = None
     dict1 = OrderedDict()
     if (str1 == "BC_ElectronBeamGaussian"):
-        dict1["ElectronEnergy"] = 6.04
-        dict1["ElectronEnergySpread"] = 0.001
-        dict1["ElectronCurrent"] = 0.2
-        dict1["ElectronBeamSizeH"] = 413e-6
-        dict1["ElectronBeamSizeV"] = 3e-6
-        dict1["ElectronBeamDivergenceH"] = 10.0e-6
-        dict1["ElectronBeamDivergenceV"] = 1.2e-6 
+        dict1.update(  {
+            "ElectronEnergy" : 6.04, 
+            "ElectronCurrent" : 0.2,
+            "ElectronBeamSizeH" : 413e-6,
+            "ElectronBeamSizeV" : 3e-6,
+            "ElectronBeamDivergenceH" : 10.0e-6,
+            "ElectronBeamDivergenceV" : 1.2e-6 } )
         return dict1
 
     if (str1 == "BC_InsertionDevice"):
-        dict1["PeriodID"] = 26.0e-3
-        dict1["NPeriods"] = 96
-        dict1["Kv"] = 0.82
+        dict1.update(  {
+            "PeriodID" : 26.0e-3,
+            "NPeriods" : 96,
+            "Kv" : 0.82} )
 
     if (str1 == "IC_DriftSpace"):
-        dict1["distance"] = 20.0
+        dict1.update(  {
+            "d" : 20.0} )
 
     if (str1 == "BC_Slit"):
-        dict1["gapH"] = 1.0e-3
-        dict1["gapV"] = 1.0e-3
+        dict1.update(  {
+            "gapH" : 1.0e-3,
+            "gapV" : 1.0e-3 } )
 
     return dict1
 
@@ -189,7 +196,6 @@ def getBeamline(nameBeamline,silent=False):
         ebeam['ElectronBeamSizeV'] = 3.4e-06
         ebeam['ElectronCurrent'] = 0.2
         ebeam['ElectronEnergy'] = 6.04
-        ebeam['ElectronEnergySpread'] = 0.001
         idv['Kv'] = 4.0 # 0.82
         idv['NPeriods'] = 77
         idv['PeriodID'] = 0.026
@@ -206,7 +212,6 @@ def getBeamline(nameBeamline,silent=False):
         ebeam['ElectronBeamSizeV'] = 10.3e-6
         ebeam['ElectronCurrent'] = 0.2
         ebeam['ElectronEnergy'] = 6.04
-        ebeam['ElectronEnergySpread'] = 0.001
         idv['Kv'] = 1.68
         idv['NPeriods'] = int(4.0/0.018)
         idv['PeriodID'] = 0.018
@@ -223,7 +228,6 @@ def getBeamline(nameBeamline,silent=False):
         ebeam['ElectronBeamSizeV'] = 3.5e-6
         ebeam['ElectronCurrent'] = 0.2
         ebeam['ElectronEnergy'] = 6.04
-        ebeam['ElectronEnergySpread'] = 0.001
         idv['Kv'] = 1.68
         idv['NPeriods'] = int(4.0/0.018)
         idv['PeriodID'] = 0.018
@@ -241,7 +245,6 @@ def getBeamline(nameBeamline,silent=False):
         ebeam['ElectronBeamSizeV'] = 9.9e-6
         ebeam['ElectronCurrent'] = 0.2
         ebeam['ElectronEnergy'] = 6.04
-        ebeam['ElectronEnergySpread'] = 0.001
         idv['Kv'] = 1.68
         idv['NPeriods'] = int(4.0/0.018)
         idv['PeriodID'] = 0.018
@@ -256,7 +259,6 @@ def getBeamline(nameBeamline,silent=False):
         ebeam['ElectronBeamSizeV'] = 3.5e-6
         ebeam['ElectronCurrent'] = 0.2
         ebeam['ElectronEnergy'] = 6.04
-        ebeam['ElectronEnergySpread'] = 0.001
         idv['Kv'] = 1.68
         idv['NPeriods'] = int(4.0/0.018)
         idv['PeriodID'] = 0.018
@@ -275,7 +277,6 @@ def getBeamline(nameBeamline,silent=False):
         ebeam['ElectronBeamSizeV'] = 3.4e-6
         ebeam['ElectronCurrent'] = 0.2
         ebeam['ElectronEnergy'] = 6.0
-        ebeam['ElectronEnergySpread'] = 0.001
         idv['Kv'] = 1.68
         idv['NPeriods'] = int(4.0/0.018)
         idv['PeriodID'] = 0.018
@@ -441,7 +442,7 @@ def calc1dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
     und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
 
     #Container of all magnetic field elements
-    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('d', [0]), srwlib.array('d', [0]), srwlib.array('d', [0])) 
+    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('distance', [0]), srwlib.array('distance', [0]), srwlib.array('distance', [0]))
     
     #***********Electron Beam
     eBeam = srwlib.SRWLPartBeam()
@@ -517,8 +518,6 @@ def calc1dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
     f.write("#UD photonEnergyMax =  %f\n"%(photonEnergyMax))
     f.write("#UD photonEnergyPoints =  %d\n"%(photonEnergyPoints))
     f.write("#UD B0 =  %f\n"%(B0))
-    f.write("#UXOPPY_PLOT_H_COLUMN_INDEX 0\n")
-    f.write("#UXOPPY_PLOT_V_COLUMN_INDEX 2\n")
 
     #
     # write flux to file
@@ -624,8 +623,7 @@ def calc1dUrgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergy
     f.write("#UD photonEnergyMin =  %f\n"%(photonEnergyMin))
     f.write("#UD photonEnergyMax =  %f\n"%(photonEnergyMax))
     f.write("#UD photonEnergyPoints =  %d\n"%(photonEnergyPoints))
-    f.write("#UXOPPY_PLOT_H_COLUMN_INDEX 0\n")
-    f.write("#UXOPPY_PLOT_V_COLUMN_INDEX 2\n")
+
     f.write("#N 10\n")
     f.write("#L  Energy(eV)  Wavelength(A)  Flux(ph/s/0.1%bw)  Spectral Power(W/eV)  imin  imax  p1  p2  p3  p4\n")
 
@@ -684,11 +682,8 @@ def calc1dUs(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoin
         #f.write("%f\n"%(bl['PeriodID']))  # PERIOD
 
         f.write("US run\n")
-        #changed to xop2.4, us implementing energy spread
-        #f.write("    %f  %f                               Ring-Energy Current\n"%
-        #       (bl['ElectronEnergy'],bl['ElectronCurrent']*1e3))
-        f.write("    %f  %f  %f                            Ring-Energy(GeV) Current(mA) Beam-Energy-Spread \n"%
-               (bl['ElectronEnergy'],bl['ElectronCurrent']*1e3,bl['ElectronEnergySpread']))
+        f.write("    %f  %f                               Ring-Energy Current\n"%
+               (bl['ElectronEnergy'],bl['ElectronCurrent']*1e3))
         f.write("  %f  %f  %f  %f               Sx Sy Sxp Syp\n"%
                (bl['ElectronBeamSizeH']*1e3,bl['ElectronBeamSizeV']*1e3,
                 bl['ElectronBeamDivergenceH']*1e3,bl['ElectronBeamDivergenceV']*1e3) )
@@ -727,8 +722,6 @@ def calc1dUs(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoin
     f.write("#UD photonEnergyMin =  %f\n"%(photonEnergyMin))
     f.write("#UD photonEnergyMax =  %f\n"%(photonEnergyMax))
     f.write("#UD photonEnergyPoints =  %d\n"%(photonEnergyPoints))
-    f.write("#UXOPPY_PLOT_H_COLUMN_INDEX 0\n")
-    f.write("#UXOPPY_PLOT_V_COLUMN_INDEX 1\n")
 
     f.write("#N 6\n")
     f.write("#L  Energy(eV)  Flux(ph/s/0.1%bw)  p1  p2  p3  p4\n")
@@ -800,7 +793,7 @@ def calc2dSrw(bl,fileName="/dev/null",fileAppend=True,hSlitPoints=101,vSlitPoint
     und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
 
     #Container of all magnetic field elements
-    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('d', [0]), srwlib.array('d', [0]), srwlib.array('d', [0])) 
+    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('distance', [0]), srwlib.array('distance', [0]), srwlib.array('distance', [0]))
     
     #***********Electron Beam
     eBeam = srwlib.SRWLPartBeam()
@@ -858,7 +851,6 @@ def calc2dSrw(bl,fileName="/dev/null",fileAppend=True,hSlitPoints=101,vSlitPoint
         scanCounter = 0
         f = open(fileName,"w")
         f.write("#F "+fileName+"\n")
-        f.write("#UXOPPY_PLOT_SELECT_SCAN_INDEX 0\n")
 
     #
     # write power density to file as mesh scan
@@ -867,12 +859,9 @@ def calc2dSrw(bl,fileName="/dev/null",fileAppend=True,hSlitPoints=101,vSlitPoint
     f.write("\n#S %d Undulator power density calculation using SRW\n"%(scanCounter))
     for i,j in bl.items(): # write bl values
         f.write ("#UD %s = %s\n" % (i,j) )
-    f.write('#U B0 = ' + repr(B0 ) + '\n' )
-    f.write('#U hSlitPoints = ' + repr(hSlitPoints) + '\n' )
-    f.write('#U vSlitPoints = ' + repr(vSlitPoints) + '\n' )
-    f.write("#UXOPPY_PLOT_H_COLUMN_INDEX 0\n")
-    f.write("#UXOPPY_PLOT_H_COLUMN_INDEX 1\n")
-    f.write("#UXOPPY_PLOT_V_COLUMN_INDEX 2\n")
+    f.write('\n#U B0 = ' + repr(B0 ) + '\n' )
+    f.write('\n#U hSlitPoints = ' + repr(hSlitPoints) + '\n' )
+    f.write('\n#U vSlitPoints = ' + repr(vSlitPoints) + '\n' )
     f.write("#N 3 \n#L H[mm]  V[mm]  PowerDensity[W/mm^2] \n" )
     
     hArray = numpy.zeros(stkP.mesh.nx)
@@ -962,8 +951,8 @@ def calc2dUs(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPoints
         #f.write("%f\n"%(bl['PeriodID']))  # PERIOD
 
         f.write("US run\n")
-        f.write("    %f  %f  %f                            Ring-Energy(GeV) Current(mA) Beam-Energy-Spread \n"%
-               (bl['ElectronEnergy'],bl['ElectronCurrent']*1e3,bl['ElectronEnergySpread']))
+        f.write("    %f  %f                               Ring-Energy Current\n"%
+               (bl['ElectronEnergy'],bl['ElectronCurrent']*1e3))
         f.write("  %f  %f  %f  %f               Sx Sy Sxp Syp\n"%
                (bl['ElectronBeamSizeH']*1e3,bl['ElectronBeamSizeV']*1e3,
                 bl['ElectronBeamDivergenceH']*1e3,bl['ElectronBeamDivergenceV']*1e3) )
@@ -992,7 +981,6 @@ def calc2dUs(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPoints
         scanCounter = 0
         f = open(fileName,"w")
         f.write("#F "+fileName+"\n")
-        f.write("#UXOPPY_PLOT_SELECT_SCAN_INDEX 1\n")
 
     f.write("\n")
     scanCounter +=1 
@@ -1040,9 +1028,6 @@ def calc2dUs(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPoints
     f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
     f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
     f.write("#N 3\n")
-    f.write("#UXOPPY_PLOT_H_COLUMN_INDEX 0\n")
-    f.write("#UXOPPY_PLOT_H_COLUMN_INDEX 1\n")
-    f.write("#UXOPPY_PLOT_V_COLUMN_INDEX 2\n")
     f.write("#L  H[mm]  V[mm]  PowerDensity[W/mm^2]\n")
     for i in range(len(hhh)):
         for j in range(len(vvv)):
@@ -1152,7 +1137,6 @@ def calc2dUrgent(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPo
         scanCounter = 0
         f = open(fileName,"w")
         f.write("#F "+fileName+"\n")
-        f.write("#UXOPPY_PLOT_SELECT_SCAN_INDEX 1\n")
 
     scanCounter += 1
     f.write("\n#S %d Undulator power density calculation using Urgent (a slit quadrant)\n"%(scanCounter))
@@ -1202,9 +1186,6 @@ def calc2dUrgent(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPo
         f.write ("#UD %s = %s\n" % (i,j) )
     f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
     f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-    f.write("#UXOPPY_PLOT_H_COLUMN_INDEX 0\n")
-    f.write("#UXOPPY_PLOT_H_COLUMN_INDEX 1\n")
-    f.write("#UXOPPY_PLOT_V_COLUMN_INDEX 2\n")
     f.write("#N 3\n")
     f.write("#L  H[mm]  V[mm]  PowerDensity[W/mm^2]\n")
     for i in range(len(hhh)):
@@ -1285,7 +1266,7 @@ def calc3dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
     und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
 
     #Container of all magnetic field elements
-    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('distance', [0]), srwlib.array('distance', [0]), srwlib.array('distance', [0])) 
+    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('distance', [0]), srwlib.array('distance', [0]), srwlib.array('distance', [0]))
     
     #***********Electron Beam
     eBeam = srwlib.SRWLPartBeam()
@@ -1871,15 +1852,11 @@ if __name__ == '__main__':
     #bl = getBeamline("ID16_NA")
     bl = getBeamline("ESRF_HB")
 
-    icalc = 2  # 0=generalities
+    icalc = 1  # 0=generalities
                # 1=flux spectrum
                # 2=power density
                # 3=3d matrix (Hor,Ver,Ener,Intens)
 
-    # use or not code
-    iSrw = 1
-    iUrgent = 1
-    iUs = 1
 
 #
 # calculate info
@@ -1895,29 +1872,21 @@ if __name__ == '__main__':
         emax = 55000.0
         npoints = 500
 
-
+        e,f = calc1dSrw(bl,photonEnergyMin=emin,photonEnergyMax=emax,
+              photonEnergyPoints=npoints,fileName=fileName,fileAppend=False)
         if pltOk:
             plt.figure(1)
+            plt0 = plt.plot(e,f,'blue',label='Srw')
 
-        if iSrw:
-            e,f = calc1dSrw(bl,photonEnergyMin=emin,photonEnergyMax=emax,
-                  photonEnergyPoints=npoints,fileName=fileName,fileAppend=False)
-            if pltOk:
-                plt0 = plt.plot(e,f,'blue',label='Srw')
-
-        if iUrgent:
-            e,f = calc1dUrgent(bl,photonEnergyMin=emin,photonEnergyMax=emax,
-                  photonEnergyPoints=npoints,fileName=fileName,fileAppend=True)
-            if pltOk:
-                plt1 = plt.plot(e,f,'green',label='Urgent')
-
-        if iUs:
-            e,f = calc1dUs(bl,photonEnergyMin=emin,photonEnergyMax=emax,
-                  photonEnergyPoints=npoints,fileName=fileName,fileAppend=True)
-            if pltOk:
-                plt2 = plt.plot(e,f,'red',label='Us')
-
+        e,f = calc1dUrgent(bl,photonEnergyMin=emin,photonEnergyMax=emax,
+              photonEnergyPoints=npoints,fileName=fileName,fileAppend=True)
         if pltOk:
+            plt1 = plt.plot(e,f,'green',label='Urgent')
+
+        e,f = calc1dUs(bl,photonEnergyMin=emin,photonEnergyMax=emax,
+              photonEnergyPoints=npoints,fileName=fileName,fileAppend=True)
+        if pltOk:
+            plt2 = plt.plot(e,f,'red',label='Us')
             #TODO: can be done simpler?
             ax = plt.subplot(111)
             ax.legend(bbox_to_anchor=(1.1, 1.05))
@@ -1926,48 +1895,43 @@ if __name__ == '__main__':
 #
 # calculate power density
 #
-    bl['gapH'] = 3e-3
-    bl['gapV'] = 3e-3
     if icalc == 2:
-        if iSrw:
-            h,v,p = calc2dSrw(bl,fileName=fileName,fileAppend=False,hSlitPoints=41,vSlitPoints=41)
-            #
-            if pltOk:
-                plt.figure(2)
-                h1,v1 = numpy.meshgrid(h,v) # not needed!
-                plt3 = plt.contour(h1,v1,p.T,levels=numpy.linspace(0,p.max(),100))
-                plt.title('Srw')
-                plt.xlabel('H [mm]')
-                plt.ylabel('V [mm]')
-                cbar = plt.colorbar(plt3 , format="%.2f")
-                cbar.ax.set_ylabel('Power density [$W/mm^2$]')
+        h,v,p = calc2dSrw(bl,fileName=fileName,fileAppend=False)
+        #
+        if pltOk:
+            plt.figure(2)
+            h1,v1 = numpy.meshgrid(h,v) # not needed!
+            plt3 = plt.contour(h1,v1,p.T,levels=numpy.linspace(0,p.max(),100))
+            plt.title('Srw')
+            plt.xlabel('H [mm]')
+            plt.ylabel('V [mm]')
+            cbar = plt.colorbar(plt3 , format="%.2f")
+            cbar.ax.set_ylabel('Power density [$W/mm^2$]')
 
-        if iUrgent:
-            h,v,p = calc2dUrgent(bl,fileName=fileName,fileAppend=True,hSlitPoints=41,vSlitPoints=41)
-            #
-            if pltOk:
-                plt.figure(3)
-                h1,v1 = numpy.meshgrid(h,v) # not needed!
-                plt4 = plt.contour(h1,v1,p.T,levels=numpy.linspace(0,p.max(),100))
-                plt.title('Urgent')
-                plt.xlabel('H [mm]')
-                plt.ylabel('V [mm]')
-                cbar = plt.colorbar(plt4 , format="%.2f")
-                cbar.ax.set_ylabel('Power density [$W/mm^2$]')
+        h,v,p = calc2dUrgent(bl,fileName=fileName,fileAppend=True)
+        #
+        if pltOk:
+            plt.figure(3)
+            h1,v1 = numpy.meshgrid(h,v) # not needed!
+            plt4 = plt.contour(h1,v1,p.T,levels=numpy.linspace(0,p.max(),100))
+            plt.title('Urgent')
+            plt.xlabel('H [mm]')
+            plt.ylabel('V [mm]')
+            cbar = plt.colorbar(plt4 , format="%.2f")
+            cbar.ax.set_ylabel('Power density [$W/mm^2$]')
 
 
-        if iUs:
-            h,v,p = calc2dUs(bl,fileName=fileName,fileAppend=True,hSlitPoints=21,vSlitPoints=41)
-            #
-            if pltOk:
-                plt.figure(4)
-                h1,v1 = numpy.meshgrid(h,v) # not needed!
-                plt5 = plt.contour(h1,v1,p.T,levels=numpy.linspace(0,p.max(),100))
-                plt.title('Us')
-                plt.xlabel('H [mm]')
-                plt.ylabel('V [mm]')
-                cbar = plt.colorbar(plt5 , format="%.2f")
-                cbar.ax.set_ylabel('Power density [$W/mm^2$]')
+        h,v,p = calc2dUs(bl,fileName=fileName,fileAppend=True)
+        #
+        if pltOk:
+            plt.figure(4)
+            h1,v1 = numpy.meshgrid(h,v) # not needed!
+            plt5 = plt.contour(h1,v1,p.T,levels=numpy.linspace(0,p.max(),100))
+            plt.title('Us')
+            plt.xlabel('H [mm]')
+            plt.ylabel('V [mm]')
+            cbar = plt.colorbar(plt5 , format="%.2f")
+            cbar.ax.set_ylabel('Power density [$W/mm^2$]')
 
 #
 # calculate intensity vs H,V,E

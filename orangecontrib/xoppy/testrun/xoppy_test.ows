@@ -1,0 +1,173 @@
+<?xml version='1.0' encoding='utf-8'?>
+<scheme description="" title="" version="2.0" working_directory="/users/srio/Oasys/OasysRun">
+	<nodes>
+		<node id="0" name="ws" position="(308.0, 72.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.xoppy.ws.OWws" title="ws" version="" />
+		<node id="1" name="bm" position="(56.0, 65.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.xoppy.bm.OWbm" title="bm" version="" />
+		<node id="2" name="Plot Simple" position="(225.0, 37.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.viewers.plot_simple.OWPlotSimple" title="Plot Simple" version="" />
+		<node id="3" name="Plot Simple" position="(483.0, 77.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.viewers.plot_simple.OWPlotSimple" title="Plot Simple (1)" version="" />
+		<node id="4" name="xinpro" position="(78.0, 489.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.xoppy.xinpro.OWxinpro" title="xinpro" version="" />
+		<node id="5" name="Plot Simple" position="(271.0, 507.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.viewers.plot_simple.OWPlotSimple" title="Plot Simple (2)" version="" />
+		<node id="6" name="xtube_w" position="(68.0, 296.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.xoppy.xtube_w.OWxtube_w" title="xtube_w" version="" />
+		<node id="7" name="Plot Simple" position="(219.0, 295.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.viewers.plot_simple.OWPlotSimple" title="Plot Simple (3)" version="" />
+		<node id="8" name="xtubes" position="(357.0, 299.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.xoppy.xtubes.OWxtubes" title="xtubes" version="" />
+		<node id="9" name="plot using PyMca" position="(519.0, 301.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.viewers.plot_pymca.OWPlotPymca" title="plot using PyMca" version="" />
+		<node id="10" name="xwiggler" position="(55.0, 170.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.xoppy.xwiggler.OWxwiggler" title="xwiggler" version="" />
+		<node id="11" name="plot using PyMca" position="(216.0, 201.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.viewers.plot_pymca.OWPlotPymca" title="plot using PyMca (1)" version="" />
+		<node id="12" name="xraylib_widget" position="(82.0, 591.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.xoppy.xraylib_widget.OWxraylib_widget" title="xraylib_widget" version="" />
+		<node id="13" name="undulator_flux" position="(73.0, 399.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.xoppy.undulator_flux.OWundulator_flux" title="undulator_flux" version="" />
+		<node id="14" name="Plot Simple" position="(242.0, 414.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.viewers.plot_simple.OWPlotSimple" title="Plot Simple (4)" version="" />
+		<node id="15" name="undulator_power_density" position="(392.0, 414.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.xoppy.undulator_power_density.OWundulator_power_density" title="undulator_power_density" version="" />
+		<node id="16" name="Plot Simple" position="(619.0, 429.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.viewers.plot_simple.OWPlotSimple" title="Plot Simple (5)" version="" />
+		<node id="17" name="PickFile" position="(769.0, 429.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.viewers.pickfile.PickFile" title="PickFile" version="" />
+		<node id="18" name="PickFile" position="(424.0, 570.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.viewers.pickfile.PickFile" title="PickFile (1)" version="" />
+		<node id="19" name="Plot Simple" position="(614.0, 578.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.viewers.plot_simple.OWPlotSimple" title="Plot Simple (6)" version="" />
+		<node id="20" name="Plot Simple" position="(228.0, 121.0)" project_name="XOPPY" qualified_name="orangecontrib.xoppy.widgets.viewers.plot_simple.OWPlotSimple" title="Plot Simple (7)" version="" />
+	</nodes>
+	<links>
+		<link enabled="true" id="0" sink_channel="xoppy_data" sink_node_id="2" source_channel="xoppy_data" source_node_id="1" />
+		<link enabled="true" id="1" sink_channel="xoppy_data" sink_node_id="3" source_channel="xoppy_data" source_node_id="0" />
+		<link enabled="true" id="2" sink_channel="xoppy_data" sink_node_id="5" source_channel="xoppy_data" source_node_id="4" />
+		<link enabled="true" id="3" sink_channel="xoppy_data" sink_node_id="7" source_channel="xoppy_data" source_node_id="6" />
+		<link enabled="true" id="4" sink_channel="xoppy_data" sink_node_id="9" source_channel="xoppy_data" source_node_id="8" />
+		<link enabled="true" id="5" sink_channel="xoppy_data" sink_node_id="11" source_channel="xoppy_data" source_node_id="10" />
+		<link enabled="true" id="6" sink_channel="xoppy_data" sink_node_id="14" source_channel="xoppy_data" source_node_id="13" />
+		<link enabled="true" id="7" sink_channel="xoppy_data" sink_node_id="16" source_channel="xoppy_data" source_node_id="15" />
+		<link enabled="true" id="8" sink_channel="xoppy_specfile" sink_node_id="19" source_channel="xoppy_specfile" source_node_id="18" />
+		<link enabled="true" id="9" sink_channel="xoppy_specfile" sink_node_id="20" source_channel="xoppy_specfile" source_node_id="1" />
+	</links>
+	<annotations>
+		<text font-family="Helvetica" font-size="16" id="0" rect="(516.0, 58.0, 185.0, 52.0)">why histo look????</text>
+	</annotations>
+	<thumbnail />
+	<node_properties>
+		<properties format="pickle" node_id="0">gAN9cQAoWBMAAABzYXZlZFdpZGdldEdlb21ldHJ5cQFjc2lwCl91bnBpY2tsZV90eXBlCnECWAwA
+AABQeVF0NC5RdENvcmVxA1gKAAAAUUJ5dGVBcnJheXEEQy4B2dDLAAEAAAAAApgAAAFBAAADtgAA
+AtwAAAKiAAABZwAAA6wAAALSAAAAAAAAcQWFcQaHcQdScQhYAwAAAFlQU3EJR0AAAAAAAAAAWAMA
+AABDVVJxCkdAWQAAAAAAAFgFAAAAVElUTEVxC1gQAAAAV2lnZ2xlciBBIGF0IEFQU3EMWAMAAABO
+RUVxDU3QB1gBAAAARHEOR0A+AAAAAAAAWAYAAABQRVJJT0RxD0dAIQAAAAAAAFgDAAAATlhQcRBL
+ClgDAAAATllQcRFLClgCAAAAS1hxEkcAAAAAAAAAAFgDAAAAWFBDcRNHAAAAAAAAAABYAwAAAFlQ
+Q3EURwAAAAAAAAAAWAMAAABYUFNxFUdAAAAAAAAAAFgGAAAARU5FUkdZcRZHQBwAAAAAAABYAQAA
+AE5xF0dAPAAAAAAAAFgEAAAARU1BWHEYR0D4agAAAAAAWAIAAABLWXEZR0AheuFAAAAAWAQAAABF
+TUlOcRpHQI9AAAAAAAB1Lg==
+</properties>
+		<properties format="pickle" node_id="1">gAN9cQAoWAsAAABNQUNISU5FX1JfTXEBR0A5AAAAAAAAWAsAAABQU0lfTlBPSU5UU3ECTfQBWA8A
+AABQSE9UX0VORVJHWV9NQVhxA0dA+GoAAAAAAFgHAAAAVkVSX0RJVnEESwBYCQAAAENVUlJFTlRf
+QXEFRz+5mZmZmZmaWAkAAABUWVBFX0NBTENxBksAWA8AAABQSE9UX0VORVJHWV9NSU5xB0dAWQAA
+AAAAAFgIAAAAQkZJRUxEX1RxCEc/6ZmZmZmZmlgMAAAASE9SX0RJVl9NUkFEcQlHP/AAAAAAAABY
+CQAAAFJCX0NIT0lDRXEKSwBYDAAAAE1BQ0hJTkVfTkFNRXELWBMAAABFU1JGIGJlbmRpbmcgbWFn
+bmV0cQxYCgAAAExPR19DSE9JQ0VxDUsBWA8AAABCRUFNX0VORVJHWV9HRVZxDkdAGAAAAAAAAFgH
+AAAATlBPSU5UU3EPTfQBWAcAAABQU0lfTUFYcRBHP/AAAAAAAABYBwAAAFBTSV9NSU5xEUe/8AAA
+AAAAAFgNAAAAUFNJX01SQURfUExPVHESRz/wAAAAAAAAWBMAAABzYXZlZFdpZGdldEdlb21ldHJ5
+cRNjc2lwCl91bnBpY2tsZV90eXBlCnEUWAwAAABQeVF0NC5RdENvcmVxFVgKAAAAUUJ5dGVBcnJh
+eXEWQy4B2dDLAAEAAAAAAjEAAAFBAAAEHAAAAtwAAAI7AAABZwAABBIAAALSAAAAAAAAcReFcRiH
+cRlScRp1Lg==
+</properties>
+		<properties format="pickle" node_id="2">gAN9cQBYEwAAAHNhdmVkV2lkZ2V0R2VvbWV0cnlxAWNzaXAKX3VucGlja2xlX3R5cGUKcQJYDAAA
+AFB5UXQ0LlF0Q29yZXEDWAoAAABRQnl0ZUFycmF5cQRDLgHZ0MsAAQAAAAAD5AAAAA4AAAaPAAAC
+KQAAA+4AAAA0AAAGhQAAAh8AAAAAAABxBYVxBodxB1JxCHMu
+</properties>
+		<properties format="pickle" node_id="3">gAN9cQBYEwAAAHNhdmVkV2lkZ2V0R2VvbWV0cnlxAWNzaXAKX3VucGlja2xlX3R5cGUKcQJYDAAA
+AFB5UXQ0LlF0Q29yZXEDWAoAAABRQnl0ZUFycmF5cQRDLgHZ0MsAAQAAAAAD5AAAAA4AAAaPAAAC
+KQAAA+4AAAA0AAAGhQAAAh8AAAAAAABxBYVxBodxB1JxCHMu
+</properties>
+		<properties format="pickle" node_id="4">gAN9cQAoWA8AAABBU1lNTUVUUllfQU5HTEVxAUcAAAAAAAAAAFgFAAAAU0NBTEVxAksAWAMAAABY
+VE9xA0dASQAAAAAAAFgOAAAATUlMTEVSX0lOREVYX0txBEsBWAsAAABURU1QRVJBVFVSRXEFR0By
+wAAAAAAAWAQAAABNT0RFcQZLAFgQAAAAQ1JZU1RBTF9NQVRFUklBTHEHSwBYCQAAAFRISUNLTkVT
+U3EIR0B/QAAAAAAAWAUAAABYRlJPTXEJR8BJAAAAAAAAWA4AAABNSUxMRVJfSU5ERVhfSHEKSwFY
+BwAAAE5QT0lOVFNxC0tkWA4AAABNSUxMRVJfSU5ERVhfTHEMSwFYEwAAAHNhdmVkV2lkZ2V0R2Vv
+bWV0cnlxDWNzaXAKX3VucGlja2xlX3R5cGUKcQ5YDAAAAFB5UXQ0LlF0Q29yZXEPWAoAAABRQnl0
+ZUFycmF5cRBDLgHZ0MsAAQAAAAAANwAAAA4AAAGiAAABqQAAAEEAAAA0AAABmAAAAZ8AAAAAAABx
+EYVxEodxE1JxFFgGAAAARU5FUkdZcRVHQL9AAAAAAAB1Lg==
+</properties>
+		<properties format="pickle" node_id="5">gAN9cQBYEwAAAHNhdmVkV2lkZ2V0R2VvbWV0cnlxAWNzaXAKX3VucGlja2xlX3R5cGUKcQJYDAAA
+AFB5UXQ0LlF0Q29yZXEDWAoAAABRQnl0ZUFycmF5cQRDLgHZ0MsAAQAAAAAD0AAAAA4AAAZ7AAAC
+KQAAA9oAAAA0AAAGcQAAAh8AAAAAAABxBYVxBodxB1JxCHMu
+</properties>
+		<properties format="pickle" node_id="6">gAN9cQAoWAkAAABBTF9GSUxURVJxAUcAAAAAAAAAAFgGAAAAUklQUExFcQJHAAAAAAAAAABYBwAA
+AFZPTFRBR0VxA0dAWQAAAAAAAFgTAAAAc2F2ZWRXaWRnZXRHZW9tZXRyeXEEY3NpcApfdW5waWNr
+bGVfdHlwZQpxBVgMAAAAUHlRdDQuUXRDb3JlcQZYCgAAAFFCeXRlQXJyYXlxB0MuAdnQywABAAAA
+AAKYAAABawAAA7YAAAKxAAACogAAAZEAAAOsAAACpwAAAAAAAHEIhXEJh3EKUnELdS4=
+</properties>
+		<properties format="pickle" node_id="7">gAN9cQBYEwAAAHNhdmVkV2lkZ2V0R2VvbWV0cnlxAWNzaXAKX3VucGlja2xlX3R5cGUKcQJYDAAA
+AFB5UXQ0LlF0Q29yZXEDWAoAAABRQnl0ZUFycmF5cQRDLgHZ0MsAAQAAAAAD0AAAAA4AAAZ7AAAC
+KQAAA9oAAAA0AAAGcQAAAh8AAAAAAABxBYVxBodxB1JxCHMu
+</properties>
+		<properties format="pickle" node_id="8">gAN9cQAoWBMAAABzYXZlZFdpZGdldEdlb21ldHJ5cQFjc2lwCl91bnBpY2tsZV90eXBlCnECWAwA
+AABQeVF0NC5RdENvcmVxA1gKAAAAUUJ5dGVBcnJheXEEQy4B2dDLAAEAAAAAAEEAAANKAAABSwAA
+BBkAAABBAAADSgAAAUsAAAQZAAAAAAAAcQWFcQaHcQdScQhYBQAAAElUVUJFcQlLAFgHAAAAVk9M
+VEFHRXEKR0A+AAAAAAAAdS4=
+</properties>
+		<properties format="pickle" node_id="9">gAN9cQBYEwAAAHNhdmVkV2lkZ2V0R2VvbWV0cnlxAWNzaXAKX3VucGlja2xlX3R5cGUKcQJYDAAA
+AFB5UXQ0LlF0Q29yZXEDWAoAAABRQnl0ZUFycmF5cQRDLgHZ0MsAAQAAAAABFAAAAvgAAAHvAAAD
+iwAAAR4AAAMeAAAB5QAAA4EAAAAAAABxBYVxBodxB1JxCHMu
+</properties>
+		<properties format="pickle" node_id="10">gAN9cQAoWBMAAABzYXZlZFdpZGdldEdlb21ldHJ5cQFjc2lwCl91bnBpY2tsZV90eXBlCnECWAwA
+AABQeVF0NC5RdENvcmVxA1gKAAAAUUJ5dGVBcnJheXEEQy4B2dDLAAEAAAAABXkAAAAOAAAGmQAA
+AakAAAWDAAAANAAABo8AAAGfAAAAAAAAcQWFcQaHcQdScQhYCwAAAE5UUkFKUE9JTlRTcQlLZVgP
+AAAAUEhPVF9FTkVSR1lfTUFYcQpHQPhwQAAAAABYBwAAAFVMQU1CREFxC0c/wAAAAAAAAFgPAAAA
+UEhPVF9FTkVSR1lfTUlOcQxHQFkAAAAAAABYBQAAAEZJRUxEcQ1LAFgHAAAAQ1VSUkVOVHEOR0Bp
+AAAAAAAAWAEAAABLcQ9HQCwAAAAAAABYBwAAAE5QT0lOVFNxEEtkWAQAAABGSUxFcRFYAQAAAD9x
+ElgHAAAATE9HUExPVHETSwFYCAAAAE5QRVJJT0RTcRRLDFgGAAAARU5FUkdZcRVHQBgo9cKPXCl1
+Lg==
+</properties>
+		<properties format="pickle" node_id="11">gAN9cQBYEwAAAHNhdmVkV2lkZ2V0R2VvbWV0cnlxAWNzaXAKX3VucGlja2xlX3R5cGUKcQJYDAAA
+AFB5UXQ0LlF0Q29yZXEDWAoAAABRQnl0ZUFycmF5cQRDLgHZ0MsAAQAAAAABngAAAUAAAAXgAAAD
+8QAAAagAAAFmAAAF1QAAA9QAAAAAAABxBYVxBodxB1JxCHMu
+</properties>
+		<properties format="pickle" node_id="12">gAN9cQAoWBMAAABUUkFOU0lUSU9OX0lVUEFDX1RPcQFLAFgTAAAAc2F2ZWRXaWRnZXRHZW9tZXRy
+eXECY3NpcApfdW5waWNrbGVfdHlwZQpxA1gMAAAAUHlRdDQuUXRDb3JlcQRYCgAAAFFCeXRlQXJy
+YXlxBUMuAdnQywABAAAAAAFxAAABMwAABRkAAAPJAAABewAAAVkAAAUPAAADvwAAAAAAAHEGhXEH
+h3EIUnEJWAcAAABFTEVNRU5UcQpLGlgcAAAAVFJBTlNJVElPTl9JVVBBQ19PUl9TSUVHQkFITnEL
+SwFYBgAAAEVORVJHWXEMR0AkAAAAAAAAWBMAAABUUkFOU0lUSU9OX1NJRUdCQUhOcQ1LAFgIAAAA
+RlVOQ1RJT05xDksJWBUAAABUUkFOU0lUSU9OX0lVUEFDX0ZST01xD0sAWAUAAABTSEVMTHEQSwBY
+EQAAAEVMRU1FTlRPUkNPTVBPVU5EcRFYBQAAAEZlU080cRJYCAAAAENPTVBPVU5EcRNYCQAAAENh
+NShQTzQpM3EUdS4=
+</properties>
+		<properties format="pickle" node_id="13">gAN9cQAoWBMAAABzYXZlZFdpZGdldEdlb21ldHJ5cQFjc2lwCl91bnBpY2tsZV90eXBlCnECWAwA
+AABQeVF0NC5RdENvcmVxA1gKAAAAUUJ5dGVBcnJheXEEQy4B2dDLAAEAAAAAApgAAAFBAAADtgAA
+AtwAAAKiAAABZwAAA6wAAALSAAAAAAAAcQWFcQaHcQdScQhYDwAAAFBIT1RPTkVORVJHWU1JTnEJ
+R0CncAAAAAAAWA8AAABQSE9UT05FTkVSR1lNQVhxCkdA6tsAAAAAAFgIAAAARElTVEFOQ0VxC0dA
+PgAAAAAAAFgPAAAARUxFQ1RST05DVVJSRU5UcQxHP8mZmZmZmZpYBAAAAEdBUFZxDUc/UGJN0vGp
+/FgEAAAAR0FQSHEORz9QYk3S8an8WBcAAABFTEVDVFJPTkJFQU1ESVZFUkdFTkNFSHEPRz7mBSUC
+7sfJWA4AAABFTEVDVFJPTkVORVJHWXEQR0AYKPXCj1wpWAgAAABQRVJJT0RJRHERRz+SbpeNT987
+WBIAAABQSE9UT05FTkVSR1lQT0lOVFNxEk30AVgRAAAARUxFQ1RST05CRUFNU0laRUhxE0c/OeMA
+FPi1iVgXAAAARUxFQ1RST05CRUFNRElWRVJHRU5DRVZxFEc+0FuX1kr60FgGAAAATUVUSE9EcRVL
+AFgIAAAATlBFUklPRFNxFkveWBQAAABFTEVDVFJPTkVORVJHWVNQUkVBRHEXRz9QYk3S8an8WAIA
+AABLVnEYRz/64UeuFHrhWBEAAABFTEVDVFJPTkJFQU1TSVpFVnEZRz7kwwWjre+SdS4=
+</properties>
+		<properties format="pickle" node_id="14">gAN9cQBYEwAAAHNhdmVkV2lkZ2V0R2VvbWV0cnlxAWNzaXAKX3VucGlja2xlX3R5cGUKcQJYDAAA
+AFB5UXQ0LlF0Q29yZXEDWAoAAABRQnl0ZUFycmF5cQRDLgHZ0MsAAQAAAAADywAAAK8AAAZ2AAAC
+ygAAA9UAAADVAAAGbAAAAsAAAAAAAABxBYVxBodxB1JxCHMu
+</properties>
+		<properties format="pickle" node_id="15">gAN9cQAoWAsAAABIU0xJVFBPSU5UU3EBSylYEwAAAHNhdmVkV2lkZ2V0R2VvbWV0cnlxAmNzaXAK
+X3VucGlja2xlX3R5cGUKcQNYDAAAAFB5UXQ0LlF0Q29yZXEEWAoAAABRQnl0ZUFycmF5cQVDLgHZ
+0MsAAQAAAAACmAAAAUEAAAO2AAAC3AAAAqIAAAFnAAADrAAAAtIAAAAAAABxBoVxB4dxCFJxCVgR
+AAAARUxFQ1RST05CRUFNU0laRUhxCkc/OeMAFPi1iVgIAAAARElTVEFOQ0VxC0dAPgAAAAAAAFgP
+AAAARUxFQ1RST05DVVJSRU5UcQxHP8mZmZmZmZpYBAAAAEdBUFZxDUc/aJN0vGp++lgEAAAAR0FQ
+SHEORz9ok3S8an76WBcAAABFTEVDVFJPTkJFQU1ESVZFUkdFTkNFSHEPRz7mBSUC7sfJWA4AAABF
+TEVDVFJPTkVORVJHWXEQR0AYKPXCj1wpWAgAAABQRVJJT0RJRHERRz+SbpeNT987WBcAAABFTEVD
+VFJPTkJFQU1ESVZFUkdFTkNFVnESRz7QW5fWSvrQWAYAAABNRVRIT0RxE0sAWAgAAABOUEVSSU9E
+U3EUS95YCwAAAFZTTElUUE9JTlRTcRVLKVgUAAAARUxFQ1RST05FTkVSR1lTUFJFQURxFkc/UGJN
+0vGp/FgCAAAAS1ZxF0c/+uFHrhR64VgRAAAARUxFQ1RST05CRUFNU0laRVZxGEc+5MMFo63vknUu
+</properties>
+		<properties format="pickle" node_id="16">gAN9cQBYEwAAAHNhdmVkV2lkZ2V0R2VvbWV0cnlxAWNzaXAKX3VucGlja2xlX3R5cGUKcQJYDAAA
+AFB5UXQ0LlF0Q29yZXEDWAoAAABRQnl0ZUFycmF5cQRDLgHZ0MsAAQAAAAADywAAAK8AAAZ2AAAC
+ygAAA9UAAADVAAAGbAAAAsAAAAAAAABxBYVxBodxB1JxCHMu
+</properties>
+		<properties format="literal" node_id="17">{'savedWidgetGeometry': None, 'recent_files': []}</properties>
+		<properties format="pickle" node_id="18">gAN9cQAoWBMAAABzYXZlZFdpZGdldEdlb21ldHJ5cQFjc2lwCl91bnBpY2tsZV90eXBlCnECWAwA
+AABQeVF0NC5RdENvcmVxA1gKAAAAUUJ5dGVBcnJheXEEQy4B2dDLAAEAAAAAADcAAANDAAACMgAA
+BCMAAABBAAADaQAAAigAAAQZAAAAAAAAcQWFcQaHcQdScQhYDAAAAHJlY2VudF9maWxlc3EJXXEK
+WEgAAAAvdXNlcnMvc3Jpby9PYXN5cy9PcmFuZ2UtWE9QUFkvb3JhbmdlY29udHJpYi94b3BweS90
+ZXN0cnVuL3h3aWdnbGVyLnNwZWNxC2F1Lg==
+</properties>
+		<properties format="pickle" node_id="19">gAN9cQBYEwAAAHNhdmVkV2lkZ2V0R2VvbWV0cnlxAWNzaXAKX3VucGlja2xlX3R5cGUKcQJYDAAA
+AFB5UXQ0LlF0Q29yZXEDWAoAAABRQnl0ZUFycmF5cQRDLgHZ0MsAAQAAAAADtwAAAJsAAAZiAAAC
+tgAAA8EAAADBAAAGWAAAAqwAAAAAAABxBYVxBodxB1JxCHMu
+</properties>
+		<properties format="pickle" node_id="20">gAN9cQBYEwAAAHNhdmVkV2lkZ2V0R2VvbWV0cnlxAWNzaXAKX3VucGlja2xlX3R5cGUKcQJYDAAA
+AFB5UXQ0LlF0Q29yZXEDWAoAAABRQnl0ZUFycmF5cQRDLgHZ0MsAAQAAAAADowAAAIcAAAZOAAAC
+ogAAA60AAACtAAAGRAAAApgAAAAAAABxBYVxBodxB1JxCHMu
+</properties>
+	</node_properties>
+</scheme>
