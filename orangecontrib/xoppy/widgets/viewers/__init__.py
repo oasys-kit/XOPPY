@@ -15,4 +15,4 @@ ICON = "icons/viewers.png"
 
 BACKGROUND = "#FFD39F"
 
-PRIORITY = 202
+PRIORITY = 2002

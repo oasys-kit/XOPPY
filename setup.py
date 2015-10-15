@@ -44,6 +44,7 @@ INSTALL_REQUIRES = (
     'numpy',
     'scipy',
     'matplotlib',
+    'srxraylib',
     'orange-widget-core>=0.0.2',
     'oasys>=0.1',
 )

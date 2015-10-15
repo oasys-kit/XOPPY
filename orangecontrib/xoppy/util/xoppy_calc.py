@@ -1,17 +1,14 @@
-import os
+import PyMca5.PyMcaPhysics.xrf.Elements as Elements
 import numpy
+import os
+import xraylib
 from collections import OrderedDict
 
+import orangecontrib.xoppy as xoppy
 from oasys import __file__ as orange_init
 
-from orangecontrib.xoppy import *
-from orangecontrib.xoppy.util import srfunc
+from srxraylib.sources import srfunc
 from orangecontrib.xoppy.util import srundplug
-
-import xraylib
-import PyMca5.PyMcaPhysics.xrf.Elements as Elements
-
-import orangecontrib.xoppy as xoppy
 
 
 def reflectivity_fresnel(refraction_index_delta=1e-5,refraction_index_beta=0.0,\
@@ -55,7 +52,7 @@ def reflectivity_fresnel(refraction_index_delta=1e-5,refraction_index_beta=0.0,\
 
     rp = rs*ratio
     runp = 0.5 * (rs + rp)
-    wavelength_m = srfunc.m2ev/photon_energy_ev
+    wavelength_m = srfunc.m2ev / photon_energy_ev
     debyewaller = numpy.exp( -(4.0*numpy.pi*numpy.sin(theta1)*rough1/(wavelength_m*1e10))**2 )
 
     return(rs*debyewaller,rp*debyewaller,runp*debyewaller)
@@ -76,15 +73,15 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
     outFile = "bm.spec"
 
     # electron energy in GeV
-    gamma = BEAM_ENERGY_GEV*1e3/srfunc.codata_mee
+    gamma = BEAM_ENERGY_GEV*1e3 / srfunc.codata_mee
 
     r_m = MACHINE_R_M      # magnetic radius in m
     if RB_CHOICE == 1:
-        r_m = srfunc.codata_me * srfunc.codata_c / srfunc.codata_ec / BFIELD_T * numpy.sqrt( gamma*gamma - 1)
+        r_m = srfunc.codata_me * srfunc.codata_c / srfunc.codata_ec / BFIELD_T * numpy.sqrt(gamma * gamma - 1)
 
     # calculate critical energy in eV
     ec_m = 4.0*numpy.pi*r_m/3.0/numpy.power(gamma,3) # wavelength in m
-    ec_ev = srfunc.m2ev/ec_m
+    ec_ev = srfunc.m2ev / ec_m
 
 
     if TYPE_CALC == 0:
@@ -95,17 +92,17 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
         else:
             energy_ev = numpy.logspace(numpy.log10(PHOT_ENERGY_MIN),numpy.log10(PHOT_ENERGY_MAX),NPOINTS) # photon energy grid
 
-        a5 = srfunc.sync_ene(VER_DIV,energy_ev,ec_ev=ec_ev,polarization=0,  \
-               e_gev=BEAM_ENERGY_GEV,i_a=CURRENT_A,hdiv_mrad=HOR_DIV_MRAD, \
-               psi_min=PSI_MIN, psi_max=PSI_MAX, psi_npoints=PSI_NPOINTS)
+        a5 = srfunc.sync_ene(VER_DIV, energy_ev, ec_ev=ec_ev, polarization=0, \
+                             e_gev=BEAM_ENERGY_GEV, i_a=CURRENT_A, hdiv_mrad=HOR_DIV_MRAD, \
+                             psi_min=PSI_MIN, psi_max=PSI_MAX, psi_npoints=PSI_NPOINTS)
 
-        a5par = srfunc.sync_ene(VER_DIV,energy_ev,ec_ev=ec_ev,polarization=1,  \
-               e_gev=BEAM_ENERGY_GEV,i_a=CURRENT_A,hdiv_mrad=HOR_DIV_MRAD, \
-               psi_min=PSI_MIN, psi_max=PSI_MAX, psi_npoints=PSI_NPOINTS)
+        a5par = srfunc.sync_ene(VER_DIV, energy_ev, ec_ev=ec_ev, polarization=1, \
+                                e_gev=BEAM_ENERGY_GEV, i_a=CURRENT_A, hdiv_mrad=HOR_DIV_MRAD, \
+                                psi_min=PSI_MIN, psi_max=PSI_MAX, psi_npoints=PSI_NPOINTS)
 
-        a5per = srfunc.sync_ene(VER_DIV,energy_ev,ec_ev=ec_ev,polarization=2,  \
-               e_gev=BEAM_ENERGY_GEV,i_a=CURRENT_A,hdiv_mrad=HOR_DIV_MRAD, \
-               psi_min=PSI_MIN, psi_max=PSI_MAX, psi_npoints=PSI_NPOINTS)
+        a5per = srfunc.sync_ene(VER_DIV, energy_ev, ec_ev=ec_ev, polarization=2, \
+                                e_gev=BEAM_ENERGY_GEV, i_a=CURRENT_A, hdiv_mrad=HOR_DIV_MRAD, \
+                                psi_min=PSI_MIN, psi_max=PSI_MAX, psi_npoints=PSI_NPOINTS)
 
         if VER_DIV == 0:
             coltitles=['Photon Energy [eV]','Photon Wavelength [A]','E/Ec','Flux_spol/Flux_total','Flux_ppol/Flux_total','Flux[Phot/sec/0.1%bw]','Power[Watts/eV]']
@@ -124,12 +121,12 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
         a6=numpy.zeros((7,len(energy_ev)))
         a1 = energy_ev
         a6[0,:] = (a1)
-        a6[1,:] = srfunc.m2ev*1e10/(a1)
+        a6[1,:] = srfunc.m2ev * 1e10 / (a1)
         a6[2,:] = (a1)/ec_ev # E/Ec
         a6[3,:] = (a5par)/(a5)
         a6[4,:] = (a5per)/(a5)
         a6[5,:] = (a5)
-        a6[6,:] = (a5)*1e3*srfunc.codata_ec
+        a6[6,:] = (a5)*1e3 * srfunc.codata_ec
 
 
 
@@ -140,10 +137,10 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
         a6 = numpy.zeros((6,NPOINTS))
         a6[0,:] = angle_mrad # angle in mrad
         a6[1,:] = angle_mrad*gamma/1e3 # Psi[rad]*Gamma
-        a6[2,:] = srfunc.sync_f(angle_mrad*gamma/1e3)
-        a6[3,:] = srfunc.sync_f(angle_mrad*gamma/1e3,polarization=1)
-        a6[4,:] = srfunc.sync_f(angle_mrad*gamma/1e3,polarization=2)
-        a6[5,:] = srfunc.sync_ang(0,angle_mrad,i_a=CURRENT_A,hdiv_mrad=HOR_DIV_MRAD,e_gev=BEAM_ENERGY_GEV, r_m=r_m)
+        a6[2,:] = srfunc.sync_f(angle_mrad * gamma / 1e3)
+        a6[3,:] = srfunc.sync_f(angle_mrad * gamma / 1e3, polarization=1)
+        a6[4,:] = srfunc.sync_f(angle_mrad * gamma / 1e3, polarization=2)
+        a6[5,:] = srfunc.sync_ang(0, angle_mrad, i_a=CURRENT_A, hdiv_mrad=HOR_DIV_MRAD, e_gev=BEAM_ENERGY_GEV, r_m=r_m)
 
         coltitles=['Psi[mrad]','Psi[rad]*Gamma','F','F s-pol','F p-pol','Power[Watts/mrad(Psi)]']
 
@@ -153,13 +150,13 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
         a6 = numpy.zeros((7,NPOINTS))
         a6[0,:] = angle_mrad # angle in mrad
         a6[1,:] = angle_mrad*gamma/1e3 # Psi[rad]*Gamma
-        a6[2,:] = srfunc.sync_f(angle_mrad*gamma/1e3)
-        a6[3,:] = srfunc.sync_f(angle_mrad*gamma/1e3,polarization=1)
-        a6[4,:] = srfunc.sync_f(angle_mrad*gamma/1e3,polarization=2)
-        tmp = srfunc.sync_ang(1,angle_mrad,energy=PHOT_ENERGY_MIN,i_a=CURRENT_A,hdiv_mrad=HOR_DIV_MRAD,e_gev=BEAM_ENERGY_GEV, ec_ev=ec_ev)
+        a6[2,:] = srfunc.sync_f(angle_mrad * gamma / 1e3)
+        a6[3,:] = srfunc.sync_f(angle_mrad * gamma / 1e3, polarization=1)
+        a6[4,:] = srfunc.sync_f(angle_mrad * gamma / 1e3, polarization=2)
+        tmp = srfunc.sync_ang(1, angle_mrad, energy=PHOT_ENERGY_MIN, i_a=CURRENT_A, hdiv_mrad=HOR_DIV_MRAD, e_gev=BEAM_ENERGY_GEV, ec_ev=ec_ev)
         tmp.shape = -1
         a6[5,:] = tmp
-        a6[6,:] = a6[5,:]*srfunc.codata_ec*1e3
+        a6[6,:] = a6[5,:] * srfunc.codata_ec * 1e3
 
         coltitles=['Psi[mrad]','Psi[rad]*Gamma','F','F s-pol','F p-pol','Flux[Ph/sec/0.1%bw/mradPsi]','Power[Watts/eV/mradPsi]']
 
@@ -172,8 +169,8 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
         else:
             energy_ev = numpy.logspace(numpy.log10(PHOT_ENERGY_MIN),numpy.log10(PHOT_ENERGY_MAX),NPOINTS) # photon energy grid
 
-        tmp1, fm, a = srfunc.sync_ene(2,energy_ev,ec_ev=ec_ev,e_gev=BEAM_ENERGY_GEV,i_a=CURRENT_A,\
-                                      hdiv_mrad=HOR_DIV_MRAD,psi_min=PSI_MIN,psi_max=PSI_MAX,psi_npoints=PSI_NPOINTS)
+        tmp1, fm, a = srfunc.sync_ene(2, energy_ev, ec_ev=ec_ev, e_gev=BEAM_ENERGY_GEV, i_a=CURRENT_A, \
+                                      hdiv_mrad=HOR_DIV_MRAD, psi_min=PSI_MIN, psi_max=PSI_MAX, psi_npoints=PSI_NPOINTS)
 
         a6 = numpy.zeros((4,len(a)*len(energy_ev)))
         ij = -1
@@ -182,7 +179,7 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
                 ij += 1
                 a6[0,ij] = a[i]
                 a6[1,ij] = energy_ev[j]
-                a6[2,ij] = fm[i,j]*srfunc.codata_ec*1e3
+                a6[2,ij] = fm[i,j] * srfunc.codata_ec * 1e3
                 a6[3,ij] = fm[i,j]
 
         coltitles=['Psi [mrad]','Photon Energy [eV]','Power [Watts/eV/mradPsi]','Flux [Ph/sec/0.1%bw/mradPsi]']
@@ -265,7 +262,7 @@ def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.
         f.write("%f  %f   %f\n"%(EMIN,EMAX,NEE))
         f.write("%f  %f  %f  %f  %f  %f  %f\n"%(D,XPC,YPC,XPS,YPS,NXP,NYP))
         f.write("%d  \n"%(4))
-    command = os.path.join(home_bin,'ws')
+    command = os.path.join(xoppy.home_bin(),'ws')
     print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
     print("\n--------------------------------------------------------\n")
     os.system(command)
@@ -307,7 +304,7 @@ def xoppy_calc_xtubes(ITUBE=0,VOLTAGE=30.0):
     os.chdir(xoppy.home_testrun())
     with open("xoppy.inp","wt") as f:
         f.write("%d\n%f\n"%(ITUBE+1,VOLTAGE))
-    command = os.path.join(home_bin,'xtubes') + " < xoppy.inp"
+    command = os.path.join(xoppy.home_bin(),'xtubes') + " < xoppy.inp"
     print("Running command '%s' in directory: %s "%(command,os.getcwd()))
     print("\n--------------------------------------------------------\n")
     os.system(command)
@@ -318,10 +315,10 @@ def xoppy_calc_xtubes(ITUBE=0,VOLTAGE=30.0):
 
 def xoppy_calc_xtube_w(VOLTAGE=100.0,RIPPLE=0.0,AL_FILTER=0.0):
     print("Inside xoppy_calc_xtube_w. ")
-    os.chdir(home_testrun)
+    os.chdir(xoppy.home_testrun())
     with open("xoppy.inp","wt") as f:
         f.write("%f\n%f\n%f\n"%(VOLTAGE,RIPPLE,AL_FILTER))
-    command = os.path.join(home_bin,'tasmip') + " < xoppy.inp"
+    command = os.path.join(xoppy.home_bin(),'tasmip') + " < xoppy.inp"
     print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
     print("\n--------------------------------------------------------\n")
     os.system(command)
@@ -334,7 +331,7 @@ def xoppy_calc_xtube_w(VOLTAGE=100.0,RIPPLE=0.0,AL_FILTER=0.0):
 def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,MILLER_INDEX_K=1,MILLER_INDEX_L=1,\
                       ASYMMETRY_ANGLE=0.0,THICKNESS=500.0,TEMPERATURE=300.0,NPOINTS=100,SCALE=0,XFROM=-50.0,XTO=50.0):
     print("Inside xoppy_calc_xinpro. ")
-    os.chdir(home_testrun)
+    os.chdir(xoppy.home_testrun())
     with open("xoppy.inp","wt") as f:
         f.write("%s\n"% (os.path.join(home_data,"inpro"+os.sep)))
         if MODE == 0:
@@ -357,8 +354,8 @@ def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,M
         else:
             f.write("%d\n%f\n%f\n"%(2,XFROM,XTO))
         f.write("%d\n"%(NPOINTS))
-            
-    command = os.path.join(home_bin,'inpro') + " < xoppy.inp"
+
+    command = os.path.join(xoppy.home_bin(),'inpro') + " < xoppy.inp"
     print("Running command '%s' in directory: %s "%(command,os.getcwd()))
     print("\n--------------------------------------------------------\n")
     os.system(command)
@@ -403,24 +400,24 @@ def xoppy_calc_xwiggler(FIELD=0,NPERIODS=12,ULAMBDA=0.125,K=14.0,ENERGY=6.04,PHO
     outFile = "xwiggler.spec"
 
     if FIELD == 0:
-        t0,p = srfunc.wiggler_trajectory(b_from=0, nPer=NPERIODS, nTrajPoints=NTRAJPOINTS,  \
-                                 ener_gev=ENERGY, per=ULAMBDA, kValue=K, \
-                                 trajFile=outFileTraj)
+        t0,p = srfunc.wiggler_trajectory(b_from=0, nPer=NPERIODS, nTrajPoints=NTRAJPOINTS, \
+                                         ener_gev=ENERGY, per=ULAMBDA, kValue=K, \
+                                         trajFile=outFileTraj)
     if FIELD == 1:
         # magnetic field from B(s) map
-        t0,p = srfunc.wiggler_trajectory(b_from=1, nPer=NPERIODS, nTrajPoints=NTRAJPOINTS,  \
-                       ener_gev=ENERGY4, inData=FILE,trajFile=outFileTraj)
+        t0,p = srfunc.wiggler_trajectory(b_from=1, nPer=NPERIODS, nTrajPoints=NTRAJPOINTS, \
+                                         ener_gev=ENERGY4, inData=FILE, trajFile=outFileTraj)
     if FIELD == 2:
         # magnetic field from harmonics
         # hh = srfunc.wiggler_harmonics(b_t,Nh=41,fileOutH="tmp.h")
-        t0,p = srfunc.wiggler_trajectory(b_from=2, nPer=NPERIODS, nTrajPoints=NTRAJPOINTS,  \
-                       ener_gev=ENERGY, per=ULAMBDA, inData="",trajFile=outFileTraj)
+        t0,p = srfunc.wiggler_trajectory(b_from=2, nPer=NPERIODS, nTrajPoints=NTRAJPOINTS, \
+                                         ener_gev=ENERGY, per=ULAMBDA, inData="", trajFile=outFileTraj)
     print(p)
     #
     # now spectra
     #
-    e, f0 = srfunc.wiggler_spectrum(t0,enerMin=PHOT_ENERGY_MIN,enerMax=PHOT_ENERGY_MAX,nPoints=NPOINTS, \
-                 electronCurrent=CURRENT*1e-3, outFile=outFile, elliptical=False)
+    e, f0 = srfunc.wiggler_spectrum(t0, enerMin=PHOT_ENERGY_MIN, enerMax=PHOT_ENERGY_MAX, nPoints=NPOINTS, \
+                                    electronCurrent=CURRENT*1e-3, outFile=outFile, elliptical=False)
 
     return(outFile)
 
@@ -430,7 +427,7 @@ def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:
                      FRACTION="0.807:0.129:0.038:0.022:0.004",GRID=1,GRIDINPUT=0,\
                      GRIDDATA="0.0804:0.2790:0.6616:1.3685:2.7541",ELEMENTOUTPUT=0):
     print("Inside xoppy_calc_xxcom. ")
-    os.chdir(home_testrun)
+    os.chdir(xoppy.home_testrun())
     with open("xoppy.inp","wt") as f:
         f.write( os.path.join(home_data,'xcom')+os.sep+"\n" )
         f.write( NAME+"\n" )
@@ -597,7 +594,7 @@ def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=
                                        PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
                                        HSLITPOINTS=101,VSLITPOINTS=51,METHOD=0):
     print("Inside xoppy_calc_undulator_power_density. ")
-    os.chdir(home_testrun)
+    os.chdir(xoppy.home_testrun())
 
     bl = OrderedDict()
     bl['ElectronBeamDivergenceH'] = ELECTRONBEAMDIVERGENCEH
