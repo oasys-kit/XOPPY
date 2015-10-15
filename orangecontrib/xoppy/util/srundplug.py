@@ -69,8 +69,10 @@ import os
 import sys
 from collections import OrderedDict
 import time
+import platform
 
 import numpy
+import orangecontrib.xoppy as xoppy
 
 #SRW
 try:
@@ -118,17 +120,22 @@ scanCounter = 0
 
 # directory  where to find urgent and us binaries
 try:
-    home_bin
+    home_bin = xoppy.home_bin()
 except NameError:
-    home_bin='/users/srio/Oasys/Orange-XOPPY/orangecontrib/xoppy/bin.linux/'
-    #home_bin='/scisoft/xop2.4/bin.linux/'
-    print("srundplug: undefined home_bin. It has been set to ",home_bin)
-
+    if platform.system() == 'Linux':
+        home_bin='/scisoft/xop2.4/bin.linux/'
+        print("srundplug: undefined home_bin. It has been set to ", home_bin)
+    elif platform.system() == 'Darwin':
+        home_bin = "/scisoft/xop2.4/bin.darwin/"
+        print("srundplug: undefined home_bin. It has been set to ", home_bin)
+    else:
+        raise FileNotFoundError("srundplug: undefined home_bin")
 #check
-if os.path.isfile(home_bin+'us') == False:
+
+if os.path.isfile(home_bin + 'us') == False:
     print("srundplug: File not found: "+home_bin+'us')
-if os.path.isfile(home_bin+'urgent') == False:
-    sys.exit("srundplug: File not found: "+home_bin+'urgent')
+if os.path.isfile(home_bin + 'urgent') == False:
+    raise FileNotFoundError("srundplug: File not found: "+ home_bin + 'urgent')
 
 #
 #----------------------------  FUNCTIONS -------------------------------------
@@ -793,7 +800,10 @@ def calc2dSrw(bl,fileName="/dev/null",fileAppend=True,hSlitPoints=101,vSlitPoint
     und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
 
     #Container of all magnetic field elements
-    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('distance', [0]), srwlib.array('distance', [0]), srwlib.array('distance', [0]))
+    magFldCnt = srwlib.SRWLMagFldC([und],
+                                   srwlib.array("distance", [0]),
+                                   srwlib.array("distance", [0]),
+                                   srwlib.array("distance", [0]))
     
     #***********Electron Beam
     eBeam = srwlib.SRWLPartBeam()

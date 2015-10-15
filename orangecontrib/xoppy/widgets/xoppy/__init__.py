@@ -1,18 +1,18 @@
-__author__ = 'srio'
+# namespace declaration.
+__import__("pkg_resources").declare_namespace(__name__)
+import os,sys
+import orangecanvas.resources as resources
 
-NAME = "Xoppy"
+xoppy_home = resources.package_dirname("orangecontrib.xoppy")
 
-ID = "orangecontrib.xoppy.widgets.xoppy"
+def home_bin():
+    return os.path.join(xoppy_home, 'bin.' + str(sys.platform) + '/')
 
-DESCRIPTION = """Widgets for x-ray oriented programs under python (xoppy)"""
+def home_doc():
+    return os.path.join(xoppy_home, 'doc_txt/')
 
-LONG_DESRIPTION = """
-This category contains widgets for calculating spectra of x-ray sources and reflectivities of optical elements (mirrors, multilayers, crystals, etc.).
+def home_data():
+    return os.path.join(xoppy_home, 'data/')
 
-"""
-
-ICON = "icons/xoppy.png"
-
-BACKGROUND = "#FFD39F"
-
-PRIORITY = 201
+def home_testrun():
+    return os.path.join(xoppy_home, 'testrun/')

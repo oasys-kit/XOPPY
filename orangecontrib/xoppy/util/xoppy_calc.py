@@ -11,6 +11,7 @@ from orangecontrib.xoppy.util import srundplug
 import xraylib
 import PyMca5.PyMcaPhysics.xrf.Elements as Elements
 
+import orangecontrib.xoppy as xoppy
 
 
 def reflectivity_fresnel(refraction_index_delta=1e-5,refraction_index_beta=0.0,\
@@ -256,7 +257,7 @@ def xoppy_calc_nsources(TEMPERATURE=300.0,ZONE=0,MAXFLUX_F=200000000000000.0,MAX
 def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.0,KX=0.0,KY=8.739999771118164,\
                   EMIN=1000.0,EMAX=100000.0,NEE=2000,D=30.0,XPC=0.0,YPC=0.0,XPS=2.0,YPS=2.0,NXP=10,NYP=10):
     print("Inside xoppy_calc_ws. ")
-    os.chdir(home_testrun)
+    os.chdir(xoppy.home_testrun())
     with open("ws.inp","wt") as f:
         f.write("%s\n"%(TITLE))
         f.write("%f     %f\n"%(ENERGY,CUR))
@@ -303,7 +304,7 @@ def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.
 
 def xoppy_calc_xtubes(ITUBE=0,VOLTAGE=30.0):
     print("Inside xoppy_calc_xtubes. ")
-    os.chdir(home_testrun)
+    os.chdir(xoppy.home_testrun())
     with open("xoppy.inp","wt") as f:
         f.write("%d\n%f\n"%(ITUBE+1,VOLTAGE))
     command = os.path.join(home_bin,'xtubes') + " < xoppy.inp"
@@ -547,7 +548,8 @@ def xoppy_calc_undulator_flux(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELE
                               PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
                               PHOTONENERGYMIN=3000.0,PHOTONENERGYMAX=55000.0,PHOTONENERGYPOINTS=500,METHOD=0):
     print("Inside xoppy_calc_undulator_flux. ")
-    os.chdir(home_testrun)
+
+    os.chdir(xoppy.home_testrun())
 
     bl = OrderedDict()
     bl['ElectronBeamDivergenceH'] = ELECTRONBEAMDIVERGENCEH
