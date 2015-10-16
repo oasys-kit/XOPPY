@@ -26,7 +26,7 @@ class OWws(widget.OWWidget):
     icon = "icons/xoppy_ws.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 5
     category = ""
     keywords = ["xoppy", "ws"]
     outputs = [{"name": "xoppy_data",

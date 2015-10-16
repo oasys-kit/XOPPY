@@ -26,7 +26,7 @@ class OWxinpro(widget.OWWidget):
     icon = "icons/xoppy_xinpro.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 7
     category = ""
     keywords = ["xoppy", "xinpro"]
     outputs = [{"name": "xoppy_data",

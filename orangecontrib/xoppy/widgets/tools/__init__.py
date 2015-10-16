@@ -1,18 +1,18 @@
 __author__ = 'srio'
 
-NAME = "XOPPY: Components"
+NAME = "XOPPY: Tools"
 
-ID = "orangecontrib.xoppy.widgets.xoppy"
+ID = "orangecontrib.xoppy.widgets.tools"
 
 DESCRIPTION = """Widgets for x-ray oriented programs under python (xoppy)"""
 
 LONG_DESRIPTION = """
-Widgets Under development
+Miscellanea Tools
 
 """
 
-ICON = "undefined"
+ICON = "icons/xoppy_2.png"
 
 BACKGROUND = "#FFD39F"
 
-PRIORITY = 2030
+PRIORITY = 2003
