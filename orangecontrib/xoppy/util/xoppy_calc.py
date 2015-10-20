@@ -5,7 +5,10 @@ import xraylib
 from collections import OrderedDict
 
 import orangecontrib.xoppy as xoppy
-from oasys import __file__ as orange_init
+try:
+    from oasys import __file__ as orange_init
+except:
+    pass
 
 from srxraylib.sources import srfunc
 from orangecontrib.xoppy.util import srundplug

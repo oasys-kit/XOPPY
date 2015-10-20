@@ -1,6 +1,6 @@
 import sys
 import numpy as np
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting

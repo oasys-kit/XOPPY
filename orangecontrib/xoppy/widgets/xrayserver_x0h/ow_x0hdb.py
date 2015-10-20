@@ -3,11 +3,12 @@ __author__ = "Luca Rebuffi"
 from oasys.widgets import widget
 from orangewidget import gui
 from orangewidget.settings import Setting
+from oasys.widgets import gui as oasysgui
 
-import numpy, urllib
+import urllib
 from http import server
 
-from orangecontrib.xoppy.util.xoppy_util import XoppyGui, HttpManager
+from orangecontrib.xoppy.util.xoppy_util import HttpManager
 
 from PyQt4 import QtGui
 
@@ -38,7 +39,7 @@ class X0hList(widget.OWWidget):
         self.setFixedWidth(1200)
         self.setFixedHeight(600)
 
-        left_box_1 = XoppyGui.widgetBox(self.controlArea, "X0h List Parameters", addSpace=True, orientation="vertical",
+        left_box_1 = oasysgui.widgetBox(self.controlArea, "X0h List Parameters", addSpace=True, orientation="vertical",
                                          width=300, height=500)
 
 
