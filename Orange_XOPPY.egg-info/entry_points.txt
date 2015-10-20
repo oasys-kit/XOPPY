@@ -1,7 +1,0 @@
-[orangecontrib]
-xoppy = orangecontrib.xoppy
-
-[orange.widgets]
-XOPPY Viewers = orangecontrib.xoppy.widgets.viewers
-XOPPY Widgets = orangecontrib.xoppy.widgets.xoppy
-

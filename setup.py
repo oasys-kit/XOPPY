@@ -8,7 +8,7 @@ import subprocess
 from setuptools import find_packages, setup
 
 NAME = 'XOPPY'
-VERSION = '1.0.0'
+VERSION = '1.0.1'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
@@ -44,6 +44,7 @@ INSTALL_REQUIRES = (
     'numpy',
     'scipy',
     'matplotlib',
+    'srxraylib',
     'orange-widget-core>=0.0.2',
     'oasys>=0.1',
 )
@@ -51,6 +52,11 @@ INSTALL_REQUIRES = (
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
 
 PACKAGE_DATA = {
+    "orangecontrib.xoppy.widgets.source":["icons/*.png", "icons/*.jpg"],
+    "orangecontrib.xoppy.widgets.optics":["icons/*.png", "icons/*.jpg"],
+    "orangecontrib.xoppy.widgets.tools":["icons/*.png", "icons/*.jpg", "misc/*.*"],
+    "orangecontrib.xoppy.widgets.xrayserver_x0h":["icons/*.png", "icons/*.jpg", "misc/*.*"],
+    "orangecontrib.xoppy.widgets.xrayserver_gidsl":["icons/*.png", "icons/*.jpg", "misc/*.*"],
     "orangecontrib.xoppy.widgets.viewers":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.xoppy.widgets.xoppy":["icons/*.png", "icons/*.jpg"],
 }
@@ -60,8 +66,13 @@ NAMESPACE_PACAKGES = ["orangecontrib", "orangecontrib.xoppy", "orangecontrib.xop
 ENTRY_POINTS = {
     'oasys.addons' : ("shadow = orangecontrib.xoppy", ),
     'oasys.widgets' : (
-        "XOPPY viewers = orangecontrib.xoppy.widgets.viewers",
-        "XOPPY components = orangecontrib.xoppy.widgets.xoppy",
+        "XOPPY Source = orangecontrib.xoppy.widgets.source",
+        "XOPPY Optics = orangecontrib.xoppy.widgets.optics",
+        "XOPPY Tools = orangecontrib.xoppy.widgets.tools",
+        "XOPPY Viewers = orangecontrib.xoppy.widgets.viewers",
+        "XOPPY/X-ray Server X0h = orangecontrib.xoppy.widgets.xrayserver_x0h",
+        "XOPPY/X-ray Server GID_SL = orangecontrib.xoppy.widgets.xrayserver_gidsl",
+        "XOPPY Under Devel = orangecontrib.xoppy.widgets.xoppy",
     ),
     #'oasys.menus' : ("Menu = orangecontrib.shadow.menu",)
 }

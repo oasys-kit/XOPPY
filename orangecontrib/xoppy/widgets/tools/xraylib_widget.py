@@ -25,10 +25,10 @@ class OWxraylib_widget(widget.OWWidget):
     name = "xraylib_widget"
     id = "orange.widgets.dataxraylib_widget"
     description = "xoppy application to compute..."
-    icon = "icons/xraylib.jpg"
+    icon = "icons/xraylib.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 1
     category = ""
     keywords = ["xoppy", "xraylib_widget"]
     outputs = [{"name": "xoppy_data",

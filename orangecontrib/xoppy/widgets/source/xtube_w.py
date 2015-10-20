@@ -13,22 +13,22 @@ except ImportError:
     raise
 
 try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_xtubes
+    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_xtube_w
 except ImportError:
     print("compute pressed.")
-    print("Error importing: xoppy_calc_xtubes")
+    print("Error importing: xoppy_calc_xtube_w")
     raise
 
-class OWxtubes(widget.OWWidget):
-    name = "xtubes"
-    id = "orange.widgets.dataxtubes"
+class OWxtube_w(widget.OWWidget):
+    name = "xtube_w"
+    id = "orange.widgets.dataxtube_w"
     description = "xoppy application to compute..."
-    icon = "icons/xoppy_xtubes.png"
+    icon = "icons/xoppy_xtube_w.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 8
     category = ""
-    keywords = ["xoppy", "xtubes"]
+    keywords = ["xoppy", "xtube_w"]
     outputs = [{"name": "xoppy_data",
                 "type": np.ndarray,
                 "doc": ""},
@@ -43,8 +43,9 @@ class OWxtubes(widget.OWWidget):
 
     want_main_area = False
 
-    ITUBE = Setting(0)
-    VOLTAGE = Setting(30.0)
+    VOLTAGE = Setting(100.0)
+    RIPPLE = Setting(0.0)
+    AL_FILTER = Setting(0.0)
 
 
     def __init__(self):
@@ -64,16 +65,23 @@ class OWxtubes(widget.OWWidget):
         #widget index 0 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "ITUBE",
+        gui.lineEdit(box1, self, "VOLTAGE",
                      label=self.unitLabels()[idx], addSpace=True,
-                    items=['Mo', 'Rh', 'W'],
-                    valueType=int, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "VOLTAGE",
+        gui.lineEdit(box1, self, "RIPPLE",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 2 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "AL_FILTER",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
@@ -81,19 +89,19 @@ class OWxtubes(widget.OWWidget):
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['Target element ','Voltage  [kV] (18<V<42)']
+         return ['Voltage 30<V<140 (kV)','Voltage ripple (%)','Al filter [mm]']
 
 
     def unitFlags(self):
-         return ['True','True']
+         return ['True','True','True']
 
 
     #def unitNames(self):
-    #     return ['ITUBE','VOLTAGE']
+    #     return ['VOLTAGE','RIPPLE','AL_FILTER']
 
 
     def compute(self):
-        fileName = xoppy_calc_xtubes(ITUBE=self.ITUBE,VOLTAGE=self.VOLTAGE)
+        fileName = xoppy_calc_xtube_w(VOLTAGE=self.VOLTAGE,RIPPLE=self.RIPPLE,AL_FILTER=self.AL_FILTER)
         #send specfile
 
         if fileName == None:
@@ -123,7 +131,7 @@ class OWxtubes(widget.OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('xtubes')
+        xoppy_doc('xtube_w')
 
 
 
@@ -131,7 +139,7 @@ class OWxtubes(widget.OWWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    w = OWxtubes()
+    w = OWxtube_w()
     w.show()
     app.exec()
     w.saveSettings()

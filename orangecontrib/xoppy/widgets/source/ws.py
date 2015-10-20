@@ -13,22 +13,22 @@ except ImportError:
     raise
 
 try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_xinpro
+    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_ws
 except ImportError:
     print("compute pressed.")
-    print("Error importing: xoppy_calc_xinpro")
+    print("Error importing: xoppy_calc_ws")
     raise
 
-class OWxinpro(widget.OWWidget):
-    name = "xinpro"
-    id = "orange.widgets.dataxinpro"
+class OWws(widget.OWWidget):
+    name = "ws"
+    id = "orange.widgets.dataws"
     description = "xoppy application to compute..."
-    icon = "icons/xoppy_xinpro.png"
+    icon = "icons/xoppy_ws.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 5
     category = ""
-    keywords = ["xoppy", "xinpro"]
+    keywords = ["xoppy", "ws"]
     outputs = [{"name": "xoppy_data",
                 "type": np.ndarray,
                 "doc": ""},
@@ -43,19 +43,23 @@ class OWxinpro(widget.OWWidget):
 
     want_main_area = False
 
-    CRYSTAL_MATERIAL = Setting(0)
-    MODE = Setting(0)
-    ENERGY = Setting(8000.0)
-    MILLER_INDEX_H = Setting(1)
-    MILLER_INDEX_K = Setting(1)
-    MILLER_INDEX_L = Setting(1)
-    ASYMMETRY_ANGLE = Setting(0.0)
-    THICKNESS = Setting(500.0)
-    TEMPERATURE = Setting(300.0)
-    NPOINTS = Setting(100)
-    SCALE = Setting(0)
-    XFROM = Setting(-50.0)
-    XTO = Setting(50.0)
+    TITLE = Setting("Wiggler A at APS")
+    ENERGY = Setting(7.0)
+    CUR = Setting(100.0)
+    PERIOD = Setting(8.5)
+    N = Setting(28.0)
+    KX = Setting(0.0)
+    KY = Setting(8.739999771118164)
+    EMIN = Setting(1000.0)
+    EMAX = Setting(100000.0)
+    NEE = Setting(2000)
+    D = Setting(30.0)
+    XPC = Setting(0.0)
+    YPC = Setting(0.0)
+    XPS = Setting(2.0)
+    YPS = Setting(2.0)
+    NXP = Setting(10)
+    NYP = Setting(10)
 
 
     def __init__(self):
@@ -75,22 +79,11 @@ class OWxinpro(widget.OWWidget):
         #widget index 0 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "CRYSTAL_MATERIAL",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    items=['Silicon', 'Germanium', 'Diamond', 'GaAs', 'GaP', 'InAs', 'InP', 'InSb', 'SiC', 'CsF', 'KCl', 'LiF', 'NaCl', 'Graphite', 'Beryllium'],
-                    valueType=int, orientation="horizontal")
+        gui.lineEdit(box1, self, "TITLE",
+                     label=self.unitLabels()[idx], addSpace=True)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "MODE",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    items=['Reflectivity in Bragg case', 'Transmission in Bragg case', 'Reflectivity in Laue case', 'Transmission in Laue case'],
-                    valueType=int, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ENERGY",
@@ -98,34 +91,42 @@ class OWxinpro(widget.OWWidget):
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
+        #widget index 2 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "CUR",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "MILLER_INDEX_H",
+        gui.lineEdit(box1, self, "PERIOD",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "MILLER_INDEX_K",
+        gui.lineEdit(box1, self, "N",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "MILLER_INDEX_L",
+        gui.lineEdit(box1, self, "KX",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "ASYMMETRY_ANGLE",
+        gui.lineEdit(box1, self, "KY",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
@@ -133,7 +134,7 @@ class OWxinpro(widget.OWWidget):
         #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "THICKNESS",
+        gui.lineEdit(box1, self, "EMIN",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
@@ -141,7 +142,7 @@ class OWxinpro(widget.OWWidget):
         #widget index 8 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "TEMPERATURE",
+        gui.lineEdit(box1, self, "EMAX",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
@@ -149,7 +150,7 @@ class OWxinpro(widget.OWWidget):
         #widget index 9 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "NPOINTS",
+        gui.lineEdit(box1, self, "NEE",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
@@ -157,16 +158,15 @@ class OWxinpro(widget.OWWidget):
         #widget index 10 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "SCALE",
+        gui.lineEdit(box1, self, "D",
                      label=self.unitLabels()[idx], addSpace=True,
-                    items=['Automatic', 'External'],
-                    valueType=int, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "XFROM",
+        gui.lineEdit(box1, self, "XPC",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
@@ -174,27 +174,59 @@ class OWxinpro(widget.OWWidget):
         #widget index 12 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "XTO",
+        gui.lineEdit(box1, self, "YPC",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 13 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "XPS",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 14 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "YPS",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 15 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "NXP",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=int, validator=QIntValidator())
+        self.show_at(self.unitFlags()[idx], box1) 
+        
+        #widget index 16 
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.lineEdit(box1, self, "NYP",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
 
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['Crystal material: ','Calculation mode:','Energy [eV]:','Miller index H:','Miller index K:','Miller index L:','Asymmetry angle:','Crystal thickness [microns]:','Crystal temperature [K]:','Number of points: ','Angular limits: ','Theta min [arcsec]:','Theta max [arcsec]:']
+         return ['Title','Beam energy (GeV)','Beam current (mA)','Period (cm)','Number of periods','Kx','Ky','Min energy (eV)','Max energy (eV)','Number of energy steps','Distance (m)','X-pos. (mm)','Y-pos. (mm)','X slit [mm or mrad]','Y slit [mm or mrad]','Integration points X','Integration points Y']
 
 
     def unitFlags(self):
-         return ['True','True','True','True','True','True','True','True','True','True','True','self.SCALE  ==  1','self.SCALE  ==  1']
+         return ['True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True']
 
 
     #def unitNames(self):
-    #     return ['CRYSTAL_MATERIAL','MODE','ENERGY','MILLER_INDEX_H','MILLER_INDEX_K','MILLER_INDEX_L','ASYMMETRY_ANGLE','THICKNESS','TEMPERATURE','NPOINTS','SCALE','XFROM','XTO']
+    #     return ['TITLE','ENERGY','CUR','PERIOD','N','KX','KY','EMIN','EMAX','NEE','D','XPC','YPC','XPS','YPS','NXP','NYP']
 
 
     def compute(self):
-        fileName = xoppy_calc_xinpro(CRYSTAL_MATERIAL=self.CRYSTAL_MATERIAL,MODE=self.MODE,ENERGY=self.ENERGY,MILLER_INDEX_H=self.MILLER_INDEX_H,MILLER_INDEX_K=self.MILLER_INDEX_K,MILLER_INDEX_L=self.MILLER_INDEX_L,ASYMMETRY_ANGLE=self.ASYMMETRY_ANGLE,THICKNESS=self.THICKNESS,TEMPERATURE=self.TEMPERATURE,NPOINTS=self.NPOINTS,SCALE=self.SCALE,XFROM=self.XFROM,XTO=self.XTO)
+        fileName = xoppy_calc_ws(TITLE=self.TITLE,ENERGY=self.ENERGY,CUR=self.CUR,PERIOD=self.PERIOD,N=self.N,KX=self.KX,KY=self.KY,EMIN=self.EMIN,EMAX=self.EMAX,NEE=self.NEE,D=self.D,XPC=self.XPC,YPC=self.YPC,XPS=self.XPS,YPS=self.YPS,NXP=self.NXP,NYP=self.NYP)
         #send specfile
 
         if fileName == None:
@@ -224,7 +256,7 @@ class OWxinpro(widget.OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('xinpro')
+        xoppy_doc('ws')
 
 
 
@@ -232,7 +264,7 @@ class OWxinpro(widget.OWWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    w = OWxinpro()
+    w = OWws()
     w.show()
     app.exec()
     w.saveSettings()

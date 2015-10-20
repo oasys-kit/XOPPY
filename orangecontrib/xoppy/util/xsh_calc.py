@@ -1,6 +1,7 @@
 import Shadow
 import numpy
-from orangecontrib.xoppy.util import srfunc
+
+from srxraylib.sources import srfunc
 
 def calc_xsh_und_gauss(UND_LENGTH=4.0,UND_E0=15000.0,UND_DE=1500.0,USERUNIT=1,SIGMAX=0.0001,SIGMAZ=0.0001,SIGDIX=1e-06,SIGDIZ=1e-06,NPOINT=15000,ISTAR1=0):
     print("Inside calc_xsh_und_gauss. ")
@@ -142,14 +143,14 @@ def calc_xshwig(BENER=2.01,USERUNIT=1,FLAG_EMITTANCE=1,SIGMAX=0.0056,SIGMAZ=0.00
     #
     print("calc_xshwig: calculating electron trajectory...\n")
     (traj,pars) = srfunc.wiggler_trajectory(b_from=WIGGLER_TYPE, \
-                  inData=inData, nPer=PERIODS, nTrajPoints=501, \
-                  ener_gev=BENER, per=WAVLEN, kValue=K, trajFile="tmp.traj")
+                                            inData=inData, nPer=PERIODS, nTrajPoints=501, \
+                                            ener_gev=BENER, per=WAVLEN, kValue=K, trajFile="tmp.traj")
 
     #
     # calculate cdf and write file for Shadow/Source
     #
     print("calc_xshwig: calculating CDF...\n")
-    srfunc.wiggler_cdf(traj, enerMin=PH1,  enerMax=PH2, enerPoints=1001, outFile=wigFile, elliptical=False)
+    srfunc.wiggler_cdf(traj, enerMin=PH1, enerMax=PH2, enerPoints=1001, outFile=wigFile, elliptical=False)
 
     print("calc_xshwig: CDF written to file %s \n"%(wigFile))
 

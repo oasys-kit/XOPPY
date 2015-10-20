@@ -8,26 +8,32 @@ from oasys.widgets import widget
 try:
     from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
 except ImportError:
-    print("Error importing: xoppy_doc")
+    print("undulator_power_density: Error importing: xoppy_doc")
     raise
 
 try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_undulator_flux
+    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_undulator_power_density
 except ImportError:
-    print("compute pressed.")
-    print("Error importing: xoppy_calc_undulator_flux")
+    print("undulator_power_density: Error importing: xoppy_calc_undulator_power_density")
     raise
 
-class OWundulator_flux(widget.OWWidget):
-    name = "undulator_flux"
-    id = "orange.widgets.dataundulator_flux"
+
+try:
+    from orangecontrib.xoppy.util.xoppy_pymca_tools import xoppy_loadspec
+except ImportError:
+    print("undulator_power_density: Error importing: xoppy_pymca_tools.xoppy_loadspec")
+    raise
+
+class OWundulator_power_density(widget.OWWidget):
+    name = "undulator_power_density"
+    id = "orange.widgets.dataundulator_power_density"
     description = "xoppy application to compute..."
-    icon = "icons/xoppy_undulator_flux.png"
+    icon = "icons/xoppy_undulator_power_density.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 2
     category = ""
-    keywords = ["xoppy", "undulator_flux"]
+    keywords = ["xoppy", "undulator_power_density"]
     outputs = [{"name": "xoppy_data",
                "type": np.ndarray,
                "doc": ""},
@@ -53,11 +59,10 @@ class OWundulator_flux(widget.OWWidget):
     NPERIODS = Setting(222)
     KV = Setting(1.68)
     DISTANCE = Setting(30.0)
-    GAPH = Setting(0.001)
-    GAPV = Setting(0.001)
-    PHOTONENERGYMIN = Setting(3000.0)
-    PHOTONENERGYMAX = Setting(55000.0)
-    PHOTONENERGYPOINTS = Setting(500)
+    GAPH = Setting(0.003)
+    GAPV = Setting(0.003)
+    HSLITPOINTS = Setting(41)
+    VSLITPOINTS = Setting(41)
     METHOD = Setting(0)
 
 
@@ -182,28 +187,20 @@ class OWundulator_flux(widget.OWWidget):
         #widget index 13 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "PHOTONENERGYMIN",
+        gui.lineEdit(box1, self, "HSLITPOINTS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 14 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "PHOTONENERGYMAX",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 15 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "PHOTONENERGYPOINTS",
+        gui.lineEdit(box1, self, "VSLITPOINTS",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 16 
+        #widget index 15 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "METHOD",
@@ -215,33 +212,36 @@ class OWundulator_flux(widget.OWWidget):
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ["Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]", "Electron Beam Size H [m]", "Electron Beam Size V [m]", "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", "Period ID [m]", "Number of periods", "Kv [undulator K value vertical field]", "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "photon Energy Min [eV]", "photon Energy Max [eV]", "photon Energy Points", "calculation code"]
+         return ["Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]", "Electron Beam Size H [m]", "Electron Beam Size V [m]", "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", "Period ID [m]", "Number of periods", "Kv [undulator K value vertical field]", "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "Number of slit mesh points in H", "Number of slit mesh points in V", "calculation code"]
 
 
     def unitFlags(self):
-         return ["True", "self.METHOD != 1", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True"]
+         return ["True", "self.METHOD != 1", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True"]
 
 
     #def unitNames(self):
-    #     return ["ELECTRONENERGY", "ELECTRONENERGYSPREAD", "ELECTRONCURRENT", "ELECTRONBEAMSIZEH", "ELECTRONBEAMSIZEV", "ELECTRONBEAMDIVERGENCEH", "ELECTRONBEAMDIVERGENCEV", "PERIODID", "NPERIODS", "KV", "DISTANCE", "GAPH", "GAPV", "PHOTONENERGYMIN", "PHOTONENERGYMAX", "PHOTONENERGYPOINTS", "METHOD"]
+    #     return ["ELECTRONENERGY", "ELECTRONENERGYSPREAD", "ELECTRONCURRENT", "ELECTRONBEAMSIZEH", "ELECTRONBEAMSIZEV", "ELECTRONBEAMDIVERGENCEH", "ELECTRONBEAMDIVERGENCEV", "PERIODID", "NPERIODS", "KV", "DISTANCE", "GAPH", "GAPV", "HSLITPOINTS", "VSLITPOINTS", "METHOD"]
 
 
     def compute(self):
-        fileName = xoppy_calc_undulator_flux(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,PHOTONENERGYMIN=self.PHOTONENERGYMIN,PHOTONENERGYMAX=self.PHOTONENERGYMAX,PHOTONENERGYPOINTS=self.PHOTONENERGYPOINTS,METHOD=self.METHOD)
+        fileName = xoppy_calc_undulator_power_density(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,HSLITPOINTS=self.HSLITPOINTS,VSLITPOINTS=self.VSLITPOINTS,METHOD=self.METHOD)
         #send specfile
         self.send("xoppy_specfile",fileName)
 
         print("Loading file:  ",fileName)
         #load spec file with one scan, # is comment
-        out = np.loadtxt(fileName)
+
+        out = xoppy_loadspec(fileName)
+
+
         print("data shape: ",out.shape)
         #get labels
-        txt = open(fileName).readlines()
-        tmp = [ line.find("#L") for line in txt]
-        itmp = np.where(np.array(tmp) != (-1))
-        labels = txt[itmp[0]].replace("#L ","").split("  ")
-        print("data labels: ",labels)
-        self.send("xoppy_data",out)
+        # txt = open(fileName).readlines()
+        # tmp = [ line.find("#L") for line in txt]
+        # itmp = np.where(np.array(tmp) != (-1))
+        # labels = txt[itmp[0]].replace("#L ","").split("  ")
+        # print("data labels: ",labels)
+        self.send("xoppy_data",out.T)
 
     def defaults(self):
          self.resetSettings()
@@ -250,7 +250,7 @@ class OWundulator_flux(widget.OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('undulator_flux')
+        xoppy_doc('undulator_power_density')
 
 
 
@@ -258,7 +258,7 @@ class OWundulator_flux(widget.OWWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    w = OWundulator_flux()
+    w = OWundulator_power_density()
     w.show()
     app.exec()
     w.saveSettings()

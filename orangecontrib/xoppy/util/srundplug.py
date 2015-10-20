@@ -69,9 +69,10 @@ import os
 import sys
 from collections import OrderedDict
 import time
+import platform
 
 import numpy
-
+import orangecontrib.xoppy as xoppy
 #SRW
 try:
     import srwlib
@@ -118,17 +119,22 @@ scanCounter = 0
 
 # directory  where to find urgent and us binaries
 try:
-    home_bin
+    home_bin = xoppy.home_bin()
 except NameError:
-    home_bin='/users/srio/Oasys/Orange-XOPPY/orangecontrib/xoppy/bin.linux/'
-    #home_bin='/scisoft/xop2.4/bin.linux/'
-    print("srundplug: undefined home_bin. It has been set to ",home_bin)
-
+    if platform.system() == 'Linux':
+        home_bin='/scisoft/xop2.4/bin.linux/'
+        print("srundplug: undefined home_bin. It has been set to ", home_bin)
+    elif platform.system() == 'Darwin':
+        home_bin = "/scisoft/xop2.4/bin.darwin/"
+        print("srundplug: undefined home_bin. It has been set to ", home_bin)
+    else:
+        raise FileNotFoundError("srundplug: undefined home_bin")
 #check
-if os.path.isfile(home_bin+'us') == False:
+
+if os.path.isfile(home_bin + 'us') == False:
     print("srundplug: File not found: "+home_bin+'us')
-if os.path.isfile(home_bin+'urgent') == False:
-    sys.exit("srundplug: File not found: "+home_bin+'urgent')
+if os.path.isfile(home_bin + 'urgent') == False:
+    raise FileNotFoundError("srundplug: File not found: "+ home_bin + 'urgent')
 
 #
 #----------------------------  FUNCTIONS -------------------------------------
@@ -434,15 +440,15 @@ def calc1dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
     #***********Undulator
     harmB = srwlib.SRWLMagFldH() #magnetic field harmonic
     harmB.n = 1 #harmonic number
-    harmB.h_or_v = 'v' #magnetic field plane: horzontal ('h') or vertical ('v')
+    harmB.h_or_v = 'v' #magnetic field plane: horzontal ('h') or vertical ('v') '\u0068' or '\u0076'
     harmB.B = B0 #magnetic field amplitude [T]
 
     und = srwlib.SRWLMagFldU([harmB])
-    und.per = bl['PeriodID'] #period length [m]
-    und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
+    und.per = float(bl['PeriodID']) #period length [m]
+    und.nPer = int(bl['NPeriods']) #number of periods (will be rounded to integer)
 
     #Container of all magnetic field elements
-    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('distance', [0]), srwlib.array('distance', [0]), srwlib.array('distance', [0]))
+    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('d', [0]), srwlib.array('d', [0]), srwlib.array('d', [0]))
     
     #***********Electron Beam
     eBeam = srwlib.SRWLPartBeam()
@@ -793,7 +799,10 @@ def calc2dSrw(bl,fileName="/dev/null",fileAppend=True,hSlitPoints=101,vSlitPoint
     und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
 
     #Container of all magnetic field elements
-    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('distance', [0]), srwlib.array('distance', [0]), srwlib.array('distance', [0]))
+    magFldCnt = srwlib.SRWLMagFldC([und],
+                                   srwlib.array('distance', [0]),
+                                   srwlib.array('distance', [0]),
+                                   srwlib.array('distance', [0]))
     
     #***********Electron Beam
     eBeam = srwlib.SRWLPartBeam()

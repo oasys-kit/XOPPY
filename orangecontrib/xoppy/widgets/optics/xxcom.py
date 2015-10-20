@@ -26,7 +26,7 @@ class OWxxcom(widget.OWWidget):
     icon = "icons/xoppy_xxcom.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 3
     category = ""
     keywords = ["xoppy", "xxcom"]
     outputs = [{"name": "xoppy_data",

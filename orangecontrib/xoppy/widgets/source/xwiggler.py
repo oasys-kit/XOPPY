@@ -26,7 +26,7 @@ class OWxwiggler(widget.OWWidget):
     icon = "icons/xoppy_xwiggler.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 6
     category = ""
     keywords = ["xoppy", "xwiggler"]
     outputs = [{"name": "xoppy_data",
