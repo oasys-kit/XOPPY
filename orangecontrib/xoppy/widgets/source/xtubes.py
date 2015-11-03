@@ -6,6 +6,8 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
 
+from srxraylib.oasys.exchange import DataExchangeObject
+
 try:
     from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
 except ImportError:
@@ -34,7 +36,10 @@ class OWxtubes(widget.OWWidget):
                 "doc": ""},
                {"name": "xoppy_specfile",
                 "type": str,
-                "doc": ""}]
+                "doc": ""},
+               {"name": "xoppy_exchange_data",
+               "type": DataExchangeObject,
+               "doc": ""},]
 
     #inputs = [{"name": "Name",
     #           "type": type,
@@ -113,6 +118,13 @@ class OWxtubes(widget.OWWidget):
                 labels = txt[itmp[0]].replace("#L ","").split("  ")
                 print("data labels: ",labels)
                 self.send("xoppy_data",out)
+
+                exchange_data = DataExchangeObject("XOPPY", "XTUBES")
+
+                exchange_data.add_content("xoppy_specfile", fileName)
+                exchange_data.add_content("xoppy_data", out)
+
+                self.send("xoppy_exchange_data", exchange_data)
             else:
                 print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
 

@@ -232,7 +232,7 @@ class OWws(widget.OWWidget):
         if fileName == None:
             print("Nothing to send")
         else:
-            self.send("xoppy_specfile",fileName)
+            self.send("xoppy_specfile", fileName)
             sf = specfile.Specfile(fileName)
             if sf.scanno() == 1:
                 #load spec file with one scan, # is comment

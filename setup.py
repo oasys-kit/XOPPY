@@ -58,7 +58,7 @@ PACKAGE_DATA = {
     "orangecontrib.xoppy.widgets.xrayserver_x0h":["icons/*.png", "icons/*.jpg", "misc/*.*"],
     "orangecontrib.xoppy.widgets.xrayserver_gidsl":["icons/*.png", "icons/*.jpg", "misc/*.*"],
     "orangecontrib.xoppy.widgets.viewers":["icons/*.png", "icons/*.jpg"],
-    "orangecontrib.xoppy.widgets.xoppy":["icons/*.png", "icons/*.jpg"],
+    #"orangecontrib.xoppy.widgets.xoppy":["icons/*.png", "icons/*.jpg"],
 }
 
 NAMESPACE_PACAKGES = ["orangecontrib", "orangecontrib.xoppy", "orangecontrib.xoppy.widgets"]
@@ -72,7 +72,7 @@ ENTRY_POINTS = {
         "XOPPY Viewers = orangecontrib.xoppy.widgets.viewers",
         "XOPPY/X-ray Server X0h = orangecontrib.xoppy.widgets.xrayserver_x0h",
         "XOPPY/X-ray Server GID_SL = orangecontrib.xoppy.widgets.xrayserver_gidsl",
-        "XOPPY Under Devel = orangecontrib.xoppy.widgets.xoppy",
+        #"XOPPY Under Devel = orangecontrib.xoppy.widgets.xoppy",
     ),
     #'oasys.menus' : ("Menu = orangecontrib.shadow.menu",)
 }
