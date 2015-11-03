@@ -251,15 +251,15 @@ def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.
             f.write("%f  %f  %f  %f  %f  %f  %f\n"%(D,XPC,YPC,XPS,YPS,NXP,NYP))
             f.write("%d  \n"%(4))
 
-        command = os.path.join(home_bin,'ws')
-        print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
+        command = os.path.join(xoppy.home_bin(),'ws')
+        print("Running command '%s' in directory: %s \n"%(command, wd))
         print("\n--------------------------------------------------------\n")
         os.system(command)
         print("\n--------------------------------------------------------\n")
 
         # write spec file
         txt = open("ws.out").readlines()
-        outFile = "ws.spec"
+        outFile = os.path.join(xoppy.home_testrun(), "ws.spec")
         f = open(outFile,"w")
 
         f.write("#F ws.spec\n")
@@ -419,7 +419,7 @@ def xoppy_calc_xwiggler(FIELD=0,NPERIODS=12,ULAMBDA=0.125,K=14.0,ENERGY=6.04,PHO
     if FIELD == 1:
         # magnetic field from B(s) map
         t0,p = srfunc.wiggler_trajectory(b_from=1, nPer=NPERIODS, nTrajPoints=NTRAJPOINTS, \
-                                         ener_gev=ENERGY4, inData=FILE, trajFile=outFileTraj)
+                                         ener_gev=ENERGY, inData=FILE, trajFile=outFileTraj)
     if FIELD == 2:
         # magnetic field from harmonics
         # hh = srfunc.wiggler_harmonics(b_t,Nh=41,fileOutH="tmp.h")
