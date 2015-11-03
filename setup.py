@@ -52,6 +52,11 @@ INSTALL_REQUIRES = (
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
 
 PACKAGE_DATA = {
+    "orangecontrib.xoppy.bin.darwin":["*"],
+    "orangecontrib.xoppy.bin.linux":["*"],
+    "orangecontrib.xoppy.data":["dabax/*.*", "inpro/*.*", "xcom/*.*", "xcom/.rsrc/*.*", "xpowder/*.*", ],
+    "orangecontrib.xoppy.doc_txt":["*.*"],
+    "orangecontrib.xoppy.testrun":["*.*"],
     "orangecontrib.xoppy.widgets.source":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.xoppy.widgets.optics":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.xoppy.widgets.tools":["icons/*.png", "icons/*.jpg", "misc/*.*"],
