@@ -65,7 +65,11 @@ class OWxwiggler(widget.OWWidget):
     def __init__(self):
         super().__init__()
 
-        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
+        self.runaction = widget.OWAction("Compute", self)
+        self.runaction.triggered.connect(self.compute)
+        self.addAction(self.runaction)
+
+        box0 = gui.widgetBox(self.controlArea, "Input",orientation="horizontal")
         #widget buttons: compute, set defaults, help
         gui.button(box0, self, "Compute", callback=self.compute)
         gui.button(box0, self, "Defaults", callback=self.defaults)
