@@ -4,6 +4,7 @@ from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePoli
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
+from orangewidget.widget import OWAction
 
 from srxraylib.oasys.exchange import DataExchangeObject
 
@@ -69,7 +70,11 @@ class OWundulator_flux(widget.OWWidget):
     def __init__(self):
         super().__init__()
 
-        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
+        self.runaction = OWAction("Compute", self)
+        self.runaction.triggered.connect(self.compute)
+        self.addAction(self.runaction)
+
+        box0 = gui.widgetBox(self.controlArea, "Input",orientation="horizontal")
         #widget buttons: compute, set defaults, help
         gui.button(box0, self, "Compute", callback=self.compute)
         gui.button(box0, self, "Defaults", callback=self.defaults)

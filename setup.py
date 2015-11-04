@@ -7,15 +7,15 @@ import subprocess
 
 from setuptools import find_packages, setup
 
-NAME = 'XOPPY'
-VERSION = '1.0.1'
+NAME = 'XOPPY-Devel'
+VERSION = '0.0.2'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
 README_FILE = os.path.join(os.path.dirname(__file__), 'README.txt')
 LONG_DESCRIPTION = open(README_FILE).read()
 AUTHOR = 'Manuel Sanchez del Rio, Luca Rebuffi, and Bioinformatics Laboratory, FRI UL'
-AUTHOR_EMAIL = 'srio@esrf.eu'
+AUTHOR_EMAIL = 'srio@esrf.eu, luca.rebuffi@elettra.eu'
 URL = 'https://github.com/srio/Orange-XOPPY'
 DOWNLOAD_URL = 'https://github.com/srio/Orange-XOPPY'
 LICENSE = 'GPLv3'
@@ -44,21 +44,27 @@ INSTALL_REQUIRES = (
     'numpy',
     'scipy',
     'matplotlib',
-    'srxraylib',
+    'srxraylib>=0.0.8',
     'orange-widget-core>=0.0.2',
-    'oasys>=0.1',
+    'oasys>=0.1.7',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
 
 PACKAGE_DATA = {
+    "orangecontrib.xoppy":["*.py"],
+    "orangecontrib.xoppy.bin_darwin":["*"],
+    "orangecontrib.xoppy.bin_linux":["*"],
+    "orangecontrib.xoppy.data":["dabax/*", "inpro/*", "xcom/*", "xcom/.rsrc/*", "xpowder/*", ],
+    "orangecontrib.xoppy.doc_txt":["*.*"],
+    "orangecontrib.xoppy.testrun":["*.py"],
     "orangecontrib.xoppy.widgets.source":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.xoppy.widgets.optics":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.xoppy.widgets.tools":["icons/*.png", "icons/*.jpg", "misc/*.*"],
     "orangecontrib.xoppy.widgets.xrayserver_x0h":["icons/*.png", "icons/*.jpg", "misc/*.*"],
     "orangecontrib.xoppy.widgets.xrayserver_gidsl":["icons/*.png", "icons/*.jpg", "misc/*.*"],
     "orangecontrib.xoppy.widgets.viewers":["icons/*.png", "icons/*.jpg"],
-    #"orangecontrib.xoppy.widgets.xoppy":["icons/*.png", "icons/*.jpg"],
+    "orangecontrib.xoppy.widgets.xoppy":["icons/*.png", "icons/*.jpg"],
 }
 
 NAMESPACE_PACAKGES = ["orangecontrib", "orangecontrib.xoppy", "orangecontrib.xoppy.widgets"]
@@ -72,7 +78,7 @@ ENTRY_POINTS = {
         "XOPPY Viewers = orangecontrib.xoppy.widgets.viewers",
         "XOPPY/X-ray Server X0h = orangecontrib.xoppy.widgets.xrayserver_x0h",
         "XOPPY/X-ray Server GID_SL = orangecontrib.xoppy.widgets.xrayserver_gidsl",
-        #"XOPPY Under Devel = orangecontrib.xoppy.widgets.xoppy",
+        "XOPPY Under Devel = orangecontrib.xoppy.widgets.xoppy",
     ),
     #'oasys.menus' : ("Menu = orangecontrib.shadow.menu",)
 }
