@@ -2,6 +2,8 @@ __author__ = 'labx'
 
 import urllib
 
+
+
 XRAY_SERVER_URL = "http://x-server.gmca.aps.anl.gov/"
 
 class HttpManager():

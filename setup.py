@@ -7,15 +7,15 @@ import subprocess
 
 from setuptools import find_packages, setup
 
-NAME = 'XOPPY'
-VERSION = '0.0.1'
+NAME = 'XOPPY-Devel'
+VERSION = '0.0.2'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
 README_FILE = os.path.join(os.path.dirname(__file__), 'README.txt')
 LONG_DESCRIPTION = open(README_FILE).read()
 AUTHOR = 'Manuel Sanchez del Rio, Luca Rebuffi, and Bioinformatics Laboratory, FRI UL'
-AUTHOR_EMAIL = 'srio@esrf.eu'
+AUTHOR_EMAIL = 'srio@esrf.eu, luca.rebuffi@elettra.eu'
 URL = 'https://github.com/srio/Orange-XOPPY'
 DOWNLOAD_URL = 'https://github.com/srio/Orange-XOPPY'
 LICENSE = 'GPLv3'
@@ -52,11 +52,12 @@ INSTALL_REQUIRES = (
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
 
 PACKAGE_DATA = {
-    "orangecontrib.xoppy.bin.darwin":["*"],
-    "orangecontrib.xoppy.bin.linux":["*"],
-    "orangecontrib.xoppy.data":["dabax/*.*", "inpro/*.*", "xcom/*.*", "xcom/.rsrc/*.*", "xpowder/*.*", ],
+    "orangecontrib.xoppy":["*.py"],
+    "orangecontrib.xoppy.bin_darwin":["*"],
+    "orangecontrib.xoppy.bin_linux":["*"],
+    "orangecontrib.xoppy.data":["dabax/*", "inpro/*", "xcom/*", "xcom/.rsrc/*", "xpowder/*", ],
     "orangecontrib.xoppy.doc_txt":["*.*"],
-    "orangecontrib.xoppy.testrun":["*.*"],
+    "orangecontrib.xoppy.testrun":["*.py"],
     "orangecontrib.xoppy.widgets.source":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.xoppy.widgets.optics":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.xoppy.widgets.tools":["icons/*.png", "icons/*.jpg", "misc/*.*"],

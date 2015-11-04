@@ -3,8 +3,8 @@ recursive-include orangecontrib *.py
 
 recursive-include orangecontrib/xoppy/widgets *.png *.svg *.ico *.jpg *.bmp
 
-recursive-include orangecontrib/xoppy/bin.darwin *
-recursive-include orangecontrib/xoppy/bin.linux *
+recursive-include orangecontrib/xoppy/bin_darwin *
+recursive-include orangecontrib/xoppy/bin_linux *
 recursive-include orangecontrib/xoppy/data *
 recursive-include orangecontrib/xoppy/doc_txt *.txt *.par
 
