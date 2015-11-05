@@ -5,11 +5,11 @@ import os
 from setuptools import find_packages, setup
 
 NAME = 'XOPPY-Devel'
-VERSION = '0.0.3'
+VERSION = '0.0.4'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
-README_FILE = os.path.join(os.path.dirname(__file__), 'README-Devel.txt')
+README_FILE = os.path.join(os.path.dirname(__file__), 'README.txt')
 LONG_DESCRIPTION = open(README_FILE).read()
 AUTHOR = 'Manuel Sanchez del Rio, Luca Rebuffi, and Bioinformatics Laboratory, FRI UL'
 AUTHOR_EMAIL = 'srio@esrf.eu, luca.rebuffi@elettra.eu'
