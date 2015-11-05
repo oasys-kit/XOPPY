@@ -1,8 +1,27 @@
 __author__ = 'labx'
 
+import sys
+import orangecanvas.resources as resources
+
+class locations:
+    @classmethod
+    def home_bin(cls):
+        return resources.package_dirname("orangecontrib.xoppy.bin_" + str(sys.platform)) + "/"
+
+    @classmethod
+    def home_doc(cls):
+        return resources.package_dirname("orangecontrib.xoppy.doc_txt") + "/"
+
+    @classmethod
+    def home_data(cls):
+        return resources.package_dirname("orangecontrib.xoppy.data") + "/"
+
+    @classmethod
+    def home_testrun(cls):
+        return resources.package_dirname("orangecontrib.xoppy.testrun") + "/"
+
+
 import urllib
-
-
 
 XRAY_SERVER_URL = "http://x-server.gmca.aps.anl.gov/"
 

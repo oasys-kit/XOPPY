@@ -1,18 +1,15 @@
 #! /usr/bin/env python3
 
-import imp
 import os
-import sys
-import subprocess
 
 from setuptools import find_packages, setup
 
 NAME = 'XOPPY-Devel'
-VERSION = '0.0.2'
+VERSION = '0.0.3'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
-README_FILE = os.path.join(os.path.dirname(__file__), 'README.txt')
+README_FILE = os.path.join(os.path.dirname(__file__), 'README-Devel.txt')
 LONG_DESCRIPTION = open(README_FILE).read()
 AUTHOR = 'Manuel Sanchez del Rio, Luca Rebuffi, and Bioinformatics Laboratory, FRI UL'
 AUTHOR_EMAIL = 'srio@esrf.eu, luca.rebuffi@elettra.eu'
@@ -46,7 +43,7 @@ INSTALL_REQUIRES = (
     'matplotlib',
     'srxraylib>=0.0.8',
     'orange-widget-core>=0.0.2',
-    'oasys>=0.1.7',
+    'oasys>=0.1.8',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
@@ -70,7 +67,7 @@ PACKAGE_DATA = {
 NAMESPACE_PACAKGES = ["orangecontrib", "orangecontrib.xoppy", "orangecontrib.xoppy.widgets"]
 
 ENTRY_POINTS = {
-    'oasys.addons' : ("shadow = orangecontrib.xoppy", ),
+    'oasys.addons' : ("xoppy = orangecontrib.xoppy", ),
     'oasys.widgets' : (
         "XOPPY Source = orangecontrib.xoppy.widgets.source",
         "XOPPY Optics = orangecontrib.xoppy.widgets.optics",
@@ -80,7 +77,7 @@ ENTRY_POINTS = {
         "XOPPY/X-ray Server GID_SL = orangecontrib.xoppy.widgets.xrayserver_gidsl",
         "XOPPY Under Devel = orangecontrib.xoppy.widgets.xoppy",
     ),
-    #'oasys.menus' : ("Menu = orangecontrib.shadow.menu",)
+    'oasys.menus' : ("xoppymenu = orangecontrib.xoppy.menu",)
 }
 
 if __name__ == '__main__':

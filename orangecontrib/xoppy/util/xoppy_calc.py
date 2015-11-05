@@ -12,6 +12,7 @@ except:
 
 from srxraylib.sources import srfunc
 from orangecontrib.xoppy.util import srundplug
+from orangecontrib.xoppy.util.xoppy_util import locations
 
 
 def reflectivity_fresnel(refraction_index_delta=1e-5,refraction_index_beta=0.0,\
@@ -241,7 +242,7 @@ def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.
     wd = os.getcwd()
 
     try:
-        os.chdir(xoppy.home_testrun())
+        os.chdir(locations.home_testrun())
 
         with open("ws.inp","wt") as f:
             f.write("%s\n"%(TITLE))
@@ -251,7 +252,7 @@ def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.
             f.write("%f  %f  %f  %f  %f  %f  %f\n"%(D,XPC,YPC,XPS,YPS,NXP,NYP))
             f.write("%d  \n"%(4))
 
-        command = os.path.join(xoppy.home_bin(),'ws')
+        command = os.path.join(locations.home_bin(),'ws')
         print("Running command '%s' in directory: %s \n"%(command, wd))
         print("\n--------------------------------------------------------\n")
         os.system(command)
@@ -259,7 +260,7 @@ def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.
 
         # write spec file
         txt = open("ws.out").readlines()
-        outFile = os.path.join(xoppy.home_testrun(), "ws.spec")
+        outFile = os.path.join(locations.home_testrun(), "ws.spec")
         f = open(outFile,"w")
 
         f.write("#F ws.spec\n")
@@ -291,12 +292,12 @@ def xoppy_calc_xtubes(ITUBE=0,VOLTAGE=30.0):
     wd = os.getcwd()
 
     try:
-        os.chdir(xoppy.home_testrun())
+        os.chdir(locations.home_testrun())
 
         with open("xoppy.inp","wt") as f:
             f.write("%d\n%f\n"%(ITUBE+1,VOLTAGE))
     
-        command = os.path.join(xoppy.home_bin(), "xtubes") + " < xoppy.inp"
+        command = os.path.join(locations.home_bin(), "xtubes") + " < xoppy.inp"
         print("Running command '%s' in directory: %s "%(command, os.getcwd()))
         print("\n--------------------------------------------------------\n")
         os.system(command)
@@ -304,7 +305,7 @@ def xoppy_calc_xtubes(ITUBE=0,VOLTAGE=30.0):
     
         os.chdir(wd)
 
-        return os.path.join(xoppy.home_testrun(), "xtubes_tmp.dat")
+        return os.path.join(locations.home_testrun(), "xtubes_tmp.dat")
     except Exception as e:
         os.chdir(wd)
         raise e
@@ -315,12 +316,12 @@ def xoppy_calc_xtube_w(VOLTAGE=100.0,RIPPLE=0.0,AL_FILTER=0.0):
     wd = os.getcwd()
 
     try:
-        os.chdir(xoppy.home_testrun())
+        os.chdir(locations.home_testrun())
 
         with open("xoppy.inp","wt") as f:
             f.write("%f\n%f\n%f\n"%(VOLTAGE,RIPPLE,AL_FILTER))
     
-        command = os.path.join(xoppy.home_bin(), 'tasmip') + " < xoppy.inp"
+        command = os.path.join(locations.home_bin(), 'tasmip') + " < xoppy.inp"
         print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
         print("\n--------------------------------------------------------\n")
         os.system(command)
@@ -340,10 +341,10 @@ def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,M
     wd = os.getcwd()
 
     try:
-        os.chdir(xoppy.home_testrun())
+        os.chdir(locations.home_testrun())
 
         with open("xoppy.inp", "wt") as f:
-            f.write("%s\n"% (os.path.join(xoppy.home_data(), "inpro" + os.sep)))
+            f.write("%s\n"% (os.path.join(locations.home_data(), "inpro" + os.sep)))
             if MODE == 0:
                 f.write("+1\n")
             elif MODE == 1:
@@ -365,7 +366,7 @@ def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,M
                 f.write("%d\n%f\n%f\n"%(2,XFROM,XTO))
             f.write("%d\n"%(NPOINTS))
 
-        command = os.path.join(xoppy.home_bin(), 'inpro') + " < xoppy.inp"
+        command = os.path.join(locations.home_bin(), 'inpro') + " < xoppy.inp"
         print("Running command '%s' in directory: %s "%(command, os.getcwd()))
         print("\n--------------------------------------------------------\n")
         os.system(command)
@@ -442,10 +443,10 @@ def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:
     wd = os.getcwd()
 
     try:
-        os.chdir(xoppy.home_testrun())
+        os.chdir(locations.home_testrun())
 
         with open("xoppy.inp","wt") as f:
-            f.write(os.path.join(xoppy.home_data(), 'xcom')+ os.sep + "\n" )
+            f.write(os.path.join(locations.home_data(), 'xcom')+ os.sep + "\n" )
             f.write( NAME+"\n" )
             f.write("%d\n"%(1+SUBSTANCE))
             if (1+SUBSTANCE) != 4:
@@ -476,7 +477,7 @@ def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:
             f.write("1\n")
             f.close()
 
-        command = os.path.join(xoppy.home_bin(),'xcom') + " < xoppy.inp"
+        command = os.path.join(locations.home_bin(),'xcom') + " < xoppy.inp"
         print("Running command '%s' in directory: %s "%(command,os.getcwd()))
         print("\n--------------------------------------------------------\n")
         os.system(command)
@@ -1017,7 +1018,7 @@ def xoppy_calc_xraylib_widget(FUNCTION=0,ELEMENT=26,ELEMENTORCOMPOUND="FeSO4",CO
     return None
 
 def xoppy_doc(app):
-    home_doc = xoppy.home_doc()
+    home_doc = locations.home_doc()
 
     filename1 = os.path.join(home_doc,app+'.txt')
     filename2 = os.path.join(home_doc,app+'_par.txt')
