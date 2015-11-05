@@ -1,9 +1,5 @@
 
-
 This is the WORKING project for XOPPY (XOP under python3+orange3)
-
-THIS VERSION IS FOR DEVELOPMENT PURPOSES ONLY AND IS INSTABLE:
-          INSTALLATION IS NOT RECOMENDED!!!!
 
 For XOP see: http://ftp.esrf.eu/pub/scisoft/xop2.3/
              http://www.esrf.fr/Instrumentation/software/data-analysis/xop2.3
