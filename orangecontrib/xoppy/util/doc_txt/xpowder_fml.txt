@@ -1,0 +1,76 @@
+This program is built using CrysFml:
+    http://forge.ill.fr/projects/show/crysfml
+    
+
+
+          "              ------ PROGRAM: POWDER PATTERN CALCULATION  ------"             , &
+          "                     ---- Version 0.1 April-2009----"                        , &
+          "    ***********************************************************************"  , &
+          "    * Calculates powder diffraction patterns from a *.CIF file            *"  , &
+          "    ***********************************************************************"  , &
+          "                            (JRC- April 2009 )"
+
+Modified by srio@esrf.eu for adapting input/output and interface it in XOP
+
+
+ !!----
+ !!---- The program uses CrysFML and a module called Gen_Powder_Pattern where the subroutine for
+ !!---- calculating the powder diffraction pattern is stored
+ !!----
+
+
+ 
+An example .cif file is: $XOP_HOME/examples/icsd_31142_sepiolite_BraunerPreisinger.cif 
+ 
+Peak width parameters:
+======================
+
+see, for instance, http://www.mail-archive.com/rietveld_l@ill.fr/msg03908.html
+from where this text has been extracted.
+
+ 
+Have a look at Young, R. A. & Desai, P. 1989, 'Crystallite Size and
+Microstrain Indicators in Rietveld Refinement', Archiwum Nauki o
+Materialach, vol. 10, no. 1-2, pp. 71-90. 
+ 
+They talk about the Thompson, Cox and Hastings model, which explicitly
+separates the gaussian and lorentzian components of a psuedo-Voight peak
+shape.
+ 
+FWHM(G)^2 = U tan^2(T) + V tan(T) + W
+FWHM(L) = X tan(T) + Y/cos(T)
+ 
+The coefficients can be broken into instrumental and sample (size, strain)
+components.
+ 
+U = U_inst + U_strain
+V = V_inst
+W = W_inst
+X = X_inst + X_strain
+Y = Y_inst + Y_size
+ 
+You can fix the instrument components with your standard, and then
+refine the difference with your sample.
+ 
+ 
+If you want to stick with the straight UVW symbolism, Young and Desai
+also state that you can use the size broadening term FHWM(G)^2 =
+Z/cos^2(T), which yields:
+ 
+FWHM(G)^2 = Z/cos^2(T) + (U_inst + U_strain) tan^2(T) + V_inst tan(T) +
+W_inst
+ 
+which can be re-written as
+ 
+FWHM(G)^2 = (U_inst + U_strain + Z_size) tan^2(T) + V_inst tan(T) +
+(W_inst + Z_size) 
+as long as you constrain the two Z_size's to be the same.
+
+
+CIF files can be imported, for instance, from http://icsd.ill.fr/icsd/index.html
+
+NOTE: Sometimes the original file gives problems: 
+in _atoms_site_occupancy the oxydation state (second column) must be written
+as: Mg+2 (and not Mg2+)
+
+

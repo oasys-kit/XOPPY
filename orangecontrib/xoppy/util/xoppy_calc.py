@@ -242,7 +242,7 @@ def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.
     wd = os.getcwd()
 
     try:
-        os.chdir(locations.home_testrun())
+        os.chdir(locations.home_bin_run())
 
         with open("ws.inp","wt") as f:
             f.write("%s\n"%(TITLE))
@@ -260,7 +260,7 @@ def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.
 
         # write spec file
         txt = open("ws.out").readlines()
-        outFile = os.path.join(locations.home_testrun(), "ws.spec")
+        outFile = os.path.join(locations.home_bin_run(), "ws.spec")
         f = open(outFile,"w")
 
         f.write("#F ws.spec\n")
@@ -292,7 +292,7 @@ def xoppy_calc_xtubes(ITUBE=0,VOLTAGE=30.0):
     wd = os.getcwd()
 
     try:
-        os.chdir(locations.home_testrun())
+        os.chdir(locations.home_bin_run())
 
         with open("xoppy.inp","wt") as f:
             f.write("%d\n%f\n"%(ITUBE+1,VOLTAGE))
@@ -305,7 +305,7 @@ def xoppy_calc_xtubes(ITUBE=0,VOLTAGE=30.0):
     
         os.chdir(wd)
 
-        return os.path.join(locations.home_testrun(), "xtubes_tmp.dat")
+        return os.path.join(locations.home_bin_run(), "xtubes_tmp.dat")
     except Exception as e:
         os.chdir(wd)
         raise e
@@ -316,7 +316,7 @@ def xoppy_calc_xtube_w(VOLTAGE=100.0,RIPPLE=0.0,AL_FILTER=0.0):
     wd = os.getcwd()
 
     try:
-        os.chdir(locations.home_testrun())
+        os.chdir(locations.home_bin_run())
 
         with open("xoppy.inp","wt") as f:
             f.write("%f\n%f\n%f\n"%(VOLTAGE,RIPPLE,AL_FILTER))
@@ -341,7 +341,7 @@ def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,M
     wd = os.getcwd()
 
     try:
-        os.chdir(locations.home_testrun())
+        os.chdir(locations.home_bin_run())
 
         with open("xoppy.inp", "wt") as f:
             f.write("%s\n"% (os.path.join(locations.home_data(), "inpro" + os.sep)))
@@ -443,7 +443,7 @@ def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:
     wd = os.getcwd()
 
     try:
-        os.chdir(locations.home_testrun())
+        os.chdir(locations.home_bin_run())
 
         with open("xoppy.inp","wt") as f:
             f.write(os.path.join(locations.home_data(), 'xcom')+ os.sep + "\n" )

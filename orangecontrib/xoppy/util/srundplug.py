@@ -137,7 +137,7 @@ except NameError:
 if os.path.isfile(home_bin + 'us') == False:
     print("srundplug: File not found: "+home_bin+'us')
 if os.path.isfile(home_bin + 'urgent') == False:
-    raise FileNotFoundError("srundplug: File not found: "+ home_bin + 'urgent')
+    raise FileNotFoundError("srundplug: File not found: " + home_bin + 'urgent')
 
 #
 #----------------------------  FUNCTIONS -------------------------------------
