@@ -1,0 +1,78 @@
+----- header of sync_f.pro extracted on: Fri May 31 15:31:07 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/sources/sync_f.pro -----
+ NAME:
+       SYNC_F
+
+ PURPOSE:
+       Calculates the function used for calculating the angular 
+	dependence of synchrotron radiation. 
+
+ CATEGORY:
+       Mathematics.
+
+ CALLING SEQUENCE:
+       Result = sync_f(rAngle [,rEnergy] )
+
+ INPUTS:
+       rAngle:  the reduced angle, i.e., angle[rads]*Gamma. It can be a
+		scalar or a vector.
+ OPTIONAL INPUTS:
+       rEnergy:  a value for the reduced photon energy, i.e., 
+		energy/critical_energy. It can be an scalar or a verctor. 
+		If this input is present, the calculation is done for this 
+		energy. Otherwise, the calculation results is the integration 
+		over all photon energies.
+
+ KEYWORD PARAMETERS:
+	POLARIZATION: 0 Total 
+		      1 Parallel       (l2=1, l3=0, in Sokolov&Ternov notation)
+		      2 Perpendicular  (l2=0, l3=1)
+
+	L2: The polarization value of L2
+	L3: The polarization value of L3
+		Note: If using L2 and L3, both L2 and L3 must be defined.
+		      In this case, the Pol keyword is ignored.
+
+	GAUSS: When this keyword is set, the "Gaussian" approximaxion 
+		instead of the full calculation is used. 
+		Only valid for integrated flux aver all photon energies.
+ OUTPUTS:
+       returns the value  of the sync_f function
+		It is a scalar if both inputs are scalar. If one input
+		is an array, the result is an array of the same dimension. 
+		If both inputs are arrays, the resulting array has dimension
+		NxM, N=Dim(rAngle) and M=Dim(rEnergy)
+
+ PROCEDURE:
+       The number of emitted photons versus vertical angle Psi is
+	proportional to sync_f, which value is given by the formulas
+	in the references.
+
+	For angular distribution integrated over full photon energies (rEnergy 
+	optional input not present) we use the Formula 9, pag 4 in Green. 
+	For its gaussian approximation (in this case the polarization keyword 
+	has no effect) we use for 87 in pag 32 in Green.
+
+	For angular distribution at a given photon energy (rEnergy 
+	optional input not present) we use the Formula 11, pag 6 in Green. 
+
+
+	References: 
+		G K Green, "Spectra and optics of synchrotron radiation" 
+			BNL 50522 report (1976)
+		A A Sokolov and I M Ternov, Synchrotron Radiation, 
+			Akademik-Verlag, Berlin, 1968
+
+ OUTPUTS:
+       returns the value  of the sync_hi function
+
+ PROCEDURE:
+       Uses IDL's BeselK() function
+
+ MODIFICATION HISTORY:
+       Written by:     M. Sanchez del Rio, srio@esrf.fr, 2002-05-23
+	2002-07-12 srio@esrf.fr adds circular polarization term for 
+		wavelength integrated spectrum (S&T formula 5.25)
+
+

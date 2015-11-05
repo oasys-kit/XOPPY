@@ -5,7 +5,7 @@ import os
 from setuptools import find_packages, setup
 
 NAME = 'XOPPY-Devel'
-VERSION = '0.0.4'
+VERSION = '0.0.6'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
@@ -49,12 +49,6 @@ INSTALL_REQUIRES = (
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
 
 PACKAGE_DATA = {
-    "orangecontrib.xoppy":["*.py"],
-    "orangecontrib.xoppy.bin_darwin":["*"],
-    "orangecontrib.xoppy.bin_linux":["*"],
-    "orangecontrib.xoppy.data":["dabax/*", "inpro/*", "xcom/*", "xcom/.rsrc/*", "xpowder/*", ],
-    "orangecontrib.xoppy.doc_txt":["*.*"],
-    "orangecontrib.xoppy.testrun":["*.py"],
     "orangecontrib.xoppy.widgets.source":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.xoppy.widgets.optics":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.xoppy.widgets.tools":["icons/*.png", "icons/*.jpg", "misc/*.*"],

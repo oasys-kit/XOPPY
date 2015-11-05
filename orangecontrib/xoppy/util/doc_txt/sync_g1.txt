@@ -1,0 +1,57 @@
+----- header of sync_g1.pro extracted on: Fri May 31 15:31:08 2013
+
+----- Documentation for /scisoft/xop2.3/src_idl/sources/sync_g1.pro -----
+ NAME:
+       SYNC_G1
+
+ PURPOSE:
+       Calculates the functions used for calculating synchrotron
+	radiation energy spectrum integrated over the full vertical
+	angle.
+
+ CATEGORY:
+       Mathematics.
+
+ CALLING SEQUENCE:
+       Result = sync_g1(x)
+
+ INPUTS:
+       x:      the argument of the function. It is converted to double
+		precision for calculations. 
+
+ KEYWORD PARAMETERS:
+	POLARIZATION: 0 Total 
+		      1 Parallel       (l2=1, l3=0, in Sokolov&Ternov notation)
+		      2 Perpendicular  (l2=0, l3=1)
+ OUTPUTS:
+       returns the value  of the sync_g1 function
+
+ PROCEDURE:
+       The number of emitted photons versus energy is:
+	N(E) = 2.4605e13 I[A] Ee[Gev] Theta[mrad] Sync_G1(E/Ec]
+	   Where: 
+		I is the storage ring intensity in A
+		Ee is the energy of the electrons in the storage ring 
+		E is the photon energy
+		Ec is the critical energy
+		The value Sync_G1 returned by this function is:
+	        Sync_G1(x) (total polarization):
+		    x* Integrate[BeselK[x,5/3],{x,y,Infinity}]
+	        Sync_G1(x,Pol=1) (parallel polarization):
+		    (1/2)* [x* Integrate[BeselK[x,5/3],{x,y,Infinity}] + 
+		    x*BeselK(x,2/3)]
+	        Sync_G1(x,Pol=2) (perpendicular polarization):
+		    (1/2)* [x* Integrate[BeselK[x,5/3],{x,y,Infinity}] -
+		    x*BeselK(x,2/3)]
+
+	For calculating the Integrate[BeselK[x,5/3],{x,y,Infinity}]
+			function, the function fintk53 is used. 
+
+	Reference: A A Sokolov and I M Ternov, Synchrotron Radiation, 
+			Akademik-Verlag, Berlin, 1968, Formula 5.19, 
+			pag 32.
+
+ MODIFICATION HISTORY:
+       Written by:     M. Sanchez del Rio, srio@esrf.fr, 2002-05-24
+
+
