@@ -72,11 +72,14 @@ import time
 import platform
 
 import numpy
-import orangecontrib.xoppy as xoppy
+from orangecontrib.xoppy.util.xoppy_util import locations
+
 #SRW
 try:
     import srwlib
+    srwlib_supported = True
 except ImportError:
+    srwlib_supported = False
     print("Failed to import srwlib. Do not try to use it!")
 
 #catch standard optput
@@ -119,7 +122,7 @@ scanCounter = 0
 
 # directory  where to find urgent and us binaries
 try:
-    home_bin = xoppy.home_bin()
+    home_bin = locations.home_bin()
 except NameError:
     if platform.system() == 'Linux':
         home_bin='/scisoft/xop2.4/bin.linux/'
@@ -422,6 +425,9 @@ def calc1dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
     """
     
     global scanCounter
+    global srwlib_supported
+
+    if not srwlib_supported: raise NotImplementedError("srwlib is not present!")
 
     t0 = time.time()
     print("Inside calc1dSrw")

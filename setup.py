@@ -8,7 +8,7 @@ import subprocess
 from setuptools import find_packages, setup
 
 NAME = 'XOPPY-Devel'
-VERSION = '0.0.2'
+VERSION = '0.0.3'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
@@ -70,7 +70,7 @@ PACKAGE_DATA = {
 NAMESPACE_PACAKGES = ["orangecontrib", "orangecontrib.xoppy", "orangecontrib.xoppy.widgets"]
 
 ENTRY_POINTS = {
-    'oasys.addons' : ("shadow = orangecontrib.xoppy", ),
+    'oasys.addons' : ("xoppy = orangecontrib.xoppy", ),
     'oasys.widgets' : (
         "XOPPY Source = orangecontrib.xoppy.widgets.source",
         "XOPPY Optics = orangecontrib.xoppy.widgets.optics",
@@ -80,7 +80,7 @@ ENTRY_POINTS = {
         "XOPPY/X-ray Server GID_SL = orangecontrib.xoppy.widgets.xrayserver_gidsl",
         "XOPPY Under Devel = orangecontrib.xoppy.widgets.xoppy",
     ),
-    #'oasys.menus' : ("Menu = orangecontrib.shadow.menu",)
+    'oasys.menus' : ("xoppymenu = orangecontrib.xoppy.menu",)
 }
 
 if __name__ == '__main__':
