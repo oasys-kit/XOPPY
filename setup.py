@@ -102,21 +102,24 @@ if __name__ == '__main__':
           zip_safe = False,
           )
 
-    is_install = False
-    for arg in sys.argv:
-        if arg == 'install': is_install = True
+    try:
+        is_install = False
+        for arg in sys.argv:
+            if arg == 'install': is_install = True
 
-    if is_install:
-        site_packages_dir = None
+        if is_install:
+            site_packages_dir = None
 
-        for directory in site.getsitepackages():
-            if os.path.exists(directory + "/oasys"):
-                site_packages_dir = directory
-                break
+            for directory in site.getsitepackages():
+                if os.path.exists(directory + "/oasys"):
+                    site_packages_dir = directory
+                    break
 
-        if not site_packages_dir is None:
-            shutil.copyfile("libraries/" + str(sys.platform) + "/srwlib.py", site_packages_dir + "/srwlib.py")
-            if sys.platform == 'darwin':
-                shutil.copyfile("libraries/" + str(sys.platform) + "/srwlpy.so", site_packages_dir + "/srwlpy.so")
-            elif sys.platform == 'linux':
-                shutil.copyfile("libraries/" + str(sys.platform) + "/srwlpy.a", site_packages_dir + "/srwlpy.a")
+            if not site_packages_dir is None:
+                if sys.platform == 'darwin':
+                    shutil.copyfile("libraries/" + str(sys.platform) + "/srwlib.py", site_packages_dir + "/srwlib.py")
+                    shutil.copyfile("libraries/" + str(sys.platform) + "/srwlpy.so", site_packages_dir + "/srwlpy.so")
+                elif sys.platform == 'linux':
+                    pass
+    except Exception as exception:
+        print(str(exception))
