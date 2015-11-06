@@ -5,7 +5,7 @@ import os
 from setuptools import find_packages, setup
 
 NAME = 'XOPPY-Devel'
-VERSION = '0.0.6'
+VERSION = '0.0.7'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
@@ -74,6 +74,8 @@ ENTRY_POINTS = {
     'oasys.menus' : ("xoppymenu = orangecontrib.xoppy.menu",)
 }
 
+import site, shutil, sys
+
 if __name__ == '__main__':
     setup(
           name = NAME,
@@ -99,3 +101,22 @@ if __name__ == '__main__':
           include_package_data = True,
           zip_safe = False,
           )
+
+    is_install = False
+    for arg in sys.argv:
+        if arg == 'install': is_install = True
+
+    if is_install:
+        site_packages_dir = None
+
+        for directory in site.getsitepackages():
+            if os.path.exists(directory + "/oasys"):
+                site_packages_dir = directory
+                break
+
+        if not site_packages_dir is None:
+            shutil.copyfile("libraries/" + str(sys.platform) + "/srwlib.py", site_packages_dir + "/srwlib.py")
+            if sys.platform == 'darwin':
+                shutil.copyfile("libraries/" + str(sys.platform) + "/srwlpy.so", site_packages_dir + "/srwlpy.so")
+            elif sys.platform == 'linux':
+                shutil.copyfile("libraries/" + str(sys.platform) + "/srwlpy.a", site_packages_dir + "/srwlpy.a")

@@ -6,7 +6,7 @@ import orangecanvas.resources as resources
 class locations:
     @classmethod
     def home_bin(cls):
-        return resources.package_dirname("orangecontrib.xoppy.util") + "/bin_" + str(sys.platform) + "/"
+        return resources.package_dirname("orangecontrib.xoppy.util") + "/bin/" + str(sys.platform) + "/"
 
     @classmethod
     def home_doc(cls):
