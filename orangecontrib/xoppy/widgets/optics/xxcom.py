@@ -1,22 +1,16 @@
-import sys
-import numpy as np
+import sys, os
+import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
+from orangecontrib.xoppy.util.xoppy_util import locations
 
 try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
+    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
 except ImportError:
     print("Error importing: xoppy_doc")
-    raise
-
-try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_xxcom
-except ImportError:
-    print("compute pressed.")
-    print("Error importing: xoppy_calc_xxcom")
     raise
 
 class OWxxcom(widget.OWWidget):
@@ -30,7 +24,7 @@ class OWxxcom(widget.OWWidget):
     category = ""
     keywords = ["xoppy", "xxcom"]
     outputs = [{"name": "xoppy_data",
-                "type": np.ndarray,
+                "type": numpy.ndarray,
                 "doc": ""},
                {"name": "xoppy_specfile",
                 "type": str,
@@ -157,12 +151,12 @@ class OWxxcom(widget.OWWidget):
             if sf.scanno() == 1:
                 #load spec file with one scan, # is comment
                 print("Loading file:  ",fileName)
-                out = np.loadtxt(fileName)
+                out = numpy.loadtxt(fileName)
                 print("data shape: ",out.shape)
                 #get labels
                 txt = open(fileName).readlines()
                 tmp = [ line.find("#L") for line in txt]
-                itmp = np.where(np.array(tmp) != (-1))
+                itmp = numpy.where(numpy.array(tmp) != (-1))
                 labels = txt[itmp[0]].replace("#L ","").split("  ")
                 print("data labels: ",labels)
                 self.send("xoppy_data",out)
@@ -180,6 +174,101 @@ class OWxxcom(widget.OWWidget):
 
 
 
+def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:Al2O3:K2O",\
+                     FRACTION="0.807:0.129:0.038:0.022:0.004",GRID=1,GRIDINPUT=0,\
+                     GRIDDATA="0.0804:0.2790:0.6616:1.3685:2.7541",ELEMENTOUTPUT=0):
+    print("Inside xoppy_calc_xxcom. ")
+
+    try:
+        with open("xoppy.inp","wt") as f:
+            f.write(os.path.join(locations.home_data(), 'xcom')+ os.sep + "\n" )
+            f.write( NAME+"\n" )
+            f.write("%d\n"%(1+SUBSTANCE))
+            if (1+SUBSTANCE) != 4:
+                f.write( DESCRIPTION+"\n")
+                if (1+SUBSTANCE) <= 2:
+                    f.write("%d\n"%(1+ELEMENTOUTPUT))
+            else:
+                nn = DESCRIPTION.split(":")
+                mm = FRACTION.split(":")
+                f.write("%d\n"%( len(nn)))
+                print(">>>>>>>",nn,len(nn))
+                for i in range(len(nn)):
+                    print("<><><><>",i,nn[i],mm[i])
+                    f.write(nn[i]+"\n")
+                    f.write(mm[i]+"\n")
+                f.write("1\n")
+            f.write("%d\n"%(1+GRID))
+            if (1+GRID) != 1:
+                f.write("%d\n"%(1+GRIDINPUT))
+                if (1+GRIDINPUT) == 1:
+                    nn = GRIDDATA.split(":")
+                    f.write("%d\n"%( len(nn)))
+                    for i in nn:
+                        f.write(i+"\n")
+                    if (1+GRID) != 1:
+                        f.write("N\n")
+            f.write("xcom.out\n")
+            f.write("1\n")
+            f.close()
+
+        command = os.path.join(locations.home_bin(),'xcom') + " < xoppy.inp"
+        print("Running command '%s' in directory: %s "%(command,locations.home_bin_run()))
+        print("\n--------------------------------------------------------\n")
+        os.system(command)
+        print("\n--------------------------------------------------------\n")
+        # write spec file
+
+        if (1+SUBSTANCE) <= 2:
+            if (1+ELEMENTOUTPUT) == 1:
+                titles = "Photon Energy [Mev]  Coherent scat [b/atom]  " \
+                         "Incoherent scat [b/atom]  Photoel abs [b/atom]  " \
+                         "Pair prod in nucl field [b/atom]  Pair prod in elec field [b/atom]  " \
+                         "Tot atten with coh scat [b/atom]  Tot atten w/o coh scat [b/atom]"
+            elif (1+ELEMENTOUTPUT) == 2:
+                titles = "Photon Energy [Mev]  Coherent scat [b/atom]  " \
+                         "Incoherent scat [b/atom]  Photoel abs [b/atom]  " \
+                         "Pair prod in nucl field [b/atom]  Pair prod in elec field [b/atom]  " \
+                         "Tot atten with coh scat [cm2/g]  Tot atten w/o coh scat [cm2/g]"
+            elif (1+ELEMENTOUTPUT) == 3:
+                titles = "Photon Energy [Mev]  Coherent scat [cm2/g]  " \
+                         "Incoherent scat [cm2/g]  Photoel abs [cm2/g]  " \
+                         "Pair prod in nucl field [cm2/g]  Pair prod in elec field [cm2/g]  " \
+                         "Tot atten with coh scat [cm2/g]  Tot atten w/o coh scat [cm2/g]"
+            else:
+                titles = "Photon Energy [Mev]  Coherent scat [cm2/g]  " \
+                         "Incoherent scat [cm2/g]  Photoel abs [cm2/g]  " \
+                         "Pair prod in nucl field [cm2/g]  Pair prod in elec field [cm2/g]  " \
+                         "Tot atten with coh scat [cm2/g]  Tot atten w/o coh scat [cm2/g]"
+        else:
+           titles = "Photon Energy [Mev]  Coherent scat [cm2/g]  " \
+                    "Incoherent scat [cm2/g]  Photoel abs [cm2/g]  " \
+                    "Pair prod in nucl field [cm2/g]  Pair prod in elec field [cm2/g]  " \
+                    "Tot atten with coh scat [cm2/g]  Tot atten w/o coh scat [cm2/g]"
+
+
+        txt = open("xcom.out").readlines()
+        outFile = "xcom.spec"
+
+        f = open(outFile, "w")
+
+        f.write("#F xcom.spec\n")
+        f.write("\n")
+        f.write("#S 1 xcom results\n")
+        f.write("#N 8\n")
+        f.write("#L  "+titles+"\n")
+        for i in txt:
+            tmp = i.strip(" ")
+            if tmp[0].isdigit():
+               f.write(tmp)
+            else:
+               f.write("#UD "+tmp)
+        f.close()
+        print("File written to disk: xcom.spec")
+
+        return outFile
+    except Exception as e:
+        raise e
 
 
 if __name__ == "__main__":

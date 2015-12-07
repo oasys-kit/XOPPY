@@ -1,5 +1,5 @@
 import sys
-import numpy as np
+import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
@@ -7,16 +7,9 @@ from orangewidget.settings import Setting
 from oasys.widgets import widget
 
 try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
+    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
 except ImportError:
     print("Error importing: xoppy_doc")
-    raise
-
-try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_xfh
-except ImportError:
-    print("compute pressed.")
-    print("Error importing: xoppy_calc_xfh")
     raise
 
 class OWxfh(widget.OWWidget):
@@ -30,7 +23,7 @@ class OWxfh(widget.OWWidget):
     category = ""
     keywords = ["xoppy", "xfh"]
     outputs = [{"name": "xoppy_data",
-                "type": np.ndarray,
+                "type": numpy.ndarray,
                 "doc": ""},
                {"name": "xoppy_specfile",
                 "type": str,
@@ -197,12 +190,12 @@ class OWxfh(widget.OWWidget):
             if sf.scanno() == 1:
                 #load spec file with one scan, # is comment
                 print("Loading file:  ",fileName)
-                out = np.loadtxt(fileName)
+                out = numpy.loadtxt(fileName)
                 print("data shape: ",out.shape)
                 #get labels
                 txt = open(fileName).readlines()
                 tmp = [ line.find("#L") for line in txt]
-                itmp = np.where(np.array(tmp) != (-1))
+                itmp = numpy.where(numpy.array(tmp) != (-1))
                 labels = txt[itmp[0]].replace("#L ","").split("  ")
                 print("data labels: ",labels)
                 self.send("xoppy_data",out)
@@ -220,6 +213,9 @@ class OWxfh(widget.OWWidget):
 
 
 
+def xoppy_calc_xfh(FILEF0=0,FILEF1F2=0,FILECROSSSEC=0,ILATTICE=0,HMILLER=1,KMILLER=1,LMILLER=1,I_ABSORP=2,TEMPER="1.0",ENERGY=8000.0,ENERGY_END=18000.0,NPOINTS=20):
+    print("Inside xoppy_calc_xfh. ")
+    return(None)
 
 
 if __name__ == "__main__":

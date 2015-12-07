@@ -1,5 +1,5 @@
 import sys
-import numpy as np
+import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
@@ -7,16 +7,9 @@ from orangewidget.settings import Setting
 from oasys.widgets import widget
 
 try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
+    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
 except ImportError:
     print("Error importing: xoppy_doc")
-    raise
-
-try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_black_body
-except ImportError:
-    print("compute pressed.")
-    print("Error importing: xoppy_calc_black_body")
     raise
 
 class OWblack_body(widget.OWWidget):
@@ -30,7 +23,7 @@ class OWblack_body(widget.OWWidget):
     category = ""
     keywords = ["xoppy", "black_body"]
     outputs = [{"name": "xoppy_data",
-                "type": np.ndarray,
+                "type": numpy.ndarray,
                 "doc": ""},
                {"name": "xoppy_specfile",
                 "type": str,
@@ -129,12 +122,12 @@ class OWblack_body(widget.OWWidget):
             if sf.scanno() == 1:
                 #load spec file with one scan, # is comment
                 print("Loading file:  ",fileName)
-                out = np.loadtxt(fileName)
+                out = numpy.loadtxt(fileName)
                 print("data shape: ",out.shape)
                 #get labels
                 txt = open(fileName).readlines()
                 tmp = [ line.find("#L") for line in txt]
-                itmp = np.where(np.array(tmp) != (-1))
+                itmp = numpy.where(numpy.array(tmp) != (-1))
                 labels = txt[itmp[0]].replace("#L ","").split("  ")
                 print("data labels: ",labels)
                 self.send("xoppy_data",out)
@@ -152,6 +145,10 @@ class OWblack_body(widget.OWWidget):
 
 
 
+
+def xoppy_calc_black_body(TITLE="Thermal source: Planck distribution",TEMPERATURE=1200000.0,E_MIN=10.0,E_MAX=1000.0,NPOINTS=500):
+    print("Inside xoppy_calc_black_body. ")
+    return None
 
 
 if __name__ == "__main__":

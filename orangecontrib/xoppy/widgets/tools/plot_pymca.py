@@ -2,7 +2,7 @@ from PyQt4 import QtGui
 from PyQt4.QtGui import QDoubleValidator
 from orangewidget import widget, gui
 from orangewidget.settings import Setting
-import numpy as np
+import numpy
 #import Orange
 #import matplotlib.pyplot as plt
 #from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -21,7 +21,7 @@ class OWPlotPymca(widget.OWWidget):
     category = ""
     keywords = ["list", "of", "keywords"]
     inputs = [{"name": "xoppy_data",
-                "type": np.ndarray,
+                "type": numpy.ndarray,
                 "doc": "",
                 "handler": "do_plot" }]
 
@@ -94,7 +94,7 @@ class OWPlotPymca(widget.OWWidget):
 if __name__ == '__main__':
     app = QtGui.QApplication([])
     ow = OWPlotPymca()
-    a = np.array([
+    a = numpy.array([
         [  8.47091837e+04,   1.16210756e+12],
         [  8.57285714e+04,   1.10833975e+12],
         [  8.67479592e+04,   1.05700892e+12],

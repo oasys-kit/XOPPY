@@ -50,11 +50,9 @@ PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
 
 PACKAGE_DATA = {
     "orangecontrib.xoppy.widgets.source":["icons/*.png", "icons/*.jpg"],
-    "orangecontrib.xoppy.widgets.optics":["icons/*.png", "icons/*.jpg"],
-    "orangecontrib.xoppy.widgets.tools":["icons/*.png", "icons/*.jpg", "misc/*.*"],
-    "orangecontrib.xoppy.widgets.xrayserver_x0h":["icons/*.png", "icons/*.jpg", "misc/*.*"],
-    "orangecontrib.xoppy.widgets.xrayserver_gidsl":["icons/*.png", "icons/*.jpg", "misc/*.*"],
-    "orangecontrib.xoppy.widgets.viewers":["icons/*.png", "icons/*.jpg"],
+    "orangecontrib.xoppy.widgets.optics":["icons/*.png", "icons/*.jpg", "misc/*.*"],
+    "orangecontrib.xoppy.widgets.tools":["icons/*.png", "icons/*.jpg"],
+    "orangecontrib.xoppy.widgets.xrayserver":["icons/*.png", "icons/*.jpg", "misc/*.*"],
     "orangecontrib.xoppy.widgets.xoppy":["icons/*.png", "icons/*.jpg"],
 }
 
@@ -66,9 +64,7 @@ ENTRY_POINTS = {
         "XOPPY Source = orangecontrib.xoppy.widgets.source",
         "XOPPY Optics = orangecontrib.xoppy.widgets.optics",
         "XOPPY Tools = orangecontrib.xoppy.widgets.tools",
-        "XOPPY Viewers = orangecontrib.xoppy.widgets.viewers",
-        "XOPPY/X-ray Server X0h = orangecontrib.xoppy.widgets.xrayserver_x0h",
-        "XOPPY/X-ray Server GID_SL = orangecontrib.xoppy.widgets.xrayserver_gidsl",
+        "XOPPY/X-ray Server= orangecontrib.xoppy.widgets.xrayserver",
         "XOPPY Under Devel = orangecontrib.xoppy.widgets.xoppy",
     ),
     'oasys.menus' : ("xoppymenu = orangecontrib.xoppy.menu",)

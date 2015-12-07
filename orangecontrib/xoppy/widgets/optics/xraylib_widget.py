@@ -1,5 +1,5 @@
 import sys
-import numpy as np
+import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 
@@ -7,18 +7,12 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
 
+import xraylib
 
 try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
+    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
 except ImportError:
     print("Error importing: xoppy_doc")
-    raise
-
-try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_xraylib_widget
-except ImportError:
-    print("compute pressed.")
-    print("Error importing: xoppy_calc_xraylib_widget")
     raise
 
 class OWxraylib_widget(widget.OWWidget):
@@ -32,7 +26,7 @@ class OWxraylib_widget(widget.OWWidget):
     category = ""
     keywords = ["xoppy", "xraylib_widget"]
     outputs = [{"name": "xoppy_data",
-               "type": np.ndarray,
+               "type": numpy.ndarray,
                "doc": ""},
                {"name": "xoppy_specfile",
                 "type": str,
@@ -181,12 +175,12 @@ class OWxraylib_widget(widget.OWWidget):
             if sf.scanno() == 1:
                 #load spec file with one scan, # is comment
                 print("Loading file:  ",fileName)
-                out = np.loadtxt(fileName)
+                out = numpy.loadtxt(fileName)
                 print("data shape: ",out.shape)
                 #get labels
                 txt = open(fileName).readlines()
                 tmp = [ line.find("#L") for line in txt]
-                itmp = np.where(np.array(tmp) != (-1))
+                itmp = numpy.where(numpy.array(tmp) != (-1))
                 labels = txt[itmp[0]].replace("#L ","").split("  ")
                 print("data labels: ",labels)
                 self.send("xoppy_data",out)
@@ -203,6 +197,135 @@ class OWxraylib_widget(widget.OWWidget):
         xoppy_doc('xraylib_widget')
 
 
+
+def xoppy_calc_xraylib_widget(FUNCTION=0,ELEMENT=26,ELEMENTORCOMPOUND="FeSO4",COMPOUND="Ca5(PO4)3",TRANSITION_IUPAC_OR_SIEGBAHN=1,\
+                              TRANSITION_IUPAC_TO=0,TRANSITION_IUPAC_FROM=0,TRANSITION_SIEGBAHN=0,SHELL=0,ENERGY=10.0):
+    print("Inside xoppy_calc_xraylib with FUNCTION=%d. "%(FUNCTION))
+
+    if FUNCTION == 0:
+        if TRANSITION_IUPAC_OR_SIEGBAHN == 0:
+            lines = ['K', 'L1', 'L2', 'L3', 'M1', 'M2', 'M3', 'M4', 'M5', 'N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'P1', 'P2', 'P3', 'P4', 'P5', 'Q1', 'Q2', 'Q3']
+            line = lines[TRANSITION_IUPAC_TO]+lines[TRANSITION_IUPAC_FROM]+"_LINE"
+            command = "result = xraylib.LineEnergy(%d,xraylib.%s)"%(ELEMENT,line)
+            print("executing command: ",command)
+            line = getattr(xraylib,line)
+            result = xraylib.LineEnergy(ELEMENT,line)
+            print("result: %f keV"%(result))
+        if TRANSITION_IUPAC_OR_SIEGBAHN == 1:
+            lines = ['KA1_LINE', 'KA2_LINE', 'KB1_LINE', 'KB2_LINE', 'KB3_LINE', 'KB4_LINE', 'KB5_LINE', 'LA1_LINE', 'LA2_LINE', 'LB1_LINE', 'LB2_LINE', 'LB3_LINE', 'LB4_LINE', 'LB5_LINE', 'LB6_LINE', 'LB7_LINE', 'LB9_LINE', 'LB10_LINE', 'LB15_LINE', 'LB17_LINE', 'LG1_LINE', 'LG2_LINE', 'LG3_LINE', 'LG4_LINE', 'LG5_LINE', 'LG6_LINE', 'LG8_LINE', 'LE_LINE', 'LL_LINE', 'LS_LINE', 'LT_LINE', 'LU_LINE', 'LV_LINE']
+            line = lines[TRANSITION_SIEGBAHN]
+            command = "result = xraylib.LineEnergy(%d,xraylib.%s)"%(ELEMENT,line)
+            print("executing command: ",command)
+            line = getattr(xraylib,line)
+            result = xraylib.LineEnergy(ELEMENT,line)
+            print("result: %f keV"%(result))
+        if TRANSITION_IUPAC_OR_SIEGBAHN == 2:
+            lines = ['K', 'L1', 'L2', 'L3', 'M1', 'M2', 'M3', 'M4', 'M5', 'N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'P1', 'P2', 'P3', 'P4', 'P5', 'Q1', 'Q2', 'Q3']
+            for i1,l1 in enumerate(lines):
+                for i2,l2 in enumerate(lines):
+                    if i1 != i2:
+                        line = l1+l2+"_LINE"
+
+                        try:
+                            line = getattr(xraylib,line)
+                            result = xraylib.LineEnergy(ELEMENT,line)
+                        except:
+                            pass
+                        else:
+                            if result != 0.0: print("%s%s  %f   keV"%(l1, l2, result))
+    if FUNCTION == 1:
+        shells = ['All shells', 'K_SHELL', 'L1_SHELL', 'L2_SHELL', 'L3_SHELL', 'M1_SHELL', 'M2_SHELL', 'M3_SHELL', 'M4_SHELL', 'M5_SHELL', 'N1_SHELL', 'N2_SHELL', 'N3_SHELL', 'N4_SHELL', 'N5_SHELL', 'N6_SHELL', 'N7_SHELL', 'O1_SHELL', 'O2_SHELL', 'O3_SHELL', 'O4_SHELL', 'O5_SHELL', 'O6_SHELL', 'O7_SHELL', 'P1_SHELL', 'P2_SHELL', 'P3_SHELL', 'P4_SHELL', 'P5_SHELL', 'Q1_SHELL', 'Q2_SHELL', 'Q3_SHELL']
+        if SHELL == 0: #"all"
+            for i,myshell in enumerate(shells):
+                if i >= 1:
+                    # command = "result = xraylib.EdgeEnergy(%d,xraylib.%s)"%(ELEMENT,myshell)
+                    # print("executing command: ",command)
+                    shell_index = getattr(xraylib,myshell)
+                    try:
+                        result = xraylib.EdgeEnergy(ELEMENT,shell_index)
+                    except:
+                        pass
+                    else:
+                        if result != 0.0: print("%s  %f   keV"%(myshell, result))
+        else:
+            shell_index = getattr(xraylib,shells[SHELL])
+            try:
+                command = "result = xraylib.EdgeEnergy(%d,xraylib.%s)"%(ELEMENT,shells[SHELL])
+                print("executing command: ",command)
+                result = xraylib.EdgeEnergy(ELEMENT,shell_index)
+            except:
+                pass
+            else:
+                if result != 0.0: print("Z=%d %s : %f   keV"%(ELEMENT, shells[SHELL], result))
+
+    if FUNCTION == 2:
+        result = xraylib.AtomicWeight(ELEMENT)
+        if result != 0.0: print("Atomic weight for Z=%d : %f  g/mol"%(ELEMENT,result))
+    if FUNCTION == 3:
+        result = xraylib.ElementDensity(ELEMENT)
+        if result != 0.0: print("Element density for Z=%d : %f  g/cm3"%(ELEMENT,result))
+
+    if FUNCTION == 4:
+        command = "result = xraylib.CS_Total_CP('%s',%f)"%(ELEMENTORCOMPOUND,ENERGY)
+        print("executing command: ",command)
+        result = xraylib.CS_Total_CP(ELEMENTORCOMPOUND,ENERGY)
+        if result != 0.0: print("Total absorption cross section: %f  g/cm3"%(result))
+
+    if FUNCTION == 5:
+        command = "result = xraylib.CS_Photo_CP('%s',%f)"%(ELEMENTORCOMPOUND,ENERGY)
+        print("executing command: ",command)
+        result = xraylib.CS_Photo_CP(ELEMENTORCOMPOUND,ENERGY)
+        if result != 0.0: print("Photoionization cross section: %f  g/cm3"%(result))
+
+    if FUNCTION == 6:
+        shells = ['All shells', 'K_SHELL', 'L1_SHELL', 'L2_SHELL', 'L3_SHELL', 'M1_SHELL', 'M2_SHELL', 'M3_SHELL', 'M4_SHELL', 'M5_SHELL', 'N1_SHELL', 'N2_SHELL', 'N3_SHELL', 'N4_SHELL', 'N5_SHELL', 'N6_SHELL', 'N7_SHELL', 'O1_SHELL', 'O2_SHELL', 'O3_SHELL', 'O4_SHELL', 'O5_SHELL', 'O6_SHELL', 'O7_SHELL', 'P1_SHELL', 'P2_SHELL', 'P3_SHELL', 'P4_SHELL', 'P5_SHELL', 'Q1_SHELL', 'Q2_SHELL', 'Q3_SHELL']
+        if SHELL == 0: #"all"
+            for i,myshell in enumerate(shells):
+                if i >= 1:
+                    command = "result = xraylib.CS_Photo_Partial(%d,xraylib.%s, ENERGY)"%(ELEMENT,myshell,ENERGY)
+                    shell_index = getattr(xraylib,myshell)
+                    try:
+                        result = xraylib.CS_Photo_Partial(ELEMENT,shell_index,ENERGY)
+                    except:
+                        pass
+                    else:
+                        if result != 0.0: print("%s  %f   cm2/g"%(myshell, result))
+        else:
+            shell_index = getattr(xraylib,shells[SHELL])
+            try:
+                command = "result = xraylib.xraylib.CS_Photo_Partial('%d',xraylib.%s,%f)"%(ELEMENT,shells[SHELL],ENERGY)
+                print("executing command: ",command)
+                result = xraylib.CS_Photo_Partial(ELEMENT,shell_index,ENERGY)
+            except:
+                pass
+            else:
+                if result != 0.0: print("Z=%d, %s at E=%f keV: %f   cm2/g"%(ELEMENT,shells[SHELL], ENERGY, result))
+
+    if FUNCTION == 7:
+        command = "result = xraylib.CS_Rayl_CP('%s',%f)"%(ELEMENTORCOMPOUND,ENERGY)
+        print("executing command: ",command)
+        result = xraylib.CS_Rayl_CP(ELEMENTORCOMPOUND,ENERGY)
+        if result != 0.0: print("Rayleigh cross section: %f  cm2/g"%(result))
+
+    if FUNCTION == 8:
+        command = "result = xraylib.CS_Compt_CP('%s',%f)"%(ELEMENTORCOMPOUND,ENERGY)
+        print("executing command: ",command)
+        result = xraylib.CS_Compt_CP(ELEMENTORCOMPOUND,ENERGY)
+        if result != 0.0: print("Compton cross section: %f  cm2/g"%(result))
+
+    if FUNCTION == 9:
+        command = "result = xraylib.CS_KN(%f)"%(ENERGY)
+        print("executing command: ",command)
+        result = xraylib.CS_KN(ENERGY)
+        if result != 0.0: print("Klein Nishina cross section: %f  cm2/g"%(result))
+
+    if FUNCTION == 10:
+        command = "result = xraylib.CS_Energy_CP('%s',%f)"%(ELEMENTORCOMPOUND,ENERGY)
+        print("executing command: ",command)
+        result = xraylib.CS_Energy_CP(ELEMENTORCOMPOUND,ENERGY)
+        if result != 0.0: print("Mass-energy absorption cross section: %f  cm2/g"%(result))
+
+    return None
 
 
 

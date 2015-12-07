@@ -1,7 +1,9 @@
 __author__ = 'labx'
 
-import sys
+import sys, os
 import orangecanvas.resources as resources
+
+from PyQt4.QtCore import QSettings
 
 class locations:
     @classmethod
@@ -18,7 +20,8 @@ class locations:
 
     @classmethod
     def home_bin_run(cls):
-        return resources.package_dirname("orangecontrib.xoppy.util") + "/bin_run/"
+        #return resources.package_dirname("orangecontrib.xoppy.util") + "/bin_run/"
+        return os.getcwd()
 
 
 import urllib
@@ -36,3 +39,12 @@ class HttpManager():
         resp = urllib.request.urlopen(req)
 
         return resp.read()
+
+def xoppy_doc(app):
+    home_doc = locations.home_doc()
+
+    filename1 = os.path.join(home_doc,app+'.txt')
+    filename2 = os.path.join(home_doc,app+'_par.txt')
+    command = "gedit "+filename1+" "+filename2+" &"
+    print("Running command '%s' "%(command))
+    os.system(command)

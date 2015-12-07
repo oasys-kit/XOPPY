@@ -1,27 +1,22 @@
 import sys
-import numpy as np
+import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import widget
+from oasys.widgets.widget import OWWidget
+from oasys.widgets.exchange import DataExchangeObject
 from orangewidget.widget import OWAction
 
-from srxraylib.oasys.exchange import DataExchangeObject
+from collections import OrderedDict
+from orangecontrib.xoppy.util import srundplug
 
 try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
+    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
 except ImportError:
     print("Error importing: xoppy_doc")
     raise
 
-try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_undulator_flux
-except ImportError:
-    print("compute pressed.")
-    print("Error importing: xoppy_calc_undulator_flux")
-    raise
-
-class OWundulator_flux(widget.OWWidget):
+class OWundulator_flux(OWWidget):
     name = "undulator_flux"
     id = "orange.widgets.dataundulator_flux"
     description = "xoppy application to compute..."
@@ -32,7 +27,7 @@ class OWundulator_flux(widget.OWWidget):
     category = ""
     keywords = ["xoppy", "undulator_flux"]
     outputs = [{"name": "xoppy_data",
-               "type": np.ndarray,
+               "type": numpy.ndarray,
                "doc": ""},
                {"name": "xoppy_specfile",
                 "type": str,
@@ -243,12 +238,12 @@ class OWundulator_flux(widget.OWWidget):
 
         print("Loading file:  ",fileName)
         #load spec file with one scan, # is comment
-        out = np.loadtxt(fileName)
+        out = numpy.loadtxt(fileName)
         print("data shape: ",out.shape)
         #get labels
         txt = open(fileName).readlines()
         tmp = [ line.find("#L") for line in txt]
-        itmp = np.where(np.array(tmp) != (-1))
+        itmp = numpy.where(numpy.array(tmp) != (-1))
         labels = txt[itmp[0]].replace("#L ","").split("  ")
         print("data labels: ",labels)
         self.send("xoppy_data",out)
@@ -270,6 +265,47 @@ class OWundulator_flux(widget.OWWidget):
         xoppy_doc('undulator_flux')
 
 
+def xoppy_calc_undulator_flux(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
+                              ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
+                              ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
+                              PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
+                              PHOTONENERGYMIN=3000.0,PHOTONENERGYMAX=55000.0,PHOTONENERGYPOINTS=500,METHOD=0):
+    print("Inside xoppy_calc_undulator_flux. ")
+
+    bl = OrderedDict()
+    bl['ElectronBeamDivergenceH'] = ELECTRONBEAMDIVERGENCEH
+    bl['ElectronBeamDivergenceV'] = ELECTRONBEAMDIVERGENCEV
+    bl['ElectronBeamSizeH'] = ELECTRONBEAMSIZEH
+    bl['ElectronBeamSizeV'] = ELECTRONBEAMSIZEV
+    bl['ElectronCurrent'] = ELECTRONCURRENT
+    bl['ElectronEnergy'] = ELECTRONENERGY
+    bl['ElectronEnergySpread'] = ELECTRONENERGYSPREAD
+    bl['Kv'] = KV
+    bl['NPeriods'] = NPERIODS
+    bl['PeriodID'] = PERIODID
+    bl['distance'] = DISTANCE
+    bl['gapH'] = GAPH
+    bl['gapV'] = GAPV
+
+    outFile = "undulator_flux.spec"
+
+    if METHOD == 0:
+        print("Undulator flux calculation using US. Please wait...")
+        e,f = srundplug.calc1dUs(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
+              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
+        print("Done")
+    if METHOD == 1:
+        print("Undulator flux calculation using URGENT. Please wait...")
+        e,f = srundplug.calc1dUrgent(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
+              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
+        print("Done")
+    if METHOD == 2:
+        print("Undulator flux calculation using SRW. Please wait...")
+        e,f = srundplug.calc1dSrw(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
+              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
+        print("Done")
+
+    return outFile
 
 
 

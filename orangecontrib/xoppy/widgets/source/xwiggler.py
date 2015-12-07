@@ -1,28 +1,22 @@
 import sys
-import numpy as np
+import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import widget
+from oasys.widgets.widget import OWWidget
+from oasys.widgets.exchange import DataExchangeObject
 from orangewidget.widget import OWAction
 
-from srxraylib.oasys.exchange import DataExchangeObject
+from srxraylib.sources import srfunc
 
 try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
+    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
 except ImportError:
     print("Error importing: xoppy_doc")
     raise
 
-try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_xwiggler
-except ImportError:
-    print("compute pressed.")
-    print("Error importing: xoppy_calc_xwiggler")
-    raise
-
-class OWxwiggler(widget.OWWidget):
+class OWxwiggler(OWWidget):
     name = "xwiggler"
     id = "orange.widgets.dataxwiggler"
     description = "xoppy application to compute..."
@@ -33,7 +27,7 @@ class OWxwiggler(widget.OWWidget):
     category = ""
     keywords = ["xoppy", "xwiggler"]
     outputs = [{"name": "xoppy_data",
-                "type": np.ndarray,
+                "type": numpy.ndarray,
                 "doc": ""},
                {"name": "xoppy_specfile",
                 "type": str,
@@ -204,12 +198,12 @@ class OWxwiggler(widget.OWWidget):
             if sf.scanno() == 1:
                 #load spec file with one scan, # is comment
                 print("Loading file:  ",fileName)
-                out = np.loadtxt(fileName)
+                out = numpy.loadtxt(fileName)
                 print("data shape: ",out.shape)
                 #get labels
                 txt = open(fileName).readlines()
                 tmp = [ line.find("#L") for line in txt]
-                itmp = np.where(np.array(tmp) != (-1))
+                itmp = numpy.where(numpy.array(tmp) != (-1))
                 labels = txt[itmp[0]].replace("#L ","").split("  ")
                 print("data labels: ",labels)
                 self.send("xoppy_data",out)
@@ -234,6 +228,35 @@ class OWxwiggler(widget.OWWidget):
         xoppy_doc('xwiggler')
 
 
+def xoppy_calc_xwiggler(FIELD=0,NPERIODS=12,ULAMBDA=0.125,K=14.0,ENERGY=6.04,PHOT_ENERGY_MIN=100.0,\
+                        PHOT_ENERGY_MAX=100100.0,NPOINTS=100,LOGPLOT=1,NTRAJPOINTS=101,CURRENT=200.0,FILE="?"):
+
+    print("Inside xoppy_calc_xwiggler. ")
+
+    outFileTraj = "xwiggler_traj.spec"
+    outFile = "xwiggler.spec"
+
+    if FIELD == 0:
+        t0,p = srfunc.wiggler_trajectory(b_from=0, nPer=NPERIODS, nTrajPoints=NTRAJPOINTS, \
+                                         ener_gev=ENERGY, per=ULAMBDA, kValue=K, \
+                                         trajFile=outFileTraj)
+    if FIELD == 1:
+        # magnetic field from B(s) map
+        t0,p = srfunc.wiggler_trajectory(b_from=1, nPer=NPERIODS, nTrajPoints=NTRAJPOINTS, \
+                                         ener_gev=ENERGY, inData=FILE, trajFile=outFileTraj)
+    if FIELD == 2:
+        # magnetic field from harmonics
+        # hh = srfunc.wiggler_harmonics(b_t,Nh=41,fileOutH="tmp.h")
+        t0,p = srfunc.wiggler_trajectory(b_from=2, nPer=NPERIODS, nTrajPoints=NTRAJPOINTS, \
+                                         ener_gev=ENERGY, per=ULAMBDA, inData="", trajFile=outFileTraj)
+    print(p)
+    #
+    # now spectra
+    #
+    e, f0 = srfunc.wiggler_spectrum(t0, enerMin=PHOT_ENERGY_MIN, enerMax=PHOT_ENERGY_MAX, nPoints=NPOINTS, \
+                                    electronCurrent=CURRENT*1e-3, outFile=outFile, elliptical=False)
+
+    return outFile
 
 
 

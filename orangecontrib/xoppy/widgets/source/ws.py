@@ -1,25 +1,20 @@
-import sys
-import numpy as np
+import sys, os
+import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import widget
+from oasys.widgets.widget import OWWidget
+from oasys.widgets.exchange import DataExchangeObject
+from orangecontrib.xoppy.util.xoppy_util import locations
 
 try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
+    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
 except ImportError:
     print("Error importing: xoppy_doc")
     raise
 
-try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_ws
-except ImportError:
-    print("compute pressed.")
-    print("Error importing: xoppy_calc_ws")
-    raise
-
-class OWws(widget.OWWidget):
+class OWws(OWWidget):
     name = "ws"
     id = "orange.widgets.dataws"
     description = "xoppy application to compute..."
@@ -30,7 +25,7 @@ class OWws(widget.OWWidget):
     category = ""
     keywords = ["xoppy", "ws"]
     outputs = [{"name": "xoppy_data",
-                "type": np.ndarray,
+                "type": numpy.ndarray,
                 "doc": ""},
                {"name": "xoppy_specfile",
                 "type": str,
@@ -237,12 +232,12 @@ class OWws(widget.OWWidget):
             if sf.scanno() == 1:
                 #load spec file with one scan, # is comment
                 print("Loading file:  ",fileName)
-                out = np.loadtxt(fileName)
+                out = numpy.loadtxt(fileName)
                 print("data shape: ",out.shape)
                 #get labels
                 txt = open(fileName).readlines()
                 tmp = [ line.find("#L") for line in txt]
-                itmp = np.where(np.array(tmp) != (-1))
+                itmp = numpy.where(numpy.array(tmp) != (-1))
                 labels = txt[itmp[0]].replace("#L ","").split("  ")
                 print("data labels: ",labels)
                 self.send("xoppy_data",out)
@@ -259,6 +254,47 @@ class OWws(widget.OWWidget):
         xoppy_doc('ws')
 
 
+def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.0,KX=0.0,KY=8.739999771118164,\
+                  EMIN=1000.0,EMAX=100000.0,NEE=2000,D=30.0,XPC=0.0,YPC=0.0,XPS=2.0,YPS=2.0,NXP=10,NYP=10):
+    print("Inside xoppy_calc_ws. ")
+
+    try:
+        with open("ws.inp","wt") as f:
+            f.write("%s\n"%(TITLE))
+            f.write("%f     %f\n"%(ENERGY,CUR))
+            f.write("%f  %d  %f  %f\n"%(PERIOD,N,KX,KY))
+            f.write("%f  %f   %f\n"%(EMIN,EMAX,NEE))
+            f.write("%f  %f  %f  %f  %f  %f  %f\n"%(D,XPC,YPC,XPS,YPS,NXP,NYP))
+            f.write("%d  \n"%(4))
+
+        command = os.path.join(locations.home_bin(),'ws')
+        print("Running command '%s' in directory: %s \n"%(command, locations.home_bin_run()))
+        print("\n--------------------------------------------------------\n")
+        os.system(command)
+        print("\n--------------------------------------------------------\n")
+
+        # write spec file
+        txt = open("ws.out").readlines()
+        outFile = os.path.join(locations.home_bin_run(), "ws.spec")
+        f = open(outFile,"w")
+
+        f.write("#F ws.spec\n")
+        f.write("\n")
+        f.write("#S 1 ws results\n")
+        f.write("#N 6\n")
+        f.write("#L  Energy(eV)  Flux(ph/s/0.1%bw)  p1  p2  p3  p4")
+        for i in txt:
+            tmp = i.strip(" ")
+            if tmp[0].isdigit():
+               f.write(tmp)
+            else:
+               f.write("#UD "+tmp)
+        f.close()
+        print("File written to disk: ws.spec")
+
+        return outFile
+    except Exception as e:
+        raise e
 
 
 
