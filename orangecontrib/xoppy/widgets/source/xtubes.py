@@ -1,28 +1,21 @@
-import sys
-import numpy as np
+import sys, os
+import numpy 
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import widget
+from oasys.widgets.widget import OWWidget
+from oasys.widgets.exchange import DataExchangeObject
 from orangewidget.widget import OWAction
-
-from srxraylib.oasys.exchange import DataExchangeObject
+from orangecontrib.xoppy.util.xoppy_util import locations
 
 try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
+    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
 except ImportError:
     print("Error importing: xoppy_doc")
     raise
 
-try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_xtubes
-except ImportError:
-    print("compute pressed.")
-    print("Error importing: xoppy_calc_xtubes")
-    raise
-
-class OWxtubes(widget.OWWidget):
+class OWxtubes(OWWidget):
     name = "xtubes"
     id = "orange.widgets.dataxtubes"
     description = "xoppy application to compute..."
@@ -33,7 +26,7 @@ class OWxtubes(widget.OWWidget):
     category = ""
     keywords = ["xoppy", "xtubes"]
     outputs = [{"name": "xoppy_data",
-                "type": np.ndarray,
+                "type": numpy.ndarray,
                 "doc": ""},
                {"name": "xoppy_specfile",
                 "type": str,
@@ -114,12 +107,12 @@ class OWxtubes(widget.OWWidget):
             if sf.scanno() == 1:
                 #load spec file with one scan, # is comment
                 print("Loading file:  ",fileName)
-                out = np.loadtxt(fileName)
+                out = numpy.loadtxt(fileName)
                 print("data shape: ",out.shape)
                 #get labels
                 txt = open(fileName).readlines()
                 tmp = [ line.find("#L") for line in txt]
-                itmp = np.where(np.array(tmp) != (-1))
+                itmp = numpy.where(numpy.array(tmp) != (-1))
                 labels = txt[itmp[0]].replace("#L ","").split("  ")
                 print("data labels: ",labels)
                 self.send("xoppy_data",out)
@@ -143,6 +136,23 @@ class OWxtubes(widget.OWWidget):
         xoppy_doc('xtubes')
 
 
+
+def xoppy_calc_xtubes(ITUBE=0,VOLTAGE=30.0):
+    print("Inside xoppy_calc_xtubes. ")
+
+    try:
+        with open("xoppy.inp","wt") as f:
+            f.write("%d\n%f\n"%(ITUBE+1,VOLTAGE))
+    
+        command = os.path.join(locations.home_bin(), "xtubes") + " < xoppy.inp"
+        print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
+        print("\n--------------------------------------------------------\n")
+        os.system(command)
+        print("\n--------------------------------------------------------\n")
+
+        return os.path.join(locations.home_bin_run(), "xtubes_tmp.dat")
+    except Exception as e:
+        raise e
 
 
 

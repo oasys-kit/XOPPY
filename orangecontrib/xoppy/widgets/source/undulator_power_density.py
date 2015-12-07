@@ -1,22 +1,19 @@
 import sys
-import numpy as np
+import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import widget
+from oasys.widgets.widget import OWWidget
+from oasys.widgets.exchange import DataExchangeObject
 
+from collections import OrderedDict
+
+from orangecontrib.xoppy.util import srundplug
 try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
+    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
 except ImportError:
     print("undulator_power_density: Error importing: xoppy_doc")
     raise
-
-try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_undulator_power_density
-except ImportError:
-    print("undulator_power_density: Error importing: xoppy_calc_undulator_power_density")
-    raise
-
 
 try:
     from orangecontrib.xoppy.util.xoppy_pymca_tools import xoppy_loadspec
@@ -24,7 +21,7 @@ except ImportError:
     print("undulator_power_density: Error importing: xoppy_pymca_tools.xoppy_loadspec")
     raise
 
-class OWundulator_power_density(widget.OWWidget):
+class OWundulator_power_density(OWWidget):
     name = "undulator_power_density"
     id = "orange.widgets.dataundulator_power_density"
     description = "xoppy application to compute..."
@@ -35,7 +32,7 @@ class OWundulator_power_density(widget.OWWidget):
     category = ""
     keywords = ["xoppy", "undulator_power_density"]
     outputs = [{"name": "xoppy_data",
-               "type": np.ndarray,
+               "type": numpy.ndarray,
                "doc": ""},
                {"name": "xoppy_specfile",
                 "type": str,
@@ -238,7 +235,7 @@ class OWundulator_power_density(widget.OWWidget):
         #get labels
         # txt = open(fileName).readlines()
         # tmp = [ line.find("#L") for line in txt]
-        # itmp = np.where(np.array(tmp) != (-1))
+        # itmp = numpy.where(numpy.array(tmp) != (-1))
         # labels = txt[itmp[0]].replace("#L ","").split("  ")
         # print("data labels: ",labels)
         self.send("xoppy_data",out.T)
@@ -252,7 +249,44 @@ class OWundulator_power_density(widget.OWWidget):
         print("help pressed.")
         xoppy_doc('undulator_power_density')
 
+def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
+                                       ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
+                                       ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
+                                       PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
+                                       HSLITPOINTS=101,VSLITPOINTS=51,METHOD=0):
+    print("Inside xoppy_calc_undulator_power_density. ")
 
+    bl = OrderedDict()
+    bl['ElectronBeamDivergenceH'] = ELECTRONBEAMDIVERGENCEH
+    bl['ElectronBeamDivergenceV'] = ELECTRONBEAMDIVERGENCEV
+    bl['ElectronBeamSizeH'] = ELECTRONBEAMSIZEH
+    bl['ElectronBeamSizeV'] = ELECTRONBEAMSIZEV
+    bl['ElectronCurrent'] = ELECTRONCURRENT
+    bl['ElectronEnergy'] = ELECTRONENERGY
+    bl['ElectronEnergySpread'] = ELECTRONENERGYSPREAD
+    bl['Kv'] = KV
+    bl['NPeriods'] = NPERIODS
+    bl['PeriodID'] = PERIODID
+    bl['distance'] = DISTANCE
+    bl['gapH'] = GAPH
+    bl['gapV'] = GAPV
+
+    outFile = "undulator_power_density.spec"
+
+    if METHOD == 0:
+        print("Undulator power_density calculation using US. Please wait...")
+        h,v,p = srundplug.calc2dUs(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS)
+        print("Done")
+    if METHOD == 1:
+        print("Undulator power_density calculation using URGENT. Please wait...")
+        h,v,p = srundplug.calc2dUrgent(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS)
+        print("Done")
+    if METHOD == 2:
+        print("Undulator power_density calculation using SRW. Please wait...")
+        h,v,p = srundplug.calc2dSrw(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS)
+        print("Done")
+
+    return outFile
 
 
 

@@ -1,22 +1,17 @@
-import sys
-import numpy as np
+import sys, os
+import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
 
-try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
-except ImportError:
-    print("Error importing: xoppy_doc")
-    raise
+from orangecontrib.xoppy.util.xoppy_util import locations
 
 try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_xinpro
+    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
 except ImportError:
-    print("compute pressed.")
-    print("Error importing: xoppy_calc_xinpro")
+    print("Error importing: xoppy_doc")
     raise
 
 class OWxinpro(widget.OWWidget):
@@ -30,7 +25,7 @@ class OWxinpro(widget.OWWidget):
     category = ""
     keywords = ["xoppy", "xinpro"]
     outputs = [{"name": "xoppy_data",
-                "type": np.ndarray,
+                "type": numpy.ndarray,
                 "doc": ""},
                {"name": "xoppy_specfile",
                 "type": str,
@@ -205,12 +200,12 @@ class OWxinpro(widget.OWWidget):
             if sf.scanno() == 1:
                 #load spec file with one scan, # is comment
                 print("Loading file:  ",fileName)
-                out = np.loadtxt(fileName)
+                out = numpy.loadtxt(fileName)
                 print("data shape: ",out.shape)
                 #get labels
                 txt = open(fileName).readlines()
                 tmp = [ line.find("#L") for line in txt]
-                itmp = np.where(np.array(tmp) != (-1))
+                itmp = numpy.where(numpy.array(tmp) != (-1))
                 labels = txt[itmp[0]].replace("#L ","").split("  ")
                 print("data labels: ",labels)
                 self.send("xoppy_data",out)
@@ -226,6 +221,57 @@ class OWxinpro(widget.OWWidget):
         print("help pressed.")
         xoppy_doc('xinpro')
 
+def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,MILLER_INDEX_K=1,MILLER_INDEX_L=1,\
+                      ASYMMETRY_ANGLE=0.0,THICKNESS=500.0,TEMPERATURE=300.0,NPOINTS=100,SCALE=0,XFROM=-50.0,XTO=50.0):
+    print("Inside xoppy_calc_xinpro. ")
+
+    try:
+        with open("xoppy.inp", "wt") as f:
+            f.write("%s\n"% (os.path.join(locations.home_data(), "inpro" + os.sep)))
+            if MODE == 0:
+                f.write("+1\n")
+            elif MODE == 1:
+                f.write("-1\n")
+            elif MODE == 2:
+                f.write("+2\n")
+            elif MODE == 3:
+                f.write("-1\n")
+            else:
+                f.write("ERROR!!\n")
+
+            f.write("%f\n%d\n"%(THICKNESS,CRYSTAL_MATERIAL+1))
+            f.write("%s\n%f\n"%("EV",ENERGY))
+            f.write("%d\n%d\n%d\n"%(MILLER_INDEX_H,MILLER_INDEX_K,MILLER_INDEX_L))
+            f.write("%f\n%f\n%s\n"%(ASYMMETRY_ANGLE,TEMPERATURE, "inpro.dat"))
+            if SCALE == 0:
+                f.write("1\n")
+            else:
+                f.write("%d\n%f\n%f\n"%(2,XFROM,XTO))
+            f.write("%d\n"%(NPOINTS))
+
+        command = os.path.join(locations.home_bin(), 'inpro') + " < xoppy.inp"
+        print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
+        print("\n--------------------------------------------------------\n")
+        os.system(command)
+        print("\n--------------------------------------------------------\n")
+
+        #add SPEC header
+        txt = open("inpro.dat").read()
+        outFile = "inpro.spec"
+
+        f = open(outFile,"w")
+        f.write("#F inpro.spec\n")
+        f.write("\n")
+        f.write("#S 1 inpro results\n")
+        f.write("#N 3\n")
+        f.write("#L Theta-TetaB  s-polarized reflectivity  p-polarized reflectivity\n")
+        f.write(txt)
+        f.close()
+        print("File written to disk: inpro.dat, inpro.par, inpro.spec")
+
+        return outFile
+    except Exception as e:
+        raise e
 
 
 

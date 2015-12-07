@@ -1,5 +1,5 @@
 import sys
-import numpy as np
+import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
@@ -7,16 +7,9 @@ from orangewidget.settings import Setting
 from oasys.widgets import widget
 
 try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
+    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
 except ImportError:
     print("Error importing: xoppy_doc")
-    raise
-
-try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_xcrystal
-except ImportError:
-    print("compute pressed.")
-    print("Error importing: xoppy_calc_xcrystal")
     raise
 
 class OWxcrystal(widget.OWWidget):
@@ -30,7 +23,7 @@ class OWxcrystal(widget.OWWidget):
     category = ""
     keywords = ["xoppy", "xcrystal"]
     outputs = [{"name": "xoppy_data",
-                "type": np.ndarray,
+                "type": numpy.ndarray,
                 "doc": ""},
                {"name": "xoppy_specfile",
                 "type": str,
@@ -326,12 +319,12 @@ class OWxcrystal(widget.OWWidget):
             if sf.scanno() == 1:
                 #load spec file with one scan, # is comment
                 print("Loading file:  ",fileName)
-                out = np.loadtxt(fileName)
+                out = numpy.loadtxt(fileName)
                 print("data shape: ",out.shape)
                 #get labels
                 txt = open(fileName).readlines()
                 tmp = [ line.find("#L") for line in txt]
-                itmp = np.where(np.array(tmp) != (-1))
+                itmp = numpy.where(numpy.array(tmp) != (-1))
                 labels = txt[itmp[0]].replace("#L ","").split("  ")
                 print("data labels: ",labels)
                 self.send("xoppy_data",out)
@@ -348,6 +341,14 @@ class OWxcrystal(widget.OWWidget):
         xoppy_doc('xcrystal')
 
 
+def xoppy_calc_xcrystal(FILEF0=0,FILEF1F2=0,FILECROSSSEC=0,CRYSTAL_MATERIAL=0,\
+                        MILLER_INDEX_H=1,MILLER_INDEX_K=1,MILLER_INDEX_L=1,\
+                        I_ABSORP=2,TEMPER="1.0",MOSAIC=0,GEOMETRY=0,SCAN=2,UNIT=1,\
+                        SCANFROM=-100.0,SCANTO=100.0,SCANPOINTS=200,ENERGY=8000.0,\
+                        ASYMMETRY_ANGLE=0.0,THICKNESS=0.7,MOSAIC_FWHM=0.1,RSAG=125.0,RMER=1290.0,\
+                        ANISOTROPY=0,POISSON=0.22,CUT="2 -1 -1 ; 1 1 1 ; 0 0 0",FILECOMPLIANCE="mycompliance.dat"):
+    print("Inside xoppy_calc_xcrystal. ")
+    return(None)
 
 
 

@@ -1,28 +1,22 @@
 import sys
-import numpy as np
+import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import widget
+from oasys.widgets.widget import OWWidget
+from oasys.widgets.exchange import DataExchangeObject
 from orangewidget.widget import OWAction
 
-from srxraylib.oasys.exchange import DataExchangeObject
+from srxraylib.sources import srfunc
 
 try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
+    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
 except ImportError:
     print("Error importing: xoppy_doc")
     raise
 
-try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_bm
-except ImportError:
-    print("compute pressed.")
-    print("Error importing: xoppy_calc_bm")
-    raise
-
-class OWbm(widget.OWWidget):
+class OWbm(OWWidget):
     name = "bm"
     id = "orange.widgets.databm"
     description = "xoppy application to compute..."
@@ -33,7 +27,7 @@ class OWbm(widget.OWWidget):
     category = ""
     keywords = ["xoppy", "bm"]
     outputs = [{"name": "xoppy_data",
-                "type": np.ndarray,
+                "type": numpy.ndarray,
                 "doc": ""},
                {"name": "xoppy_specfile",
                 "type": str,
@@ -251,12 +245,12 @@ class OWbm(widget.OWWidget):
             if sf.scanno() == 1:
                 #load spec file with one scan, # is comment
                 print("Loading file:  ",fileName)
-                out = np.loadtxt(fileName)
+                out = numpy.loadtxt(fileName)
                 print("data shape: ",out.shape)
                 #get labels
                 txt = open(fileName).readlines()
                 tmp = [ line.find("#L") for line in txt]
-                itmp = np.where(np.array(tmp) != (-1))
+                itmp = numpy.where(numpy.array(tmp) != (-1))
                 labels = txt[itmp[0]].replace("#L ","").split("  ")
                 print("data labels: ",labels)
                 self.send("xoppy_data",out)
@@ -280,6 +274,163 @@ class OWbm(widget.OWWidget):
         print("help pressed.")
         xoppy_doc('bm')
 
+
+def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.0,BFIELD_T=0.8,\
+                  BEAM_ENERGY_GEV=6.04,CURRENT_A=0.1,HOR_DIV_MRAD=1.0,VER_DIV=0,\
+                  PHOT_ENERGY_MIN=100.0,PHOT_ENERGY_MAX=100000.0,NPOINTS=500,LOG_CHOICE=1,\
+                  PSI_MRAD_PLOT=1.0,PSI_MIN=-1.0,PSI_MAX=1.0,PSI_NPOINTS=500,TYPE_CALC=0):
+    print("Inside xoppy_calc_bm. ")
+
+    outFile = "bm.spec"
+
+    # electron energy in GeV
+    gamma = BEAM_ENERGY_GEV*1e3 / srfunc.codata_mee
+
+    r_m = MACHINE_R_M      # magnetic radius in m
+    if RB_CHOICE == 1:
+        r_m = srfunc.codata_me * srfunc.codata_c / srfunc.codata_ec / BFIELD_T * numpy.sqrt(gamma * gamma - 1)
+
+    # calculate critical energy in eV
+    ec_m = 4.0*numpy.pi*r_m/3.0/numpy.power(gamma,3) # wavelength in m
+    ec_ev = srfunc.m2ev / ec_m
+
+
+    if TYPE_CALC == 0:
+        if LOG_CHOICE == 0:
+            energy_ev = numpy.linspace(PHOT_ENERGY_MIN,PHOT_ENERGY_MAX,NPOINTS) # photon energy grid
+        else:
+            energy_ev = numpy.logspace(numpy.log10(PHOT_ENERGY_MIN),numpy.log10(PHOT_ENERGY_MAX),NPOINTS) # photon energy grid
+
+        a5 = srfunc.sync_ene(VER_DIV, energy_ev, ec_ev=ec_ev, polarization=0, \
+                             e_gev=BEAM_ENERGY_GEV, i_a=CURRENT_A, hdiv_mrad=HOR_DIV_MRAD, \
+                             psi_min=PSI_MIN, psi_max=PSI_MAX, psi_npoints=PSI_NPOINTS)
+
+        a5par = srfunc.sync_ene(VER_DIV, energy_ev, ec_ev=ec_ev, polarization=1, \
+                                e_gev=BEAM_ENERGY_GEV, i_a=CURRENT_A, hdiv_mrad=HOR_DIV_MRAD, \
+                                psi_min=PSI_MIN, psi_max=PSI_MAX, psi_npoints=PSI_NPOINTS)
+
+        a5per = srfunc.sync_ene(VER_DIV, energy_ev, ec_ev=ec_ev, polarization=2, \
+                                e_gev=BEAM_ENERGY_GEV, i_a=CURRENT_A, hdiv_mrad=HOR_DIV_MRAD, \
+                                psi_min=PSI_MIN, psi_max=PSI_MAX, psi_npoints=PSI_NPOINTS)
+
+        if VER_DIV == 0:
+            coltitles=['Photon Energy [eV]','Photon Wavelength [A]','E/Ec','Flux_spol/Flux_total','Flux_ppol/Flux_total','Flux[Phot/sec/0.1%bw]','Power[Watts/eV]']
+            title='integrated in Psi,'
+        if VER_DIV == 1:
+            coltitles=['Photon Energy [eV]','Photon Wavelength [A]','E/Ec','Flux_spol/Flux_total','Flux_ppol/Flux_total','Flux[Phot/sec/0.1%bw/mradPsi]','Power[Watts/eV/mradPsi]']
+            title='at Psi=0,'
+        if VER_DIV == 2:
+            coltitles=['Photon Energy [eV]','Photon Wavelength [A]','E/Ec','Flux_spol/Flux_total','Flux_ppol/Flux_total','Flux[Phot/sec/0.1%bw]','Power[Watts/eV]']
+            title='in Psi=[%e,%e]'%(PSI_MIN,PSI_MAX)
+
+        if VER_DIV == 3:
+            coltitles=['Photon Energy [eV]','Photon Wavelength [A]','E/Ec','Flux_spol/Flux_total','Flux_ppol/Flux_total','Flux[Phot/sec/0.1%bw/mradPsi]','Power[Watts/eV/mradPsi]']
+            title='at Psi=%e mrad'%(PSI_MIN)
+
+        a6=numpy.zeros((7,len(energy_ev)))
+        a1 = energy_ev
+        a6[0,:] = (a1)
+        a6[1,:] = srfunc.m2ev * 1e10 / (a1)
+        a6[2,:] = (a1)/ec_ev # E/Ec
+        a6[3,:] = (a5par)/(a5)
+        a6[4,:] = (a5per)/(a5)
+        a6[5,:] = (a5)
+        a6[6,:] = (a5)*1e3 * srfunc.codata_ec
+
+    if TYPE_CALC == 1:  # angular distributions over over all energies
+        angle_mrad = numpy.linspace(-PSI_MRAD_PLOT, +PSI_MRAD_PLOT,NPOINTS) # angle grid
+
+        a6 = numpy.zeros((6,NPOINTS))
+        a6[0,:] = angle_mrad # angle in mrad
+        a6[1,:] = angle_mrad*gamma/1e3 # Psi[rad]*Gamma
+        a6[2,:] = srfunc.sync_f(angle_mrad * gamma / 1e3)
+        a6[3,:] = srfunc.sync_f(angle_mrad * gamma / 1e3, polarization=1)
+        a6[4,:] = srfunc.sync_f(angle_mrad * gamma / 1e3, polarization=2)
+        a6[5,:] = srfunc.sync_ang(0, angle_mrad, i_a=CURRENT_A, hdiv_mrad=HOR_DIV_MRAD, e_gev=BEAM_ENERGY_GEV, r_m=r_m)
+
+        coltitles=['Psi[mrad]','Psi[rad]*Gamma','F','F s-pol','F p-pol','Power[Watts/mrad(Psi)]']
+
+    if TYPE_CALC == 2:  # angular distributions at a single energy
+        angle_mrad = numpy.linspace(-PSI_MRAD_PLOT, +PSI_MRAD_PLOT,NPOINTS) # angle grid
+
+        a6 = numpy.zeros((7,NPOINTS))
+        a6[0,:] = angle_mrad # angle in mrad
+        a6[1,:] = angle_mrad*gamma/1e3 # Psi[rad]*Gamma
+        a6[2,:] = srfunc.sync_f(angle_mrad * gamma / 1e3)
+        a6[3,:] = srfunc.sync_f(angle_mrad * gamma / 1e3, polarization=1)
+        a6[4,:] = srfunc.sync_f(angle_mrad * gamma / 1e3, polarization=2)
+        tmp = srfunc.sync_ang(1, angle_mrad, energy=PHOT_ENERGY_MIN, i_a=CURRENT_A, hdiv_mrad=HOR_DIV_MRAD, e_gev=BEAM_ENERGY_GEV, ec_ev=ec_ev)
+        tmp.shape = -1
+        a6[5,:] = tmp
+        a6[6,:] = a6[5,:] * srfunc.codata_ec * 1e3
+
+        coltitles=['Psi[mrad]','Psi[rad]*Gamma','F','F s-pol','F p-pol','Flux[Ph/sec/0.1%bw/mradPsi]','Power[Watts/eV/mradPsi]']
+
+
+    if TYPE_CALC == 3:  # angular,energy distributions flux
+        angle_mrad = numpy.linspace(-PSI_MRAD_PLOT, +PSI_MRAD_PLOT,NPOINTS) # angle grid
+
+        if LOG_CHOICE == 0:
+            energy_ev = numpy.linspace(PHOT_ENERGY_MIN,PHOT_ENERGY_MAX,NPOINTS) # photon energy grid
+        else:
+            energy_ev = numpy.logspace(numpy.log10(PHOT_ENERGY_MIN),numpy.log10(PHOT_ENERGY_MAX),NPOINTS) # photon energy grid
+
+        tmp1, fm, a = srfunc.sync_ene(2, energy_ev, ec_ev=ec_ev, e_gev=BEAM_ENERGY_GEV, i_a=CURRENT_A, \
+                                      hdiv_mrad=HOR_DIV_MRAD, psi_min=PSI_MIN, psi_max=PSI_MAX, psi_npoints=PSI_NPOINTS)
+
+        a6 = numpy.zeros((4,len(a)*len(energy_ev)))
+        ij = -1
+        for i in range(len(a)):
+            for j in range(len(energy_ev)):
+                ij += 1
+                a6[0,ij] = a[i]
+                a6[1,ij] = energy_ev[j]
+                a6[2,ij] = fm[i,j] * srfunc.codata_ec * 1e3
+                a6[3,ij] = fm[i,j]
+
+        coltitles=['Psi [mrad]','Photon Energy [eV]','Power [Watts/eV/mradPsi]','Flux [Ph/sec/0.1%bw/mradPsi]']
+
+        import matplotlib.pylab as plt
+        from mpl_toolkits.mplot3d import Axes3D  # need for example 6
+
+        toptitle='Flux vs vertical angle and photon energy'
+        xtitle  ='angle [mrad]'
+        ytitle  ='energy [eV]'
+        ztitle = "Photon flux [Ph/s/mrad/0.1%bw]"
+        pltN = 0
+        fig = plt.figure(pltN)
+        ax = fig.add_subplot(111, projection='3d')
+        fa, fe = numpy.meshgrid(a, energy_ev)
+        surf = ax.plot_surface(fa, fe, fm.T, \
+            rstride=1, cstride=1, \
+            linewidth=0, antialiased=False)
+
+        plt.title(toptitle)
+        ax.set_xlabel(xtitle)
+        ax.set_ylabel(ytitle)
+        ax.set_zlabel(ztitle)
+        plt.show()
+
+    # write spec file
+    ncol = len(coltitles)
+    npoints = len(a6[0,:])
+
+    f = open(outFile,"w")
+    f.write("#F "+outFile+"\n")
+    f.write("\n")
+    f.write("#S 1 bm results\n")
+    f.write("#N %d\n"%(ncol))
+    f.write("#L")
+    for i in range(ncol):
+        f.write("  "+coltitles[i])
+    f.write("\n")
+
+    for i in range(npoints):
+            f.write((" %e "*ncol+"\n")%(tuple(a6[:,i].tolist())))
+    f.close()
+    print("File written to disk: " + outFile)
+
+    return outFile
 
 
 

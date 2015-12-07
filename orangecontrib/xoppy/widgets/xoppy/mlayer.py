@@ -1,5 +1,5 @@
 import sys
-import numpy as np
+import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
@@ -7,16 +7,9 @@ from orangewidget.settings import Setting
 from oasys.widgets import widget
 
 try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_doc
+    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
 except ImportError:
     print("Error importing: xoppy_doc")
-    raise
-
-try:
-    from orangecontrib.xoppy.util.xoppy_calc import xoppy_calc_mlayer
-except ImportError:
-    print("compute pressed.")
-    print("Error importing: xoppy_calc_mlayer")
     raise
 
 class OWmlayer(widget.OWWidget):
@@ -30,7 +23,7 @@ class OWmlayer(widget.OWWidget):
     category = ""
     keywords = ["xoppy", "mlayer"]
     outputs = [{"name": "xoppy_data",
-                "type": np.ndarray,
+                "type": numpy.ndarray,
                 "doc": ""},
                {"name": "xoppy_specfile",
                 "type": str,
@@ -210,12 +203,12 @@ class OWmlayer(widget.OWWidget):
             if sf.scanno() == 1:
                 #load spec file with one scan, # is comment
                 print("Loading file:  ",fileName)
-                out = np.loadtxt(fileName)
+                out = numpy.loadtxt(fileName)
                 print("data shape: ",out.shape)
                 #get labels
                 txt = open(fileName).readlines()
                 tmp = [ line.find("#L") for line in txt]
-                itmp = np.where(np.array(tmp) != (-1))
+                itmp = numpy.where(numpy.array(tmp) != (-1))
                 labels = txt[itmp[0]].replace("#L ","").split("  ")
                 print("data labels: ",labels)
                 self.send("xoppy_data",out)
@@ -232,7 +225,11 @@ class OWmlayer(widget.OWWidget):
         xoppy_doc('mlayer')
 
 
-
+def xoppy_calc_mlayer(MODE=0,SCAN=0,F12_FLAG=0,SUBSTRATE="Si",ODD_MATERIAL="Si",EVEN_MATERIAL="W",ENERGY=8050.0,\
+                      THETA=0.0,SCAN_STEP=0.009999999776483,NPOINTS=600,ODD_THICKNESS=25.0,EVEN_THICKNESS=25.0,\
+                      NLAYERS=50,FILE="layers.dat"):
+    print("Inside xoppy_calc_mlayer. ")
+    return(None)
 
 
 if __name__ == "__main__":
