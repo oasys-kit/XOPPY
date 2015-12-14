@@ -1,0 +1,5 @@
+dist*
+build/*
+.idea/*
+XOPPY-Devel.egg-info/*
+*.pyc
