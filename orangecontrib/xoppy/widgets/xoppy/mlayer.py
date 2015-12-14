@@ -6,11 +6,7 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
 
-try:
-    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
-except ImportError:
-    print("Error importing: xoppy_doc")
-    raise
+from orangecontrib.xoppy.util import xoppy_util
 
 class OWmlayer(widget.OWWidget):
     name = "mlayer"
@@ -222,7 +218,7 @@ class OWmlayer(widget.OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('mlayer')
+        xoppy_util.xoppy_doc('mlayer')
 
 
 def xoppy_calc_mlayer(MODE=0,SCAN=0,F12_FLAG=0,SUBSTRATE="Si",ODD_MATERIAL="Si",EVEN_MATERIAL="W",ENERGY=8050.0,\

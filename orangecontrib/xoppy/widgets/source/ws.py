@@ -8,11 +8,7 @@ from oasys.widgets.widget import OWWidget
 from oasys.widgets.exchange import DataExchangeObject
 from orangecontrib.xoppy.util.xoppy_util import locations
 
-try:
-    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
-except ImportError:
-    print("Error importing: xoppy_doc")
-    raise
+from orangecontrib.xoppy.util import xoppy_util
 
 class OWws(OWWidget):
     name = "ws"
@@ -251,7 +247,7 @@ class OWws(OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('ws')
+        xoppy_util.xoppy_doc('ws')
 
 
 def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.0,KX=0.0,KY=8.739999771118164,\

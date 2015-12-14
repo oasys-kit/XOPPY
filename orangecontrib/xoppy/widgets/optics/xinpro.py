@@ -8,11 +8,7 @@ from oasys.widgets import widget
 
 from orangecontrib.xoppy.util.xoppy_util import locations
 
-try:
-    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
-except ImportError:
-    print("Error importing: xoppy_doc")
-    raise
+from orangecontrib.xoppy.util import xoppy_util
 
 class OWxinpro(widget.OWWidget):
     name = "xinpro"
@@ -219,7 +215,7 @@ class OWxinpro(widget.OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('xinpro')
+        xoppy_util.xoppy_doc('xinpro')
 
 def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,MILLER_INDEX_K=1,MILLER_INDEX_L=1,\
                       ASYMMETRY_ANGLE=0.0,THICKNESS=500.0,TEMPERATURE=300.0,NPOINTS=100,SCALE=0,XFROM=-50.0,XTO=50.0):

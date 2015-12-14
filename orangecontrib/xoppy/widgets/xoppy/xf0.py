@@ -6,11 +6,7 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
 
-try:
-    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
-except ImportError:
-    print("Error importing: xoppy_doc")
-    raise
+from orangecontrib.xoppy.util import xoppy_util
 
 class OWxf0(widget.OWWidget):
     name = "xf0"
@@ -172,7 +168,7 @@ class OWxf0(widget.OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('xf0')
+        xoppy_util.xoppy_doc('xf0')
 
 
 def xoppy_calc_xf0(DATASETS=0,MAT_FLAG=0,MAT_LIST=0,DESCRIPTOR="Si",GRID=0,GRIDSTART=0.0,GRIDEND=4.0,GRIDN=100):

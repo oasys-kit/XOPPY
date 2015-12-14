@@ -9,11 +9,7 @@ from oasys.widgets import widget
 
 import xraylib
 
-try:
-    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
-except ImportError:
-    print("Error importing: xoppy_doc")
-    raise
+from orangecontrib.xoppy.util import xoppy_util
 
 class OWxraylib_widget(widget.OWWidget):
     name = "xraylib_widget"
@@ -194,7 +190,7 @@ class OWxraylib_widget(widget.OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('xraylib_widget')
+        xoppy_util.xoppy_doc('xraylib_widget')
 
 
 
