@@ -5,7 +5,7 @@ import os
 from setuptools import find_packages, setup
 
 NAME = 'XOPPY-Devel'
-VERSION = '0.0.7'
+VERSION = '0.0.8'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
