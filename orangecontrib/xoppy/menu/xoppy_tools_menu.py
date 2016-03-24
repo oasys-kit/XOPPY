@@ -17,7 +17,7 @@ class XoppyToolsMenu(OMenu):
     def executeAction_2(self, action):
         self.showWarningMessage("Xoppy Tool 2")
 
-    def executeAction_4(self, action):
+    def executeAction_3(self, action):
         self.showWarningMessage("Xoppy Tool 3")
 
     def showConfirmMessage(self, message):
