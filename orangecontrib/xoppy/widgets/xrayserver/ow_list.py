@@ -14,10 +14,10 @@ from PyQt4 import QtGui
 
 APPLICATION = "cgi/WWW_dbli.exe"
 
-class X0hList(widget.OWWidget):
-    name = "X0h List"
-    description = "X0h: X0h List"
-    icon = "icons/x0hlist.png"
+class List(widget.OWWidget):
+    name = "List"
+    description = "X0h: List"
+    icon = "icons/list.png"
     maintainer = "Luca Rebuffi"
     maintainer_email = "luca.rebuffi(@at@)elettra.eu"
     priority = 1
@@ -32,7 +32,7 @@ class X0hList(widget.OWWidget):
 
     outputs = [{"name": "List",
                 "type": object,
-                "doc": "X0h List",
+                "doc": "List",
                 "id": "list"}, ]
 
     def __init__(self):
@@ -120,7 +120,32 @@ class X0hList(widget.OWWidget):
             self.x0h_output.setText('We failed to reach a server.\nReason: '
                                     + e.reason)
 
+    @classmethod
+    def get_list(cls, x0hdb=""):
+
+        parameters = {}
+        parameters.update({"x0hdb" : x0hdb})
+        parameters.update({"textout" : "1" })
+        parameters.update({"namesonly" : "1"})
+
+        try:
+            response = HttpManager.send_xray_server_request(APPLICATION, parameters).decode('ascii')
+
+            list = response.split('\n')
+            return [x.strip() for x in list[1:len(list)-1]]
+
+        except Exception as e:
+            return []
 
 
+    @classmethod
+    def get_help(cls, x0hdb=""):
 
+        parameters = {}
+        parameters.update({"x0hdb" : x0hdb})
 
+        try:
+            return HttpManager.send_xray_server_request(APPLICATION, parameters).decode('ascii')
+
+        except Exception as e:
+            return ""

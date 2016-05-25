@@ -2,8 +2,8 @@ __author__ = 'labx'
 
 import sys, os
 import orangecanvas.resources as resources
-
-from PyQt4.QtCore import QSettings
+import xraylib
+from PyQt4 import QtGui
 
 class locations:
     @classmethod
@@ -40,6 +40,34 @@ class HttpManager():
 
         return resp.read()
 
+class ShowTextDialog(QtGui.QDialog):
+
+    def __init__(self, title, text, width=650, height=400, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.setModal(True)
+        self.setWindowTitle(title)
+        layout = QtGui.QVBoxLayout(self)
+
+        text_edit = QtGui.QTextEdit(text, self)
+        text_edit.setReadOnly(True)
+
+        text_area = QtGui.QScrollArea(self)
+        text_area.setWidget(text_edit)
+        text_area.setWidgetResizable(True)
+        text_area.setFixedHeight(height)
+        text_area.setFixedWidth(width)
+
+        bbox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
+
+        bbox.accepted.connect(self.accept)
+        layout.addWidget(text_area)
+        layout.addWidget(bbox)
+
+    @classmethod
+    def show_text(cls, title, text, width=650, height=400, parent=None):
+        dialog = ShowTextDialog(title, text, width, height, parent)
+        dialog.show()
+
 def xoppy_doc(app):
     home_doc = locations.home_doc()
 
@@ -48,3 +76,19 @@ def xoppy_doc(app):
     command = "gedit "+filename1+" "+filename2+" &"
     print("Running command '%s' "%(command))
     os.system(command)
+
+class XoppyPhysics:
+    @classmethod
+    def getMaterialDensity(cls, material_formula):
+        if material_formula is None: return 0.0
+        if str(material_formula.strip()) == "": return 0.0
+
+        try:
+            compoundData = xraylib.CompoundParser(material_formula)
+
+            if compoundData["nElements"] == 1:
+                return xraylib.ElementDensity(compoundData["Elements"][0])
+            else:
+                return 0.0
+        except:
+            return 0.0
