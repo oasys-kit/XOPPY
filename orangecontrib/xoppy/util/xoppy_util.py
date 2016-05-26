@@ -2,6 +2,7 @@ __author__ = 'labx'
 
 import sys, os
 import orangecanvas.resources as resources
+from orangewidget import gui
 import xraylib
 from PyQt4 import QtGui
 
@@ -31,7 +32,7 @@ XRAY_SERVER_URL = "http://x-server.gmca.aps.anl.gov/"
 class HttpManager():
 
     @classmethod
-    def send_xray_server_request(cls, application, parameters):
+    def send_xray_server_request_POST(cls, application, parameters):
 
         data = urllib.parse.urlencode(parameters)
         data = data.encode('utf-8') # data should be bytes
@@ -39,6 +40,17 @@ class HttpManager():
         resp = urllib.request.urlopen(req)
 
         return resp.read()
+
+    @classmethod
+    def send_xray_server_request_GET(cls, application, parameters):
+
+        resp = urllib.request.urlopen(url=HttpManager.build_xray_server_request_GET(application, parameters))
+
+        return resp.read()
+
+    @classmethod
+    def build_xray_server_request_GET(cls, application, parameters):
+        return XRAY_SERVER_URL + application + "?" + urllib.parse.urlencode(parameters)
 
 class ShowTextDialog(QtGui.QDialog):
 
@@ -92,3 +104,22 @@ class XoppyPhysics:
                 return 0.0
         except:
             return 0.0
+
+class XoppyGui:
+
+    @classmethod
+    def combobox_text(cls, widget, master, value, box=None, label=None, labelWidth=None,
+             orientation='vertical', items=(), callback=None,
+             sendSelectedValue=False, valueType=str,
+             control2attributeDict=None, emptyString=None, editable=False, selectedValue = None,
+             **misc):
+
+        combo = gui.comboBox(widget, master, value, box=box, label=label, labelWidth=labelWidth, orientation=orientation,
+                             items=items, callback=callback, sendSelectedValue=sendSelectedValue, valueType=valueType,
+                             control2attributeDict=control2attributeDict, emptyString=emptyString,editable=editable, **misc)
+        try:
+            combo.setCurrentIndex(items.index(selectedValue))
+        except:
+            pass
+
+        return combo
