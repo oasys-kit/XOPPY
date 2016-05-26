@@ -1,22 +1,22 @@
 __author__ = "Luca Rebuffi"
 
+import numpy
+
 from oasys.widgets import widget
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
+from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
 
 import urllib
 from http import server
 
-from orangecontrib.xoppy.util.xoppy_util import HttpManager, ShowTextDialog, XoppyPhysics, XoppyGui
+from orangecontrib.xoppy.util.xoppy_util import HttpManager, ShowTextDialog, XoppyPhysics, XoppyGui, XoppyPlot
 from orangecontrib.xoppy.widgets.xrayserver.list_utility import ListUtility
 
 from PyQt4 import QtGui
-from PyQt4.QtWebKit import QWebView
-from PyQt4.QtGui import QApplication
-from PyQt4.QtCore import QUrl
 
-APPLICATION = "cgi/X0h_form.exe"
+APPLICATION = "/cgi/X0h_form.exe"
 
 class X0h(widget.OWWidget):
     name = "X0h"
@@ -37,7 +37,7 @@ class X0h(widget.OWWidget):
                 "id": "x0h_result"}, ]
 
 
-    xway = Setting(0)
+    xway = Setting(2)
     wave = Setting(0.0)
     line = Setting("Cu-Ka1")
 
@@ -47,11 +47,11 @@ class X0h(widget.OWWidget):
     chem = Setting("")
     rho = Setting(0.0)
 
-    i1 = Setting(0)
-    i2 = Setting(0)
-    i3 = Setting(0)
+    i1 = Setting(1)
+    i2 = Setting(1)
+    i3 = Setting(1)
 
-    df1df2 = Setting(0)
+    df1df2 = Setting(1)
     detail = Setting(1)
 
     def __init__(self):
@@ -59,7 +59,7 @@ class X0h(widget.OWWidget):
         self.setFixedHeight(700)
 
         left_box_1 = oasysgui.widgetBox(self.controlArea, "X0h Request Form", addSpace=True, orientation="vertical",
-                                         width=400, height=620)
+                                         width=400, height=630)
 
         left_box_2 = oasysgui.widgetBox(left_box_1, "X-rays", addSpace=True, orientation="horizontal", width=380, height=110)
 
@@ -116,37 +116,38 @@ class X0h(widget.OWWidget):
 
         left_box_4 = oasysgui.widgetBox(left_box_1, "Reflection", addSpace=True, orientation="horizontal", width=380, height=60)
 
-        gui.lineEdit(left_box_4, self, "i1", label="Miller indices", labelWidth=100, addSpace=False, valueType=int, orientation="horizontal")
+        gui.lineEdit(left_box_4, self, "i1", label="Miller indices", labelWidth=200, addSpace=False, valueType=int, orientation="horizontal")
         gui.lineEdit(left_box_4, self, "i2", label=" ", labelWidth=1, addSpace=False, valueType=int, orientation="horizontal")
         gui.lineEdit(left_box_4, self, "i3", label=" ", labelWidth=1, addSpace=False, valueType=int, orientation="horizontal")
 
-        left_box_5 = oasysgui.widgetBox(left_box_1, "Database Options for dispersion corrections df1, df2", addSpace=True, orientation="vertical", width=380, height=150)
+        left_box_5 = oasysgui.widgetBox(left_box_1, "Database Options for dispersion corrections df1, df2", addSpace=True, orientation="vertical", width=380, height=185)
 
-        gui.radioButtons(left_box_5, self, "df1df2", ["Auto (Henke at low energy, X0h at mid, Brennan-Cowan at high)",
-                                                      "Use X0h data (5-25 keV or 0.5-2.5 A), recommended for Bragg diffraction",
-                                                      "Use Henke data (0.01-30 keV or 0.4-1200 A), recommended for soft x-rays",
+        gui.radioButtons(left_box_5, self, "df1df2", ["Auto (Henke at low energy, X0h at mid, Brennan-Cowan\nat high)",
+                                                      "Use X0h data (5-25 keV or 0.5-2.5 A), recommended for\nBragg diffraction",
+                                                      "Use Henke data (0.01-30 keV or 0.4-1200 A),\nrecommended for soft x-rays",
                                                       "Use Brennan-Cowan data (0.03-700 keV or 0.02-400 A)",
                                                       "Compare results for all of the above sources"])
 
-        left_box_6 = oasysgui.widgetBox(left_box_1, "Output Options", addSpace=True, orientation="vertical", width=380, height=60)
+        left_box_6 = oasysgui.widgetBox(left_box_1, "Output Options", addSpace=True, orientation="vertical", width=380, height=50)
 
         gui.checkBox(left_box_6, self, "detail", "Print atomic coordinates", labelWidth=250)
 
         button = gui.button(self.controlArea, self, "Get X0h!", callback=self.submit)
-        button.setFixedHeight(45)
+        button.setFixedHeight(30)
 
         gui.rubber(self.controlArea)
+
+        self.tabs = []
+        self.tabs_widget = gui.tabWidget(self.mainArea)
+        self.initializeTabs()
 
         self.x0h_output = QtGui.QTextEdit()
         self.x0h_output.setReadOnly(True)
 
-        #self.x0h_output = QWebView()
+        self.tabs[0].layout().addWidget(self.x0h_output)
 
-        out_box = gui.widgetBox(self.mainArea, "Query Results", addSpace=True, orientation="horizontal")
-        out_box.layout().addWidget(self.x0h_output)
-
-        self.x0h_output.setFixedHeight(600)
-        self.x0h_output.setFixedWidth(750)
+        self.x0h_output.setFixedHeight(640)
+        self.x0h_output.setFixedWidth(740)
 
     def set_xway(self):
         self.box_wave.setVisible(self.xway!=2)
@@ -157,10 +158,32 @@ class X0h(widget.OWWidget):
         self.box_other.setVisible(self.coway==1)
         self.box_chemical.setVisible(self.coway==2)
 
+    def initializeTabs(self):
+        current_tab = self.tabs_widget.currentIndex()
+
+        size = len(self.tabs)
+
+        for index in range(0, size):
+            self.tabs_widget.removeTab(size-1-index)
+
+        self.tabs = [gui.createTabPage(self.tabs_widget, "X-ray Server Ouput"),
+                     gui.createTabPage(self.tabs_widget, "Critical Angle for TER"),
+                     gui.createTabPage(self.tabs_widget, "Darwin Curve (" + u"\u03C3" + " Pol.)"),
+                     gui.createTabPage(self.tabs_widget, "Darwin Curve (" + u"\u03C0" + " Pol.)"),
+                     ]
+
+        for tab in self.tabs:
+            tab.setFixedHeight(650)
+            tab.setFixedWidth(750)
+
+        self.plot_canvas = [None, None, None]
+
+        self.tabs_widget.setCurrentIndex(current_tab)
 
     def submit(self):
-        self.setStatusMessage("")
-
+        self.progressBarInit()
+        self.setStatusMessage("Submitting Request")
+        
         self.checkFields()
 
         self.x0h_output.clear()
@@ -185,14 +208,15 @@ class X0h(widget.OWWidget):
         parameters.update({"detail" : str(self.detail)})
 
         try:
-            response = HttpManager.send_xray_server_request_POST(APPLICATION, parameters).decode('ascii')
+            response = HttpManager.send_xray_server_request_POST(APPLICATION, parameters)
+            response = response.split("</table></font></center>")[0] + "\n</body></html>"
 
+            self.tabs_widget.setCurrentIndex(0)
             self.x0h_output.setText(response)
 
-            #self.send("X0h_Result", response)
+            data = self.extract_plots(response)
 
-            '''self.x0h_output.load(QUrl(HttpManager.build_xray_server_request_GET(APPLICATION, parameters)))
-            self.x0h_output.show()'''
+            self.send("X0h_Result", data)
 
         except urllib.error.HTTPError as e:
             self.x0h_output.setText('The server couldn\'t fulfill the request.\nError Code: '
@@ -201,6 +225,9 @@ class X0h(widget.OWWidget):
         except urllib.error.URLError as e:
             self.x0h_output.setText('We failed to reach a server.\nReason: '
                                     + e.reason)
+
+        self.setStatusMessage("")
+        self.progressBarFinished()
 
     def checkFields(self):
         pass
@@ -211,6 +238,150 @@ class X0h(widget.OWWidget):
         elif self.df1df2 == 2: return "2"
         elif self.df1df2 == 3: return "4"
         elif self.df1df2 == 4: return "10"
+
+
+    def extract_plots(self, response):
+        form_1_begin = False
+        form_2_begin = False
+        form_3_begin = False
+
+        form_1 = None
+        form_2 = None
+        form_3 = None
+
+        rows = response.split("\n")
+
+        for row in rows:
+            if form_1_begin:
+                if "<pre>" in row:
+                    form_1_begin = False
+            elif form_2_begin:
+                if "<pre>" in row:
+                    form_2_begin = False
+            elif form_3_begin:
+                if "<pre>" in row:
+                    form_3_begin = False
+
+            if form_1_begin:
+                form_1.append(row)
+            elif form_2_begin:
+                form_2.append(row)
+            elif form_3_begin:
+                form_3.append(row)
+
+            if "/cgi/ter_form.pl" in row:
+                if form_1 is None:
+                    print("F1!")
+                    form_1 = []
+                    form_1_begin = True
+
+            if "/cgi/gid_form.pl" in row:
+                if form_2 is None:
+                    print("F2!")
+                    form_2 = []
+                    form_2_begin = True
+                elif form_3 is None:
+                    print("F3!")
+                    form_3 = []
+                    form_3_begin = True
+
+        self.setStatusMessage("Plotting Results")
+
+        if not form_1 is None:
+            x_1, y_1 = self.get_plots_from_form("/cgi/ter_form.pl", form_1)
+
+            self.plot_histo(x_1, y_1, 40, 0, "Critical Angle for TER")
+            self.tabs_widget.setCurrentIndex(1)
+        else:
+            x_1 = None
+            y_1 = None
+            
+        if not form_2 is None:
+            x_2, y_2 = self.get_plots_from_form("/cgi/gid_form.pl", form_2)
+
+            self.plot_histo(x_2, y_2, 60, 1, "Darwin Curve ($\sigma$ Pol.)")
+            self.tabs_widget.setCurrentIndex(2)
+        else:
+            x_2 = None
+            y_2 = None
+
+        if not form_3 is None:
+            x_3, y_3 = self.get_plots_from_form("/cgi/gid_form.pl", form_3)
+
+            self.plot_histo(x_3, y_3, 80, 2, "Darwin Curve ($\pi$ Pol.)")
+            self.tabs_widget.setCurrentIndex(3)
+        else:
+            x_3 = None
+            y_3 = None
+
+        return [x_1, y_1], [x_2, y_2], [x_3, y_3]
+    
+    def get_plots_from_form(self, application, form):
+        response = HttpManager.send_xray_server_request_POST(application, self.get_parameters_from_form(form))
+
+        return self.get_data_file_from_response(response)
+        
+    
+    def get_parameters_from_form(self, form):
+        parameters = {}
+
+        for row in form:
+            temp = (row.split("name=\"")[1]).split("\"")
+            key = temp[0]
+
+            if len(temp) == 2:
+                value = ((temp[1].split("value=")[1]).split(">")[0]).strip()
+            else:
+                value = temp[2].strip()
+
+            parameters.update({key : value})
+
+        return parameters
+
+    def get_data_file_from_response(self, response):
+        rows = response.split("\n")
+
+        job_id = None
+        data = None
+
+        for row in rows:
+            if "Job ID" in row:
+                job_id = (row.split("<b>"))[1].split("</b>")[0]
+
+            if not job_id is None:
+                if job_id+".dat" in row:
+                    data = HttpManager.send_xray_server_direct_request((row.split("href=\"")[1]).split("\"")[0])
+
+        if not data is None:
+            rows = data.split("\r\n")
+
+            x = []
+            y = []
+
+            for row in rows:
+                temp = row.strip().split(" ")
+
+                if len(temp) > 1:
+                    x.append(float(temp[0].strip()))
+                    y.append(float(temp[len(temp)-1].strip()))
+
+            return x, y
+        else:
+            return None, None
+
+    def plot_histo(self, x, y, progressBarValue, plot_canvas_index, title="", xtitle="", ytitle=""):
+        if self.plot_canvas[plot_canvas_index] is None:
+            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+            self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
+            self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
+            self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(True)
+
+            self.tabs[plot_canvas_index+1].layout().addWidget(self.plot_canvas[plot_canvas_index])
+
+        XoppyPlot.plot_histo(self.plot_canvas[plot_canvas_index], x, y, title, xtitle, ytitle)
+
+        self.progressBarSet(progressBarValue)
+
 
 
     ''' ---------------------------------------------------------------------
@@ -244,23 +415,10 @@ class X0h(widget.OWWidget):
 
 if __name__ == "__main__":
     import sys
-    from PyQt4.QtWebKit import QWebView
-    from PyQt4.QtGui import QApplication
-    from PyQt4.QtCore import QUrl
-
-    app = QApplication(sys.argv)
-
-    browser = QWebView()
-    browser.load(QUrl("http://www.google.it"))
-    browser.show()
-
-    app.exec_()
-
-    '''import sys
     app = QtGui.QApplication(sys.argv)
     w = X0h()
     w.show()
     app.exec()
-    w.saveSettings()'''
+    w.saveSettings()
 
 

@@ -1,18 +1,8 @@
 __author__ = "Luca Rebuffi"
 
-from oasys.widgets import widget
-from orangewidget import gui
-from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
-
-import urllib
-from http import server
-
 from orangecontrib.xoppy.util.xoppy_util import HttpManager
 
-from PyQt4 import QtGui
-
-APPLICATION = "cgi/WWW_dbli.exe"
+APPLICATION = "/cgi/WWW_dbli.exe"
 
 class ListUtility:
     @classmethod
@@ -24,7 +14,7 @@ class ListUtility:
         parameters.update({"namesonly" : "1"})
 
         try:
-            response = HttpManager.send_xray_server_request_POST(APPLICATION, parameters).decode('ascii')
+            response = HttpManager.send_xray_server_request_POST(APPLICATION, parameters)
 
             list = response.split('\n')
             return [x.strip() for x in list[1:len(list)-1]]
@@ -40,7 +30,7 @@ class ListUtility:
         parameters.update({"x0hdb" : x0hdb})
 
         try:
-            return HttpManager.send_xray_server_request_POST(APPLICATION, parameters).decode('ascii')
+            return HttpManager.send_xray_server_request_POST(APPLICATION, parameters)
 
         except Exception as e:
             return ""
