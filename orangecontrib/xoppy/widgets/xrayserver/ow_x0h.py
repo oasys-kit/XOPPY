@@ -271,17 +271,14 @@ class X0h(widget.OWWidget):
 
             if "/cgi/ter_form.pl" in row:
                 if form_1 is None:
-                    print("F1!")
                     form_1 = []
                     form_1_begin = True
 
             if "/cgi/gid_form.pl" in row:
                 if form_2 is None:
-                    print("F2!")
                     form_2 = []
                     form_2_begin = True
                 elif form_3 is None:
-                    print("F3!")
                     form_3 = []
                     form_3_begin = True
 
