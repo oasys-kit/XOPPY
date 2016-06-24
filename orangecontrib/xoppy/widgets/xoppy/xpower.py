@@ -7,16 +7,9 @@ import PyMca5.PyMcaPhysics.xrf.Elements as Elements
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
-
 from srxraylib.sources import srfunc
-
 import xraylib
-
-try:
-    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
-except ImportError:
-    print("Error importing: xoppy_doc")
-    raise
+from orangecontrib.xoppy.util import xoppy_util
 
 class OWxpower(widget.OWWidget):
     name = "xpower"
@@ -467,7 +460,7 @@ class OWxpower(widget.OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('xpower')
+        xoppy_util.xoppy_doc('xpower')
 
 
 def xoppy_calc_xpower(F1F2=0,MU=0,SOURCE=1,DUMMY1="",DUMMY2="",DUMMY3="",ENER_MIN=1000.0,ENER_MAX=50000.0,ENER_N=100,\

@@ -5,7 +5,7 @@ import os
 from setuptools import find_packages, setup
 
 NAME = 'XOPPY-Devel'
-VERSION = '0.0.7'
+VERSION = '0.0.10'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
@@ -40,10 +40,10 @@ INSTALL_REQUIRES = (
     'setuptools',
     'numpy',
     'scipy',
-    'matplotlib',
-    'srxraylib>=0.0.8',
+    'matplotlib==1.4.3',
+    'srxraylib>=0.0.9',
     'orange-widget-core>=0.0.2',
-    'oasys>=0.1.8',
+    'oasys>=0.1.9',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))

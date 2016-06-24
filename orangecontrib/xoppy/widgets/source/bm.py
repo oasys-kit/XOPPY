@@ -9,12 +9,7 @@ from oasys.widgets.exchange import DataExchangeObject
 from orangewidget.widget import OWAction
 
 from srxraylib.sources import srfunc
-
-try:
-    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
-except ImportError:
-    print("Error importing: xoppy_doc")
-    raise
+from orangecontrib.xoppy.util import xoppy_util
 
 class OWbm(OWWidget):
     name = "bm"
@@ -271,8 +266,7 @@ class OWbm(OWWidget):
          return
 
     def help1(self):
-        print("help pressed.")
-        xoppy_doc('bm')
+        xoppy_util.xoppy_doc('bm')
 
 
 def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.0,BFIELD_T=0.8,\

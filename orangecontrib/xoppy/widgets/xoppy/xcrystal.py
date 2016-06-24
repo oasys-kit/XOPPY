@@ -6,11 +6,7 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
 
-try:
-    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
-except ImportError:
-    print("Error importing: xoppy_doc")
-    raise
+from orangecontrib.xoppy.util import xoppy_util
 
 class OWxcrystal(widget.OWWidget):
     name = "xcrystal"
@@ -338,7 +334,7 @@ class OWxcrystal(widget.OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('xcrystal')
+        xoppy_util.xoppy_doc('xcrystal')
 
 
 def xoppy_calc_xcrystal(FILEF0=0,FILEF1F2=0,FILECROSSSEC=0,CRYSTAL_MATERIAL=0,\

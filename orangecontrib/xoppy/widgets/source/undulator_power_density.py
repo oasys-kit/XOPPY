@@ -9,17 +9,8 @@ from oasys.widgets.exchange import DataExchangeObject
 from collections import OrderedDict
 
 from orangecontrib.xoppy.util import srundplug
-try:
-    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
-except ImportError:
-    print("undulator_power_density: Error importing: xoppy_doc")
-    raise
-
-try:
-    from orangecontrib.xoppy.util.xoppy_pymca_tools import xoppy_loadspec
-except ImportError:
-    print("undulator_power_density: Error importing: xoppy_pymca_tools.xoppy_loadspec")
-    raise
+from orangecontrib.xoppy.util import xoppy_util
+from orangecontrib.xoppy.util import xoppy_pymca_tools
 
 class OWundulator_power_density(OWWidget):
     name = "undulator_power_density"
@@ -228,7 +219,7 @@ class OWundulator_power_density(OWWidget):
         print("Loading file:  ",fileName)
         #load spec file with one scan, # is comment
 
-        out = xoppy_loadspec(fileName)
+        out = xoppy_pymca_tools.xoppy_loadspec(fileName)
 
 
         print("data shape: ",out.shape)
@@ -247,7 +238,7 @@ class OWundulator_power_density(OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('undulator_power_density')
+        xoppy_util.xoppy_doc('undulator_power_density')
 
 def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
                                        ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\

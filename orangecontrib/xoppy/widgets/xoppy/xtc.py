@@ -5,12 +5,7 @@ from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
-
-try:
-    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
-except ImportError:
-    print("Error importing: xoppy_doc")
-    raise
+from orangecontrib.xoppy.util import xoppy_util
 
 class OWxtc(widget.OWWidget):
     name = "xtc"
@@ -332,7 +327,7 @@ class OWxtc(widget.OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('xtc')
+        xoppy_util.xoppy_doc('xtc')
 
 
 def xoppy_calc_xtc(TITLE="APS Undulator A, Beam Parameters for regular lattice nux36nuy39.twi, 1.5% cpl.",ENERGY=7.0,CUR=100.0,SIGE=0.000959999975748,TEXT_MACHINE="",SIGX=0.273999989032745,SIGY=0.010999999940395,SIGX1=0.011300000362098,SIGY1=0.00359999993816,TEXT_BEAM="",PERIOD=3.299999952316284,NP=70,TEXT_UNDULATOR="",EMIN=2950.0,EMAX=13500.0,N=20,TEXT_ENERGY="",IHMIN=1,IHMAX=15,IHSTEP=2,TEXT_HARM="",IHEL=0,METHOD=1,IK=1,NEKS=100,TEXT_PARM="",RUN_MODE_NAME="foreground"):

@@ -7,11 +7,7 @@ from orangewidget.settings import Setting
 from oasys.widgets import widget
 from orangecontrib.xoppy.util.xoppy_util import locations
 
-try:
-    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
-except ImportError:
-    print("Error importing: xoppy_doc")
-    raise
+from orangecontrib.xoppy.util import xoppy_util
 
 class OWxxcom(widget.OWWidget):
     name = "xxcom"
@@ -170,7 +166,7 @@ class OWxxcom(widget.OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('xxcom')
+        xoppy_util.xoppy_doc('xxcom')
 
 
 

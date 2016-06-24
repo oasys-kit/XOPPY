@@ -8,12 +8,7 @@ from oasys.widgets.widget import OWWidget
 from oasys.widgets.exchange import DataExchangeObject
 from orangewidget.widget import OWAction
 from orangecontrib.xoppy.util.xoppy_util import locations
-
-try:
-    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
-except ImportError:
-    print("Error importing: xoppy_doc")
-    raise
+from orangecontrib.xoppy.util import xoppy_util
 
 class OWxtubes(OWWidget):
     name = "xtubes"
@@ -133,7 +128,7 @@ class OWxtubes(OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('xtubes')
+        xoppy_util.xoppy_doc('xtubes')
 
 
 

@@ -5,12 +5,7 @@ from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
-
-try:
-    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
-except ImportError:
-    print("Error importing: xoppy_doc")
-    raise
+from orangecontrib.xoppy.util import xoppy_util
 
 class OWmare(widget.OWWidget):
     name = "mare"
@@ -216,7 +211,7 @@ class OWmare(widget.OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('mare')
+        xoppy_util.xoppy_doc('mare')
 
 
 def xoppy_calc_mare(CRYSTAL=2,H=2,K=2,L=2,HMAX=3,KMAX=3,LMAX=3,FHEDGE=1e-08,DISPLAY=0,LAMBDA=1.54,DELTALAMBDA=0.009999999776483,PHI=-20.0,DELTAPHI=0.1):

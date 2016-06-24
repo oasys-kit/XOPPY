@@ -10,11 +10,7 @@ from orangewidget.widget import OWAction
 from collections import OrderedDict
 from orangecontrib.xoppy.util import srundplug
 
-try:
-    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
-except ImportError:
-    print("Error importing: xoppy_doc")
-    raise
+from orangecontrib.xoppy.util import xoppy_util
 
 class OWundulator_flux(OWWidget):
     name = "undulator_flux"
@@ -262,7 +258,7 @@ class OWundulator_flux(OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('undulator_flux')
+        xoppy_util.xoppy_doc('undulator_flux')
 
 
 def xoppy_calc_undulator_flux(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\

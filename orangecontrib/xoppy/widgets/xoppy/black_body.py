@@ -6,11 +6,7 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
 
-try:
-    from orangecontrib.xoppy.util.xoppy_util import xoppy_doc
-except ImportError:
-    print("Error importing: xoppy_doc")
-    raise
+from orangecontrib.xoppy.util import xoppy_util
 
 class OWblack_body(widget.OWWidget):
     name = "black_body"
@@ -141,7 +137,7 @@ class OWblack_body(widget.OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('black_body')
+        xoppy_util.xoppy_doc('black_body')
 
 
 
