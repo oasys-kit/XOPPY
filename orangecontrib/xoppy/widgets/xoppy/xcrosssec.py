@@ -1,12 +1,17 @@
 import sys
 import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
 
 from orangecontrib.xoppy.util import xoppy_util
+
+
+from oasys.widgets.exchange import DataExchangeObject
+from orangecontrib.xoppy.widgets.xoppy.xoppy_xraylib_util import cross_calc,cross_calc_mix
+import xraylib
+
 
 class OWxcrosssec(widget.OWWidget):
     name = "xcrosssec"
@@ -18,12 +23,9 @@ class OWxcrosssec(widget.OWWidget):
     priority = 10
     category = ""
     keywords = ["xoppy", "xcrosssec"]
-    outputs = [{"name": "xoppy_data",
-                "type": numpy.ndarray,
-                "doc": ""},
-               {"name": "xoppy_specfile",
-                "type": str,
-                "doc": ""}]
+    outputs = [{"name": "ExchangeData",
+                "type": DataExchangeObject,
+                "doc": "send ExchangeData"}]
 
     #inputs = [{"name": "Name",
     #           "type": type,
@@ -32,12 +34,11 @@ class OWxcrosssec(widget.OWWidget):
 
     want_main_area = False
 
-    DATASETS = Setting(1)
     MAT_FLAG = Setting(0)
     MAT_LIST = Setting(0)
     DESCRIPTOR = Setting("Si")
     DENSITY = Setting(1.0)
-    CALCULATE = Setting("all")
+    CALCULATE = Setting(1)
     GRID = Setting(0)
     GRIDSTART = Setting(100.0)
     GRIDEND = Setting(10000.0)
@@ -57,16 +58,7 @@ class OWxcrosssec(widget.OWWidget):
         box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
         
         
-        idx = -1 
-        
-        #widget index 0 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "DATASETS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    items=['all', 'CrossSec_XCOM.dat'],
-                    valueType=int, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
+        idx = -1
         
         #widget index 1 
         idx += 1 
@@ -79,11 +71,12 @@ class OWxcrosssec(widget.OWWidget):
         
         #widget index 2 
         idx += 1 
-        box1 = gui.widgetBox(box) 
+        box1 = gui.widgetBox(box)
+        items = xraylib.GetCompoundDataNISTList()
         gui.comboBox(box1, self, "MAT_LIST",
                      label=self.unitLabels()[idx], addSpace=True,
-                    items=['B4C', 'BeO', 'BN', 'Cr2O3', 'CsI', 'GaAs', 'LiF', 'MgO', 'MoSi2', 'TiN', 'Sapphire', 'Polyimide', 'Polypropylene', 'PMMA', 'Polycarbonate', 'Kimfol', 'Mylar', 'Teflon', 'Parylene-C', 'Parylene-N', 'Fluorite', 'Salt', 'NiO', 'SiC', 'Si3N4', 'Silica', 'Quartz', 'Rutile', 'ULE', 'Zerodur', 'water', 'protein', 'lipid', 'nucleosome', 'dna', 'helium', 'chromatin', 'air', 'pmma', 'nitride', 'graphite', 'nickel', 'beryl', 'copper', 'quartz', 'aluminum', 'gold', 'ice', 'carbon', 'polystyrene', 'A-150 TISSUE-EQUIVALENT PLASTIC', 'ADIPOSE TISSUE (ICRU-44)', 'AIR, DRY (NEAR SEA LEVEL)', 'ALANINE', 'B-100 BONE-EQUIVALENT PLASTIC', 'BAKELITE', 'BLOOD, WHOLE (ICRU-44)', 'BONE, CORTICAL (ICRU-44)', 'BRAIN, GREY/WHITE MATTER (ICRU-44)', 'BREAST TISSUE (ICRU-44)', 'C-552 AIR-EQUIVALENT PLASTIC', 'CADMIUM TELLURIDE', 'CALCIUM FLUORIDE', 'CALCIUM SULFATE', '15e-3 M CERIC AMMONIUM SULFATE SOLUTION', 'CESIUM IODIDE', 'CONCRETE, ORDINARY', 'CONCRETE, BARITE (TYPE BA)', 'EYE LENS (ICRU-44)', 'FERROUS SULFATE (STANDARD FRICKE)', 'GADOLINIUM OXYSULFIDE', 'GAFCHROMIC SENSOR', 'GALLIUM ARSENIDE', 'GLASS, BOROSILICATE (PYREX)', 'GLASS, LEAD', 'LITHIUM FLUORIDE', 'LITHIUM TETRABORATE', 'LUNG TISSUE (ICRU-44)', 'MAGNESIUM TETRABORATE', 'MERCURIC IODIDE', 'MUSCLE, SKELETAL (ICRU-44)', 'OVARY (ICRU-44)', 'PHOTOGRAPHIC EMULSION (KODAK TYPE AA)', 'PHOTOGRAPHIC EMULSION (STANDARD NUCLEAR)', 'PLASTIC SCINTILLATOR (VINYLTOLUENE)', 'POLYETHYLENE', 'POLYETHYLENE TEREPHTHALATE (MYLAR)', 'POLYMETHYL METHACRYLATE', 'POLYSTYRENE', 'POLYTETRAFLUOROETHYLENE (TEFLON)', 'POLYVINYL CHLORIDE', 'RADIOCHROMIC DYE FILM (NYLON BASE)', 'TESTIS (ICRU-44)', 'TISSUE, SOFT (ICRU-44)', 'TISSUE, SOFT (ICRU FOUR-COMPONENT)', 'TISSUE-EQUIVALENT GAS (METHANE BASED)', 'TISSUE-EQUIVALENT GAS (PROPANE BASED)', 'WATER, LIQUID'],
-                    valueType=int, orientation="horizontal")
+                     items=items,
+                     valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
@@ -104,9 +97,14 @@ class OWxcrosssec(widget.OWWidget):
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "CALCULATE",
-                     label=self.unitLabels()[idx], addSpace=True)
-        self.show_at(self.unitFlags()[idx], box1) 
+        # gui.lineEdit(box1, self, "CALCULATE",
+        #              label=self.unitLabels()[idx], addSpace=True)
+        # self.show_at(self.unitFlags()[idx], box1)
+        gui.comboBox(box1, self, "CALCULATE",
+                     label=self.unitLabels()[idx], addSpace=True,
+                     items=['Total','PhotoElectric','Rayleigh','Compton','Total-Rayleigh'],
+                     valueType=int, orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
         
         #widget index 6 
         idx += 1 
@@ -153,40 +151,37 @@ class OWxcrosssec(widget.OWWidget):
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['datasets:','material','table','formula','density','Calculate (i.e. "all","total","compton")','Energy [eV] grid:','Starting Energy [eV]: ','To: ','Number of points','Units']
+         return ['material','table','formula','density','Cross section','Energy [eV] grid:','Starting Energy [eV]: ','To: ','Number of points','Units']
 
 
     def unitFlags(self):
-         return ['True','True','self.MAT_FLAG  ==  2','self.MAT_FLAG  <=  1 ','self.MAT_FLAG  ==  1  &  self.UNIT  ==  3','True','True','self.GRID  !=  0','self.GRID  ==  1','self.GRID  ==  1','True']
-
-
-    #def unitNames(self):
-    #     return ['DATASETS','MAT_FLAG','MAT_LIST','DESCRIPTOR','DENSITY','CALCULATE','GRID','GRIDSTART','GRIDEND','GRIDN','UNIT']
-
+         return ['True','self.MAT_FLAG  ==  2','self.MAT_FLAG  <=  1 ','self.MAT_FLAG  ==  1  &  self.UNIT  ==  3','True','True','self.GRID  !=  0','self.GRID  ==  1','self.GRID  ==  1','True']
 
     def compute(self):
-        fileName = xoppy_calc_xcrosssec(DATASETS=self.DATASETS,MAT_FLAG=self.MAT_FLAG,MAT_LIST=self.MAT_LIST,DESCRIPTOR=self.DESCRIPTOR,DENSITY=self.DENSITY,CALCULATE=self.CALCULATE,GRID=self.GRID,GRIDSTART=self.GRIDSTART,GRIDEND=self.GRIDEND,GRIDN=self.GRIDN,UNIT=self.UNIT)
-        #send specfile
+        out_dict = self.xoppy_calc_xcrosssec()
 
-        if fileName == None:
-            print("Nothing to send")
-        else:
-            self.send("xoppy_specfile",fileName)
-            sf = specfile.Specfile(fileName)
-            if sf.scanno() == 1:
-                #load spec file with one scan, # is comment
-                print("Loading file:  ",fileName)
-                out = numpy.loadtxt(fileName)
-                print("data shape: ",out.shape)
-                #get labels
-                txt = open(fileName).readlines()
-                tmp = [ line.find("#L") for line in txt]
-                itmp = numpy.where(numpy.array(tmp) != (-1))
-                labels = txt[itmp[0]].replace("#L ","").split("  ")
-                print("data labels: ",labels)
-                self.send("xoppy_data",out)
-            else:
-                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
+        if "info" in out_dict.keys():
+            print(out_dict["info"])
+
+        #send exchange
+        tmp = DataExchangeObject("xoppy_calc_crosssec","xcrosssec")
+        try:
+            tmp.add_content("data",out_dict["data"])
+            tmp.add_content("plot_x_col",0)
+            tmp.add_content("plot_y_col",-1)
+        except:
+            pass
+        try:
+            tmp.add_content("labels",out_dict["labels"])
+        except:
+            pass
+        try:
+            tmp.add_content("info",out_dict["info"])
+        except:
+            pass
+
+
+        self.send("ExchangeData",tmp)
 
     def defaults(self):
          self.resetSettings()
@@ -198,11 +193,65 @@ class OWxcrosssec(widget.OWWidget):
         xoppy_util.xoppy_doc('xcrosssec')
 
 
-def xoppy_calc_xcrosssec(DATASETS=1,MAT_FLAG=0,MAT_LIST=0,DESCRIPTOR="Si",DENSITY=1.0,CALCULATE="all",GRID=0,GRIDSTART=100.0,GRIDEND=10000.0,GRIDN=200,UNIT=0):
-    print("Inside xoppy_calc_xcrosssec. ")
-    return(None)
+    def xoppy_calc_xcrosssec(self):
+
+        MAT_FLAG = self.MAT_FLAG
+        MAT_LIST = self.MAT_LIST
+        DESCRIPTOR = self.DESCRIPTOR
+        density = self.DENSITY
+        CALCULATE = self.CALCULATE
+        GRID = self.GRID
+        GRIDSTART = self.GRIDSTART
+        GRIDEND = self.GRIDEND
+        GRIDN = self.GRIDN
+        UNIT = self.UNIT
 
 
+        if MAT_FLAG == 0: # element
+            descriptor = DESCRIPTOR
+            density = xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(DESCRIPTOR))
+        elif MAT_FLAG == 1: # formula
+            descriptor = DESCRIPTOR
+        elif MAT_FLAG == 2:
+            tmp = xraylib.GetCompoundDataNISTByIndex(MAT_LIST)
+            descriptor = tmp["name"]
+            density = tmp["density"]
+
+        print("xoppy_calc_xcrosssec: using density = %g g/cm3"%density)
+        if GRID == 0:
+            energy = numpy.arange(0,500)
+            elefactor = numpy.log10(10000.0 / 30.0) / 300.0
+            energy = 10.0 * 10**(energy * elefactor)
+        elif GRID == 1:
+            if GRIDN == 1:
+                energy = numpy.array([GRIDSTART])
+            else:
+                energy = numpy.linspace(GRIDSTART,GRIDEND,GRIDN)
+        elif GRID == 2:
+            energy = numpy.array([GRIDSTART])
+
+        if MAT_FLAG == 0: # element
+            out =  cross_calc(descriptor,energy,calculate=CALCULATE,density=density)
+        elif MAT_FLAG == 1: # compound parse
+            out =  cross_calc_mix(descriptor,energy,calculate=CALCULATE,density=density,parse_or_nist=0)
+        elif MAT_FLAG == 2: # NIST compound
+            out =  cross_calc_mix(descriptor,energy,calculate=CALCULATE,density=density,parse_or_nist=1)
+
+        calculate_items = ['Total','PhotoElectric','Rayleigh','Compton','Total minus Rayleigh']
+        unit_items = ['barn/atom','cm^2','cm^2/g','cm^-1']
+        if energy.size > 1:
+            tmp_x = out[0,:].copy()
+            tmp_y = out[UNIT+1,:].copy()
+            tmp = numpy.vstack((tmp_x,tmp_y))
+            labels = ["Photon energy [eV]","%s cross section [%s]"%(calculate_items[CALCULATE],unit_items[UNIT])]
+            to_return = {"application":"xoppy","name":"xcrosssec","data":tmp,"labels":labels}
+        else:
+            tmp = None
+            txt = "xoppy_calc_xcrosssec: Calculated %s cross section: %g %s"%(calculate_items[CALCULATE],out[UNIT+1,0],unit_items[UNIT])
+            print(txt)
+            to_return  = {"application":"xoppy","name":"xcrosssec","info":txt}
+
+        return to_return
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

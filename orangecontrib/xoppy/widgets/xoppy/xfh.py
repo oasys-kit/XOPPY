@@ -1,11 +1,14 @@
 import sys
 import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
+
 from orangecontrib.xoppy.util import xoppy_util
+from orangecontrib.xoppy.widgets.xoppy.xoppy_xraylib_util import crystal_fh, bragg_calc
+from oasys.widgets.exchange import DataExchangeObject
+from xraylib import Crystal_GetCrystalsList
 
 class OWxfh(widget.OWWidget):
     name = "xfh"
@@ -17,12 +20,9 @@ class OWxfh(widget.OWWidget):
     priority = 10
     category = ""
     keywords = ["xoppy", "xfh"]
-    outputs = [{"name": "xoppy_data",
-                "type": numpy.ndarray,
-                "doc": ""},
-               {"name": "xoppy_specfile",
-                "type": str,
-                "doc": ""}]
+    outputs = [{"name": "ExchangeData",
+                "type": DataExchangeObject,
+                "doc": "send ExchangeData"}]
 
     #inputs = [{"name": "Name",
     #           "type": type,
@@ -31,15 +31,13 @@ class OWxfh(widget.OWWidget):
 
     want_main_area = False
 
-    FILEF0 = Setting(0)
-    FILEF1F2 = Setting(0)
-    FILECROSSSEC = Setting(0)
+
     ILATTICE = Setting(0)
     HMILLER = Setting(1)
     KMILLER = Setting(1)
     LMILLER = Setting(1)
-    I_ABSORP = Setting(2)
-    TEMPER = Setting("1.0")
+    I_PLOT = Setting(2)
+    TEMPER = Setting(1.0)
     ENERGY = Setting(8000.0)
     ENERGY_END = Setting(18000.0)
     NPOINTS = Setting(20)
@@ -59,39 +57,13 @@ class OWxfh(widget.OWWidget):
         
         idx = -1 
         
-        #widget index 0 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "FILEF0",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    items=['f0_xop.dat'],
-                    valueType=int, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 1 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "FILEF1F2",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    items=['f1f2_Windt.dat', 'f1f2_EPDL97.dat'],
-                    valueType=int, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 2 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "FILECROSSSEC",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    items=['CrossSec_XCOM.dat'],
-                    valueType=int, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
-        
+
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "ILATTICE",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    items=['Si', 'Si_NIST', 'Si2', 'Ge', 'Diamond', 'GaAs', 'GaSb', 'GaP', 'InAs', 'InP', 'InSb', 'SiC', 'NaCl', 'CsF', 'LiF', 'KCl', 'CsCl', 'Be', 'Graphite', 'PET', 'Beryl', 'KAP', 'RbAP', 'TlAP', 'Muscovite', 'AlphaQuartz', 'Copper', 'LiNbO3', 'Platinum', 'Gold', 'Sapphire', 'LaB6', 'LaB6_NIST', 'KTP', 'AlphaAlumina', 'Aluminum', 'Iron', 'Titanium'],
+                    label=self.unitLabels()[idx], addSpace=True,
+                    items=Crystal_GetCrystalsList(),
                     valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
@@ -122,9 +94,9 @@ class OWxfh(widget.OWWidget):
         #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "I_ABSORP",
+        gui.comboBox(box1, self, "I_PLOT",
                      label=self.unitLabels()[idx], addSpace=True,
-                    items=['No', 'Yes (photoelectric)', 'Yes(ph.el+compton)', 'Yes(ph.el+compton+rayleigh)'],
+                    items=self.plotOptionList(),
                     valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
@@ -162,40 +134,113 @@ class OWxfh(widget.OWWidget):
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['DABAX f0 file:','DABAX f1f2 file:','DABAX CrossSec file:','Crystal:','h miller index','k miller index','l miller index','Include absorption:','Temperature factor [see help]:','From Energy [eV]','To energy [eV]','Number of points']
+         return ['Crystal:','h miller index','k miller index','l miller index','Plot:','Temperature factor [see help]:','From Energy [eV]','To energy [eV]','Number of points']
 
 
     def unitFlags(self):
-         return ['True','True','True','True','True','True','True','True','True','True','True','True']
+         return ['True','True','True','True','True','True','True','True','True']\
 
-
-    #def unitNames(self):
-    #     return ['FILEF0','FILEF1F2','FILECROSSSEC','ILATTICE','HMILLER','KMILLER','LMILLER','I_ABSORP','TEMPER','ENERGY','ENERGY_END','NPOINTS']
-
+    def plotOptionList(self):
+        return ["Photon energy [eV]",
+                  "Wavelength [A]",
+                  "Bragg angle [deg]",
+                  "Re(f_0)",
+                  "Im(f_0)  ",
+                  "Re(FH)",
+                  "Im(FH)",
+                  "Re(FH_BAR)",
+                  "Im(FH_BAR)",
+                  "Re(psi_0)",
+                  "Im(psi_0)  ",
+                  "Re(psi_H)",
+                  "Im(psi_H)",
+                  "Re(psi_BAR)",
+                  "Im(psi_BAR)",
+                  "Re(F(h,k,l))",
+                  "Im(F(h,k,l))",
+                  "delta (1-Re(refrac))",
+                  "Re(refrac index)",
+                  "Im(refrac index)",
+                  "absorption coeff",
+                  "s-pol Darwin width [microrad]",
+                  "p-pol Darwin width [microrad]",
+                  "Sin(Bragg angle)/Lambda",
+                  "psi_over_f"]
 
     def compute(self):
-        fileName = xoppy_calc_xfh(FILEF0=self.FILEF0,FILEF1F2=self.FILEF1F2,FILECROSSSEC=self.FILECROSSSEC,ILATTICE=self.ILATTICE,HMILLER=self.HMILLER,KMILLER=self.KMILLER,LMILLER=self.LMILLER,I_ABSORP=self.I_ABSORP,TEMPER=self.TEMPER,ENERGY=self.ENERGY,ENERGY_END=self.ENERGY_END,NPOINTS=self.NPOINTS)
-        #send specfile
+        #TODO: remove I_ABSORP
+        ILATTICE = self.ILATTICE
+        HMILLER = self.HMILLER
+        KMILLER = self.KMILLER
+        LMILLER = self.LMILLER
+        I_PLOT = self.I_PLOT
+        TEMPER = self.TEMPER
+        ENERGY = self.ENERGY
+        ENERGY_END = self.ENERGY_END
+        NPOINTS = self.NPOINTS
 
-        if fileName == None:
-            print("Nothing to send")
-        else:
-            self.send("xoppy_specfile",fileName)
-            sf = specfile.Specfile(fileName)
-            if sf.scanno() == 1:
-                #load spec file with one scan, # is comment
-                print("Loading file:  ",fileName)
-                out = numpy.loadtxt(fileName)
-                print("data shape: ",out.shape)
-                #get labels
-                txt = open(fileName).readlines()
-                tmp = [ line.find("#L") for line in txt]
-                itmp = numpy.where(numpy.array(tmp) != (-1))
-                labels = txt[itmp[0]].replace("#L ","").split("  ")
-                print("data labels: ",labels)
-                self.send("xoppy_data",out)
-            else:
-                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
+        descriptor = Crystal_GetCrystalsList()[ILATTICE]
+        print("Using crystal descriptor: ",descriptor)
+        bragg_dictionary = bragg_calc(descriptor=descriptor,hh=HMILLER,kk=KMILLER,ll=LMILLER,temper=TEMPER,
+                                                emin=ENERGY,emax=ENERGY_END,estep=50.0,fileout="/dev/null")
+
+        energy = numpy.linspace(ENERGY,ENERGY_END,NPOINTS)
+
+        out = numpy.zeros((25,NPOINTS))
+
+        info = ""
+        for i,ienergy in enumerate(energy):
+            dic2 = crystal_fh(bragg_dictionary,ienergy)
+            print("Energy=%g eV FH=(%g,%g)"%(ienergy,dic2["STRUCT"].real,dic2["STRUCT"].imag))
+
+            out[0,i]  = ienergy
+            out[1,i]  = dic2["WAVELENGTH"]*1e10
+            out[2,i]  = dic2["THETA"]*180/numpy.pi
+            out[3,i]  = dic2["F_0"].real
+            out[4,i]  = dic2["F_0"].imag
+            out[5,i]  = dic2["FH"].real
+            out[6,i]  = dic2["FH"].imag
+            out[7,i]  = dic2["FH_BAR"].real
+            out[8,i]  = dic2["FH_BAR"].imag
+            out[9,i]  = dic2["psi_0"].real
+            out[10,i] = dic2["psi_0"].imag
+            out[11,i] = dic2["psi_h"].real
+            out[12,i] = dic2["psi_h"].imag
+            out[13,i] = dic2["psi_hbar"].real
+            out[14,i] = dic2["psi_hbar"].imag
+            out[15,i] = dic2["STRUCT"].real
+            out[16,i] = dic2["STRUCT"].imag
+            out[17,i] = dic2["DELTA_REF"]
+            out[18,i] = dic2["REFRAC"].real
+            out[19,i] = dic2["REFRAC"].imag
+            out[20,i] = dic2["ABSORP"]
+            out[21,i] = dic2["ssr"]
+            out[22,i] = dic2["spr"]
+            out[23,i] = dic2["RATIO"]
+            out[24,i] = dic2["psi_over_f"]
+            info += "#\n#\n#\n"
+            info += dic2["info"]
+
+        #send exchange
+        tmp = DataExchangeObject("xoppy_calc_xfh","xfh")
+
+        try:
+            tmp.add_content("data",out)
+            tmp.add_content("plot_x_col",0)
+            tmp.add_content("plot_y_col",I_PLOT)
+        except:
+            pass
+        try:
+            tmp.add_content("labels",self.plotOptionList())
+        except:
+            pass
+        try:
+            tmp.add_content("info",info)
+        except:
+            pass
+
+        self.send("ExchangeData",tmp)
+
 
     def defaults(self):
          self.resetSettings()
@@ -205,12 +250,6 @@ class OWxfh(widget.OWWidget):
     def help1(self):
         print("help pressed.")
         xoppy_util.xoppy_doc('xfh')
-
-
-
-def xoppy_calc_xfh(FILEF0=0,FILEF1F2=0,FILECROSSSEC=0,ILATTICE=0,HMILLER=1,KMILLER=1,LMILLER=1,I_ABSORP=2,TEMPER="1.0",ENERGY=8000.0,ENERGY_END=18000.0,NPOINTS=20):
-    print("Inside xoppy_calc_xfh. ")
-    return(None)
 
 
 if __name__ == "__main__":

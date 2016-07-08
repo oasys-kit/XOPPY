@@ -1,12 +1,12 @@
 import sys
 import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
 
 from orangecontrib.xoppy.util import xoppy_util
+from oasys.widgets.exchange import DataExchangeObject
 
 class OWblack_body(widget.OWWidget):
     name = "black_body"
@@ -18,12 +18,9 @@ class OWblack_body(widget.OWWidget):
     priority = 10
     category = ""
     keywords = ["xoppy", "black_body"]
-    outputs = [{"name": "xoppy_data",
-                "type": numpy.ndarray,
-                "doc": ""},
-               {"name": "xoppy_specfile",
-                "type": str,
-                "doc": ""}]
+    outputs = [{"name": "ExchangeData",
+                "type": DataExchangeObject,
+                "doc": "send ExchangeData"}]
 
     #inputs = [{"name": "Name",
     #           "type": type,
@@ -107,28 +104,20 @@ class OWblack_body(widget.OWWidget):
 
 
     def compute(self):
-        fileName = xoppy_calc_black_body(TITLE=self.TITLE,TEMPERATURE=self.TEMPERATURE,E_MIN=self.E_MIN,E_MAX=self.E_MAX,NPOINTS=self.NPOINTS)
-        #send specfile
+        out_dict = self.xoppy_calc_black_body()
 
-        if fileName == None:
-            print("Nothing to send")
-        else:
-            self.send("xoppy_specfile",fileName)
-            sf = specfile.Specfile(fileName)
-            if sf.scanno() == 1:
-                #load spec file with one scan, # is comment
-                print("Loading file:  ",fileName)
-                out = numpy.loadtxt(fileName)
-                print("data shape: ",out.shape)
-                #get labels
-                txt = open(fileName).readlines()
-                tmp = [ line.find("#L") for line in txt]
-                itmp = numpy.where(numpy.array(tmp) != (-1))
-                labels = txt[itmp[0]].replace("#L ","").split("  ")
-                print("data labels: ",labels)
-                self.send("xoppy_data",out)
-            else:
-                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
+        if "info" in out_dict.keys():
+            print(out_dict["info"])
+
+        #send exchange
+        tmp = DataExchangeObject("black_body","black_body")
+        tmp.add_content("data",out_dict["data"])
+        tmp.add_content("labels",out_dict["labels"])
+        tmp.add_content("info",out_dict["info"])
+        tmp.add_content("plot_x_col",0)
+        tmp.add_content("plot_y_col",-1)
+        self.send("ExchangeData",tmp)
+
 
     def defaults(self):
          self.resetSettings()
@@ -141,11 +130,55 @@ class OWblack_body(widget.OWWidget):
 
 
 
+    def xoppy_calc_black_body(self):
 
-def xoppy_calc_black_body(TITLE="Thermal source: Planck distribution",TEMPERATURE=1200000.0,E_MIN=10.0,E_MAX=1000.0,NPOINTS=500):
-    print("Inside xoppy_calc_black_body. ")
-    return None
+        TITLE = self.TITLE
+        TEMPERATURE = self.TEMPERATURE
+        E_MIN = self.E_MIN
+        E_MAX = self.E_MAX
+        NPOINTS = self.NPOINTS
+        try:
 
+            import scipy.constants as codata
+
+            #
+            # text info
+            #
+            kb = codata.Boltzmann / codata.e # eV/K
+            txt = ' \n'
+            txt += 'Results of Black Body Radiation: Planck distribution\n'
+            txt += 'TITLE: %s'%TITLE
+            txt += ' \n'
+            txt += '-------------------------------------------------------------\n'
+            txt += 'Temperature           = %g K\n'%(TEMPERATURE)
+            txt += 'Minimum photon energy = %g eV\n'%(E_MIN)
+            txt += 'Maximum photon energy = %g eV\n'%(E_MAX)
+            txt += '-------------------------------------------------------------\n'
+            txt += 'Kb*T                = %g eV\n'%(TEMPERATURE*kb)
+            txt += 'Peak at 2.822*Kb*T  = %g eV\n'%(2.822*TEMPERATURE*kb)
+            txt += '-------------------------------------------------------------\n'
+
+            # print(txt)
+
+            #
+            # calculation data
+            #
+            e_ev = numpy.linspace(E_MIN,E_MAX,NPOINTS)
+            e_kt = e_ev/(TEMPERATURE*kb)
+            brightness=3.146e11*(TEMPERATURE*kb)**3*e_kt**3/(numpy.exp(e_kt)-1)
+            a3 = numpy.zeros((4,NPOINTS))
+            a3[0,:] = e_ev
+            a3[1,:] = e_kt
+            a3[2,:] = brightness
+            a3[3,:] = brightness*1e3*codata.e
+
+            labels = ["Photon energy [eV]","Photon energy/(Kb*T)","Brightness [Photons/sec/mm2/mrad2/0.1%bw]","Spectral Power [Watts/eV/mrad2/mm2]"]
+
+            return {"application":"xoppy","name":"black_body","data":a3,"labels":labels,"info":txt}
+
+
+        except Exception as e:
+            raise e
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

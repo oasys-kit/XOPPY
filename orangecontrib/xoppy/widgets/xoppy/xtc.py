@@ -1,11 +1,12 @@
-import sys
+import sys,os
 import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
-from orangecontrib.xoppy.util import xoppy_util
+
+from orangecontrib.xoppy.util.xoppy_util import locations, xoppy_doc
+from oasys.widgets.exchange import DataExchangeObject
 
 class OWxtc(widget.OWWidget):
     name = "xtc"
@@ -17,12 +18,9 @@ class OWxtc(widget.OWWidget):
     priority = 10
     category = ""
     keywords = ["xoppy", "xtc"]
-    outputs = [{"name": "xoppy_data",
-                "type": numpy.ndarray,
-                "doc": ""},
-               {"name": "xoppy_specfile",
-                "type": str,
-                "doc": ""}]
+    outputs = [{"name": "ExchangeData",
+                "type": DataExchangeObject,
+                "doc": "send ExchangeData"}]
 
     #inputs = [{"name": "Name",
     #           "type": type,
@@ -31,33 +29,26 @@ class OWxtc(widget.OWWidget):
 
     want_main_area = False
 
+    #19 variables
     TITLE = Setting("APS Undulator A, Beam Parameters for regular lattice nux36nuy39.twi, 1.5% cpl.")
     ENERGY = Setting(7.0)
-    CUR = Setting(100.0)
-    SIGE = Setting(0.000959999975748)
-    TEXT_MACHINE = Setting("")
-    SIGX = Setting(0.273999989032745)
-    SIGY = Setting(0.010999999940395)
-    SIGX1 = Setting(0.011300000362098)
-    SIGY1 = Setting(0.00359999993816)
-    TEXT_BEAM = Setting("")
-    PERIOD = Setting(3.299999952316284)
+    CURRENT = Setting(100.0)
+    ENERGY_SPREAD = Setting(0.00096)
+    SIGX = Setting(0.274)
+    SIGY = Setting(0.011)
+    SIGX1 = Setting(0.0113)
+    SIGY1 = Setting(0.0036)
+    PERIOD = Setting(3.23)
     NP = Setting(70)
-    TEXT_UNDULATOR = Setting("")
     EMIN = Setting(2950.0)
     EMAX = Setting(13500.0)
     N = Setting(40)
-    TEXT_ENERGY = Setting("")
-    IHMIN = Setting(1)
-    IHMAX = Setting(15)
-    IHSTEP = Setting(2)
-    TEXT_HARM = Setting("")
-    IHEL = Setting(0)
+    HARMONIC_FROM = Setting(1)
+    HARMONIC_TO = Setting(15)
+    HARMONIC_STEP = Setting(2)
+    HELICAL = Setting(0)
     METHOD = Setting(1)
-    IK = Setting(1)
     NEKS = Setting(100)
-    TEXT_PARM = Setting("")
-    RUN_MODE_NAME = Setting("foreground")
 
 
     def __init__(self):
@@ -92,7 +83,7 @@ class OWxtc(widget.OWWidget):
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "CUR",
+        gui.lineEdit(box1, self, "CURRENT",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
@@ -100,17 +91,11 @@ class OWxtc(widget.OWWidget):
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "SIGE",
+        gui.lineEdit(box1, self, "ENERGY_SPREAD",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 4 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "TEXT_MACHINE",
-                     label=self.unitLabels()[idx], addSpace=True)
-        self.show_at(self.unitFlags()[idx], box1) 
+
         
         #widget index 5 
         idx += 1 
@@ -143,13 +128,7 @@ class OWxtc(widget.OWWidget):
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator())
         self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 9 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "TEXT_BEAM",
-                     label=self.unitLabels()[idx], addSpace=True)
-        self.show_at(self.unitFlags()[idx], box1) 
+
         
         #widget index 10 
         idx += 1 
@@ -166,13 +145,7 @@ class OWxtc(widget.OWWidget):
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 12 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "TEXT_UNDULATOR",
-                     label=self.unitLabels()[idx], addSpace=True)
-        self.show_at(self.unitFlags()[idx], box1) 
+
         
         #widget index 13 
         idx += 1 
@@ -196,19 +169,12 @@ class OWxtc(widget.OWWidget):
         gui.lineEdit(box1, self, "N",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=int, validator=QIntValidator())
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 16 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "TEXT_ENERGY",
-                     label=self.unitLabels()[idx], addSpace=True)
-        self.show_at(self.unitFlags()[idx], box1) 
+        self.show_at(self.unitFlags()[idx], box1)
         
         #widget index 17 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "IHMIN",
+        gui.lineEdit(box1, self, "HARMONIC_FROM",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
@@ -216,7 +182,7 @@ class OWxtc(widget.OWWidget):
         #widget index 18 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "IHMAX",
+        gui.lineEdit(box1, self, "HARMONIC_TO",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
@@ -224,22 +190,15 @@ class OWxtc(widget.OWWidget):
         #widget index 19 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "IHSTEP",
+        gui.lineEdit(box1, self, "HARMONIC_STEP",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=int, validator=QIntValidator())
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 20 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "TEXT_HARM",
-                     label=self.unitLabels()[idx], addSpace=True)
-        self.show_at(self.unitFlags()[idx], box1) 
+        self.show_at(self.unitFlags()[idx], box1)
         
         #widget index 21 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "IHEL",
+        gui.lineEdit(box1, self, "HELICAL",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
@@ -251,14 +210,7 @@ class OWxtc(widget.OWWidget):
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 23 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "IK",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
-        self.show_at(self.unitFlags()[idx], box1) 
+
         
         #widget index 24 
         idx += 1 
@@ -266,59 +218,88 @@ class OWxtc(widget.OWWidget):
         gui.lineEdit(box1, self, "NEKS",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=int, validator=QIntValidator())
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 25 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "TEXT_PARM",
-                     label=self.unitLabels()[idx], addSpace=True)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 26 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "RUN_MODE_NAME",
-                     label=self.unitLabels()[idx], addSpace=True)
-        self.show_at(self.unitFlags()[idx], box1) 
+        self.show_at(self.unitFlags()[idx], box1)
+
 
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title']
+         return ['Title','Electron energy (GeV)','Current (mA)','Energy Spread (DE/E)',
+                 'SigmaX (mm)','Sigma Y (mm)',"Sigma X' (mrad)","Sigma Z' (mrad)",
+                 'Period length (cm)','Number of periods',
+                 'E1 minimum energy (eV)','E1 maximum energy (eV)',
+                 'Number of energy-points','Minimum harmonic number','Maximum harmonic number','Harmonic step size',
+                 'Mode','Method','Intrinsic NEKS']
 
 
     def unitFlags(self):
-         return ['True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True']
-
-
-    #def unitNames(self):
-    #     return ['TITLE','ENERGY','CUR','SIGE','TEXT_MACHINE','SIGX','SIGY','SIGX1','SIGY1','TEXT_BEAM','PERIOD','NP','TEXT_UNDULATOR','EMIN','EMAX','N','TEXT_ENERGY','IHMIN','IHMAX','IHSTEP','TEXT_HARM','IHEL','METHOD','IK','NEKS','TEXT_PARM','RUN_MODE_NAME']
-
+         return ['True' for i in range(19)]
 
     def compute(self):
-        fileName = xoppy_calc_xtc(TITLE=self.TITLE,ENERGY=self.ENERGY,CUR=self.CUR,SIGE=self.SIGE,TEXT_MACHINE=self.TEXT_MACHINE,SIGX=self.SIGX,SIGY=self.SIGY,SIGX1=self.SIGX1,SIGY1=self.SIGY1,TEXT_BEAM=self.TEXT_BEAM,PERIOD=self.PERIOD,NP=self.NP,TEXT_UNDULATOR=self.TEXT_UNDULATOR,EMIN=self.EMIN,EMAX=self.EMAX,N=self.N,TEXT_ENERGY=self.TEXT_ENERGY,IHMIN=self.IHMIN,IHMAX=self.IHMAX,IHSTEP=self.IHSTEP,TEXT_HARM=self.TEXT_HARM,IHEL=self.IHEL,METHOD=self.METHOD,IK=self.IK,NEKS=self.NEKS,TEXT_PARM=self.TEXT_PARM,RUN_MODE_NAME=self.RUN_MODE_NAME)
-        #send specfile
 
-        if fileName == None:
-            print("Nothing to send")
-        else:
-            self.send("xoppy_specfile",fileName)
-            sf = specfile.Specfile(fileName)
-            if sf.scanno() == 1:
-                #load spec file with one scan, # is comment
-                print("Loading file:  ",fileName)
-                out = numpy.loadtxt(fileName)
-                print("data shape: ",out.shape)
-                #get labels
-                txt = open(fileName).readlines()
-                tmp = [ line.find("#L") for line in txt]
-                itmp = numpy.where(numpy.array(tmp) != (-1))
-                labels = txt[itmp[0]].replace("#L ","").split("  ")
-                print("data labels: ",labels)
-                self.send("xoppy_data",out)
-            else:
-                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
+        with open("tc.inp", "wt") as f:
+            f.write("%s\n"%self.TITLE)
+            f.write("%10.3f %10.2f %10.6f %s\n"%(self.ENERGY,self.CURRENT,self.ENERGY_SPREAD,self.TITLE))
+            f.write("%10.4f %10.4f %10.4f %10.4f beam\n"%(self.SIGX,self.SIGY,self.SIGX1,self.SIGY1))
+            f.write("%10.3f %d undelator\n"%(self.PERIOD,self.NP))
+            f.write("%10.1f %10.1f %d energy\n"%(self.EMIN,self.EMAX,self.N))
+            f.write("%d %d %d harmonics\n"%(self.HARMONIC_FROM,self.HARMONIC_TO,self.HARMONIC_STEP))
+            f.write("%d %d %d %d parameters\n"%(self.HELICAL,self.METHOD,1,self.NEKS))
+            f.write("foreground\n")
+
+        command = os.path.join(locations.home_bin(), 'tc')
+        print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
+        print("\n--------------------------------------------------------\n")
+        os.system(command)
+        print("Output file: %s"%("tc.out"))
+        print("\n--------------------------------------------------------\n")
+
+        #
+        # parse result files to exchange object
+        #
+
+
+        with open("tc.out","r") as f:
+            lines = f.readlines()
+
+        # remove returns
+        lines = [line[:-1] for line in lines]
+
+        # separate numerical data from text
+        floatlist = []
+        txtlist = []
+        for line in lines:
+            try:
+                tmp = float(line.strip()[0])
+                floatlist.append(line)
+            except:
+                txtlist.append(line)
+
+        data = numpy.loadtxt(floatlist).T
+
+        #TODO: compute envelopes (as in XOP)
+
+        #send exchange
+        tmp = DataExchangeObject("xoppy_xtc","xtc")
+
+        try:
+            tmp.add_content("data",data)
+            tmp.add_content("plot_x_col",1)
+            tmp.add_content("plot_y_col",2)
+        except:
+            pass
+        try:
+            tmp.add_content("labels",["Energy (eV) without emittance", "Energy (eV) with emittance",
+                                      "Brilliance (ph/s/mrad^2/mm^2/0.1%bw)","Ky","Total Power (W)","Power density (W/mr^2)"])
+        except:
+            pass
+        try:
+            tmp.add_content("info",txtlist)
+        except:
+            pass
+
+        self.send("ExchangeData",tmp)
+
 
     def defaults(self):
          self.resetSettings()
@@ -327,14 +308,7 @@ class OWxtc(widget.OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_util.xoppy_doc('xtc')
-
-
-def xoppy_calc_xtc(TITLE="APS Undulator A, Beam Parameters for regular lattice nux36nuy39.twi, 1.5% cpl.",ENERGY=7.0,CUR=100.0,SIGE=0.000959999975748,TEXT_MACHINE="",SIGX=0.273999989032745,SIGY=0.010999999940395,SIGX1=0.011300000362098,SIGY1=0.00359999993816,TEXT_BEAM="",PERIOD=3.299999952316284,NP=70,TEXT_UNDULATOR="",EMIN=2950.0,EMAX=13500.0,N=20,TEXT_ENERGY="",IHMIN=1,IHMAX=15,IHSTEP=2,TEXT_HARM="",IHEL=0,METHOD=1,IK=1,NEKS=100,TEXT_PARM="",RUN_MODE_NAME="foreground"):
-    print("Inside xoppy_calc_xtc. ")
-    return(None)
-
-
+        xoppy_doc('xtc')
 
 
 if __name__ == "__main__":

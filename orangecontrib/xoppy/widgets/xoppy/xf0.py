@@ -1,12 +1,15 @@
 import sys
 import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
 
 from orangecontrib.xoppy.util import xoppy_util
+
+from oasys.widgets.exchange import DataExchangeObject
+import xraylib
+
 
 class OWxf0(widget.OWWidget):
     name = "xf0"
@@ -18,12 +21,9 @@ class OWxf0(widget.OWWidget):
     priority = 10
     category = ""
     keywords = ["xoppy", "xf0"]
-    outputs = [{"name": "xoppy_data",
-                "type": numpy.ndarray,
-                "doc": ""},
-               {"name": "xoppy_specfile",
-                "type": str,
-                "doc": ""}]
+    outputs = [{"name": "ExchangeData",
+                "type": DataExchangeObject,
+                "doc": "send ExchangeData"}]
 
     #inputs = [{"name": "Name",
     #           "type": type,
@@ -32,11 +32,8 @@ class OWxf0(widget.OWWidget):
 
     want_main_area = False
 
-    DATASETS = Setting(0)
     MAT_FLAG = Setting(0)
-    MAT_LIST = Setting(0)
     DESCRIPTOR = Setting("Si")
-    GRID = Setting(0)
     GRIDSTART = Setting(0.0)
     GRIDEND = Setting(4.0)
     GRIDN = Setting(100)
@@ -56,48 +53,22 @@ class OWxf0(widget.OWWidget):
         
         idx = -1 
         
-        #widget index 0 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "DATASETS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    items=['all', 'f0_xop.dat'],
-                    valueType=int, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
-        
+
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "MAT_FLAG",
                      label=self.unitLabels()[idx], addSpace=True,
-                    items=['Element(formula)', 'Mixture(formula)', 'Mixture(table)'],
+                    items=['Element(formula)', 'Mixture(formula)'],
                     valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 2 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "MAT_LIST",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    items=['B4C', 'BeO', 'BN', 'Cr2O3', 'CsI', 'GaAs', 'LiF', 'MgO', 'MoSi2', 'TiN', 'Sapphire', 'Polyimide', 'Polypropylene', 'PMMA', 'Polycarbonate', 'Kimfol', 'Mylar', 'Teflon', 'Parylene-C', 'Parylene-N', 'Fluorite', 'Salt', 'NiO', 'SiC', 'Si3N4', 'Silica', 'Quartz', 'Rutile', 'ULE', 'Zerodur', 'water', 'protein', 'lipid', 'nucleosome', 'dna', 'helium', 'chromatin', 'air', 'pmma', 'nitride', 'graphite', 'nickel', 'beryl', 'copper', 'quartz', 'aluminum', 'gold', 'ice', 'carbon', 'polystyrene', 'A-150 TISSUE-EQUIVALENT PLASTIC', 'ADIPOSE TISSUE (ICRU-44)', 'AIR, DRY (NEAR SEA LEVEL)', 'ALANINE', 'B-100 BONE-EQUIVALENT PLASTIC', 'BAKELITE', 'BLOOD, WHOLE (ICRU-44)', 'BONE, CORTICAL (ICRU-44)', 'BRAIN, GREY/WHITE MATTER (ICRU-44)', 'BREAST TISSUE (ICRU-44)', 'C-552 AIR-EQUIVALENT PLASTIC', 'CADMIUM TELLURIDE', 'CALCIUM FLUORIDE', 'CALCIUM SULFATE', '15e-3 M CERIC AMMONIUM SULFATE SOLUTION', 'CESIUM IODIDE', 'CONCRETE, ORDINARY', 'CONCRETE, BARITE (TYPE BA)', 'EYE LENS (ICRU-44)', 'FERROUS SULFATE (STANDARD FRICKE)', 'GADOLINIUM OXYSULFIDE', 'GAFCHROMIC SENSOR', 'GALLIUM ARSENIDE', 'GLASS, BOROSILICATE (PYREX)', 'GLASS, LEAD', 'LITHIUM FLUORIDE', 'LITHIUM TETRABORATE', 'LUNG TISSUE (ICRU-44)', 'MAGNESIUM TETRABORATE', 'MERCURIC IODIDE', 'MUSCLE, SKELETAL (ICRU-44)', 'OVARY (ICRU-44)', 'PHOTOGRAPHIC EMULSION (KODAK TYPE AA)', 'PHOTOGRAPHIC EMULSION (STANDARD NUCLEAR)', 'PLASTIC SCINTILLATOR (VINYLTOLUENE)', 'POLYETHYLENE', 'POLYETHYLENE TEREPHTHALATE (MYLAR)', 'POLYMETHYL METHACRYLATE', 'POLYSTYRENE', 'POLYTETRAFLUOROETHYLENE (TEFLON)', 'POLYVINYL CHLORIDE', 'RADIOCHROMIC DYE FILM (NYLON BASE)', 'TESTIS (ICRU-44)', 'TISSUE, SOFT (ICRU-44)', 'TISSUE, SOFT (ICRU FOUR-COMPONENT)', 'TISSUE-EQUIVALENT GAS (METHANE BASED)', 'TISSUE-EQUIVALENT GAS (PROPANE BASED)', 'WATER, LIQUID'],
-                    valueType=int, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
-        
+
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "DESCRIPTOR",
                      label=self.unitLabels()[idx], addSpace=True)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 4 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "GRID",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    items=['Standard', 'User defined'],
-                    valueType=int, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
+        self.show_at(self.unitFlags()[idx], box1)
         
         #widget index 5 
         idx += 1 
@@ -126,40 +97,38 @@ class OWxf0(widget.OWWidget):
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['datasets:','material','table','formula','sin_theta/lambda grid:','From: ','To: ','Number of points']
+         return ['material','formula','From q [sin(theta)/lambda]: ','To q [sin(theta)/lambda]: ','Number of q points']
 
 
     def unitFlags(self):
-         return ['True','True','self.MAT_FLAG  ==  2','self.MAT_FLAG  !=  2','True','self.GRID  !=  0','self.GRID  !=  0','self.GRID  !=  0']
-
-
-    #def unitNames(self):
-    #     return ['DATASETS','MAT_FLAG','MAT_LIST','DESCRIPTOR','GRID','GRIDSTART','GRIDEND','GRIDN']
+         return ['True','self.MAT_FLAG  !=  2','True','True','True']
 
 
     def compute(self):
-        fileName = xoppy_calc_xf0(DATASETS=self.DATASETS,MAT_FLAG=self.MAT_FLAG,MAT_LIST=self.MAT_LIST,DESCRIPTOR=self.DESCRIPTOR,GRID=self.GRID,GRIDSTART=self.GRIDSTART,GRIDEND=self.GRIDEND,GRIDN=self.GRIDN)
-        #send specfile
+        out_dict = self.xoppy_calc_xf0()
 
-        if fileName == None:
-            print("Nothing to send")
-        else:
-            self.send("xoppy_specfile",fileName)
-            sf = specfile.Specfile(fileName)
-            if sf.scanno() == 1:
-                #load spec file with one scan, # is comment
-                print("Loading file:  ",fileName)
-                out = numpy.loadtxt(fileName)
-                print("data shape: ",out.shape)
-                #get labels
-                txt = open(fileName).readlines()
-                tmp = [ line.find("#L") for line in txt]
-                itmp = numpy.where(numpy.array(tmp) != (-1))
-                labels = txt[itmp[0]].replace("#L ","").split("  ")
-                print("data labels: ",labels)
-                self.send("xoppy_data",out)
-            else:
-                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
+        if "info" in out_dict.keys():
+            print(out_dict["info"])
+
+        #send exchange
+        tmp = DataExchangeObject("xoppy_calc_xf0","xf0")
+        try:
+            tmp.add_content("data",out_dict["data"])
+            tmp.add_content("plot_x_col",0)
+            tmp.add_content("plot_y_col",-1)
+        except:
+            pass
+        try:
+            tmp.add_content("labels",out_dict["labels"])
+        except:
+            pass
+        try:
+            tmp.add_content("info",out_dict["info"])
+        except:
+            pass
+
+
+        self.send("ExchangeData",tmp)
 
     def defaults(self):
          self.resetSettings()
@@ -171,9 +140,36 @@ class OWxf0(widget.OWWidget):
         xoppy_util.xoppy_doc('xf0')
 
 
-def xoppy_calc_xf0(DATASETS=0,MAT_FLAG=0,MAT_LIST=0,DESCRIPTOR="Si",GRID=0,GRIDSTART=0.0,GRIDEND=4.0,GRIDN=100):
-    print("Inside xoppy_calc_xf0. ")
-    return(None)
+    def xoppy_calc_xf0(self):
+        MAT_FLAG = self.MAT_FLAG
+        DESCRIPTOR = self.DESCRIPTOR
+        GRIDSTART = self.GRIDSTART
+        GRIDEND = self.GRIDEND
+        GRIDN = self.GRIDN
+
+
+        qscale = numpy.linspace(GRIDSTART,GRIDEND,GRIDN)
+
+        f0 = numpy.zeros_like(qscale)
+
+        if MAT_FLAG == 0: # element
+            descriptor = DESCRIPTOR
+            for i,iqscale in enumerate(qscale):
+                f0[i] = xraylib.FF_Rayl(xraylib.SymbolToAtomicNumber(descriptor),iqscale)
+        elif MAT_FLAG == 1: # formula
+            tmp = parse_formula(DESCRIPTOR)
+            zetas = tmp["Elements"]
+            multiplicity = tmp["n"]
+            for j,jz in enumerate(zetas):
+                for i,iqscale in enumerate(qscale):
+                    f0[i] += multiplicity[j] * xraylib.FF_Rayl(jz,iqscale)
+        elif MAT_FLAG == 2:
+            raise Exception("Not implemented")
+
+        #
+        # return
+        #
+        return {"application":"xoppy","name":"xf0","data":numpy.vstack((qscale,f0)),"labels":["q=sin(theta)/lambda [A^-1]","f0 [electron units]"]}
 
 
 if __name__ == "__main__":
