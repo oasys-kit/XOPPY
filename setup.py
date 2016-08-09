@@ -4,8 +4,8 @@ import os
 
 from setuptools import find_packages, setup
 
-NAME = 'XOPPY'
-VERSION = '1.0.0'
+NAME = 'OASYS-XOPPY'
+VERSION = '1.0.1'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'

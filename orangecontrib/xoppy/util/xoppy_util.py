@@ -35,40 +35,6 @@ class locations:
         #return resources.package_dirname("orangecontrib.xoppy.util") + "/bin_run/"
         return os.getcwd()
 
-
-import urllib
-
-XRAY_SERVER_URL = "http://x-server.gmca.aps.anl.gov"
-
-class HttpManager():
-
-    @classmethod
-    def send_xray_server_request_POST(cls, application, parameters):
-        data = urllib.parse.urlencode(parameters)
-        data = data.encode('utf-8') # data should be bytes
-        req = urllib.request.Request(XRAY_SERVER_URL + application, data)
-        resp = urllib.request.urlopen(req)
-
-        return resp.read().decode('ascii')
-
-    @classmethod
-    def send_xray_server_request_GET(cls, application, parameters):
-        resp = urllib.request.urlopen(url=HttpManager.build_xray_server_request_GET(application, parameters))
-
-        return resp.read().decode('ascii')
-
-    @classmethod
-    def send_xray_server_direct_request(cls, url):
-        resp = urllib.request.urlopen(url=XRAY_SERVER_URL+url)
-
-        return resp.read().decode('ascii')
-
-    @classmethod
-    def build_xray_server_request_GET(cls, application, parameters):
-        return XRAY_SERVER_URL + application + "?" + urllib.parse.urlencode(parameters)
-
-
-
 class ShowTextDialog(QtGui.QDialog):
 
     def __init__(self, title, text, width=650, height=400, parent=None):
