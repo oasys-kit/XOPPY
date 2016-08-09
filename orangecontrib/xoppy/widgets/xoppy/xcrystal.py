@@ -1,12 +1,17 @@
 import sys
+import os
 import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
 
 from orangecontrib.xoppy.util import xoppy_util
+from orangecontrib.xoppy.util.xoppy_util import locations
+from orangecontrib.xoppy.widgets.xoppy.xoppy_xraylib_util import bragg_calc
+
+from oasys.widgets.exchange import DataExchangeObject
+from xraylib import Crystal_GetCrystalsList
 
 class OWxcrystal(widget.OWWidget):
     name = "xcrystal"
@@ -18,12 +23,9 @@ class OWxcrystal(widget.OWWidget):
     priority = 10
     category = ""
     keywords = ["xoppy", "xcrystal"]
-    outputs = [{"name": "xoppy_data",
-                "type": numpy.ndarray,
-                "doc": ""},
-               {"name": "xoppy_specfile",
-                "type": str,
-                "doc": ""}]
+    outputs = [{"name": "ExchangeData",
+                "type": DataExchangeObject,
+                "doc": "send ExchangeData"}]
 
     #inputs = [{"name": "Name",
     #           "type": type,
@@ -32,14 +34,10 @@ class OWxcrystal(widget.OWWidget):
 
     want_main_area = False
 
-    FILEF0 = Setting(0)
-    FILEF1F2 = Setting(0)
-    FILECROSSSEC = Setting(0)
     CRYSTAL_MATERIAL = Setting(0)
     MILLER_INDEX_H = Setting(1)
     MILLER_INDEX_K = Setting(1)
     MILLER_INDEX_L = Setting(1)
-    I_ABSORP = Setting(2)
     TEMPER = Setting("1.0")
     MOSAIC = Setting(0)
     GEOMETRY = Setting(0)
@@ -73,40 +71,14 @@ class OWxcrystal(widget.OWWidget):
         
         
         idx = -1 
-        
-        #widget index 0 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "FILEF0",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    items=['f0_xop.dat'],
-                    valueType=int, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 1 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "FILEF1F2",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    items=['f1f2_Windt.dat', 'f1f2_EPDL97.dat'],
-                    valueType=int, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 2 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "FILECROSSSEC",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    items=['CrossSec_XCOM.dat'],
-                    valueType=int, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
+
         
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "CRYSTAL_MATERIAL",
                      label=self.unitLabels()[idx], addSpace=True,
-                    items=['Si', 'Si_NIST', 'Si2', 'Ge', 'Diamond', 'GaAs', 'GaSb', 'GaP', 'InAs', 'InP', 'InSb', 'SiC', 'NaCl', 'CsF', 'LiF', 'KCl', 'CsCl', 'Be', 'Graphite', 'PET', 'Beryl', 'KAP', 'RbAP', 'TlAP', 'Muscovite', 'AlphaQuartz', 'Copper', 'LiNbO3', 'Platinum', 'Gold', 'Sapphire', 'LaB6', 'LaB6_NIST', 'KTP', 'AlphaAlumina', 'Aluminum', 'Iron', 'Titanium'],
+                    items=Crystal_GetCrystalsList(),
                     valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
@@ -133,15 +105,7 @@ class OWxcrystal(widget.OWWidget):
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 7 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "I_ABSORP",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    items=['No', 'Yes (photoelectric)', 'Yes(ph.el+compton)', 'Yes(ph.el+compton+rayleigh)'],
-                    valueType=int, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
+
         
         #widget index 8 
         idx += 1 
@@ -292,40 +256,151 @@ class OWxcrystal(widget.OWWidget):
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['DABAX f0 file:','DABAX f1f2 file:','DABAX CrossSec file:','Crystal:','h Miller index','k Miller index','l Miller index','Include absorption:','Temperature factor [see help]:','Crystal Model:','Geometry:','Scan:','Scan Units:','Min Scan value:','Max Scan value:','Scan Points:','Fix value (E[eV] or Theta[deg])','Asymmetry angle [deg] (to surf.)','Crystal Thickness [cm]:','Mosaicity [deg, fwhm]: ','R sagittal [cm]: ','R meridional [cm]: ','Anisotropy: ','Poisson ratio','Valong ; Vnorm ; Vperp','File (compliance tensor)']
+         return ['Crystal:','h Miller index','k Miller index','l Miller index','Temperature factor [see help]:', # 0-5
+                 'Crystal Model:','Geometry:','Scan:','Scan Units:','Min Scan value:','Max Scan value:','Scan Points:', # 6-12
+                 'Fix value (E[eV] or Theta[deg])','Asymmetry angle [deg] (to surf.)','Crystal Thickness [cm]:', # 13-15
+                 'Mosaicity [deg, fwhm]: ', #16
+                 'R sagittal [cm]: ','R meridional [cm]: ','Anisotropy: ','Poisson ratio','Valong ; Vnorm ; Vperp','File (compliance tensor)']
 
 
     def unitFlags(self):
-         return ['True','self.I_ABSORP  >  0','self.I_ABSORP  >  1','True','True','True','True','True','True','True','True','True','self.SCAN  <=  2','True','True','True','True','(self.MOSAIC  ==  0) OR (self.MOSAIC  >  1)','True','self.MOSAIC  ==  1','self.MOSAIC  >  1','self.MOSAIC  >  1','self.MOSAIC  >  1','self.MOSAIC  >  1  &  self.ANISOTROPY  ==  0','self.MOSAIC  >  1  &  self.ANISOTROPY  ==  2','self.MOSAIC  >  1  &  self.ANISOTROPY  ==  3']
-
-
-    #def unitNames(self):
-    #     return ['FILEF0','FILEF1F2','FILECROSSSEC','CRYSTAL_MATERIAL','MILLER_INDEX_H','MILLER_INDEX_K','MILLER_INDEX_L','I_ABSORP','TEMPER','MOSAIC','GEOMETRY','SCAN','UNIT','SCANFROM','SCANTO','SCANPOINTS','ENERGY','ASYMMETRY_ANGLE','THICKNESS','MOSAIC_FWHM','RSAG','RMER','ANISOTROPY','POISSON','CUT','FILECOMPLIANCE']
-
+         return ['True','True','True','True','True',
+                 'True','True','True','self.SCAN  <=  2','True','True','True',
+                 'True','(self.MOSAIC  ==  0) or (self.MOSAIC  >  1)','True',
+                 'self.MOSAIC  ==  1',
+                 'self.MOSAIC  >  1','self.MOSAIC  >  1','self.MOSAIC  >  1','self.MOSAIC  >  1  and  self.ANISOTROPY  ==  0','self.MOSAIC  >  1  and  self.ANISOTROPY  ==  2','self.MOSAIC  >  1  and  self.ANISOTROPY  ==  3']
 
     def compute(self):
-        fileName = xoppy_calc_xcrystal(FILEF0=self.FILEF0,FILEF1F2=self.FILEF1F2,FILECROSSSEC=self.FILECROSSSEC,CRYSTAL_MATERIAL=self.CRYSTAL_MATERIAL,MILLER_INDEX_H=self.MILLER_INDEX_H,MILLER_INDEX_K=self.MILLER_INDEX_K,MILLER_INDEX_L=self.MILLER_INDEX_L,I_ABSORP=self.I_ABSORP,TEMPER=self.TEMPER,MOSAIC=self.MOSAIC,GEOMETRY=self.GEOMETRY,SCAN=self.SCAN,UNIT=self.UNIT,SCANFROM=self.SCANFROM,SCANTO=self.SCANTO,SCANPOINTS=self.SCANPOINTS,ENERGY=self.ENERGY,ASYMMETRY_ANGLE=self.ASYMMETRY_ANGLE,THICKNESS=self.THICKNESS,MOSAIC_FWHM=self.MOSAIC_FWHM,RSAG=self.RSAG,RMER=self.RMER,ANISOTROPY=self.ANISOTROPY,POISSON=self.POISSON,CUT=self.CUT,FILECOMPLIANCE=self.FILECOMPLIANCE)
-        #send specfile
 
-        if fileName == None:
-            print("Nothing to send")
+        CRYSTAL_MATERIAL = self.CRYSTAL_MATERIAL
+        MILLER_INDEX_H = self.MILLER_INDEX_H
+        MILLER_INDEX_K = self.MILLER_INDEX_K
+        MILLER_INDEX_L = self.MILLER_INDEX_L
+        TEMPER = self.TEMPER
+        MOSAIC = self.MOSAIC
+        GEOMETRY = self.GEOMETRY
+        SCAN = self.SCAN
+        UNIT = self.UNIT
+        SCANFROM = self.SCANFROM
+        SCANTO = self.SCANTO
+        SCANPOINTS = self.SCANPOINTS
+        ENERGY = self.ENERGY
+        ASYMMETRY_ANGLE = self.ASYMMETRY_ANGLE
+        THICKNESS = self.THICKNESS
+        MOSAIC_FWHM = self.MOSAIC_FWHM
+        RSAG = self.RSAG
+        RMER = self.RMER
+        ANISOTROPY = self.ANISOTROPY
+        POISSON = self.POISSON
+        CUT = self.CUT
+        FILECOMPLIANCE = self.FILECOMPLIANCE
+
+        if (GEOMETRY == 1) or (GEOMETRY == 3):
+            if ASYMMETRY_ANGLE == 0.0:
+                print("xoppy_calc_xcrystal: WARNING: In xcrystal the asymmetry angle is the angle between Bragg planes and crystal surface,"+
+                      "in BOTH Bragg and Laue geometries.")
+
+
+        descriptor = Crystal_GetCrystalsList()[CRYSTAL_MATERIAL]
+        if SCAN == 3: # energy scan
+            emin = SCANFROM - 1
+            emax = SCANTO + 1
         else:
-            self.send("xoppy_specfile",fileName)
-            sf = specfile.Specfile(fileName)
-            if sf.scanno() == 1:
-                #load spec file with one scan, # is comment
-                print("Loading file:  ",fileName)
-                out = numpy.loadtxt(fileName)
-                print("data shape: ",out.shape)
-                #get labels
-                txt = open(fileName).readlines()
-                tmp = [ line.find("#L") for line in txt]
-                itmp = numpy.where(numpy.array(tmp) != (-1))
-                labels = txt[itmp[0]].replace("#L ","").split("  ")
-                print("data labels: ",labels)
-                self.send("xoppy_data",out)
+            emin = ENERGY - 100.0
+            emax = ENERGY + 100.0
+
+        print("Using crystal descriptor: ",descriptor)
+        bragg_dictionary = bragg_calc(descriptor=descriptor,
+                                                hh=MILLER_INDEX_H,kk=MILLER_INDEX_K,ll=MILLER_INDEX_L,
+                                                temper=float(TEMPER),
+                                                emin=emin,emax=emax,estep=5.0,fileout="xcrystal.bra")
+
+        with open("xoppy.inp", "wt") as f:
+            f.write("xcrystal.bra\n")
+            f.write("%d\n"%MOSAIC)
+            f.write("%d\n"%GEOMETRY)
+
+            if MOSAIC == 1:
+                f.write("%g\n"%MOSAIC_FWHM)
+                f.write("%g\n"%THICKNESS)
             else:
-                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
+                f.write("%g\n"%THICKNESS)
+                f.write("%g\n"%ASYMMETRY_ANGLE)
+
+            scan_flag = 1 + SCAN
+
+            f.write("%d\n"%scan_flag)
+
+            f.write("%19.9f\n"%ENERGY)
+
+            if scan_flag <= 3:
+                f.write("%d\n"%UNIT)
+
+            f.write("%g\n"%SCANFROM)
+            f.write("%g\n"%SCANTO)
+            f.write("%d\n"%SCANPOINTS)
+
+            if MOSAIC > 1: # bent
+                f.write("%g\n"%RSAG)
+                f.write("%g\n"%RMER)
+                f.write("%0\n")
+
+                if CRYSTAL_MATERIAL >=  5: # not Si,Ge,Diamond
+                    if ((ANISOTROPY == 1) or (ANISOTROPY == 2)):
+                        raise Exception("Anisotropy data not available for this crystal. Either use isotropic or use external compliance file. Please change and run again'")
+
+                f.write("%d\n"%ANISOTROPY)
+
+                if ANISOTROPY == 0:
+                    f.write("%g\n"%POISSON)
+                elif ANISOTROPY == 1:
+                    f.write("%d\n"%CRYSTAL_MATERIAL)
+                    f.write("%g\n"%ASYMMETRY_ANGLE)
+                    f.write("%d\n"%MILLER_INDEX_H)
+                    f.write("%d\n"%MILLER_INDEX_K)
+                    f.write("%d\n"%MILLER_INDEX_L)
+                elif ANISOTROPY == 2:
+                    f.write("%d\n"%CRYSTAL_MATERIAL)
+                    f.write("%g\n"%ASYMMETRY_ANGLE)
+                    # TODO: check syntax for CUT: Cut syntax is: valong_X valong_Y valong_Z ; vnorm_X vnorm_Y vnorm_Z ; vperp_x vperp_Y vperp_Z
+                    f.write("%s\n"%CUT.split(";")[0])
+                    f.write("%s\n"%CUT.split(";")[1])
+                    f.write("%s\n"%CUT.split(";")[2])
+                elif ANISOTROPY == 3:
+                    f.write("%s\n"%FILECOMPLIANCE)
+
+
+        command = os.path.join(locations.home_bin(), 'diff_pat') + " < xoppy.inp"
+        print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
+        print("\n--------------------------------------------------------\n")
+        os.system(command)
+        print("\n--------------------------------------------------------\n")
+
+
+        #send exchange
+        tmp = DataExchangeObject("xoppy_xcrystal","xcrystal")
+
+        try:
+            tmp.add_content("data",numpy.loadtxt("diff_pat.dat",skiprows=5).T)
+            tmp.add_content("plot_x_col",0)
+            tmp.add_content("plot_y_col",-1)
+        except:
+            pass
+        try:
+            tmp.add_content("labels",["Th-ThB{in} [microrad]","Th-ThB{out} [microrad]","phase_p[rad]","phase_s[rad]","Circ Polariz","p-polarized reflectivity","s-polarized reflectivity"
+])
+
+        except:
+            pass
+        try:
+            with open("diff_pat.par") as f:
+                info = f.readlines()
+            tmp.add_content("info",info)
+        except:
+            pass
+
+        self.send("ExchangeData",tmp)
+
 
     def defaults(self):
          self.resetSettings()
@@ -335,18 +410,6 @@ class OWxcrystal(widget.OWWidget):
     def help1(self):
         print("help pressed.")
         xoppy_util.xoppy_doc('xcrystal')
-
-
-def xoppy_calc_xcrystal(FILEF0=0,FILEF1F2=0,FILECROSSSEC=0,CRYSTAL_MATERIAL=0,\
-                        MILLER_INDEX_H=1,MILLER_INDEX_K=1,MILLER_INDEX_L=1,\
-                        I_ABSORP=2,TEMPER="1.0",MOSAIC=0,GEOMETRY=0,SCAN=2,UNIT=1,\
-                        SCANFROM=-100.0,SCANTO=100.0,SCANPOINTS=200,ENERGY=8000.0,\
-                        ASYMMETRY_ANGLE=0.0,THICKNESS=0.7,MOSAIC_FWHM=0.1,RSAG=125.0,RMER=1290.0,\
-                        ANISOTROPY=0,POISSON=0.22,CUT="2 -1 -1 ; 1 1 1 ; 0 0 0",FILECOMPLIANCE="mycompliance.dat"):
-    print("Inside xoppy_calc_xcrystal. ")
-    return(None)
-
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

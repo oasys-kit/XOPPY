@@ -1,12 +1,19 @@
-import sys
+import sys, os
 import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
 
+from orangecontrib.xoppy.util.xoppy_util import locations
+
 from orangecontrib.xoppy.util import xoppy_util
+from orangecontrib.xoppy.widgets.xoppy.xoppy_xraylib_util import f1f2_calc
+from oasys.widgets.exchange import DataExchangeObject
+
+
+import scipy.constants as codata
+import xraylib
 
 class OWmlayer(widget.OWWidget):
     name = "mlayer"
@@ -18,12 +25,9 @@ class OWmlayer(widget.OWWidget):
     priority = 10
     category = ""
     keywords = ["xoppy", "mlayer"]
-    outputs = [{"name": "xoppy_data",
-                "type": numpy.ndarray,
-                "doc": ""},
-               {"name": "xoppy_specfile",
-                "type": str,
-                "doc": ""}]
+    outputs = [{"name": "ExchangeData",
+                "type": DataExchangeObject,
+                "doc": "send ExchangeData"}]
 
     #inputs = [{"name": "Name",
     #           "type": type,
@@ -182,34 +186,146 @@ class OWmlayer(widget.OWWidget):
     def unitFlags(self):
          return ['True','True','True','self.F12_FLAG  ==  0','self.F12_FLAG  ==  0','self.F12_FLAG  ==  0','True','True','True','True','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  1']
 
-
-    #def unitNames(self):
-    #     return ['MODE','SCAN','F12_FLAG','SUBSTRATE','ODD_MATERIAL','EVEN_MATERIAL','ENERGY','THETA','SCAN_STEP','NPOINTS','ODD_THICKNESS','EVEN_THICKNESS','NLAYERS','FILE']
-
-
     def compute(self):
-        fileName = xoppy_calc_mlayer(MODE=self.MODE,SCAN=self.SCAN,F12_FLAG=self.F12_FLAG,SUBSTRATE=self.SUBSTRATE,ODD_MATERIAL=self.ODD_MATERIAL,EVEN_MATERIAL=self.EVEN_MATERIAL,ENERGY=self.ENERGY,THETA=self.THETA,SCAN_STEP=self.SCAN_STEP,NPOINTS=self.NPOINTS,ODD_THICKNESS=self.ODD_THICKNESS,EVEN_THICKNESS=self.EVEN_THICKNESS,NLAYERS=self.NLAYERS,FILE=self.FILE)
-        #send specfile
 
-        if fileName == None:
-            print("Nothing to send")
-        else:
-            self.send("xoppy_specfile",fileName)
-            sf = specfile.Specfile(fileName)
-            if sf.scanno() == 1:
-                #load spec file with one scan, # is comment
-                print("Loading file:  ",fileName)
-                out = numpy.loadtxt(fileName)
-                print("data shape: ",out.shape)
-                #get labels
-                txt = open(fileName).readlines()
-                tmp = [ line.find("#L") for line in txt]
-                itmp = numpy.where(numpy.array(tmp) != (-1))
-                labels = txt[itmp[0]].replace("#L ","").split("  ")
-                print("data labels: ",labels)
-                self.send("xoppy_data",out)
+        # copy the variable locally, so no more use of self.
+        MODE = self.MODE
+        SCAN = self.SCAN
+        F12_FLAG = self.F12_FLAG
+        SUBSTRATE = self.SUBSTRATE
+        ODD_MATERIAL = self.ODD_MATERIAL
+        EVEN_MATERIAL = self.EVEN_MATERIAL
+        ENERGY = self.ENERGY
+        THETA = self.THETA
+        SCAN_STEP = self.SCAN_STEP
+        NPOINTS = self.NPOINTS
+        ODD_THICKNESS = self.ODD_THICKNESS
+        EVEN_THICKNESS = self.EVEN_THICKNESS
+        NLAYERS = self.NLAYERS
+        FILE=self.FILE
+
+
+        #
+        # write input file for Fortran mlayer: mlayer.inp
+        #
+        f = open('mlayer.inp','w')
+
+        if SCAN == 0 and MODE == 0: a0 = 1
+        if SCAN == 1 and MODE == 0: a0 = 5
+        if SCAN == 0 and MODE == 1: a0 = 3
+        if SCAN == 1 and MODE == 1: a0 = 5
+
+        f.write("%d \n"%a0)
+        f.write("N\n")
+
+        f.write("%g\n"%( codata.h * codata.c / codata.e * 1e10 / ENERGY))
+        f.write("%g\n"%THETA)
+
+        if SCAN == 0:
+            f.write("%g\n"%SCAN_STEP)
+
+        a2 = codata.h * codata.c / codata.e * 1e10 / ENERGY
+        a3 = codata.h * codata.c / codata.e * 1e10 / (ENERGY + SCAN_STEP)
+        a4 = a3 - a2
+
+        if SCAN != 0:
+            f.write("%g\n"%a4)
+
+        f.write("%d\n"%NPOINTS)
+
+        if MODE == 0:
+            f.write("%d\n"%NLAYERS)
+
+        if MODE == 0:
+            if a0 != 5:
+                f.write("%g  %g  \n"%(ODD_THICKNESS,EVEN_THICKNESS))
             else:
-                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
+                for i in range(NLAYERS):
+                    f.write("%g  %g  \n"%(ODD_THICKNESS,EVEN_THICKNESS))
+
+        if MODE != 0:
+            f1 = open(FILE,'r')
+            a5 = f1.read()
+            f1.close()
+
+        if MODE != 0:
+            print("Number of layers in %s file is %d "%(FILE,NLAYERS))
+            f.write("%d\n"%NLAYERS)
+            f.write(a5)
+
+        f.write("mlayer.par\n")
+        f.write("mlayer.dat\n")
+
+        f.write("6\n")
+
+        f.close()
+        print('File written to disk: mlayer.inp')
+
+        #
+        # create f12 file
+        #
+
+        if F12_FLAG == 0:
+            energy = numpy.arange(0,500)
+            elefactor = numpy.log10(10000.0 / 30.0) / 300.0
+            energy = 10.0 * 10**(energy * elefactor)
+
+            f12_s = f1f2_calc(SUBSTRATE,energy)
+            f12_e = f1f2_calc(EVEN_MATERIAL,energy)
+            f12_o = f1f2_calc(ODD_MATERIAL,energy)
+
+            f = open("mlayer.f12",'w')
+            f.write('; File created by xoppy for materials [substrate=%s,even=%s,odd=%s]: \n'%(SUBSTRATE,EVEN_MATERIAL,ODD_MATERIAL))
+            f.write('; Atomic masses: \n')
+            f.write("%g %g %g \n"%(xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(SUBSTRATE)),
+                                   xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(EVEN_MATERIAL)),
+                                   xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(ODD_MATERIAL)) ))
+            f.write('; Densities: \n')
+            f.write("%g %g %g \n"%(xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(SUBSTRATE)),
+                                   xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(EVEN_MATERIAL)),
+                                   xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(ODD_MATERIAL)) ))
+            f.write('; Number of energy points: \n')
+
+            f.write("%d\n"%(energy.size))
+            f.write('; For each energy point, energy[eV], f1[substrate], f2[substrate], f1[even], f2[even], f1[odd], f2[odd]: \n')
+            for i in range(energy.size):
+                f.write("%g %g %g %g %g %g %g \n"%(energy[i],f12_s[0,i],f12_s[1,i],f12_e[0,i],f12_e[1,i],f12_o[0,i],f12_o[1,i]))
+
+            f.close()
+
+            print('File written to disk: mlayer.f12')
+
+        #
+        # run external program mlayer
+        #
+        command = os.path.join(locations.home_bin(), 'mlayer') + " < mlayer.inp"
+        print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
+        print("\n--------------------------------------------------------\n")
+        os.system(command)
+        print("\n--------------------------------------------------------\n")
+
+
+        #send exchange
+        tmp = DataExchangeObject("xoppy_mlayer","mlayer")
+
+        try:
+            tmp.add_content("data",numpy.loadtxt("mlayer.dat").T)
+            tmp.add_content("plot_x_col",0)
+            tmp.add_content("plot_y_col",3)
+        except:
+            pass
+        try:
+            tmp.add_content("labels",["Grazing angle Theta [deg]","s-reflectivity","p-reflectivity","averaged reflectivity","s-phase shift","p-phase shift","(s-electric field)^2","(p-electric field)^2"])
+
+        except:
+            pass
+        try:
+            info = "ML %s(%3.2f A):%s(%3.2f A) %d pairs; E=%5.3f eV"%(ODD_MATERIAL,ODD_THICKNESS,EVEN_MATERIAL,EVEN_THICKNESS,NLAYERS,ENERGY)
+            tmp.add_content("info",info)
+        except:
+            pass
+
+        self.send("ExchangeData",tmp)
 
     def defaults(self):
          self.resetSettings()
@@ -219,13 +335,6 @@ class OWmlayer(widget.OWWidget):
     def help1(self):
         print("help pressed.")
         xoppy_util.xoppy_doc('mlayer')
-
-
-def xoppy_calc_mlayer(MODE=0,SCAN=0,F12_FLAG=0,SUBSTRATE="Si",ODD_MATERIAL="Si",EVEN_MATERIAL="W",ENERGY=8050.0,\
-                      THETA=0.0,SCAN_STEP=0.009999999776483,NPOINTS=600,ODD_THICKNESS=25.0,EVEN_THICKNESS=25.0,\
-                      NLAYERS=50,FILE="layers.dat"):
-    print("Inside xoppy_calc_mlayer. ")
-    return(None)
 
 
 if __name__ == "__main__":
