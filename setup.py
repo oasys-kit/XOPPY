@@ -4,8 +4,8 @@ import os
 
 from setuptools import find_packages, setup
 
-NAME = 'XOPPY-Devel'
-VERSION = '0.0.10'
+NAME = 'XOPPY'
+VERSION = '1.0.0'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
@@ -52,7 +52,6 @@ PACKAGE_DATA = {
     "orangecontrib.xoppy.widgets.source":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.xoppy.widgets.optics":["icons/*.png", "icons/*.jpg", "misc/*.*"],
     "orangecontrib.xoppy.widgets.tools":["icons/*.png", "icons/*.jpg"],
-    "orangecontrib.xoppy.widgets.xrayserver":["icons/*.png", "icons/*.jpg", "misc/*.*"],
     "orangecontrib.xoppy.widgets.xoppy":["icons/*.png", "icons/*.jpg"],
 }
 
@@ -64,7 +63,6 @@ ENTRY_POINTS = {
         "XOPPY Source = orangecontrib.xoppy.widgets.source",
         "XOPPY Optics = orangecontrib.xoppy.widgets.optics",
         "XOPPY Tools = orangecontrib.xoppy.widgets.tools",
-        "XOPPY/X-ray Server= orangecontrib.xoppy.widgets.xrayserver",
         "XOPPY Under Devel = orangecontrib.xoppy.widgets.xoppy",
     ),
     'oasys.menus' : ("xoppymenu = orangecontrib.xoppy.menu",)
