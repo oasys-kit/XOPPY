@@ -1,6 +1,6 @@
 __author__ = 'srio'
 
-NAME = "XOPPY: Source"
+NAME = "XOPPY: Sources"
 
 ID = "orangecontrib.xoppy.widgets.source"
 

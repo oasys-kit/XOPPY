@@ -5,7 +5,7 @@ import os
 from setuptools import find_packages, setup
 
 NAME = 'OASYS-XOPPY'
-VERSION = '1.0.1'
+VERSION = '1.0.2'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
@@ -60,7 +60,7 @@ NAMESPACE_PACAKGES = ["orangecontrib", "orangecontrib.xoppy", "orangecontrib.xop
 ENTRY_POINTS = {
     'oasys.addons' : ("xoppy = orangecontrib.xoppy", ),
     'oasys.widgets' : (
-        "XOPPY Source = orangecontrib.xoppy.widgets.source",
+        "XOPPY Sources = orangecontrib.xoppy.widgets.source",
         "XOPPY Optics = orangecontrib.xoppy.widgets.optics",
         "XOPPY Tools = orangecontrib.xoppy.widgets.tools",
         "XOPPY Under Devel = orangecontrib.xoppy.widgets.xoppy",

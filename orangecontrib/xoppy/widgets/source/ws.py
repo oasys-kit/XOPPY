@@ -1,38 +1,21 @@
 import sys, os
-import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets.widget import OWWidget
-from oasys.widgets.exchange import DataExchangeObject
+from oasys.widgets import gui as oasysgui
+
 from orangecontrib.xoppy.util.xoppy_util import locations
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-from orangecontrib.xoppy.util import xoppy_util
 
-class OWws(OWWidget):
+class OWws(XoppyWidget):
     name = "ws"
     id = "orange.widgets.dataws"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute WS"
     icon = "icons/xoppy_ws.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
     priority = 5
     category = ""
     keywords = ["xoppy", "ws"]
-    outputs = [{"name": "xoppy_data",
-                "type": numpy.ndarray,
-                "doc": ""},
-               {"name": "xoppy_specfile",
-                "type": str,
-                "doc": ""}]
-
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
-
-    want_main_area = False
 
     TITLE = Setting("Wiggler A at APS")
     ENERGY = Setting(7.0)
@@ -52,26 +35,18 @@ class OWws(OWWidget):
     NXP = Setting(10)
     NYP = Setting(10)
 
-
     def __init__(self):
         super().__init__()
 
-        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
-        #widget buttons: compute, set defaults, help
-        gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Defaults", callback=self.defaults)
-        gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
-        
-        
+        box = oasysgui.widgetBox(self.controlArea, "WIGGLER Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+
         idx = -1 
         
         #widget index 0 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "TITLE",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
@@ -79,7 +54,7 @@ class OWws(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ENERGY",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
@@ -87,7 +62,7 @@ class OWws(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "CUR",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
@@ -95,7 +70,7 @@ class OWws(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "PERIOD",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
@@ -103,7 +78,7 @@ class OWws(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "N",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
@@ -111,7 +86,7 @@ class OWws(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "KX",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
@@ -119,7 +94,7 @@ class OWws(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "KY",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
@@ -127,7 +102,7 @@ class OWws(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "EMIN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
@@ -135,7 +110,7 @@ class OWws(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "EMAX",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
@@ -143,7 +118,7 @@ class OWws(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NEE",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
@@ -151,7 +126,7 @@ class OWws(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "D",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
@@ -159,7 +134,7 @@ class OWws(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "XPC",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 12 
@@ -167,7 +142,7 @@ class OWws(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "YPC",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 13 
@@ -175,7 +150,7 @@ class OWws(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "XPS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 14 
@@ -183,7 +158,7 @@ class OWws(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "YPS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 15 
@@ -191,7 +166,7 @@ class OWws(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NXP",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 16 
@@ -199,55 +174,45 @@ class OWws(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NYP",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
+
+        self.process_showers()
 
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
          return ['Title','Beam energy (GeV)','Beam current (mA)','Period (cm)','Number of periods','Kx','Ky','Min energy (eV)','Max energy (eV)','Number of energy steps','Distance (m)','X-pos. (mm)','Y-pos. (mm)','X slit [mm or mrad]','Y slit [mm or mrad]','Integration points X','Integration points Y']
 
-
     def unitFlags(self):
          return ['True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True']
 
+    def get_help_name(self):
+        return 'ws'
 
-    #def unitNames(self):
-    #     return ['TITLE','ENERGY','CUR','PERIOD','N','KX','KY','EMIN','EMAX','NEE','D','XPC','YPC','XPS','YPS','NXP','NYP']
+    def check_fields(self):
+        pass
 
+    def do_xoppy_calculation(self):
+        return xoppy_calc_ws(TITLE=self.TITLE,ENERGY=self.ENERGY,CUR=self.CUR,PERIOD=self.PERIOD,N=self.N,KX=self.KX,KY=self.KY,EMIN=self.EMIN,EMAX=self.EMAX,NEE=self.NEE,D=self.D,XPC=self.XPC,YPC=self.YPC,XPS=self.XPS,YPS=self.YPS,NXP=self.NXP,NYP=self.NYP)
 
-    def compute(self):
-        fileName = xoppy_calc_ws(TITLE=self.TITLE,ENERGY=self.ENERGY,CUR=self.CUR,PERIOD=self.PERIOD,N=self.N,KX=self.KX,KY=self.KY,EMIN=self.EMIN,EMAX=self.EMAX,NEE=self.NEE,D=self.D,XPC=self.XPC,YPC=self.YPC,XPS=self.XPS,YPS=self.YPS,NXP=self.NXP,NYP=self.NYP)
-        #send specfile
+    def get_data_exchange_widget_name(self):
+        return "WS"
 
-        if fileName == None:
-            print("Nothing to send")
-        else:
-            self.send("xoppy_specfile", fileName)
-            sf = specfile.Specfile(fileName)
-            if sf.scanno() == 1:
-                #load spec file with one scan, # is comment
-                print("Loading file:  ",fileName)
-                out = numpy.loadtxt(fileName)
-                print("data shape: ",out.shape)
-                #get labels
-                txt = open(fileName).readlines()
-                tmp = [ line.find("#L") for line in txt]
-                itmp = numpy.where(numpy.array(tmp) != (-1))
-                labels = txt[itmp[0]].replace("#L ","").split("  ")
-                print("data labels: ",labels)
-                self.send("xoppy_data",out)
-            else:
-                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
+    def getTitles(self):
+        return ['Wiggler Flux']
 
-    def defaults(self):
-         self.resetSettings()
-         self.compute()
-         return
+    def getXTitles(self):
+        return ["Energy [eV]"]
 
-    def help1(self):
-        print("help pressed.")
-        xoppy_util.xoppy_doc('ws')
+    def getYTitles(self):
+        return ["Flux [Phot/sec/0.1%bw]"]
+
+    def getLogPlot(self):
+        return [(True, True)]
+
+# --------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
 
 
 def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.0,KX=0.0,KY=8.739999771118164,\

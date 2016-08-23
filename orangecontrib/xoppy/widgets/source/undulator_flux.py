@@ -1,43 +1,22 @@
 import sys
-import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets.widget import OWWidget
-from oasys.widgets.exchange import DataExchangeObject
-from orangewidget.widget import OWAction
+from oasys.widgets import gui as oasysgui
 
 from collections import OrderedDict
 from orangecontrib.xoppy.util import srundplug
 
-from orangecontrib.xoppy.util import xoppy_util
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-class OWundulator_flux(OWWidget):
+class OWundulator_flux(XoppyWidget):
     name = "undulator_flux"
     id = "orange.widgets.dataundulator_flux"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute UNDULATOR_FLUX"
     icon = "icons/xoppy_undulator_flux.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
     priority = 1
     category = ""
     keywords = ["xoppy", "undulator_flux"]
-    outputs = [{"name": "xoppy_data",
-               "type": numpy.ndarray,
-               "doc": ""},
-               {"name": "xoppy_specfile",
-                "type": str,
-                "doc": ""},
-               {"name": "xoppy_exchange_data",
-               "type": DataExchangeObject,
-               "doc": ""},]
-
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
-
-    want_main_area = False
 
     ELECTRONENERGY = Setting(6.04)
     ELECTRONENERGYSPREAD = Setting(0.001)
@@ -61,19 +40,8 @@ class OWundulator_flux(OWWidget):
     def __init__(self):
         super().__init__()
 
-        self.runaction = OWAction("Compute", self)
-        self.runaction.triggered.connect(self.compute)
-        self.addAction(self.runaction)
+        box = oasysgui.widgetBox(self.controlArea, "UNDULATOR Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
-        box0 = gui.widgetBox(self.controlArea, "Input",orientation="horizontal")
-        #widget buttons: compute, set defaults, help
-        gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Defaults", callback=self.defaults)
-        gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
-        
-        
         idx = -1 
         
         #widget index 0 
@@ -81,7 +49,7 @@ class OWundulator_flux(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ELECTRONENERGY",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
@@ -89,7 +57,7 @@ class OWundulator_flux(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ELECTRONENERGYSPREAD",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
@@ -97,7 +65,7 @@ class OWundulator_flux(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ELECTRONCURRENT",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
@@ -105,7 +73,7 @@ class OWundulator_flux(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ELECTRONBEAMSIZEH",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
@@ -113,7 +81,7 @@ class OWundulator_flux(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ELECTRONBEAMSIZEV",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
@@ -121,7 +89,7 @@ class OWundulator_flux(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEH",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
@@ -129,7 +97,7 @@ class OWundulator_flux(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEV",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
@@ -137,7 +105,7 @@ class OWundulator_flux(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "PERIODID",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
@@ -153,7 +121,7 @@ class OWundulator_flux(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "KV",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
@@ -161,7 +129,7 @@ class OWundulator_flux(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "DISTANCE",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
@@ -169,7 +137,7 @@ class OWundulator_flux(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "GAPH",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 12 
@@ -177,7 +145,7 @@ class OWundulator_flux(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "GAPV",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 13 
@@ -185,7 +153,7 @@ class OWundulator_flux(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "PHOTONENERGYMIN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 14 
@@ -193,7 +161,7 @@ class OWundulator_flux(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "PHOTONENERGYMAX",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 15 
@@ -213,53 +181,42 @@ class OWundulator_flux(OWWidget):
                     valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
+        self.process_showers()
+
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
          return ["Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]", "Electron Beam Size H [m]", "Electron Beam Size V [m]", "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", "Period ID [m]", "Number of periods", "Kv [undulator K value vertical field]", "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "photon Energy Min [eV]", "photon Energy Max [eV]", "photon Energy Points", "calculation code"]
 
-
     def unitFlags(self):
          return ["True", "self.METHOD != 1", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True"]
 
+    def get_help_name(self):
+        return 'undulator_flux'
 
-    #def unitNames(self):
-    #     return ["ELECTRONENERGY", "ELECTRONENERGYSPREAD", "ELECTRONCURRENT", "ELECTRONBEAMSIZEH", "ELECTRONBEAMSIZEV", "ELECTRONBEAMDIVERGENCEH", "ELECTRONBEAMDIVERGENCEV", "PERIODID", "NPERIODS", "KV", "DISTANCE", "GAPH", "GAPV", "PHOTONENERGYMIN", "PHOTONENERGYMAX", "PHOTONENERGYPOINTS", "METHOD"]
+    def check_fields(self):
+        pass
 
+    def do_xoppy_calculation(self):
+        return xoppy_calc_undulator_flux(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,PHOTONENERGYMIN=self.PHOTONENERGYMIN,PHOTONENERGYMAX=self.PHOTONENERGYMAX,PHOTONENERGYPOINTS=self.PHOTONENERGYPOINTS,METHOD=self.METHOD)
 
-    def compute(self):
-        fileName = xoppy_calc_undulator_flux(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,PHOTONENERGYMIN=self.PHOTONENERGYMIN,PHOTONENERGYMAX=self.PHOTONENERGYMAX,PHOTONENERGYPOINTS=self.PHOTONENERGYPOINTS,METHOD=self.METHOD)
-        #send specfile
-        self.send("xoppy_specfile",fileName)
+    def get_data_exchange_widget_name(self):
+        return "UNDULATOR_FLUX"
 
-        print("Loading file:  ",fileName)
-        #load spec file with one scan, # is comment
-        out = numpy.loadtxt(fileName)
-        print("data shape: ",out.shape)
-        #get labels
-        txt = open(fileName).readlines()
-        tmp = [ line.find("#L") for line in txt]
-        itmp = numpy.where(numpy.array(tmp) != (-1))
-        labels = txt[itmp[0]].replace("#L ","").split("  ")
-        print("data labels: ",labels)
-        self.send("xoppy_data",out)
+    def getTitles(self):
+        return ['Undulator Flux']
 
-        exchange_data = DataExchangeObject("XOPPY", "UNDULATOR_FLUX")
+    def getXTitles(self):
+        return ["Energy [eV]"]
 
-        exchange_data.add_content("xoppy_specfile", fileName)
-        exchange_data.add_content("xoppy_data", out)
+    def getYTitles(self):
+        return ["Flux [Phot/sec/0.1%bw]"]
 
-        self.send("xoppy_exchange_data", exchange_data)
+    def getLogPlot(self):
+        return [(True, True)]
 
-    def defaults(self):
-         self.resetSettings()
-         self.compute()
-         return
-
-    def help1(self):
-        print("help pressed.")
-        xoppy_util.xoppy_doc('undulator_flux')
-
+# --------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
 
 def xoppy_calc_undulator_flux(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
                               ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\

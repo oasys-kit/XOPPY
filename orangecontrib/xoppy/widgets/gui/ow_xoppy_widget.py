@@ -123,7 +123,7 @@ class XoppyWidget(widget.OWWidget):
         return [(0, 1)]
 
     def getLogPlot(self):
-        return [(True, True)]
+        return [(False, False)]
 
     def set_ViewType(self):
         self.progressBarInit()
@@ -213,14 +213,14 @@ class XoppyWidget(widget.OWWidget):
 
             self.check_fields()
 
-            self.spec_file_name = self.do_xoppy_calculation()
+            calculation_output = self.do_xoppy_calculation()
 
             self.progressBarSet(50)
 
-            if self.spec_file_name is None:
-                raise Exception("Xoppy Spec File not calculated")
+            if calculation_output is None:
+                raise Exception("Xoppy gave no result")
             else:
-                self.calculated_data = self.extract_data_from_spec_file(self.spec_file_name)
+                self.calculated_data = self.extract_data_from_xoppy_output(calculation_output)
 
                 self.add_specific_content_to_calculated_data(self.calculated_data)
 
@@ -258,7 +258,9 @@ class XoppyWidget(widget.OWWidget):
     def do_xoppy_calculation(self):
         raise Exception("This method should be reimplementd in subclasses!")
 
-    def extract_data_from_spec_file(self, spec_file_name):
+    def extract_data_from_xoppy_output(self, calculation_output):
+        spec_file_name = calculation_output
+
         sf = specfile.Specfile(spec_file_name)
 
         if sf.scanno() == 1:
@@ -266,6 +268,8 @@ class XoppyWidget(widget.OWWidget):
             print("Loading file:  ", spec_file_name)
 
             out = numpy.loadtxt(spec_file_name)
+
+            if len(out) == 0 : raise Exception("Calculation gave no results (empty data)")
 
             print("data shape: ", out.shape)
             #get labels

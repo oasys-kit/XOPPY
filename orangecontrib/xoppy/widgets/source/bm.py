@@ -8,7 +8,6 @@ from orangewidget.settings import Setting
 from srxraylib.sources import srfunc
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-
 class OWbm(XoppyWidget):
     name = "bm"
     id = "orange.widgets.databm"
@@ -296,9 +295,6 @@ class OWbm(XoppyWidget):
         elif self.TYPE_CALC == 3:
             return []
 
-
-# --------------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
 
@@ -458,7 +454,6 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
     print("File written to disk: " + outFile)
 
     return outFile
-
 
 
 
