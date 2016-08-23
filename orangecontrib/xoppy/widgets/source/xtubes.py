@@ -1,62 +1,29 @@
 import sys, os
-import numpy 
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets.widget import OWWidget
-from oasys.widgets.exchange import DataExchangeObject
-from orangewidget.widget import OWAction
-from orangecontrib.xoppy.util.xoppy_util import locations
-from orangecontrib.xoppy.util import xoppy_util
+from oasys.widgets import gui as oasysgui
 
-class OWxtubes(OWWidget):
+from orangecontrib.xoppy.util.xoppy_util import locations
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+
+class OWxtubes(XoppyWidget):
     name = "xtubes"
     id = "orange.widgets.dataxtubes"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute XTUBES"
     icon = "icons/xoppy_xtubes.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
     priority = 9
     category = ""
     keywords = ["xoppy", "xtubes"]
-    outputs = [{"name": "xoppy_data",
-                "type": numpy.ndarray,
-                "doc": ""},
-               {"name": "xoppy_specfile",
-                "type": str,
-                "doc": ""},
-               {"name": "xoppy_exchange_data",
-               "type": DataExchangeObject,
-               "doc": ""},]
-
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
-
-    want_main_area = False
 
     ITUBE = Setting(0)
     VOLTAGE = Setting(30.0)
 
-
     def __init__(self):
         super().__init__()
 
-        self.runaction = OWAction("Compute", self)
-        self.runaction.triggered.connect(self.compute)
-        self.addAction(self.runaction)
+        box = oasysgui.widgetBox(self.controlArea, "XTUBES Input Parameters",orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
-        box0 = gui.widgetBox(self.controlArea, "Input",orientation="horizontal")
-        #widget buttons: compute, set defaults, help
-        gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Defaults", callback=self.defaults)
-        gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
-        
-        
         idx = -1 
         
         #widget index 0 
@@ -73,64 +40,42 @@ class OWxtubes(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "VOLTAGE",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
+
+        self.process_showers()
 
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
          return ['Target element ','Voltage  [kV] (18<V<42)']
 
-
     def unitFlags(self):
          return ['True','True']
 
+    def get_help_name(self):
+        return 'xtubes'
 
-    #def unitNames(self):
-    #     return ['ITUBE','VOLTAGE']
+    def check_fields(self):
+        if self.VOLTAGE < 18 or self.VOLTAGE > 42: raise Exception("Voltage out of range")
 
+    def do_xoppy_calculation(self):
+        return xoppy_calc_xtubes(ITUBE=self.ITUBE,VOLTAGE=self.VOLTAGE)
 
-    def compute(self):
-        fileName = xoppy_calc_xtubes(ITUBE=self.ITUBE,VOLTAGE=self.VOLTAGE)
-        #send specfile
+    def get_data_exchange_widget_name(self):
+        return "XTUBES"
 
-        if fileName == None:
-            print("Nothing to send")
-        else:
-            self.send("xoppy_specfile",fileName)
-            sf = specfile.Specfile(fileName)
-            if sf.scanno() == 1:
-                #load spec file with one scan, # is comment
-                print("Loading file:  ",fileName)
-                out = numpy.loadtxt(fileName)
-                print("data shape: ",out.shape)
-                #get labels
-                txt = open(fileName).readlines()
-                tmp = [ line.find("#L") for line in txt]
-                itmp = numpy.where(numpy.array(tmp) != (-1))
-                labels = txt[itmp[0]].replace("#L ","").split("  ")
-                print("data labels: ",labels)
-                self.send("xoppy_data",out)
+    def getTitles(self):
+        return ['X-Ray Tube Spectrum']
 
-                exchange_data = DataExchangeObject("XOPPY", "XTUBES")
+    def getXTitles(self):
+        return ["Energy [eV]"]
 
-                exchange_data.add_content("xoppy_specfile", fileName)
-                exchange_data.add_content("xoppy_data", out)
+    def getYTitles(self):
+        return ["Intensity (arbitrary units)"]
 
-                self.send("xoppy_exchange_data", exchange_data)
-            else:
-                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
-
-    def defaults(self):
-         self.resetSettings()
-         self.compute()
-         return
-
-    def help1(self):
-        print("help pressed.")
-        xoppy_util.xoppy_doc('xtubes')
-
-
+# --------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
 
 def xoppy_calc_xtubes(ITUBE=0,VOLTAGE=30.0):
     print("Inside xoppy_calc_xtubes. ")

@@ -4,39 +4,20 @@ from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePoli
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets.widget import OWWidget
-from oasys.widgets.exchange import DataExchangeObject
-from orangewidget.widget import OWAction
+from oasys.widgets import gui as oasysgui
+
 from srxraylib.sources import srfunc
 
-from orangecontrib.xoppy.util import xoppy_util
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-class OWxwiggler(OWWidget):
+class OWxwiggler(XoppyWidget):
     name = "xwiggler"
     id = "orange.widgets.dataxwiggler"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute XWIGGLER"
     icon = "icons/xoppy_xwiggler.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
     priority = 6
     category = ""
     keywords = ["xoppy", "xwiggler"]
-    outputs = [{"name": "xoppy_data",
-                "type": numpy.ndarray,
-                "doc": ""},
-               {"name": "xoppy_specfile",
-                "type": str,
-                "doc": ""},
-               {"name": "xoppy_exchange_data",
-               "type": DataExchangeObject,
-               "doc": ""},]
-
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
-
-    want_main_area = False
 
     FIELD = Setting(0)
     NPERIODS = Setting(12)
@@ -51,24 +32,12 @@ class OWxwiggler(OWWidget):
     CURRENT = Setting(200.0)
     FILE = Setting("?")
 
-
     def __init__(self):
         super().__init__()
 
-        self.runaction = OWAction("Compute", self)
-        self.runaction.triggered.connect(self.compute)
-        self.addAction(self.runaction)
-
-        box0 = gui.widgetBox(self.controlArea, "Input",orientation="horizontal")
-        #widget buttons: compute, set defaults, help
-        gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Defaults", callback=self.defaults)
-        gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
+        box = oasysgui.widgetBox(self.controlArea, "WIGGLER Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
-        
-        idx = -1 
+        idx = -1
         
         #widget index 0 
         idx += 1 
@@ -84,7 +53,7 @@ class OWxwiggler(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NPERIODS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
@@ -92,7 +61,7 @@ class OWxwiggler(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ULAMBDA",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
@@ -100,7 +69,7 @@ class OWxwiggler(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "K",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
@@ -108,7 +77,7 @@ class OWxwiggler(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ENERGY",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
@@ -116,7 +85,7 @@ class OWxwiggler(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "PHOT_ENERGY_MIN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
@@ -124,7 +93,7 @@ class OWxwiggler(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "PHOT_ENERGY_MAX",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
@@ -132,7 +101,7 @@ class OWxwiggler(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NPOINTS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
@@ -149,7 +118,7 @@ class OWxwiggler(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NTRAJPOINTS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
@@ -157,14 +126,14 @@ class OWxwiggler(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "CURRENT",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "FILE",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
         gui.rubber(self.controlArea)
@@ -172,56 +141,39 @@ class OWxwiggler(OWWidget):
     def unitLabels(self):
          return ['Magnetic field: ','Number of periods','Wiggler period [m]','K value','Beam energy [GeV]','Min Photon Energy [eV]','Max Photon Energy [eV]','Number of energy points','Energy points spacing','Number of traj points per period','Electron Beam Current [mA]','File with Magnetic Field']
 
-
     def unitFlags(self):
          return ['True','True','self.FIELD  !=  1','self.FIELD  ==  0','True','True','True','True','True','self.FIELD  !=  1','True','self.FIELD  !=  0']
 
 
-    #def unitNames(self):
-    #     return ['FIELD','NPERIODS','ULAMBDA','K','ENERGY','PHOT_ENERGY_MIN','PHOT_ENERGY_MAX','NPOINTS','LOGPLOT','NTRAJPOINTS','CURRENT','FILE']
+    def get_help_name(self):
+        return 'xwiggler'
 
+    def check_fields(self):
+        pass
 
-    def compute(self):
-        fileName = xoppy_calc_xwiggler(FIELD=self.FIELD,NPERIODS=self.NPERIODS,ULAMBDA=self.ULAMBDA,K=self.K,ENERGY=self.ENERGY,PHOT_ENERGY_MIN=self.PHOT_ENERGY_MIN,PHOT_ENERGY_MAX=self.PHOT_ENERGY_MAX,NPOINTS=self.NPOINTS,LOGPLOT=self.LOGPLOT,NTRAJPOINTS=self.NTRAJPOINTS,CURRENT=self.CURRENT,FILE=self.FILE)
-        #send specfile
+    def do_xoppy_calculation(self):
+        return xoppy_calc_xwiggler(FIELD=self.FIELD,NPERIODS=self.NPERIODS,ULAMBDA=self.ULAMBDA,K=self.K,ENERGY=self.ENERGY,PHOT_ENERGY_MIN=self.PHOT_ENERGY_MIN,PHOT_ENERGY_MAX=self.PHOT_ENERGY_MAX,NPOINTS=self.NPOINTS,LOGPLOT=self.LOGPLOT,NTRAJPOINTS=self.NTRAJPOINTS,CURRENT=self.CURRENT,FILE=self.FILE)
 
-        if fileName == None:
-            print("Nothing to send")
-        else:
-            self.send("xoppy_specfile",fileName)
-            sf = specfile.Specfile(fileName)
-            if sf.scanno() == 1:
-                #load spec file with one scan, # is comment
-                print("Loading file:  ",fileName)
-                out = numpy.loadtxt(fileName)
-                print("data shape: ",out.shape)
-                #get labels
-                txt = open(fileName).readlines()
-                tmp = [ line.find("#L") for line in txt]
-                itmp = numpy.where(numpy.array(tmp) != (-1))
-                labels = txt[itmp[0]].replace("#L ","").split("  ")
-                print("data labels: ",labels)
-                self.send("xoppy_data",out)
+    def add_specific_content_to_calculated_data(self, calculated_data):
+        calculated_data.add_content("is_log_plot", self.LOGPLOT)
 
-                exchange_data = DataExchangeObject("XOPPY", "XWIGGLER")
+    def get_data_exchange_widget_name(self):
+        return "XWIGGLER"
 
-                exchange_data.add_content("xoppy_specfile", fileName)
-                exchange_data.add_content("xoppy_data", out)
-                exchange_data.add_content("is_log_plot", self.LOGPLOT)
+    def getTitles(self):
+        return ['Wiggler Flux']
 
-                self.send("xoppy_exchange_data", exchange_data)
-            else:
-                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
+    def getXTitles(self):
+        return ["Energy [eV]"]
 
-    def defaults(self):
-         self.resetSettings()
-         self.compute()
-         return
+    def getYTitles(self):
+        return ["Flux [Phot/sec/0.1%bw]"]
 
-    def help1(self):
-        print("help pressed.")
-        xoppy_doc('xwiggler')
+    def getLogPlot(self):
+        return [(True, True)]
 
+# --------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
 
 def xoppy_calc_xwiggler(FIELD=0,NPERIODS=12,ULAMBDA=0.125,K=14.0,ENERGY=6.04,PHOT_ENERGY_MIN=100.0,\
                         PHOT_ENERGY_MAX=100100.0,NPOINTS=100,LOGPLOT=1,NTRAJPOINTS=101,CURRENT=200.0,FILE="?"):

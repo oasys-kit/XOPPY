@@ -1,40 +1,23 @@
 import sys
-import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets.widget import OWWidget
+from oasys.widgets import gui as oasysgui
 from oasys.widgets.exchange import DataExchangeObject
 
 from collections import OrderedDict
 
-from orangecontrib.xoppy.util import srundplug
-from orangecontrib.xoppy.util import xoppy_util
-from orangecontrib.xoppy.util import xoppy_pymca_tools
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+from orangecontrib.xoppy.util import srundplug, xoppy_util, xoppy_pymca_tools
 
-class OWundulator_power_density(OWWidget):
+class OWundulator_power_density(XoppyWidget):
     name = "undulator_power_density"
     id = "orange.widgets.dataundulator_power_density"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute UNDULATOR POWER DENSITY"
     icon = "icons/xoppy_undulator_power_density.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
     priority = 2
     category = ""
     keywords = ["xoppy", "undulator_power_density"]
-    outputs = [{"name": "xoppy_data",
-               "type": numpy.ndarray,
-               "doc": ""},
-               {"name": "xoppy_specfile",
-                "type": str,
-                "doc": ""}]
-
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
-
-    want_main_area = False
 
     ELECTRONENERGY = Setting(6.04)
     ELECTRONENERGYSPREAD = Setting(0.001)
@@ -53,18 +36,10 @@ class OWundulator_power_density(OWWidget):
     VSLITPOINTS = Setting(41)
     METHOD = Setting(0)
 
-
     def __init__(self):
         super().__init__()
 
-        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
-        #widget buttons: compute, set defaults, help
-        gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Defaults", callback=self.defaults)
-        gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
-        
+        box = oasysgui.widgetBox(self.controlArea, "UNDULATOR Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1 
         
@@ -73,7 +48,7 @@ class OWundulator_power_density(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ELECTRONENERGY",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
@@ -81,7 +56,7 @@ class OWundulator_power_density(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ELECTRONENERGYSPREAD",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
@@ -89,7 +64,7 @@ class OWundulator_power_density(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ELECTRONCURRENT",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
@@ -97,7 +72,7 @@ class OWundulator_power_density(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ELECTRONBEAMSIZEH",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
@@ -105,7 +80,7 @@ class OWundulator_power_density(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ELECTRONBEAMSIZEV",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
@@ -113,7 +88,7 @@ class OWundulator_power_density(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEH",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
@@ -121,7 +96,7 @@ class OWundulator_power_density(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEV",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
@@ -129,7 +104,7 @@ class OWundulator_power_density(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "PERIODID",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
@@ -137,7 +112,7 @@ class OWundulator_power_density(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NPERIODS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
@@ -145,7 +120,7 @@ class OWundulator_power_density(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "KV",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
@@ -153,7 +128,7 @@ class OWundulator_power_density(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "DISTANCE",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
@@ -161,7 +136,7 @@ class OWundulator_power_density(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "GAPH",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 12 
@@ -169,7 +144,7 @@ class OWundulator_power_density(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "GAPV",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 13 
@@ -177,7 +152,7 @@ class OWundulator_power_density(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "HSLITPOINTS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 14 
@@ -185,7 +160,7 @@ class OWundulator_power_density(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "VSLITPOINTS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 15 
@@ -197,48 +172,62 @@ class OWundulator_power_density(OWWidget):
                     valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
+        self.process_showers()
+
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
          return ["Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]", "Electron Beam Size H [m]", "Electron Beam Size V [m]", "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", "Period ID [m]", "Number of periods", "Kv [undulator K value vertical field]", "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "Number of slit mesh points in H", "Number of slit mesh points in V", "calculation code"]
 
-
     def unitFlags(self):
          return ["True", "self.METHOD != 1", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True"]
 
+    def get_help_name(self):
+        return 'undulator_power_density'
 
-    #def unitNames(self):
-    #     return ["ELECTRONENERGY", "ELECTRONENERGYSPREAD", "ELECTRONCURRENT", "ELECTRONBEAMSIZEH", "ELECTRONBEAMSIZEV", "ELECTRONBEAMDIVERGENCEH", "ELECTRONBEAMDIVERGENCEV", "PERIODID", "NPERIODS", "KV", "DISTANCE", "GAPH", "GAPV", "HSLITPOINTS", "VSLITPOINTS", "METHOD"]
+    def check_fields(self):
+        pass
+
+    def do_xoppy_calculation(self):
+        return  xoppy_calc_undulator_power_density(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,HSLITPOINTS=self.HSLITPOINTS,VSLITPOINTS=self.VSLITPOINTS,METHOD=self.METHOD)
+
+    def extract_data_from_xoppy_output(self, calculation_output):
+        spec_file_name = calculation_output
+
+        print("Loading file:  ", spec_file_name)
+
+        try:
+            out = xoppy_pymca_tools.xoppy_loadspec(spec_file_name)
+
+            print("data shape: ", out.shape)
+
+            calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+
+            calculated_data.add_content("xoppy_specfile", spec_file_name)
+            calculated_data.add_content("xoppy_data",  out.T)
+
+            return calculated_data
+        except Exception as e:
+            raise Exception("Problems while reading input: " + str(e))
 
 
-    def compute(self):
-        fileName = xoppy_calc_undulator_power_density(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,HSLITPOINTS=self.HSLITPOINTS,VSLITPOINTS=self.VSLITPOINTS,METHOD=self.METHOD)
-        #send specfile
-        self.send("xoppy_specfile",fileName)
+    def get_data_exchange_widget_name(self):
+        return "UNDULATOR_POWER_DENSITY"
 
-        print("Loading file:  ",fileName)
-        #load spec file with one scan, # is comment
+    def getTitles(self):
+        return ['Undulator Power Density']
 
-        out = xoppy_pymca_tools.xoppy_loadspec(fileName)
+    def getXTitles(self):
+        return ["Energy [eV]"]
 
+    def getYTitles(self):
+        return ["Power [Watt/eV]"]
 
-        print("data shape: ",out.shape)
-        #get labels
-        # txt = open(fileName).readlines()
-        # tmp = [ line.find("#L") for line in txt]
-        # itmp = numpy.where(numpy.array(tmp) != (-1))
-        # labels = txt[itmp[0]].replace("#L ","").split("  ")
-        # print("data labels: ",labels)
-        self.send("xoppy_data",out.T)
+    def getLogPlot(self):
+        return [(True, False)]
 
-    def defaults(self):
-         self.resetSettings()
-         self.compute()
-         return
-
-    def help1(self):
-        print("help pressed.")
-        xoppy_util.xoppy_doc('undulator_power_density')
+# --------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
 
 def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
                                        ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\

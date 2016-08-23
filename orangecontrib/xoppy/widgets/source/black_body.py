@@ -3,31 +3,20 @@ import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import widget
+from oasys.widgets import gui as oasysgui
 
 from orangecontrib.xoppy.util import xoppy_util
 from oasys.widgets.exchange import DataExchangeObject
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-class OWblack_body(widget.OWWidget):
+class OWblack_body(XoppyWidget):
     name = "black_body"
     id = "orange.widgets.datablack_body"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute BLACK_BODY"
     icon = "icons/xoppy_black_body.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
     priority = 10
     category = ""
     keywords = ["xoppy", "black_body"]
-    outputs = [{"name": "ExchangeData",
-                "type": DataExchangeObject,
-                "doc": "send ExchangeData"}]
-
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
-
-    want_main_area = False
 
     TITLE = Setting("Thermal source: Planck distribution")
     TEMPERATURE = Setting(1200000.0)
@@ -35,18 +24,10 @@ class OWblack_body(widget.OWWidget):
     E_MAX = Setting(1000.0)
     NPOINTS = Setting(500)
 
-
     def __init__(self):
         super().__init__()
 
-        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
-        #widget buttons: compute, set defaults, help
-        gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Defaults", callback=self.defaults)
-        gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
-        
+        box = oasysgui.widgetBox(self.controlArea, "BLACK BODY Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1 
         
@@ -54,7 +35,7 @@ class OWblack_body(widget.OWWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "TITLE",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
@@ -62,7 +43,7 @@ class OWblack_body(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "TEMPERATURE",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
@@ -70,7 +51,7 @@ class OWblack_body(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "E_MIN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
@@ -78,7 +59,7 @@ class OWblack_body(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "E_MAX",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
@@ -86,7 +67,7 @@ class OWblack_body(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NPOINTS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
         gui.rubber(self.controlArea)
@@ -94,41 +75,55 @@ class OWblack_body(widget.OWWidget):
     def unitLabels(self):
          return ['Title','Temperature [K]','Min energy [eV]','Max energy [eV]','Number of points ']
 
-
     def unitFlags(self):
          return ['True','True','True','True','True']
 
+    def get_help_name(self):
+        return 'black_body'
 
-    #def unitNames(self):
-    #     return ['TITLE','TEMPERATURE','E_MIN','E_MAX','NPOINTS']
+    def check_fields(self):
+        pass
 
+    def do_xoppy_calculation(self):
+        return self.xoppy_calc_black_body()
 
-    def compute(self):
-        out_dict = self.xoppy_calc_black_body()
+    def extract_data_from_xoppy_output(self, calculation_output):
+        out_dict = calculation_output
 
         if "info" in out_dict.keys():
             print(out_dict["info"])
 
-        #send exchange
-        tmp = DataExchangeObject("black_body","black_body")
-        tmp.add_content("data",out_dict["data"])
-        tmp.add_content("labels",out_dict["labels"])
-        tmp.add_content("info",out_dict["info"])
-        tmp.add_content("plot_x_col",0)
-        tmp.add_content("plot_y_col",-1)
-        self.send("ExchangeData",tmp)
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
+        calculated_data.add_content("xoppy_data", out_dict["data"])
 
-    def defaults(self):
-         self.resetSettings()
-         self.compute()
-         return
+        calculated_data.add_content("labels", out_dict["labels"])
+        calculated_data.add_content("info", out_dict["info"])
+        calculated_data.add_content("plot_x_col", 0)
+        calculated_data.add_content("plot_y_col", 3)
 
-    def help1(self):
-        print("help pressed.")
-        xoppy_util.xoppy_doc('black_body')
+        return calculated_data
 
+    def get_data_exchange_widget_name(self):
+        return "BLACK_BODY"
 
+    def getTitles(self):
+        return ["Brightness", "Spectral Power"]
+
+    def getXTitles(self):
+        return ["Energy [eV]", "Energy [eV]"]
+
+    def getYTitles(self):
+        return ["Brightness [Photons/sec/mm2/mrad2/0.1%bw]", "Spectral Power [Watts/eV/mrad2/mm2]"]
+
+    def getVariablesToPlot(self):
+        return [(0, 2), (0, 3)]
+
+    def getLogPlot(self):
+        return[(False, True), (False, False)]
+
+# --------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
 
     def xoppy_calc_black_body(self):
 
@@ -174,7 +169,7 @@ class OWblack_body(widget.OWWidget):
 
             labels = ["Photon energy [eV]","Photon energy/(Kb*T)","Brightness [Photons/sec/mm2/mrad2/0.1%bw]","Spectral Power [Watts/eV/mrad2/mm2]"]
 
-            return {"application":"xoppy","name":"black_body","data":a3,"labels":labels,"info":txt}
+            return {"application":"xoppy","name":"black_body","data":a3.T,"labels":labels,"info":txt}
 
 
         except Exception as e:

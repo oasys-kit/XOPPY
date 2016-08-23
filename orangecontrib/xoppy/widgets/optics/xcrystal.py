@@ -4,36 +4,25 @@ import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import widget
+from oasys.widgets import gui as oasysgui
 
-from orangecontrib.xoppy.util import xoppy_util
 from orangecontrib.xoppy.util.xoppy_util import locations
 from orangecontrib.xoppy.widgets.xoppy.xoppy_xraylib_util import bragg_calc
 
 from oasys.widgets.exchange import DataExchangeObject
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+
 from xraylib import Crystal_GetCrystalsList
 
-class OWxcrystal(widget.OWWidget):
+class OWxcrystal(XoppyWidget):
     name = "xcrystal"
     id = "orange.widgets.dataxcrystal"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute XCRYSTAL"
     icon = "icons/xoppy_xcrystal.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 1
     category = ""
     keywords = ["xoppy", "xcrystal"]
-    outputs = [{"name": "ExchangeData",
-                "type": DataExchangeObject,
-                "doc": "send ExchangeData"}]
-
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
-
-    want_main_area = False
-
+ 
     CRYSTAL_MATERIAL = Setting(0)
     MILLER_INDEX_H = Setting(1)
     MILLER_INDEX_K = Setting(1)
@@ -57,21 +46,12 @@ class OWxcrystal(widget.OWWidget):
     CUT = Setting("2 -1 -1 ; 1 1 1 ; 0 0 0")
     FILECOMPLIANCE = Setting("mycompliance.dat")
 
-
     def __init__(self):
         super().__init__()
 
-        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
-        #widget buttons: compute, set defaults, help
-        gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Defaults", callback=self.defaults)
-        gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
-        
+        box = oasysgui.widgetBox(self.controlArea, "XCRYSTAL Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1 
-
         
         #widget index 3 
         idx += 1 
@@ -87,7 +67,7 @@ class OWxcrystal(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "MILLER_INDEX_H",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
@@ -95,7 +75,7 @@ class OWxcrystal(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "MILLER_INDEX_K",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
@@ -103,7 +83,7 @@ class OWxcrystal(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "MILLER_INDEX_L",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
         
@@ -111,7 +91,7 @@ class OWxcrystal(widget.OWWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "TEMPER",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
@@ -155,7 +135,7 @@ class OWxcrystal(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "SCANFROM",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 14 
@@ -163,7 +143,7 @@ class OWxcrystal(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "SCANTO",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 15 
@@ -171,7 +151,7 @@ class OWxcrystal(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "SCANPOINTS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 16 
@@ -179,7 +159,7 @@ class OWxcrystal(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ENERGY",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 17 
@@ -187,7 +167,7 @@ class OWxcrystal(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ASYMMETRY_ANGLE",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 18 
@@ -195,7 +175,7 @@ class OWxcrystal(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "THICKNESS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 19 
@@ -203,7 +183,7 @@ class OWxcrystal(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "MOSAIC_FWHM",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 20 
@@ -211,7 +191,7 @@ class OWxcrystal(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "RSAG",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 21 
@@ -219,7 +199,7 @@ class OWxcrystal(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "RMER",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 22 
@@ -236,21 +216,21 @@ class OWxcrystal(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "POISSON",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 24 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "CUT",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 25 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "FILECOMPLIANCE",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
         gui.rubber(self.controlArea)
@@ -270,8 +250,38 @@ class OWxcrystal(widget.OWWidget):
                  'self.MOSAIC  ==  1',
                  'self.MOSAIC  >  1','self.MOSAIC  >  1','self.MOSAIC  >  1','self.MOSAIC  >  1  and  self.ANISOTROPY  ==  0','self.MOSAIC  >  1  and  self.ANISOTROPY  ==  2','self.MOSAIC  >  1  and  self.ANISOTROPY  ==  3']
 
-    def compute(self):
+    def get_help_name(self):
+        return 'xcrystal'
 
+    def check_fields(self):
+        pass
+
+    def do_xoppy_calculation(self):
+        return self.xoppy_calc_xcrystal()
+
+    def extract_data_from_xoppy_output(self, calculation_output):
+        return calculation_output
+
+    def get_data_exchange_widget_name(self):
+        return "XCRYSTAL"
+
+    def getTitles(self):
+        return ["Phase_p","Phase_s","Circ. Polariz.","p-polarized reflectivity","s-polarized reflectivity"]
+
+    def getXTitles(self):
+        return ["Th-ThB{in} [microrad]", "Th-ThB{in} [microrad]", "Th-ThB{in} [microrad]", "Th-ThB{in} [microrad]", "Th-ThB{in} [microrad]"]
+
+    def getYTitles(self):
+        return ["phase_p[rad]","phase_s[rad]","Circ Polariz","p-polarized reflectivity","s-polarized reflectivity"]
+
+    def getVariablesToPlot(self):
+        return [(0, 2), (0, 3), (0, 4), (0, 5), (0, 6)]
+
+    def getLogPlot(self):
+        return[(False, False), (False, False), (False, False), (False, False), (False, False)]
+
+
+    def xoppy_calc_xcrystal(self):
         CRYSTAL_MATERIAL = self.CRYSTAL_MATERIAL
         MILLER_INDEX_H = self.MILLER_INDEX_H
         MILLER_INDEX_K = self.MILLER_INDEX_K
@@ -310,6 +320,7 @@ class OWxcrystal(widget.OWWidget):
             emax = ENERGY + 100.0
 
         print("Using crystal descriptor: ",descriptor)
+
         bragg_dictionary = bragg_calc(descriptor=descriptor,
                                                 hh=MILLER_INDEX_H,kk=MILLER_INDEX_K,ll=MILLER_INDEX_L,
                                                 temper=float(TEMPER),
@@ -375,41 +386,30 @@ class OWxcrystal(widget.OWWidget):
         print("\n--------------------------------------------------------\n")
         os.system(command)
         print("\n--------------------------------------------------------\n")
-
-
-        #send exchange
-        tmp = DataExchangeObject("xoppy_xcrystal","xcrystal")
+        
+        
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         try:
-            tmp.add_content("data",numpy.loadtxt("diff_pat.dat",skiprows=5).T)
-            tmp.add_content("plot_x_col",0)
-            tmp.add_content("plot_y_col",-1)
-        except:
-            pass
+            calculated_data.add_content("xoppy_data", numpy.loadtxt("diff_pat.dat",skiprows=5).T)
+            calculated_data.add_content("plot_x_col",0)
+            calculated_data.add_content("plot_y_col",-1)
+        except Exception as e:
+            raise Exception("Error loading diff_pat.dat :" + str(e))
         try:
-            tmp.add_content("labels",["Th-ThB{in} [microrad]","Th-ThB{out} [microrad]","phase_p[rad]","phase_s[rad]","Circ Polariz","p-polarized reflectivity","s-polarized reflectivity"
-])
+            calculated_data.add_content("labels",
+                                        ["Th-ThB{in} [microrad]","Th-ThB{out} [microrad]","phase_p[rad]","phase_s[rad]","Circ Polariz","p-polarized reflectivity","s-polarized reflectivity"])
 
         except:
             pass
         try:
             with open("diff_pat.par") as f:
                 info = f.readlines()
-            tmp.add_content("info",info)
+            calculated_data.add_content("info",info)
         except:
             pass
 
-        self.send("ExchangeData",tmp)
-
-
-    def defaults(self):
-         self.resetSettings()
-         self.compute()
-         return
-
-    def help1(self):
-        print("help pressed.")
-        xoppy_util.xoppy_doc('xcrystal')
+        return calculated_data
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
