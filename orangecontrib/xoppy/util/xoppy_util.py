@@ -4,7 +4,7 @@ import sys, os, numpy
 import orangecanvas.resources as resources
 from orangewidget import gui
 import xraylib
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 
 try:
     import matplotlib
@@ -16,6 +16,11 @@ except ImportError:
     print(sys.exc_info()[1])
     pass
 
+class EmittingStream(QtCore.QObject):
+    textWritten = QtCore.pyqtSignal(str)
+
+    def write(self, text):
+        self.textWritten.emit(str(text))
 
 class locations:
     @classmethod

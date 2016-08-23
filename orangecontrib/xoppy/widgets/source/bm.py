@@ -1,42 +1,22 @@
 import sys
 import numpy
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from PyMca5.PyMcaIO import specfilewrapper as specfile
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
 from orangewidget import gui
+from oasys.widgets import gui as oasysgui
 from orangewidget.settings import Setting
-from oasys.widgets.widget import OWWidget
-from oasys.widgets.exchange import DataExchangeObject
-from orangewidget.widget import OWAction
 
 from srxraylib.sources import srfunc
-from orangecontrib.xoppy.util import xoppy_util
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-class OWbm(OWWidget):
+
+class OWbm(XoppyWidget):
     name = "bm"
     id = "orange.widgets.databm"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute Bending Magnet Spoctrum"
     icon = "icons/xoppy_bm.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
     priority = 7
     category = ""
     keywords = ["xoppy", "bm"]
-    outputs = [{"name": "xoppy_data",
-                "type": numpy.ndarray,
-                "doc": ""},
-               {"name": "xoppy_specfile",
-                "type": str,
-                "doc": ""},
-               {"name": "xoppy_exchange_data",
-               "type": DataExchangeObject,
-               "doc": ""},]
-
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
-
-    want_main_area = False
 
     TYPE_CALC = Setting(0)
     MACHINE_NAME = Setting("ESRF bending magnet")
@@ -60,19 +40,8 @@ class OWbm(OWWidget):
     def __init__(self):
         super().__init__()
 
-        self.runaction = OWAction("Compute", self)
-        self.runaction.triggered.connect(self.compute)
-        self.addAction(self.runaction)
+        box = oasysgui.widgetBox(self.controlArea, "BM Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
-        box0 = gui.widgetBox(self.controlArea, "Input",orientation="horizontal")
-        #widget buttons: compute, set defaults, help
-        gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Defaults", callback=self.defaults)
-        gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
-        
-        
         idx = -1 
         
         #widget index 0 
@@ -81,14 +50,14 @@ class OWbm(OWWidget):
         gui.comboBox(box1, self, "TYPE_CALC",
                      label=self.unitLabels()[idx], addSpace=True,
                     items=['Energy or Power spectra', 'Angular distribution (all wavelengths)', 'Angular distribution (one wavelength)', '2D flux and power (angular,energy) distribution'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", callback=self.set_TYPE_CALC)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "MACHINE_NAME",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
@@ -105,7 +74,7 @@ class OWbm(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "MACHINE_R_M",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
@@ -113,7 +82,7 @@ class OWbm(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "BFIELD_T",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
@@ -121,7 +90,7 @@ class OWbm(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "BEAM_ENERGY_GEV",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
@@ -129,7 +98,7 @@ class OWbm(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "CURRENT_A",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
@@ -137,7 +106,7 @@ class OWbm(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "HOR_DIV_MRAD",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
@@ -145,8 +114,8 @@ class OWbm(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "VER_DIV",
                      label=self.unitLabels()[idx], addSpace=True,
-                    items=['Full (integrated in Psi)', 'At Psi=0', 'In [PsiMin,PsiMax]', 'At Psi=Psi_Min'],
-                    valueType=int, orientation="horizontal")
+                     items=['Full (integrated in Psi)', 'At Psi=0', 'In [PsiMin,PsiMax]', 'At Psi=Psi_Min'],
+                     valueType=int, orientation="horizontal", callback=self.set_VER_DIV)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
@@ -154,7 +123,7 @@ class OWbm(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "PHOT_ENERGY_MIN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
@@ -162,7 +131,7 @@ class OWbm(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "PHOT_ENERGY_MAX",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
@@ -170,7 +139,7 @@ class OWbm(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NPOINTS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 12 
@@ -187,7 +156,7 @@ class OWbm(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "PSI_MRAD_PLOT",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 14 
@@ -195,7 +164,7 @@ class OWbm(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "PSI_MIN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 15 
@@ -203,7 +172,7 @@ class OWbm(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "PSI_MAX",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 16 
@@ -211,62 +180,127 @@ class OWbm(OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "PSI_NPOINTS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
+
+        self.process_showers()
 
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
          return ['Type of calculation','Machine name','B from:','Machine Radius [m]','Magnetic Field [T]','Beam energy [GeV]','Beam Current [A]','Horizontal div Theta [mrad]','Psi (vertical div) for energy spectra','Min Photon Energy [eV]','Max Photon Energy [eV]','Number of energy points','Separation between energy points','Max Psi[mrad] for angular plots','Psi min [mrad]','Psi max [mrad]','Number of Psi points']
 
-
     def unitFlags(self):
          return ['True','True','True','self.RB_CHOICE  ==  0','self.RB_CHOICE  ==  1','True','True','True','True','True','True','True','True','True','self.VER_DIV  >=  2','self.VER_DIV  ==  2','self.VER_DIV  ==  2']
 
+    def set_TYPE_CALC(self):
+        self.initializeTabs()
 
-    #def unitNames(self):
-    #     return ['TYPE_CALC','MACHINE_NAME','RB_CHOICE','MACHINE_R_M','BFIELD_T','BEAM_ENERGY_GEV','CURRENT_A','HOR_DIV_MRAD','VER_DIV','PHOT_ENERGY_MIN','PHOT_ENERGY_MAX','NPOINTS','LOG_CHOICE','PSI_MRAD_PLOT','PSI_MIN','PSI_MAX','PSI_NPOINTS']
+    def set_VER_DIV(self):
+        if self.TYPE_CALC == 0: self.initializeTabs()
+
+    def get_help_name(self):
+        return 'bm'
+
+    def check_fields(self):
+        pass
+
+    def do_xoppy_calculation(self):
+        return xoppy_calc_bm(TYPE_CALC=self.TYPE_CALC,
+                             MACHINE_NAME=self.MACHINE_NAME,
+                             RB_CHOICE=self.RB_CHOICE,
+                             MACHINE_R_M=self.MACHINE_R_M,
+                             BFIELD_T=self.BFIELD_T,
+                             BEAM_ENERGY_GEV=self.BEAM_ENERGY_GEV,
+                             CURRENT_A=self.CURRENT_A,
+                             HOR_DIV_MRAD=self.HOR_DIV_MRAD,
+                             VER_DIV=self.VER_DIV,
+                             PHOT_ENERGY_MIN=self.PHOT_ENERGY_MIN,
+                             PHOT_ENERGY_MAX=self.PHOT_ENERGY_MAX,
+                             NPOINTS=self.NPOINTS,
+                             LOG_CHOICE=self.LOG_CHOICE,
+                             PSI_MRAD_PLOT=self.PSI_MRAD_PLOT,
+                             PSI_MIN=self.PSI_MIN,
+                             PSI_MAX=self.PSI_MAX,
+                             PSI_NPOINTS=self.PSI_NPOINTS)
+
+    def add_specific_content_to_calculated_data(self, calculated_data):
+        calculated_data.add_content("is_log_plot", self.LOG_CHOICE)
+        calculated_data.add_content("calculation_type", self.TYPE_CALC)
+        calculated_data.add_content("psi", self.VER_DIV)
+
+    def get_data_exchange_widget_name(self):
+        return "BM"
+
+    def getTitles(self):
+        if self.TYPE_CALC == 0:
+            if self.VER_DIV == 0:
+                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/sec/0.1%bw]', 'Power [Watts/eV]']
+            elif self.VER_DIV == 1:
+                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/sec/0.1%bw/mrad(Psi)]', 'Power[Watts/eV/mrad(Psi)]']
+            elif self.VER_DIV == 2:
+                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/sec/0.1%bw]', 'Power [Watts/eV]']
+            elif self.VER_DIV == 3:
+                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/sec/0.1%bw/mrad(Psi)]', 'Power [Watts/eV/mrad(Psi)]']
+        elif self.TYPE_CALC == 1:
+            return ["Psi[rad]*Gamma", "F", "F s-pol", "F p-pol", "Power [Watts/mrad(Psi)]"]
+        elif self.TYPE_CALC == 2:
+            return ["Psi[rad]*Gamma", "F", "F s-pol", "F p-pol", "Flux [Phot/sec/0.1%bw/mrad(Psi)]", "Power [Watts/mrad(Psi)]"]
+        elif self.TYPE_CALC == 3:
+            return []
+
+    def getXTitles(self):
+        if self.TYPE_CALC == 0:
+            return ["Energy [eV]", "Energy [eV]", "Energy [eV]", "Energy [eV]", "Energy [eV]"]
+        elif self.TYPE_CALC == 1:
+            return ["Psi [mrad]", "Psi [mrad]", "Psi [mrad]", "Psi [mrad]", "Psi [mrad]"]
+        elif self.TYPE_CALC == 2:
+            return ["Psi [mrad]", "Psi [mrad]", "Psi [mrad]", "Psi [mrad]", "Psi [mrad]", "Psi [mrad]"]
+        elif self.TYPE_CALC == 3:
+            return []
+
+    def getYTitles(self):
+        if self.TYPE_CALC == 0:
+            if self.VER_DIV == 0:
+                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/sec/0.1%bw]', 'Power [Watts/eV]']
+            elif self.VER_DIV == 1:
+                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/sec/0.1%bw/mrad(Psi)]', 'Power[Watts/eV/mrad(Psi)]']
+            elif self.VER_DIV == 2:
+                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/sec/0.1%bw]', 'Power [Watts/eV]']
+            elif self.VER_DIV == 3:
+                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/sec/0.1%bw/mrad(Psi)]', 'Power [Watts/eV/mrad(Psi)]']
+        elif self.TYPE_CALC == 1:
+           return ["Psi[rad]*Gamma", "F", "F s-pol", "F p-pol", "Power [Watts/mrad(Psi)]"]
+        elif self.TYPE_CALC == 2:
+           return ["Psi[rad]*Gamma", "F", "F s-pol", "F p-pol", "Flux [Phot/sec/0.1%bw/mrad(Psi)]", "Power [Watts/mrad(Psi)]"]
+        elif self.TYPE_CALC == 3:
+           return []
+
+    def getVariablesToPlot(self):
+        if self.TYPE_CALC == 0:
+            return [(0, 2), (0, 3), (0, 4), (0, 5), (0, 6)]
+        elif self.TYPE_CALC == 1:
+            return [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5)]
+        elif self.TYPE_CALC == 2:
+            return [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6)]
+        elif self.TYPE_CALC == 3:
+            return []
+
+    def getLogPlot(self):
+        if self.TYPE_CALC == 0:
+            return [(True, False), (True, False), (True, False), (True, True), (True, False)]
+        elif self.TYPE_CALC == 1:
+            return [(False, False), (False, False), (False, False), (False, False), (False, False)]
+        elif self.TYPE_CALC == 2:
+            return [(False, False), (False, False), (False, False), (False, False), (False, True), (False, False)]
+        elif self.TYPE_CALC == 3:
+            return []
 
 
-    def compute(self):
-        fileName = xoppy_calc_bm(TYPE_CALC=self.TYPE_CALC,MACHINE_NAME=self.MACHINE_NAME,RB_CHOICE=self.RB_CHOICE,MACHINE_R_M=self.MACHINE_R_M,BFIELD_T=self.BFIELD_T,BEAM_ENERGY_GEV=self.BEAM_ENERGY_GEV,CURRENT_A=self.CURRENT_A,HOR_DIV_MRAD=self.HOR_DIV_MRAD,VER_DIV=self.VER_DIV,PHOT_ENERGY_MIN=self.PHOT_ENERGY_MIN,PHOT_ENERGY_MAX=self.PHOT_ENERGY_MAX,NPOINTS=self.NPOINTS,LOG_CHOICE=self.LOG_CHOICE,PSI_MRAD_PLOT=self.PSI_MRAD_PLOT,PSI_MIN=self.PSI_MIN,PSI_MAX=self.PSI_MAX,PSI_NPOINTS=self.PSI_NPOINTS)
-        #send specfile
-
-        if fileName == None:
-            print("Nothing to send")
-        else:
-            self.send("xoppy_specfile",fileName)
-            sf = specfile.Specfile(fileName)
-            if sf.scanno() == 1:
-                #load spec file with one scan, # is comment
-                print("Loading file:  ",fileName)
-                out = numpy.loadtxt(fileName)
-                print("data shape: ",out.shape)
-                #get labels
-                txt = open(fileName).readlines()
-                tmp = [ line.find("#L") for line in txt]
-                itmp = numpy.where(numpy.array(tmp) != (-1))
-                labels = txt[itmp[0]].replace("#L ","").split("  ")
-                print("data labels: ",labels)
-                self.send("xoppy_data",out)
-
-                exchange_data = DataExchangeObject("XOPPY", "BM")
-
-                exchange_data.add_content("xoppy_specfile", fileName)
-                exchange_data.add_content("xoppy_data", out)
-                exchange_data.add_content("is_log_plot", self.LOG_CHOICE)
-
-                self.send("xoppy_exchange_data", exchange_data)
-            else:
-                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
-
-    def defaults(self):
-         self.resetSettings()
-         self.compute()
-         return
-
-    def help1(self):
-        xoppy_util.xoppy_doc('bm')
+# --------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
 
 
 def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.0,BFIELD_T=0.8,\
@@ -311,14 +345,13 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
             coltitles=['Photon Energy [eV]','Photon Wavelength [A]','E/Ec','Flux_spol/Flux_total','Flux_ppol/Flux_total','Flux[Phot/sec/0.1%bw]','Power[Watts/eV]']
             title='integrated in Psi,'
         if VER_DIV == 1:
-            coltitles=['Photon Energy [eV]','Photon Wavelength [A]','E/Ec','Flux_spol/Flux_total','Flux_ppol/Flux_total','Flux[Phot/sec/0.1%bw/mradPsi]','Power[Watts/eV/mradPsi]']
+            coltitles=['Photon Energy [eV]','Photon Wavelength [A]','E/Ec','Flux_spol/Flux_total','Flux_ppol/Flux_total','Flux[Phot/sec/0.1%bw/mrad(Psi)]','Power[Watts/eV/mrad(Psi)]']
             title='at Psi=0,'
         if VER_DIV == 2:
             coltitles=['Photon Energy [eV]','Photon Wavelength [A]','E/Ec','Flux_spol/Flux_total','Flux_ppol/Flux_total','Flux[Phot/sec/0.1%bw]','Power[Watts/eV]']
             title='in Psi=[%e,%e]'%(PSI_MIN,PSI_MAX)
-
         if VER_DIV == 3:
-            coltitles=['Photon Energy [eV]','Photon Wavelength [A]','E/Ec','Flux_spol/Flux_total','Flux_ppol/Flux_total','Flux[Phot/sec/0.1%bw/mradPsi]','Power[Watts/eV/mradPsi]']
+            coltitles=['Photon Energy [eV]','Photon Wavelength [A]','E/Ec','Flux_spol/Flux_total','Flux_ppol/Flux_total','Flux[Phot/sec/0.1%bw/mrad(Psi)]','Power[Watts/eV/mrad(Psi)]']
             title='at Psi=%e mrad'%(PSI_MIN)
 
         a6=numpy.zeros((7,len(energy_ev)))
@@ -358,7 +391,7 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
         a6[5,:] = tmp
         a6[6,:] = a6[5,:] * srfunc.codata_ec * 1e3
 
-        coltitles=['Psi[mrad]','Psi[rad]*Gamma','F','F s-pol','F p-pol','Flux[Ph/sec/0.1%bw/mradPsi]','Power[Watts/eV/mradPsi]']
+        coltitles=['Psi[mrad]','Psi[rad]*Gamma','F','F s-pol','F p-pol','Flux[Ph/sec/0.1%bw/mrad(Psi)]','Power[Watts/eV/mrad(Psi)]']
 
 
     if TYPE_CALC == 3:  # angular,energy distributions flux
@@ -382,7 +415,7 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
                 a6[2,ij] = fm[i,j] * srfunc.codata_ec * 1e3
                 a6[3,ij] = fm[i,j]
 
-        coltitles=['Psi [mrad]','Photon Energy [eV]','Power [Watts/eV/mradPsi]','Flux [Ph/sec/0.1%bw/mradPsi]']
+        coltitles=['Psi [mrad]','Photon Energy [eV]','Power [Watts/eV/mrad(Psi)]','Flux [Ph/sec/0.1%bw/mrad(Psi)]']
 
         import matplotlib.pylab as plt
         from mpl_toolkits.mplot3d import Axes3D  # need for example 6
