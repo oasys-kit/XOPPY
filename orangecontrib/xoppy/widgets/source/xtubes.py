@@ -19,8 +19,7 @@ class OWxtubes(XoppyWidget):
     ITUBE = Setting(0)
     VOLTAGE = Setting(30.0)
 
-    def __init__(self):
-        super().__init__()
+    def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, "XTUBES Input Parameters",orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
@@ -42,10 +41,6 @@ class OWxtubes(XoppyWidget):
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
-
-        self.process_showers()
-
-        gui.rubber(self.controlArea)
 
     def unitLabels(self):
          return ['Target element ','Voltage  [kV] (18<V<42)']

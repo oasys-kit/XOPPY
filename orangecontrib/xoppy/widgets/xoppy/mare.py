@@ -14,7 +14,7 @@ class OWmare(widget.OWWidget):
     icon = "icons/xoppy_mare.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 8
     category = ""
     keywords = ["xoppy", "mare"]
 

@@ -17,7 +17,7 @@ class OWxfh(widget.OWWidget):
     icon = "icons/xoppy_xfh.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 5
     category = ""
     keywords = ["xoppy", "xfh"]
     outputs = [{"name": "ExchangeData",

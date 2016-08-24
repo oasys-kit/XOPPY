@@ -62,6 +62,13 @@ class XoppyWidget(widget.OWWidget):
 
         gui.separator(self.controlArea, height=10)
 
+        self.build_gui()
+
+        self.process_showers()
+
+        gui.rubber(self.controlArea)
+
+
         self.main_tabs = gui.tabWidget(self.mainArea)
         plot_tab = gui.createTabPage(self.main_tabs, "Plots")
         out_tab = gui.createTabPage(self.main_tabs, "Output")
@@ -89,6 +96,9 @@ class XoppyWidget(widget.OWWidget):
         self.shadow_output.setFixedWidth(600)
 
         gui.rubber(self.mainArea)
+
+    def build_gui(self):
+        pass
 
     def initializeTabs(self):
         size = len(self.tab)
@@ -169,7 +179,7 @@ class XoppyWidget(widget.OWWidget):
                                         log_x=log_x,
                                         log_y=log_y)
 
-
+                        self.tabs.setCurrentIndex(index)
                     except Exception as e:
                         self.view_type_combo.setEnabled(True)
 
@@ -228,6 +238,8 @@ class XoppyWidget(widget.OWWidget):
 
                 self.plot_results(self.calculated_data, progressBarValue=60)
 
+
+
                 self.setStatusMessage("")
 
                 self.send("xoppy_data", self.calculated_data)
@@ -238,7 +250,7 @@ class XoppyWidget(widget.OWWidget):
 
             self.setStatusMessage("Error!")
 
-            #raise exception
+            raise exception
 
         self.progressBarFinished()
 
@@ -271,7 +283,6 @@ class XoppyWidget(widget.OWWidget):
 
             if len(out) == 0 : raise Exception("Calculation gave no results (empty data)")
 
-            print("data shape: ", out.shape)
             #get labels
             txt = open(spec_file_name).readlines()
             tmp = [ line.find("#L") for line in txt]

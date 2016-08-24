@@ -36,9 +36,7 @@ class OWundulator_flux(XoppyWidget):
     PHOTONENERGYPOINTS = Setting(500)
     METHOD = Setting(0)
 
-
-    def __init__(self):
-        super().__init__()
+    def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, "UNDULATOR Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
@@ -180,10 +178,6 @@ class OWundulator_flux(XoppyWidget):
                     items=['US', 'URGENT', 'SRW'],
                     valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
-
-        self.process_showers()
-
-        gui.rubber(self.controlArea)
 
     def unitLabels(self):
          return ["Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]", "Electron Beam Size H [m]", "Electron Beam Size V [m]", "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", "Period ID [m]", "Number of periods", "Kv [undulator K value vertical field]", "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "photon Energy Min [eV]", "photon Energy Max [eV]", "photon Energy Points", "calculation code"]

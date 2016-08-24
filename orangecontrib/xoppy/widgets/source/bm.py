@@ -35,9 +35,7 @@ class OWbm(XoppyWidget):
     PSI_MAX = Setting(1.0)
     PSI_NPOINTS = Setting(500)
 
-
-    def __init__(self):
-        super().__init__()
+    def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, "BM Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
@@ -181,10 +179,6 @@ class OWbm(XoppyWidget):
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
-
-        self.process_showers()
-
-        gui.rubber(self.controlArea)
 
     def unitLabels(self):
          return ['Type of calculation','Machine name','B from:','Machine Radius [m]','Magnetic Field [T]','Beam energy [GeV]','Beam Current [A]','Horizontal div Theta [mrad]','Psi (vertical div) for energy spectra','Min Photon Energy [eV]','Max Photon Energy [eV]','Number of energy points','Separation between energy points','Max Psi[mrad] for angular plots','Psi min [mrad]','Psi max [mrad]','Number of Psi points']

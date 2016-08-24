@@ -24,8 +24,7 @@ class OWblack_body(XoppyWidget):
     E_MAX = Setting(1000.0)
     NPOINTS = Setting(500)
 
-    def __init__(self):
-        super().__init__()
+    def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, "BLACK BODY Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
@@ -69,8 +68,6 @@ class OWblack_body(XoppyWidget):
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
-
-        gui.rubber(self.controlArea)
 
     def unitLabels(self):
          return ['Title','Temperature [K]','Min energy [eV]','Max energy [eV]','Number of points ']
@@ -167,7 +164,7 @@ class OWblack_body(XoppyWidget):
             a3[2,:] = brightness
             a3[3,:] = brightness*1e3*codata.e
 
-            labels = ["Photon energy [eV]","Photon energy/(Kb*T)","Brightness [Photons/sec/mm2/mrad2/0.1%bw]","Spectral Power [Watts/eV/mrad2/mm2]"]
+            labels = ["Photon energy [eV]","Photon energy/(Kb*T)", "Brightness [Photons/sec/mm2/mrad2/0.1%bw]", "Spectral Power [Watts/eV/mrad2/mm2]"]
 
             return {"application":"xoppy","name":"black_body","data":a3.T,"labels":labels,"info":txt}
 

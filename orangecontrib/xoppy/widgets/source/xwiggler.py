@@ -32,8 +32,7 @@ class OWxwiggler(XoppyWidget):
     CURRENT = Setting(200.0)
     FILE = Setting("?")
 
-    def __init__(self):
-        super().__init__()
+    def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, "WIGGLER Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
@@ -135,8 +134,6 @@ class OWxwiggler(XoppyWidget):
         gui.lineEdit(box1, self, "FILE",
                      label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
-
-        gui.rubber(self.controlArea)
 
     def unitLabels(self):
          return ['Magnetic field: ','Number of periods','Wiggler period [m]','K value','Beam energy [GeV]','Min Photon Energy [eV]','Max Photon Energy [eV]','Number of energy points','Energy points spacing','Number of traj points per period','Electron Beam Current [mA]','File with Magnetic Field']

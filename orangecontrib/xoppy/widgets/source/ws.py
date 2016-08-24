@@ -35,8 +35,7 @@ class OWws(XoppyWidget):
     NXP = Setting(10)
     NYP = Setting(10)
 
-    def __init__(self):
-        super().__init__()
+    def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, "WIGGLER Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
@@ -177,10 +176,6 @@ class OWws(XoppyWidget):
                     valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
-        self.process_showers()
-
-        gui.rubber(self.controlArea)
-
     def unitLabels(self):
          return ['Title','Beam energy (GeV)','Beam current (mA)','Period (cm)','Number of periods','Kx','Ky','Min energy (eV)','Max energy (eV)','Number of energy steps','Distance (m)','X-pos. (mm)','Y-pos. (mm)','X slit [mm or mrad]','Y slit [mm or mrad]','Integration points X','Integration points Y']
 
@@ -207,6 +202,9 @@ class OWws(XoppyWidget):
 
     def getYTitles(self):
         return ["Flux [Phot/sec/0.1%bw]"]
+
+    def getVariablesToPlot(self):
+        return [(0, 1)]
 
     def getLogPlot(self):
         return [(True, True)]

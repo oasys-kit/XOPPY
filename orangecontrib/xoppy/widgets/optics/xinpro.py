@@ -4,35 +4,21 @@ from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import widget
+from oasys.widgets import gui as oasysgui
 
 from orangecontrib.xoppy.util.xoppy_util import locations
-
 from orangecontrib.xoppy.util import xoppy_util
 
-class OWxinpro(widget.OWWidget):
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+
+class OWxinpro(XoppyWidget):
     name = "xinpro"
     id = "orange.widgets.dataxinpro"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute XINPRO"
     icon = "icons/xoppy_xinpro.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
     priority = 7
     category = ""
     keywords = ["xoppy", "xinpro"]
-    outputs = [{"name": "xoppy_data",
-                "type": numpy.ndarray,
-                "doc": ""},
-               {"name": "xoppy_specfile",
-                "type": str,
-                "doc": ""}]
-
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
-
-    want_main_area = False
 
     CRYSTAL_MATERIAL = Setting(0)
     MODE = Setting(0)
@@ -49,16 +35,9 @@ class OWxinpro(widget.OWWidget):
     XTO = Setting(50.0)
 
 
-    def __init__(self):
-        super().__init__()
+    def build_gui(self):
 
-        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
-        #widget buttons: compute, set defaults, help
-        gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Defaults", callback=self.defaults)
-        gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
+        box = oasysgui.widgetBox(self.controlArea, "XINPRO Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         
         idx = -1 
@@ -86,7 +65,7 @@ class OWxinpro(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ENERGY",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
@@ -94,7 +73,7 @@ class OWxinpro(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "MILLER_INDEX_H",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
@@ -102,7 +81,7 @@ class OWxinpro(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "MILLER_INDEX_K",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
@@ -110,7 +89,7 @@ class OWxinpro(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "MILLER_INDEX_L",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
@@ -118,7 +97,7 @@ class OWxinpro(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ASYMMETRY_ANGLE",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
@@ -126,7 +105,7 @@ class OWxinpro(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "THICKNESS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
@@ -134,7 +113,7 @@ class OWxinpro(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "TEMPERATURE",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
@@ -142,7 +121,7 @@ class OWxinpro(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NPOINTS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
@@ -159,7 +138,7 @@ class OWxinpro(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "XFROM",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 12 
@@ -167,7 +146,7 @@ class OWxinpro(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "XTO",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
         gui.rubber(self.controlArea)
@@ -180,42 +159,35 @@ class OWxinpro(widget.OWWidget):
          return ['True','True','True','True','True','True','True','True','True','True','True','self.SCALE  ==  1','self.SCALE  ==  1']
 
 
-    #def unitNames(self):
-    #     return ['CRYSTAL_MATERIAL','MODE','ENERGY','MILLER_INDEX_H','MILLER_INDEX_K','MILLER_INDEX_L','ASYMMETRY_ANGLE','THICKNESS','TEMPERATURE','NPOINTS','SCALE','XFROM','XTO']
+    def get_help_name(self):
+        return 'xinpro'
 
+    def check_fields(self):
+        pass
 
-    def compute(self):
-        fileName = xoppy_calc_xinpro(CRYSTAL_MATERIAL=self.CRYSTAL_MATERIAL,MODE=self.MODE,ENERGY=self.ENERGY,MILLER_INDEX_H=self.MILLER_INDEX_H,MILLER_INDEX_K=self.MILLER_INDEX_K,MILLER_INDEX_L=self.MILLER_INDEX_L,ASYMMETRY_ANGLE=self.ASYMMETRY_ANGLE,THICKNESS=self.THICKNESS,TEMPERATURE=self.TEMPERATURE,NPOINTS=self.NPOINTS,SCALE=self.SCALE,XFROM=self.XFROM,XTO=self.XTO)
-        #send specfile
+    def do_xoppy_calculation(self):
+        return xoppy_calc_xinpro(CRYSTAL_MATERIAL=self.CRYSTAL_MATERIAL,MODE=self.MODE,ENERGY=self.ENERGY,MILLER_INDEX_H=self.MILLER_INDEX_H,MILLER_INDEX_K=self.MILLER_INDEX_K,MILLER_INDEX_L=self.MILLER_INDEX_L,ASYMMETRY_ANGLE=self.ASYMMETRY_ANGLE,THICKNESS=self.THICKNESS,TEMPERATURE=self.TEMPERATURE,NPOINTS=self.NPOINTS,SCALE=self.SCALE,XFROM=self.XFROM,XTO=self.XTO)
 
-        if fileName == None:
-            print("Nothing to send")
-        else:
-            self.send("xoppy_specfile",fileName)
-            sf = specfile.Specfile(fileName)
-            if sf.scanno() == 1:
-                #load spec file with one scan, # is comment
-                print("Loading file:  ",fileName)
-                out = numpy.loadtxt(fileName)
-                print("data shape: ",out.shape)
-                #get labels
-                txt = open(fileName).readlines()
-                tmp = [ line.find("#L") for line in txt]
-                itmp = numpy.where(numpy.array(tmp) != (-1))
-                labels = txt[itmp[0]].replace("#L ","").split("  ")
-                print("data labels: ",labels)
-                self.send("xoppy_data",out)
-            else:
-                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
+    def get_data_exchange_widget_name(self):
+        return "XINPRO"
 
-    def defaults(self):
-         self.resetSettings()
-         self.compute()
-         return
+    def add_specific_content_to_calculated_data(self, calculated_data):
+        calculated_data.add_content("units_to_degrees",  0.000277777805)
 
-    def help1(self):
-        print("help pressed.")
-        xoppy_util.xoppy_doc('xinpro')
+    def getTitles(self):
+        return ['s-polarized reflectivity', 'p-polarized reflectivity']
+
+    def getXTitles(self):
+        return ["Theta-ThetaB [arcsec]", "Theta-ThetaB [arcsec]"]
+
+    def getYTitles(self):
+        return ['s-polarized reflectivity', 'p-polarized reflectivity']
+
+    def getVariablesToPlot(self):
+        return [(0, 1), (0, 2)]
+
+    def getLogPlot(self):
+        return [(False, False), (False, False)]
 
 def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,MILLER_INDEX_K=1,MILLER_INDEX_L=1,\
                       ASYMMETRY_ANGLE=0.0,THICKNESS=500.0,TEMPERATURE=300.0,NPOINTS=100,SCALE=0,XFROM=-50.0,XTO=50.0):

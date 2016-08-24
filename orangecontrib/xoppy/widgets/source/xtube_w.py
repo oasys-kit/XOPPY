@@ -21,8 +21,7 @@ class OWxtube_w(XoppyWidget):
     AL_FILTER = Setting(0.0)
 
 
-    def __init__(self):
-        super().__init__()
+    def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, "XTUBE_W Input Parameters",orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
@@ -51,10 +50,6 @@ class OWxtube_w(XoppyWidget):
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
-
-        self.process_showers()
-
-        gui.rubber(self.controlArea)
 
     def unitLabels(self):
          return ['Voltage 30<V<140 (kV)','Voltage ripple (%)','Al filter [mm]']

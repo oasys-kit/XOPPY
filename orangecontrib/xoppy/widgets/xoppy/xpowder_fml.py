@@ -16,7 +16,7 @@ class OWxpowder_fml(widget.OWWidget):
     icon = "icons/xoppy_xpowder_fml.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 9
     category = ""
     keywords = ["xoppy", "xpowder_fml"]
     outputs = [{"name": "ExchangeData",
