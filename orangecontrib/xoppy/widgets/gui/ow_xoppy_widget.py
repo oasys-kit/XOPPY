@@ -68,7 +68,6 @@ class XoppyWidget(widget.OWWidget):
 
         gui.rubber(self.controlArea)
 
-
         self.main_tabs = gui.tabWidget(self.mainArea)
         plot_tab = gui.createTabPage(self.main_tabs, "Results")
         out_tab = gui.createTabPage(self.main_tabs, "Output")

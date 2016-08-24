@@ -16,10 +16,8 @@ import xraylib
 class OWxf1f2(widget.OWWidget):
     name = "xf1f2"
     id = "orange.widgets.dataxf1f2"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute XF1F2"
     icon = "icons/xoppy_xf1f2.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
     priority = 1
     category = ""
     keywords = ["xoppy", "xf1f2"]

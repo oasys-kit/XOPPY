@@ -3,34 +3,24 @@ import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import widget
+from oasys.widgets import gui as oasysgui
+from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.util import xoppy_util
+from orangecontrib.xoppy.util.xoppy_xraylib_util import parse_formula
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-from oasys.widgets.exchange import DataExchangeObject
 import xraylib
 
 
-class OWxf0(widget.OWWidget):
+class OWxf0(XoppyWidget):
     name = "xf0"
     id = "orange.widgets.dataxf0"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute XF0"
     icon = "icons/xoppy_xf0.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
     priority = 11
     category = ""
     keywords = ["xoppy", "xf0"]
-    outputs = [{"name": "ExchangeData",
-                "type": DataExchangeObject,
-                "doc": "send ExchangeData"}]
-
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
-
-    want_main_area = False
 
     MAT_FLAG = Setting(0)
     DESCRIPTOR = Setting("Si")
@@ -38,21 +28,11 @@ class OWxf0(widget.OWWidget):
     GRIDEND = Setting(4.0)
     GRIDN = Setting(100)
 
+    def build_gui(self):
 
-    def __init__(self):
-        super().__init__()
-
-        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
-        #widget buttons: compute, set defaults, help
-        gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Defaults", callback=self.defaults)
-        gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
-        
+        box = oasysgui.widgetBox(self.controlArea, "XF0 Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1 
-        
 
         #widget index 1 
         idx += 1 
@@ -94,51 +74,58 @@ class OWxf0(widget.OWWidget):
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box1) 
 
-        gui.rubber(self.controlArea)
 
     def unitLabels(self):
          return ['material','formula','From q [sin(theta)/lambda]: ','To q [sin(theta)/lambda]: ','Number of q points']
 
-
     def unitFlags(self):
          return ['True','self.MAT_FLAG  !=  2','True','True','True']
 
+    def get_help_name(self):
+        return 'xf0'
 
-    def compute(self):
+    def check_fields(self):
+        pass
+
+    def do_xoppy_calculation(self):
         out_dict = self.xoppy_calc_xf0()
 
         if "info" in out_dict.keys():
             print(out_dict["info"])
 
-        #send exchange
-        tmp = DataExchangeObject("xoppy_calc_xf0","xf0")
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+
         try:
-            tmp.add_content("data",out_dict["data"])
-            tmp.add_content("plot_x_col",0)
-            tmp.add_content("plot_y_col",-1)
+            calculated_data.add_content("xoppy_data", out_dict["data"].T)
+            calculated_data.add_content("plot_x_col",0)
+            calculated_data.add_content("plot_y_col",-1)
         except:
             pass
         try:
-            tmp.add_content("labels",out_dict["labels"])
+            calculated_data.add_content("labels",out_dict["labels"])
         except:
             pass
         try:
-            tmp.add_content("info",out_dict["info"])
+            calculated_data.add_content("info",out_dict["info"])
         except:
             pass
 
+        return calculated_data
 
-        self.send("ExchangeData",tmp)
+    def extract_data_from_xoppy_output(self, calculation_output):
+        return calculation_output
 
-    def defaults(self):
-         self.resetSettings()
-         self.compute()
-         return
+    def get_data_exchange_widget_name(self):
+        return "XF0"
 
-    def help1(self):
-        print("help pressed.")
-        xoppy_util.xoppy_doc('xf0')
+    def getTitles(self):
+        return ["f0"]
 
+    def getXTitles(self):
+        return ["q=sin(theta)/lambda [A^-1]"]
+
+    def getYTitles(self):
+        return ["f0 [electron units]"]
 
     def xoppy_calc_xf0(self):
         MAT_FLAG = self.MAT_FLAG
@@ -146,7 +133,6 @@ class OWxf0(widget.OWWidget):
         GRIDSTART = self.GRIDSTART
         GRIDEND = self.GRIDEND
         GRIDN = self.GRIDN
-
 
         qscale = numpy.linspace(GRIDSTART,GRIDEND,GRIDN)
 
