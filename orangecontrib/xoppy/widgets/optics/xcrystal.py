@@ -273,7 +273,7 @@ class OWxcrystal(XoppyWidget):
                 "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]"]
 
     def getYTitles(self):
-        return ["phase_p[rad]","phase_s[rad]","Circ Polariz","p-polarized reflectivity","s-polarized reflectivity"]
+        return ["phase_p [rad]","phase_s [rad]","Circ. Polariz.","p-polarized reflectivity","s-polarized reflectivity"]
 
     def getVariablesToPlot(self):
         return [(0, 2), (0, 3), (0, 4), (0, 5), (0, 6)]
@@ -390,7 +390,6 @@ class OWxcrystal(XoppyWidget):
         
         
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
-
 
         try:
             calculated_data.add_content("xoppy_data", numpy.loadtxt("diff_pat.dat", skiprows=5))
