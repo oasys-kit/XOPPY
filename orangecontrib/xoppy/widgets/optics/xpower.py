@@ -413,8 +413,8 @@ class OWxpower(XoppyWidget):
             kind = self.getKind(oe_n)
 
             if kind == 0: # FILTER
-                titles.append("[oe " + str(oe_n) + "] Total CS cm2/g")
-                titles.append("[oe " + str(oe_n) + "] Mu cm^-1")
+                titles.append("[oe " + str(oe_n) + "] Total CS")
+                titles.append("[oe " + str(oe_n) + "] Mu")
                 titles.append("[oe " + str(oe_n) + "] Transmitivity")
                 titles.append("[oe " + str(oe_n) + "] Absorption")
                 titles.append("Intensity after oe " + str(oe_n))
@@ -451,7 +451,26 @@ class OWxpower(XoppyWidget):
         return xtitles
 
     def getYTitles(self):
-        return self.getTitles()
+        ytitles = []
+
+        for oe_n in range(1, self.NELEMENTS+2):
+            kind = self.getKind(oe_n)
+
+            if kind == 0: # FILTER
+                ytitles.append("[oe " + str(oe_n) + "] Total CS cm2/g")
+                ytitles.append("[oe " + str(oe_n) + "] Mu cm^-1")
+                ytitles.append("[oe " + str(oe_n) + "] Transmitivity")
+                ytitles.append("[oe " + str(oe_n) + "] Absorption")
+                ytitles.append("Intensity after oe " + str(oe_n))
+            else: # MIRROR
+                ytitles.append("[oe " + str(oe_n) + "] 1-Re[n]=delta")
+                ytitles.append("[oe " + str(oe_n) + "] Im[n]=beta")
+                ytitles.append("[oe " + str(oe_n) + "] delta/beta")
+                ytitles.append("[oe " + str(oe_n) + "] Reflectivity-s")
+                ytitles.append("[oe " + str(oe_n) + "] Transmitivity")
+                ytitles.append("Intensity after oe " + str(oe_n))
+
+        return ytitles
 
     def getVariablesToPlot(self):
         variables = []

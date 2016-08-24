@@ -3,32 +3,22 @@ import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import widget
+from oasys.widgets import gui as oasysgui
 
 from orangecontrib.xoppy.util.xoppy_util import locations
 from oasys.widgets.exchange import DataExchangeObject
 
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-class OWxpowder_fml(widget.OWWidget):
+
+class OWxpowder_fml(XoppyWidget):
     name = "xpowder_fml"
     id = "orange.widgets.dataxpowder_fml"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute XPOWDER_FML"
     icon = "icons/xoppy_xpowder_fml.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
     priority = 9
     category = ""
     keywords = ["xoppy", "xpowder_fml"]
-    outputs = [{"name": "ExchangeData",
-                "type": DataExchangeObject,
-                "doc": "send ExchangeData"}]
-
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
-
-    want_main_area = False
 
     FILE = Setting("/scisoft/xop2.4/examples/icsd_31142_sepiolite_BraunerPreisinger.cif")
     TITLE = Setting("powder pattern using crysFML")
@@ -43,33 +33,24 @@ class OWxpowder_fml(widget.OWWidget):
     STEP = Setting(0.05)
     THMAX = Setting(135.0)
 
+    def build_gui(self):
 
-    def __init__(self):
-        super().__init__()
+        box = oasysgui.widgetBox(self.controlArea, "XPOWDER_FML Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
-        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
-        #widget buttons: compute, set defaults, help
-        gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Defaults", callback=self.defaults)
-        gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
-        
-        
         idx = -1 
         
         #widget index 0 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "FILE",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "TITLE",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
@@ -77,7 +58,7 @@ class OWxpowder_fml(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "LAMBDA",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
@@ -94,7 +75,7 @@ class OWxpowder_fml(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "U",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
@@ -102,7 +83,7 @@ class OWxpowder_fml(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "V",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
@@ -110,7 +91,7 @@ class OWxpowder_fml(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "W",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
@@ -118,7 +99,7 @@ class OWxpowder_fml(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "X",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
@@ -126,7 +107,7 @@ class OWxpowder_fml(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "LS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
@@ -134,7 +115,7 @@ class OWxpowder_fml(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "THMIN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
@@ -142,7 +123,7 @@ class OWxpowder_fml(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "STEP",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
@@ -150,26 +131,40 @@ class OWxpowder_fml(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "THMAX",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
-
-        gui.rubber(self.controlArea)
 
     def unitLabels(self):
          return ['CIF File [? for Browser]: ','Title:','Lambda [A]: ','Radiation:','U: ','V: ','W: ','X: ','Ls:','TwoTheta from [deg]','TwoTheta step: ','TwoTheta to','None']
 
-
     def unitFlags(self):
          return ['1','1','1','1','1','1','1','1','1','1','1','1','1']
 
+    def get_help_name(self):
+        return 'xpowder_fml'
 
-    #def unitNames(self):
-    #     return ['FILE','TITLE','LAMBDA','JOB','U','V','W','X','LS','THMIN','STEP','THMAX','NONE']
+    def check_fields(self):
+        pass
 
+    def do_xoppy_calculation(self):
+        return self.xoppy_calc_xpowder_fml()
 
-    def compute(self):
+    def extract_data_from_xoppy_output(self, calculation_output):
+        return calculation_output
 
+    def get_data_exchange_widget_name(self):
+        return "XPOWDER_FML"
 
+    def getTitles(self):
+        return ["Diffraction Pattern"]
+
+    def getXTitles(self):
+        return ["TwoTheta[Deg]"]
+
+    def getYTitles(self):
+        return ["Intensity[a.u.]"]
+
+    def xoppy_calc_xpowder_fml(self):
 
         with open("xoppy.inp", "wt") as f:
             f.write("%s\n"% (self.FILE))
@@ -185,14 +180,11 @@ class OWxpowder_fml(widget.OWWidget):
             f.write("%g\n"%(self.STEP))
             f.write("%s\n"%(self.THMAX))
 
-
-
         command = os.path.join(locations.home_bin(), 'xpowder_fml') + " < xoppy.inp"
         print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
         print("\n--------------------------------------------------------\n")
         os.system(command)
         print("\n--------------------------------------------------------\n")
-
 
         print("Files written to disk: xpowder_fml.par (text output), xpowder_fml.ref (reflections), xpowder_fml.out (diffractogram)",)
 
@@ -200,42 +192,29 @@ class OWxpowder_fml(widget.OWWidget):
 
         print(">>>>>>>>>>>",data.shape)
 
-
         #send exchange
-        tmp = DataExchangeObject("xoppy_xpowder_fml","xpowder_fml")
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         try:
-            tmp.add_content("data",numpy.loadtxt("xpowder_fml.out",skiprows=3).T)
-            tmp.add_content("plot_x_col",0)
-            tmp.add_content("plot_y_col",-1)
+            calculated_data.add_content("xoppy_data", numpy.loadtxt("xpowder_fml.out", skiprows=3))
+            calculated_data.add_content("plot_x_col",0)
+            calculated_data.add_content("plot_y_col",-1)
         except:
             pass
         try:
-            tmp.add_content("labels",["TwoTheta[Deg]","Intensity[a.u.]"])
+            calculated_data.add_content("labels",["TwoTheta[Deg]","Intensity[a.u.]"])
         except:
             pass
         try:
             with open("xpowder_fml.par") as f:
                 info = f.readlines()
             info = [line[:-1] for line in info]  # remove "\n"
-            tmp.add_content("info",info)
+            calculated_data.add_content("info",info)
         except:
             pass
         print(info)
-        self.send("ExchangeData",tmp)
 
-
-    def defaults(self):
-         self.resetSettings()
-         self.compute()
-         return
-
-    def help1(self):
-        print("help pressed.")
-        xoppy_doc('xpowder_fml')
-
-
-
+        return calculated_data
 
 
 if __name__ == "__main__":

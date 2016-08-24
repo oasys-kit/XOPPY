@@ -127,30 +127,48 @@ class OWxxcom(XoppyWidget):
         return "XXCOM"
 
     def getTitles(self):
+        return ["Coherent scat",
+                "Incoherent scat",
+                "Photoel abs",
+                "Pair prod in nucl field]",
+                "Pair prod in elec field]",
+                "Tot atten with coh scat]",
+                "Tot atten w/o coh scat"]
+
+    def getXTitles(self):
+        return ["Photon Energy [Mev]",
+                "Photon Energy [Mev]",
+                "Photon Energy [Mev]",
+                "Photon Energy [Mev]",
+                "Photon Energy [Mev]",
+                "Photon Energy [Mev]",
+                "Photon Energy [Mev]"]
+
+    def getYTitles(self):
         if (1+self.SUBSTANCE) <= 2:
             if (1+self.ELEMENTOUTPUT) == 1:
                 return ["Coherent scat [b/atom]",
-                        "Incoherent scat [b/atom]", 
-                        "Photoel abs [b/atom]", 
-                        "Pair prod in nucl field [b/atom]", 
-                        "Pair prod in elec field [b/atom]", 
-                        "Tot atten with coh scat [b/atom]", 
+                        "Incoherent scat [b/atom]",
+                        "Photoel abs [b/atom]",
+                        "Pair prod in nucl field [b/atom]",
+                        "Pair prod in elec field [b/atom]",
+                        "Tot atten with coh scat [b/atom]",
                         "Tot atten w/o coh scat [b/atom]"]
             elif (1+self.ELEMENTOUTPUT) == 2:
                 return ["Coherent scat [b/atom]",
-                        "Incoherent scat [b/atom]", 
-                        "Photoel abs [b/atom]", 
-                        "Pair prod in nucl field [b/atom]", 
-                        "Pair prod in elec field [b/atom]", 
-                        "Tot atten with coh scat [cm2/g]", 
+                        "Incoherent scat [b/atom]",
+                        "Photoel abs [b/atom]",
+                        "Pair prod in nucl field [b/atom]",
+                        "Pair prod in elec field [b/atom]",
+                        "Tot atten with coh scat [cm2/g]",
                         "Tot atten w/o coh scat [cm2/g]"]
             elif (1+self.ELEMENTOUTPUT) == 3:
                 return ["Coherent scat [cm2/g]",
-                        "Incoherent scat [cm2/g]", 
-                        "Photoel abs [cm2/g]", 
-                        "Pair prod in nucl field [cm2/g]", 
-                        "Pair prod in elec field [cm2/g]", 
-                        "Tot atten with coh scat [cm2/g]", 
+                        "Incoherent scat [cm2/g]",
+                        "Photoel abs [cm2/g]",
+                        "Pair prod in nucl field [cm2/g]",
+                        "Pair prod in elec field [cm2/g]",
+                        "Tot atten with coh scat [cm2/g]",
                         "Tot atten w/o coh scat [cm2/g]"]
             else:
                 return ["Coherent scat [cm2/g]",
@@ -168,18 +186,6 @@ class OWxxcom(XoppyWidget):
                         "Pair prod in elec field [cm2/g]",
                         "Tot atten with coh scat [cm2/g]",
                         "Tot atten w/o coh scat [cm2/g]"]
-
-    def getXTitles(self):
-        return ["Photon Energy [Mev]",
-                "Photon Energy [Mev]",
-                "Photon Energy [Mev]",
-                "Photon Energy [Mev]",
-                "Photon Energy [Mev]",
-                "Photon Energy [Mev]",
-                "Photon Energy [Mev]"]
-
-    def getYTitles(self):
-        return self.getTitles()
 
     def getVariablesToPlot(self):
         return [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7)]

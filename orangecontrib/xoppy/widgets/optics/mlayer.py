@@ -3,38 +3,26 @@ import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import widget
-
-from orangecontrib.xoppy.util.xoppy_util import locations
-
-from orangecontrib.xoppy.util import xoppy_util
-from orangecontrib.xoppy.widgets.xoppy.xoppy_xraylib_util import f1f2_calc
+from oasys.widgets import gui as oasysgui
 from oasys.widgets.exchange import DataExchangeObject
 
+from orangecontrib.xoppy.util.xoppy_util import locations
+from orangecontrib.xoppy.util import xoppy_util
+from orangecontrib.xoppy.util.xoppy_xraylib_util import f1f2_calc
+
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 import scipy.constants as codata
 import xraylib
 
-class OWmlayer(widget.OWWidget):
+class OWmlayer(XoppyWidget):
     name = "mlayer"
     id = "orange.widgets.datamlayer"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute MLAYER"
     icon = "icons/xoppy_mlayer.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
     priority = 10
     category = ""
     keywords = ["xoppy", "mlayer"]
-    outputs = [{"name": "ExchangeData",
-                "type": DataExchangeObject,
-                "doc": "send ExchangeData"}]
-
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
-
-    want_main_area = False
 
     MODE = Setting(0)
     SCAN = Setting(0)
@@ -52,17 +40,9 @@ class OWmlayer(widget.OWWidget):
     FILE = Setting("layers.dat")
 
 
-    def __init__(self):
-        super().__init__()
+    def build_gui(self):
 
-        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
-        #widget buttons: compute, set defaults, help
-        gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Defaults", callback=self.defaults)
-        gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
-        
+        box = oasysgui.widgetBox(self.controlArea, "MLAYER Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1 
         
@@ -97,21 +77,21 @@ class OWmlayer(widget.OWWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "SUBSTRATE",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ODD_MATERIAL",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "EVEN_MATERIAL",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
@@ -119,7 +99,7 @@ class OWmlayer(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ENERGY",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
@@ -127,7 +107,7 @@ class OWmlayer(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "THETA",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
@@ -135,7 +115,7 @@ class OWmlayer(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "SCAN_STEP",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
@@ -143,7 +123,7 @@ class OWmlayer(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NPOINTS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
@@ -151,7 +131,7 @@ class OWmlayer(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ODD_THICKNESS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
@@ -159,7 +139,7 @@ class OWmlayer(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "EVEN_THICKNESS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 12 
@@ -167,14 +147,14 @@ class OWmlayer(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NLAYERS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 13 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "FILE",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
         gui.rubber(self.controlArea)
@@ -186,7 +166,44 @@ class OWmlayer(widget.OWWidget):
     def unitFlags(self):
          return ['True','True','True','self.F12_FLAG  ==  0','self.F12_FLAG  ==  0','self.F12_FLAG  ==  0','True','True','True','True','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  1']
 
-    def compute(self):
+    def get_help_name(self):
+        return 'mlayer'
+
+    def check_fields(self):
+        pass
+
+    def do_xoppy_calculation(self):
+        return self.xoppy_calc_mlayer()
+
+    def extract_data_from_xoppy_output(self, calculation_output):
+        return calculation_output
+
+    def get_data_exchange_widget_name(self):
+        return "MLAYER"
+
+    def getTitles(self):
+        return ["s-reflectivity","p-reflectivity","averaged reflectivity","s-phase shift","p-phase shift","(s-electric field)^2","(p-electric field)^2"]
+
+    def getXTitles(self):
+        return ["Grazing angle Theta [deg]",
+                "Grazing angle Theta [deg]",
+                "Grazing angle Theta [deg]",
+                "Grazing angle Theta [deg]",
+                "Grazing angle Theta [deg]",
+                "Grazing angle Theta [deg]",
+                "Grazing angle Theta [deg]"]
+
+    def getYTitles(self):
+        return self.getTitles()
+
+    def getVariablesToPlot(self):
+        return [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7)]
+
+    def getLogPlot(self):
+        return[(False, False), (False, False), (False, False), (False, False), (False, False), (False, False), (False, False)]
+
+
+    def xoppy_calc_mlayer(self):
 
         # copy the variable locally, so no more use of self.
         MODE = self.MODE
@@ -203,7 +220,6 @@ class OWmlayer(widget.OWWidget):
         EVEN_THICKNESS = self.EVEN_THICKNESS
         NLAYERS = self.NLAYERS
         FILE=self.FILE
-
 
         #
         # write input file for Fortran mlayer: mlayer.inp
@@ -306,26 +322,27 @@ class OWmlayer(widget.OWWidget):
 
 
         #send exchange
-        tmp = DataExchangeObject("xoppy_mlayer","mlayer")
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         try:
-            tmp.add_content("data",numpy.loadtxt("mlayer.dat").T)
-            tmp.add_content("plot_x_col",0)
-            tmp.add_content("plot_y_col",3)
+            calculated_data.add_content("xoppy_data", numpy.loadtxt("mlayer.dat"))
+            calculated_data.add_content("plot_x_col", 0)
+            calculated_data.add_content("plot_y_col", 3)
+            calculated_data.add_content("units_to_degrees", 1.0)
         except:
             pass
         try:
-            tmp.add_content("labels",["Grazing angle Theta [deg]","s-reflectivity","p-reflectivity","averaged reflectivity","s-phase shift","p-phase shift","(s-electric field)^2","(p-electric field)^2"])
+            calculated_data.add_content("labels",["Grazing angle Theta [deg]","s-reflectivity","p-reflectivity","averaged reflectivity","s-phase shift","p-phase shift","(s-electric field)^2","(p-electric field)^2"])
 
         except:
             pass
         try:
             info = "ML %s(%3.2f A):%s(%3.2f A) %d pairs; E=%5.3f eV"%(ODD_MATERIAL,ODD_THICKNESS,EVEN_MATERIAL,EVEN_THICKNESS,NLAYERS,ENERGY)
-            tmp.add_content("info",info)
+            calculated_data.add_content("info",info)
         except:
             pass
 
-        self.send("ExchangeData",tmp)
+        return calculated_data
 
     def defaults(self):
          self.resetSettings()

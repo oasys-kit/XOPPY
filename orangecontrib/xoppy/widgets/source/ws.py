@@ -7,7 +7,6 @@ from oasys.widgets import gui as oasysgui
 from orangecontrib.xoppy.util.xoppy_util import locations
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-
 class OWws(XoppyWidget):
     name = "ws"
     id = "orange.widgets.dataws"

@@ -3,31 +3,21 @@ import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import widget
+from oasys.widgets import gui as oasysgui
 
-from orangecontrib.xoppy.util.xoppy_util import locations, xoppy_doc
+from orangecontrib.xoppy.util.xoppy_util import locations
 from oasys.widgets.exchange import DataExchangeObject
 
-class OWxtc(widget.OWWidget):
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+
+class OWxtc(XoppyWidget):
     name = "xtc"
     id = "orange.widgets.dataxtc"
     description = "xoppy application to compute..."
     icon = "icons/xoppy_xtc.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
     priority = 10
     category = ""
     keywords = ["xoppy", "xtc"]
-    outputs = [{"name": "ExchangeData",
-                "type": DataExchangeObject,
-                "doc": "send ExchangeData"}]
-
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
-
-    want_main_area = False
 
     #19 variables
     TITLE = Setting("APS Undulator A, Beam Parameters for regular lattice nux36nuy39.twi, 1.5% cpl.")
@@ -50,26 +40,17 @@ class OWxtc(widget.OWWidget):
     METHOD = Setting(1)
     NEKS = Setting(100)
 
+    def build_gui(self):
 
-    def __init__(self):
-        super().__init__()
+        box = oasysgui.widgetBox(self.controlArea, "XTC Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
-        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
-        #widget buttons: compute, set defaults, help
-        gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Defaults", callback=self.defaults)
-        gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
-        
-        
         idx = -1 
         
         #widget index 0 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "TITLE",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx],  addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
@@ -77,7 +58,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ENERGY",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
@@ -85,7 +66,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "CURRENT",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
@@ -93,7 +74,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ENERGY_SPREAD",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
         
@@ -102,7 +83,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "SIGX",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
@@ -110,7 +91,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "SIGY",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
@@ -118,7 +99,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "SIGX1",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
@@ -126,7 +107,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "SIGY1",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
         
@@ -135,7 +116,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "PERIOD",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
@@ -143,7 +124,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NP",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
         
@@ -152,7 +133,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "EMIN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 14 
@@ -160,7 +141,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "EMAX",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 15 
@@ -168,7 +149,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "N",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1)
         
         #widget index 17 
@@ -176,7 +157,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "HARMONIC_FROM",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 18 
@@ -184,7 +165,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "HARMONIC_TO",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 19 
@@ -192,7 +173,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "HARMONIC_STEP",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1)
         
         #widget index 21 
@@ -200,7 +181,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "HELICAL",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 22 
@@ -208,7 +189,7 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "METHOD",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
         
@@ -217,11 +198,8 @@ class OWxtc(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NEKS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1)
-
-
-        gui.rubber(self.controlArea)
 
     def unitLabels(self):
          return ['Title','Electron energy (GeV)','Current (mA)','Energy Spread (DE/E)',
@@ -235,7 +213,47 @@ class OWxtc(widget.OWWidget):
     def unitFlags(self):
          return ['True' for i in range(19)]
 
-    def compute(self):
+
+    def get_help_name(self):
+        return 'xtc'
+
+    def check_fields(self):
+        pass
+
+    def do_xoppy_calculation(self):
+        return self.xoppy_calc_xtc()
+
+    def extract_data_from_xoppy_output(self, calculation_output):
+        return calculation_output
+
+    def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False):
+        super().plot_histo(x, y,progressBarValue, tabs_canvas_index, plot_canvas_index, title, xtitle, ytitle, log_x, log_y)
+
+        self.plot_canvas[plot_canvas_index].setDefaultPlotLines(False)
+        self.plot_canvas[plot_canvas_index].setDefaultPlotPoints(True)
+
+    def get_data_exchange_widget_name(self):
+        return "XTC"
+
+    def getTitles(self):
+        return ["Brilliance","Ky","Total Power","Power density"]
+
+    def getXTitles(self):
+        return ["Energy (eV) with emittance",
+                "Energy (eV) with emittance",
+                "Energy (eV) with emittance",
+                "Energy (eV) with emittance"]
+
+    def getYTitles(self):
+        return ["Brilliance (ph/s/mrad^2/mm^2/0.1%bw)","Ky","Total Power (W)","Power density (W/mr^2)"]
+
+    def getVariablesToPlot(self):
+        return [(1, 2), (1, 3), (1, 4), (1, 5)]
+
+    def getLogPlot(self):
+        return[(False, False), (False, False), (False, False), (False, False)]
+
+    def xoppy_calc_xtc(self):
 
         with open("tc.inp", "wt") as f:
             f.write("%s\n"%self.TITLE)
@@ -280,36 +298,25 @@ class OWxtc(widget.OWWidget):
         #TODO: compute envelopes (as in XOP)
 
         #send exchange
-        tmp = DataExchangeObject("xoppy_xtc","xtc")
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         try:
-            tmp.add_content("data",data)
-            tmp.add_content("plot_x_col",1)
-            tmp.add_content("plot_y_col",2)
+            calculated_data.add_content("xoppy_data", data.T)
+            calculated_data.add_content("plot_x_col", 1)
+            calculated_data.add_content("plot_y_col", 2)
         except:
             pass
         try:
-            tmp.add_content("labels",["Energy (eV) without emittance", "Energy (eV) with emittance",
+            calculated_data.add_content("labels",["Energy (eV) without emittance", "Energy (eV) with emittance",
                                       "Brilliance (ph/s/mrad^2/mm^2/0.1%bw)","Ky","Total Power (W)","Power density (W/mr^2)"])
         except:
             pass
         try:
-            tmp.add_content("info",txtlist)
+            calculated_data.add_content("info",txtlist)
         except:
             pass
 
-        self.send("ExchangeData",tmp)
-
-
-    def defaults(self):
-         self.resetSettings()
-         self.compute()
-         return
-
-    def help1(self):
-        print("help pressed.")
-        xoppy_doc('xtc')
-
+        return calculated_data
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -68,15 +68,14 @@ class XoppyWidget(widget.OWWidget):
 
         gui.rubber(self.controlArea)
 
-
         self.main_tabs = gui.tabWidget(self.mainArea)
-        plot_tab = gui.createTabPage(self.main_tabs, "Plots")
+        plot_tab = gui.createTabPage(self.main_tabs, "Results")
         out_tab = gui.createTabPage(self.main_tabs, "Output")
 
-        view_box = oasysgui.widgetBox(plot_tab, "Plotting Options", addSpace=False, orientation="horizontal")
+        view_box = oasysgui.widgetBox(plot_tab, "Results Options", addSpace=False, orientation="horizontal")
         view_box_1 = oasysgui.widgetBox(view_box, "", addSpace=False, orientation="vertical", width=350)
 
-        self.view_type_combo = gui.comboBox(view_box_1, self, "view_type", label="View Plots",
+        self.view_type_combo = gui.comboBox(view_box_1, self, "view_type", label="View Results",
                                             labelWidth=220,
                                             items=["No", "Yes"],
                                             callback=self.set_ViewType, sendSelectedValue=False, orientation="horizontal")
@@ -238,8 +237,6 @@ class XoppyWidget(widget.OWWidget):
 
                 self.plot_results(self.calculated_data, progressBarValue=60)
 
-
-
                 self.setStatusMessage("")
 
                 self.send("xoppy_data", self.calculated_data)
@@ -250,7 +247,7 @@ class XoppyWidget(widget.OWWidget):
 
             self.setStatusMessage("Error!")
 
-            raise exception
+            #raise exception
 
         self.progressBarFinished()
 
