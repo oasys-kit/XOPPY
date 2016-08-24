@@ -7,7 +7,7 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 
 from orangecontrib.xoppy.util.xoppy_util import locations
-from orangecontrib.xoppy.widgets.xoppy.xoppy_xraylib_util import bragg_calc
+from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc
 
 from oasys.widgets.exchange import DataExchangeObject
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
@@ -19,11 +19,11 @@ class OWxcrystal(XoppyWidget):
     id = "orange.widgets.dataxcrystal"
     description = "xoppy application to compute XCRYSTAL"
     icon = "icons/xoppy_xcrystal.png"
-    priority = 1
+    priority = 6
     category = ""
     keywords = ["xoppy", "xcrystal"]
  
-    CRYSTAL_MATERIAL = Setting(0)
+    CRYSTAL_MATERIAL = Setting(32)
     MILLER_INDEX_H = Setting(1)
     MILLER_INDEX_K = Setting(1)
     MILLER_INDEX_L = Setting(1)
@@ -46,8 +46,7 @@ class OWxcrystal(XoppyWidget):
     CUT = Setting("2 -1 -1 ; 1 1 1 ; 0 0 0")
     FILECOMPLIANCE = Setting("mycompliance.dat")
 
-    def __init__(self):
-        super().__init__()
+    def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, "XCRYSTAL Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
@@ -124,7 +123,7 @@ class OWxcrystal(XoppyWidget):
         #widget index 12 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "UNIT",
+        self.unit_combo = gui.comboBox(box1, self, "UNIT",
                      label=self.unitLabels()[idx], addSpace=True,
                     items=['Radians', 'micro rads', 'Degrees', 'ArcSec'],
                     valueType=int, orientation="horizontal")
@@ -233,8 +232,6 @@ class OWxcrystal(XoppyWidget):
                      label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
-        gui.rubber(self.controlArea)
-
     def unitLabels(self):
          return ['Crystal:','h Miller index','k Miller index','l Miller index','Temperature factor [see help]:', # 0-5
                  'Crystal Model:','Geometry:','Scan:','Scan Units:','Min Scan value:','Max Scan value:','Scan Points:', # 6-12
@@ -269,7 +266,11 @@ class OWxcrystal(XoppyWidget):
         return ["Phase_p","Phase_s","Circ. Polariz.","p-polarized reflectivity","s-polarized reflectivity"]
 
     def getXTitles(self):
-        return ["Th-ThB{in} [microrad]", "Th-ThB{in} [microrad]", "Th-ThB{in} [microrad]", "Th-ThB{in} [microrad]", "Th-ThB{in} [microrad]"]
+        return ["Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
+                "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
+                "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
+                "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
+                "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]"]
 
     def getYTitles(self):
         return ["phase_p[rad]","phase_s[rad]","Circ Polariz","p-polarized reflectivity","s-polarized reflectivity"]
@@ -390,18 +391,27 @@ class OWxcrystal(XoppyWidget):
         
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
+
         try:
-            calculated_data.add_content("xoppy_data", numpy.loadtxt("diff_pat.dat",skiprows=5).T)
+            calculated_data.add_content("xoppy_data", numpy.loadtxt("diff_pat.dat", skiprows=5))
             calculated_data.add_content("plot_x_col",0)
             calculated_data.add_content("plot_y_col",-1)
+            calculated_data.add_content("units_to_degrees", self.get_units_to_degrees())
         except Exception as e:
             raise Exception("Error loading diff_pat.dat :" + str(e))
+
         try:
             calculated_data.add_content("labels",
-                                        ["Th-ThB{in} [microrad]","Th-ThB{out} [microrad]","phase_p[rad]","phase_s[rad]","Circ Polariz","p-polarized reflectivity","s-polarized reflectivity"])
+                                        ["Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
+                                         "Th-ThB{out} [" + self.unit_combo.itemText(self.UNIT) + "]",
+                                         "phase_p[rad]",
+                                         "phase_s[rad]","Circ Polariz",
+                                         "p-polarized reflectivity",
+                                         "s-polarized reflectivity"])
 
         except:
             pass
+
         try:
             with open("diff_pat.par") as f:
                 info = f.readlines()
@@ -410,6 +420,22 @@ class OWxcrystal(XoppyWidget):
             pass
 
         return calculated_data
+
+
+    def get_units_to_degrees(self):
+        if self.UNIT == 0: # RADIANS
+            return 57.2957795
+        elif self.UNIT == 1: #MICRORADIANS
+            return 57.2957795e-6
+        elif self.UNIT == 2: # DEGREES
+            return 1.0
+        elif self.UNIT == 3: # ARCSEC
+            return 0.000277777805
+
+
+
+
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

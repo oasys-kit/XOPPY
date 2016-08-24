@@ -20,7 +20,7 @@ class OWxf1f2(widget.OWWidget):
     icon = "icons/xoppy_xf1f2.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 1
     category = ""
     keywords = ["xoppy", "xf1f2"]
     outputs = [{"name": "ExchangeData",

@@ -4,34 +4,21 @@ from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePoli
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import widget
-from orangecontrib.xoppy.util.xoppy_util import locations
+from oasys.widgets import gui as oasysgui
 
+from orangecontrib.xoppy.util.xoppy_util import locations
 from orangecontrib.xoppy.util import xoppy_util
 
-class OWxxcom(widget.OWWidget):
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+
+class OWxxcom(XoppyWidget):
     name = "xxcom"
     id = "orange.widgets.dataxxcom"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute XXCOM"
     icon = "icons/xoppy_xxcom.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
     priority = 3
     category = ""
     keywords = ["xoppy", "xxcom"]
-    outputs = [{"name": "xoppy_data",
-                "type": numpy.ndarray,
-                "doc": ""},
-               {"name": "xoppy_specfile",
-                "type": str,
-                "doc": ""}]
-
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
-
-    want_main_area = False
 
     NAME = Setting("Pyrex Glass")
     SUBSTANCE = Setting(3)
@@ -43,17 +30,9 @@ class OWxxcom(widget.OWWidget):
     ELEMENTOUTPUT = Setting(0)
 
 
-    def __init__(self):
-        super().__init__()
+    def build_gui(self):
 
-        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
-        #widget buttons: compute, set defaults, help
-        gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Defaults", callback=self.defaults)
-        gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
-        
+        box = oasysgui.widgetBox(self.controlArea, "XXCOM Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1 
         
@@ -61,7 +40,7 @@ class OWxxcom(widget.OWWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NAME",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
@@ -70,21 +49,21 @@ class OWxxcom(widget.OWWidget):
         gui.comboBox(box1, self, "SUBSTANCE",
                      label=self.unitLabels()[idx], addSpace=True,
                     items=['Element (Atomic number)', 'Element (Symbol)', 'Compound (Formula)', 'Mixture (F1:F2:F3...)'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", callback=self.set_SUBSTANCE)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "DESCRIPTION",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "FRACTION",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
@@ -109,7 +88,7 @@ class OWxxcom(widget.OWWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "GRIDDATA",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
@@ -118,57 +97,98 @@ class OWxxcom(widget.OWWidget):
         gui.comboBox(box1, self, "ELEMENTOUTPUT",
                      label=self.unitLabels()[idx], addSpace=True,
                     items=['Cross section [b/atom]', 'Cross section [b/atom] & Attenuation coeff [cm2/g]', 'Partial interaction coeff & Attenuation coeff [cm2/g]'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", callback=self.set_ELEMENTOUTPUT)
         self.show_at(self.unitFlags()[idx], box1) 
 
         gui.rubber(self.controlArea)
 
+    def set_SUBSTANCE(self):
+        self.initializeTabs()
+
+    def set_ELEMENTOUTPUT(self):
+        self.initializeTabs()
+
     def unitLabels(self):
          return ['Name','Substance:','Description:','fraction','grid','grid points','grid points [MeV]/file name','Output quantity']
 
-
     def unitFlags(self):
          return ['True','True','True','self.SUBSTANCE  ==  3','True','self.GRID  !=  0','(self.GRID  !=  0)','self.SUBSTANCE  <=  1']
+    
+    def get_help_name(self):
+        return 'xxcom'
 
+    def check_fields(self):
+        pass
 
-    #def unitNames(self):
-    #     return ['NAME','SUBSTANCE','DESCRIPTION','FRACTION','GRID','GRIDINPUT','GRIDDATA','ELEMENTOUTPUT']
+    def do_xoppy_calculation(self):
+        return xoppy_calc_xxcom(NAME=self.NAME,SUBSTANCE=self.SUBSTANCE,DESCRIPTION=self.DESCRIPTION,FRACTION=self.FRACTION,GRID=self.GRID,GRIDINPUT=self.GRIDINPUT,GRIDDATA=self.GRIDDATA,ELEMENTOUTPUT=self.ELEMENTOUTPUT)
 
+    def get_data_exchange_widget_name(self):
+        return "XXCOM"
 
-    def compute(self):
-        fileName = xoppy_calc_xxcom(NAME=self.NAME,SUBSTANCE=self.SUBSTANCE,DESCRIPTION=self.DESCRIPTION,FRACTION=self.FRACTION,GRID=self.GRID,GRIDINPUT=self.GRIDINPUT,GRIDDATA=self.GRIDDATA,ELEMENTOUTPUT=self.ELEMENTOUTPUT)
-        #send specfile
-
-        if fileName == None:
-            print("Nothing to send")
-        else:
-            self.send("xoppy_specfile",fileName)
-            sf = specfile.Specfile(fileName)
-            if sf.scanno() == 1:
-                #load spec file with one scan, # is comment
-                print("Loading file:  ",fileName)
-                out = numpy.loadtxt(fileName)
-                print("data shape: ",out.shape)
-                #get labels
-                txt = open(fileName).readlines()
-                tmp = [ line.find("#L") for line in txt]
-                itmp = numpy.where(numpy.array(tmp) != (-1))
-                labels = txt[itmp[0]].replace("#L ","").split("  ")
-                print("data labels: ",labels)
-                self.send("xoppy_data",out)
+    def getTitles(self):
+        if (1+self.SUBSTANCE) <= 2:
+            if (1+self.ELEMENTOUTPUT) == 1:
+                return ["Coherent scat [b/atom]",
+                        "Incoherent scat [b/atom]", 
+                        "Photoel abs [b/atom]", 
+                        "Pair prod in nucl field [b/atom]", 
+                        "Pair prod in elec field [b/atom]", 
+                        "Tot atten with coh scat [b/atom]", 
+                        "Tot atten w/o coh scat [b/atom]"]
+            elif (1+self.ELEMENTOUTPUT) == 2:
+                return ["Coherent scat [b/atom]",
+                        "Incoherent scat [b/atom]", 
+                        "Photoel abs [b/atom]", 
+                        "Pair prod in nucl field [b/atom]", 
+                        "Pair prod in elec field [b/atom]", 
+                        "Tot atten with coh scat [cm2/g]", 
+                        "Tot atten w/o coh scat [cm2/g]"]
+            elif (1+self.ELEMENTOUTPUT) == 3:
+                return ["Coherent scat [cm2/g]",
+                        "Incoherent scat [cm2/g]", 
+                        "Photoel abs [cm2/g]", 
+                        "Pair prod in nucl field [cm2/g]", 
+                        "Pair prod in elec field [cm2/g]", 
+                        "Tot atten with coh scat [cm2/g]", 
+                        "Tot atten w/o coh scat [cm2/g]"]
             else:
-                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
+                return ["Coherent scat [cm2/g]",
+                        "Incoherent scat [cm2/g]",
+                        "Photoel abs [cm2/g]",
+                        "Pair prod in nucl field [cm2/g]",
+                        "Pair prod in elec field [cm2/g]",
+                        "Tot atten with coh scat [cm2/g]",
+                        "Tot atten w/o coh scat [cm2/g]"]
+        else:
+                return ["Coherent scat [cm2/g]",
+                        "Incoherent scat [cm2/g]",
+                        "Photoel abs [cm2/g]",
+                        "Pair prod in nucl field [cm2/g]",
+                        "Pair prod in elec field [cm2/g]",
+                        "Tot atten with coh scat [cm2/g]",
+                        "Tot atten w/o coh scat [cm2/g]"]
 
-    def defaults(self):
-         self.resetSettings()
-         self.compute()
-         return
+    def getXTitles(self):
+        return ["Photon Energy [Mev]",
+                "Photon Energy [Mev]",
+                "Photon Energy [Mev]",
+                "Photon Energy [Mev]",
+                "Photon Energy [Mev]",
+                "Photon Energy [Mev]",
+                "Photon Energy [Mev]"]
 
-    def help1(self):
-        print("help pressed.")
-        xoppy_util.xoppy_doc('xxcom')
+    def getYTitles(self):
+        return self.getTitles()
 
+    def getVariablesToPlot(self):
+        return [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7)]
 
+    def getLogPlot(self):
+        return [(False, False), (False, False), (False, False), (False, False), (False, False), (False, False), (False, False)]
+
+# --------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
 
 def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:Al2O3:K2O",\
                      FRACTION="0.807:0.129:0.038:0.022:0.004",GRID=1,GRIDINPUT=0,\

@@ -20,7 +20,7 @@ class OWxcrosssec(widget.OWWidget):
     icon = "icons/xoppy_xcrosssec.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 2
     category = ""
     keywords = ["xoppy", "xcrosssec"]
     outputs = [{"name": "ExchangeData",
