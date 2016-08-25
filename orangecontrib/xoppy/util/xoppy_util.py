@@ -73,8 +73,12 @@ def xoppy_doc(app):
 
     filename1 = os.path.join(home_doc,app+'.txt')
     filename2 = os.path.join(home_doc,app+'_par.txt')
-    command = "gedit "+filename1+" "+filename2+" &"
-    print("Running command '%s' "%(command))
+
+    if sys.platform == 'darwin':
+        command = "open -a TextEdit "+filename1+" "+filename2+" &"
+    elif sys.platform == 'linux':
+        command = "gedit "+filename1+" "+filename2+" &"
+
     os.system(command)
 
 class XoppyPhysics:
@@ -124,8 +128,5 @@ class XoppyPlot:
         if not title is None: plot_window.setGraphTitle(title)
         plot_window.setDrawModeEnabled(True, 'rectangle')
         plot_window.setZoomModeEnabled(True)
-        if min(y) < 0:
-            plot_window.setGraphYLimits(1.01*min(y), max(y)*1.01)
-        else:
-            plot_window.setGraphYLimits(0, max(y)*1.01)
+        plot_window.resetZoom()
         plot_window.replot()

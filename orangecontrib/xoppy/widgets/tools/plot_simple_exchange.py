@@ -11,16 +11,16 @@ from PyMca5.PyMcaIO import specfilewrapper as specfile
 from oasys.widgets.exchange import DataExchangeObject
 
 class OWPlotSimpleExchange(widget.OWWidget):
-    name = "Plot Simple Exchange"
+    name = "Xoppy-Data Plot"
     id = "orange.widgets.data.widget_name"
     description = ""
-    icon = "icons/Unknown.svg"
+    icon = "icons/histogram.png"
     author = ""
     maintainer_email = ""
     priority = 10
     category = ""
     keywords = ["list", "of", "keywords"]
-    inputs = [{"name": "ExchangeData",
+    inputs = [{"name": "xoppy_data",
                 "type": DataExchangeObject,
                 "doc": "",
                 "handler": "do_plot" }, ]
@@ -30,7 +30,8 @@ class OWPlotSimpleExchange(widget.OWWidget):
         super().__init__()
         self.figure_canvas = None
 
-    def do_plot(self,exchange_data):
+    '''
+    def do_plot(self, exchange_data):
         print(">>plot_data_exchange: data received")
         plot_type = None
         try:
@@ -78,13 +79,13 @@ class OWPlotSimpleExchange(widget.OWWidget):
             except:
                 pass
             plt.grid(True)
+    '''
 
-
-    def do_plot(self,exchange_data):
+    def do_plot(self, exchange_data):
         print(">>plot_data_exchange: data received")
         plot_type = None
         try:
-            data = exchange_data.get_content("data")
+            data = exchange_data.get_content("xoppy_data").T
             plot_type = "1D"
         except:
             pass
@@ -109,7 +110,7 @@ class OWPlotSimpleExchange(widget.OWWidget):
             try:
                 ycol = exchange_data.get_content("plot_y_col")
             except:
-                ycol = 0
+                ycol = 1
 
             x = data[xcol,:]
             y = data[ycol,:]

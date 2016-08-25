@@ -1,11 +1,11 @@
 import sys
-import numpy
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from PyMca5.PyMcaIO import specfilewrapper as specfile
+from PyQt4.QtCore import QRect
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QTextEdit, QMessageBox, QTextCursor
 
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import widget
+from oasys.widgets import gui as oasysgui
 
 import xraylib
 
@@ -14,24 +14,13 @@ from orangecontrib.xoppy.util import xoppy_util
 class OWxraylib_widget(widget.OWWidget):
     name = "xraylib_widget"
     id = "orange.widgets.dataxraylib_widget"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute XRAYLIB"
     icon = "icons/xraylib.png"
-    author = "create_widget.py"
+    author = "Manuel Sanchez del Rio, Luca Rebuffi "
     maintainer_email = "srio@esrf.eu"
     priority = 1
     category = ""
     keywords = ["xoppy", "xraylib_widget"]
-    outputs = [{"name": "xoppy_data",
-               "type": numpy.ndarray,
-               "doc": ""},
-               {"name": "xoppy_specfile",
-                "type": str,
-                "doc": ""}]
-
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
 
     want_main_area = False
 
@@ -46,20 +35,43 @@ class OWxraylib_widget(widget.OWWidget):
     SHELL = Setting(0)
     ENERGY = Setting(10.0)
 
+    MAX_WIDTH = 500
+    MAX_HEIGHT = 530
+    CONTROL_AREA_WIDTH = 490
 
     def __init__(self):
         super().__init__()
 
-        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
+        geom = QApplication.desktop().availableGeometry()
+        self.setGeometry(QRect(round(geom.width()*0.05),
+                               round(geom.height()*0.05),
+                               round(min(geom.width()*0.98, self.MAX_WIDTH)),
+                               round(min(geom.height()*0.95, self.MAX_HEIGHT))))
+
+        self.setMaximumHeight(self.geometry().height())
+        self.setMaximumWidth(self.geometry().width())
+
+        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
+
+        box0 = gui.widgetBox(self.controlArea, "", orientation="horizontal")
         #widget buttons: compute, set defaults, help
         gui.button(box0, self, "Compute", callback=self.compute)
         gui.button(box0, self, "Defaults", callback=self.defaults)
         gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
-        
-        
-        idx = -1 
+
+        gui.separator(self.controlArea, height=10)
+
+        box = oasysgui.widgetBox(self.controlArea, "XRAYLIB Input Parameters",orientation="vertical", width=self.CONTROL_AREA_WIDTH-5, height=150)
+
+        self.xoppy_output = QTextEdit()
+        self.xoppy_output.setReadOnly(True)
+        self.xoppy_output.setFixedHeight(250)
+        self.xoppy_output.setFixedWidth(self.CONTROL_AREA_WIDTH-25)
+
+        out_box = gui.widgetBox(self.controlArea, "Calculation Output", addSpace=True, orientation="horizontal")
+        out_box.layout().addWidget(self.xoppy_output)
+
+        idx = -1
         
         #widget index 0 
         idx += 1 
@@ -75,21 +87,21 @@ class OWxraylib_widget(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ELEMENT",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ELEMENTORCOMPOUND",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "COMPOUND",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
@@ -142,8 +154,11 @@ class OWxraylib_widget(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ENERGY",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
+
+
+        self.process_showers()
 
         gui.rubber(self.controlArea)
 
@@ -155,48 +170,38 @@ class OWxraylib_widget(widget.OWWidget):
          return ["True", "self.FUNCTION <= 3 or self.FUNCTION == 6", "self.FUNCTION == 4 or self.FUNCTION == 5 or self.FUNCTION == 7 or self.FUNCTION == 8 or self.FUNCTION == 10", "self.FUNCTION > 100","self.FUNCTION == 0", "(self.FUNCTION == 0 and self.TRANSITION_IUPAC_OR_SIEGBAHN == 0)", "(self.FUNCTION == 0 and self.TRANSITION_IUPAC_OR_SIEGBAHN == 0)", "(self.FUNCTION == 0 and self.TRANSITION_IUPAC_OR_SIEGBAHN == 1)","self.FUNCTION == 1 or self.FUNCTION == 6","self.FUNCTION >= 4 "]
 
 
-    #def unitNames(self):
-    #     return ["FUNCTION", "ELEMENT", "ELEMENTORCOMPOUND", "COMPOUND","TRANSITION_IUPAC_OR_SIEGBAHN","TRANSITION_IUPAC_TO","TRANSITION_IUPAC_FROM","TRANSITION_SIEGBAHN","SHELL","ENERGY"]
-
-
     def compute(self):
-        fileName = xoppy_calc_xraylib_widget(FUNCTION=self.FUNCTION,ELEMENT=self.ELEMENT,ELEMENTORCOMPOUND=self.ELEMENTORCOMPOUND,COMPOUND=self.COMPOUND,TRANSITION_IUPAC_OR_SIEGBAHN=self.TRANSITION_IUPAC_OR_SIEGBAHN,TRANSITION_IUPAC_TO=self.TRANSITION_IUPAC_TO,TRANSITION_IUPAC_FROM=self.TRANSITION_IUPAC_FROM,TRANSITION_SIEGBAHN=self.TRANSITION_SIEGBAHN,SHELL=self.SHELL,ENERGY=self.ENERGY)
-        #send specfile
+        self.setStatusMessage("Running XRAYLIB")
 
-        if fileName == None:
-            print("Nothing to send")
-        else:
-            self.send("xoppy_specfile",fileName)
-            sf = specfile.Specfile(fileName)
-            if sf.scanno() == 1:
-                #load spec file with one scan, # is comment
-                print("Loading file:  ",fileName)
-                out = numpy.loadtxt(fileName)
-                print("data shape: ",out.shape)
-                #get labels
-                txt = open(fileName).readlines()
-                tmp = [ line.find("#L") for line in txt]
-                itmp = numpy.where(numpy.array(tmp) != (-1))
-                labels = txt[itmp[0]].replace("#L ","").split("  ")
-                print("data labels: ",labels)
-                self.send("xoppy_data",out)
-            else:
-                print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
+        try:
+            sys.stdout = xoppy_util.EmittingStream(textWritten=self.writeStdOut)
+
+            xoppy_calc_xraylib_widget(FUNCTION=self.FUNCTION,ELEMENT=self.ELEMENT,ELEMENTORCOMPOUND=self.ELEMENTORCOMPOUND,COMPOUND=self.COMPOUND,TRANSITION_IUPAC_OR_SIEGBAHN=self.TRANSITION_IUPAC_OR_SIEGBAHN,TRANSITION_IUPAC_TO=self.TRANSITION_IUPAC_TO,TRANSITION_IUPAC_FROM=self.TRANSITION_IUPAC_FROM,TRANSITION_SIEGBAHN=self.TRANSITION_SIEGBAHN,SHELL=self.SHELL,ENERGY=self.ENERGY)
+
+            self.setStatusMessage("")
+
+        except Exception as exception:
+            QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
+
+            self.setStatusMessage("Error!")
 
     def defaults(self):
          self.resetSettings()
-         self.compute()
-         return
 
     def help1(self):
-        print("help pressed.")
         xoppy_util.xoppy_doc('xraylib_widget')
 
+    def writeStdOut(self, text):
+        cursor = self.xoppy_output.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        cursor.insertText(text)
+        self.xoppy_output.setTextCursor(cursor)
+        self.xoppy_output.ensureCursorVisible()
 
 
 def xoppy_calc_xraylib_widget(FUNCTION=0,ELEMENT=26,ELEMENTORCOMPOUND="FeSO4",COMPOUND="Ca5(PO4)3",TRANSITION_IUPAC_OR_SIEGBAHN=1,\
                               TRANSITION_IUPAC_TO=0,TRANSITION_IUPAC_FROM=0,TRANSITION_SIEGBAHN=0,SHELL=0,ENERGY=10.0):
-    print("Inside xoppy_calc_xraylib with FUNCTION=%d. "%(FUNCTION))
+    print("\nInside xoppy_calc_xraylib with FUNCTION=%d. "%(FUNCTION))
 
     if FUNCTION == 0:
         if TRANSITION_IUPAC_OR_SIEGBAHN == 0:
@@ -320,9 +325,6 @@ def xoppy_calc_xraylib_widget(FUNCTION=0,ELEMENT=26,ELEMENTORCOMPOUND="FeSO4",CO
         print("executing command: ",command)
         result = xraylib.CS_Energy_CP(ELEMENTORCOMPOUND,ENERGY)
         if result != 0.0: print("Mass-energy absorption cross section: %f  cm2/g"%(result))
-
-    return None
-
 
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ class PickFile(widget.OWWidget):
     description = """
     Pick a file of any format supported by XOPPY 
     and send it to the the output."""
-    icon = "icons/PickFile.png"
+    icon = "icons/pick_file.png"
     author = "Manuel Sanchez del Rio"
     maintainer_email = "srio(@at@)esrf.eu"
     priority = 10
