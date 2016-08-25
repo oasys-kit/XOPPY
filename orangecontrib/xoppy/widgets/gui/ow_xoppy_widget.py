@@ -85,14 +85,14 @@ class XoppyWidget(widget.OWWidget):
 
         self.initializeTabs()
 
-        self.shadow_output = QtGui.QTextEdit()
-        self.shadow_output.setReadOnly(True)
+        self.xoppy_output = QtGui.QTextEdit()
+        self.xoppy_output.setReadOnly(True)
 
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
-        out_box.layout().addWidget(self.shadow_output)
+        out_box.layout().addWidget(self.xoppy_output)
 
-        self.shadow_output.setFixedHeight(600)
-        self.shadow_output.setFixedWidth(600)
+        self.xoppy_output.setFixedHeight(600)
+        self.xoppy_output.setFixedWidth(600)
 
         gui.rubber(self.mainArea)
 
@@ -149,7 +149,6 @@ class XoppyWidget(widget.OWWidget):
 
         self.progressBarFinished()
 
-
     def plot_results(self, calculated_data, progressBarValue=80):
         if not self.view_type == 0:
             if not calculated_data is None:
@@ -168,7 +167,8 @@ class XoppyWidget(widget.OWWidget):
                     log_x, log_y = self.getLogPlot()[index]
 
                     try:
-                        self.plot_histo(xoppy_data[:, x_index], xoppy_data[:, y_index],
+                        self.plot_histo(xoppy_data[:, x_index],
+                                        xoppy_data[:, y_index],
                                         progressBarValue + ((index+1)*progress_bar_step),
                                         tabs_canvas_index=index,
                                         plot_canvas_index=index,
@@ -189,11 +189,11 @@ class XoppyWidget(widget.OWWidget):
                 raise Exception("Empty Data")
 
     def writeStdOut(self, text):
-        cursor = self.shadow_output.textCursor()
+        cursor = self.xoppy_output.textCursor()
         cursor.movePosition(QtGui.QTextCursor.End)
         cursor.insertText(text)
-        self.shadow_output.setTextCursor(cursor)
-        self.shadow_output.ensureCursorVisible()
+        self.xoppy_output.setTextCursor(cursor)
+        self.xoppy_output.ensureCursorVisible()
 
     def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False):
         if self.plot_canvas[plot_canvas_index] is None:

@@ -3,61 +3,41 @@ import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import widget
-
-from orangecontrib.xoppy.util import xoppy_util
-from orangecontrib.xoppy.widgets.xoppy.xoppy_xraylib_util import crystal_fh, bragg_calc
+from oasys.widgets import gui as oasysgui
 from oasys.widgets.exchange import DataExchangeObject
+
+
+from orangecontrib.xoppy.util.xoppy_xraylib_util import crystal_fh, bragg_calc
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+
 from xraylib import Crystal_GetCrystalsList
 
-class OWxfh(widget.OWWidget):
+class OWxfh(XoppyWidget):
     name = "xfh"
     id = "orange.widgets.dataxfh"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute XFH"
     icon = "icons/xoppy_xfh.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
     priority = 5
     category = ""
     keywords = ["xoppy", "xfh"]
-    outputs = [{"name": "ExchangeData",
-                "type": DataExchangeObject,
-                "doc": "send ExchangeData"}]
 
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
-
-    want_main_area = False
-
-
-    ILATTICE = Setting(0)
+    ILATTICE = Setting(32)
     HMILLER = Setting(1)
     KMILLER = Setting(1)
     LMILLER = Setting(1)
+    plot_variable = Setting(0)
     I_PLOT = Setting(2)
     TEMPER = Setting(1.0)
     ENERGY = Setting(8000.0)
     ENERGY_END = Setting(18000.0)
     NPOINTS = Setting(20)
 
+    def build_gui(self):
 
-    def __init__(self):
-        super().__init__()
-
-        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
-        #widget buttons: compute, set defaults, help
-        gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Defaults", callback=self.defaults)
-        gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
-        
+        box = oasysgui.widgetBox(self.controlArea, "XFH Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1 
         
-
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
@@ -72,7 +52,7 @@ class OWxfh(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "HMILLER",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
@@ -80,7 +60,7 @@ class OWxfh(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "KMILLER",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
@@ -88,15 +68,15 @@ class OWxfh(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "LMILLER",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "I_PLOT",
+        gui.comboBox(box1, self, "plot_variable",
                      label=self.unitLabels()[idx], addSpace=True,
-                    items=self.plotOptionList(),
+                    items=self.plotOptionList()[2:],
                     valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
@@ -104,7 +84,7 @@ class OWxfh(widget.OWWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "TEMPER",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
@@ -112,7 +92,7 @@ class OWxfh(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ENERGY",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
@@ -120,7 +100,7 @@ class OWxfh(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "ENERGY_END",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
@@ -128,14 +108,13 @@ class OWxfh(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NPOINTS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
          return ['Crystal:','h miller index','k miller index','l miller index','Plot:','Temperature factor [see help]:','From Energy [eV]','To energy [eV]','Number of points']
-
 
     def unitFlags(self):
          return ['True','True','True','True','True','True','True','True','True']\
@@ -167,7 +146,40 @@ class OWxfh(widget.OWWidget):
                   "Sin(Bragg angle)/Lambda",
                   "psi_over_f"]
 
-    def compute(self):
+
+    def get_help_name(self):
+        return 'xfh'
+
+    def check_fields(self):
+        pass
+
+    def do_xoppy_calculation(self):
+        self.I_PLOT = self.plot_variable + 2
+
+        return self.xoppy_calc_xfh()
+
+    def extract_data_from_xoppy_output(self, calculation_output):
+        return calculation_output
+
+    def get_data_exchange_widget_name(self):
+        return "XFH"
+
+    def getTitles(self):
+        return ["Calculation Result"]
+
+    def getXTitles(self):
+        return ["Energy [eV]"]
+
+    def getYTitles(self):
+        return [self.plotOptionList()[self.I_PLOT]]
+
+    def getVariablesToPlot(self):
+        return [(0, self.I_PLOT)]
+
+    def getLogPlot(self):
+        return[(False, False)]
+
+    def xoppy_calc_xfh(self):
         #TODO: remove I_ABSORP
         ILATTICE = self.ILATTICE
         HMILLER = self.HMILLER
@@ -222,35 +234,24 @@ class OWxfh(widget.OWWidget):
             info += dic2["info"]
 
         #send exchange
-        tmp = DataExchangeObject("xoppy_calc_xfh","xfh")
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         try:
-            tmp.add_content("data",out)
-            tmp.add_content("plot_x_col",0)
-            tmp.add_content("plot_y_col",I_PLOT)
+            calculated_data.add_content("xoppy_data", out.T)
+            calculated_data.add_content("plot_x_col",0)
+            calculated_data.add_content("plot_y_col", I_PLOT)
         except:
             pass
         try:
-            tmp.add_content("labels",self.plotOptionList())
+            calculated_data.add_content("labels",self.plotOptionList())
         except:
             pass
         try:
-            tmp.add_content("info",info)
+            calculated_data.add_content("info",info)
         except:
             pass
 
-        self.send("ExchangeData",tmp)
-
-
-    def defaults(self):
-         self.resetSettings()
-         self.compute()
-         return
-
-    def help1(self):
-        print("help pressed.")
-        xoppy_util.xoppy_doc('xfh')
-
+        return calculated_data
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

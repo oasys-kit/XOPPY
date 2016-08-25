@@ -1,38 +1,27 @@
 import sys
 import numpy
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QMessageBox
+from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
+
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import widget
-
-from orangecontrib.xoppy.util import xoppy_util
-
-
+from oasys.widgets import gui as oasysgui
 from oasys.widgets.exchange import DataExchangeObject
-from orangecontrib.xoppy.widgets.xoppy.xoppy_xraylib_util import cross_calc,cross_calc_mix
+
+from orangecontrib.xoppy.util.xoppy_xraylib_util import cross_calc, cross_calc_mix
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+
 import xraylib
 
 
-class OWxcrosssec(widget.OWWidget):
+class OWxcrosssec(XoppyWidget):
     name = "xcrosssec"
     id = "orange.widgets.dataxcrosssec"
-    description = "xoppy application to compute..."
+    description = "xoppy application to compute XCROSSSEC"
     icon = "icons/xoppy_xcrosssec.png"
-    author = "create_widget.py"
-    maintainer_email = "srio@esrf.eu"
     priority = 2
     category = ""
     keywords = ["xoppy", "xcrosssec"]
-    outputs = [{"name": "ExchangeData",
-                "type": DataExchangeObject,
-                "doc": "send ExchangeData"}]
-
-    #inputs = [{"name": "Name",
-    #           "type": type,
-    #           "handler": None,
-    #           "doc": ""}]
-
-    want_main_area = False
 
     MAT_FLAG = Setting(0)
     MAT_LIST = Setting(0)
@@ -46,18 +35,13 @@ class OWxcrosssec(widget.OWWidget):
     UNIT = Setting(0)
 
 
-    def __init__(self):
-        super().__init__()
+    xtitle = None
+    ytitle = None
 
-        box0 = gui.widgetBox(self.controlArea, " ",orientation="horizontal") 
-        #widget buttons: compute, set defaults, help
-        gui.button(box0, self, "Compute", callback=self.compute)
-        gui.button(box0, self, "Defaults", callback=self.defaults)
-        gui.button(box0, self, "Help", callback=self.help1)
-        self.process_showers()
-        box = gui.widgetBox(self.controlArea, " ",orientation="vertical") 
-        
-        
+    def build_gui(self):
+
+        box = oasysgui.widgetBox(self.controlArea, "XCROSSSEC Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+
         idx = -1
         
         #widget index 1 
@@ -83,7 +67,7 @@ class OWxcrosssec(widget.OWWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "DESCRIPTOR",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
@@ -91,15 +75,12 @@ class OWxcrosssec(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "DENSITY",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        # gui.lineEdit(box1, self, "CALCULATE",
-        #              label=self.unitLabels()[idx], addSpace=True)
-        # self.show_at(self.unitFlags()[idx], box1)
         gui.comboBox(box1, self, "CALCULATE",
                      label=self.unitLabels()[idx], addSpace=True,
                      items=['Total','PhotoElectric','Rayleigh','Compton','Total-Rayleigh'],
@@ -120,7 +101,7 @@ class OWxcrosssec(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "GRIDSTART",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
@@ -128,7 +109,7 @@ class OWxcrosssec(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "GRIDEND",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
@@ -136,7 +117,7 @@ class OWxcrosssec(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "GRIDN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
@@ -153,44 +134,111 @@ class OWxcrosssec(widget.OWWidget):
     def unitLabels(self):
          return ['material','table','formula','density','Cross section','Energy [eV] grid:','Starting Energy [eV]: ','To: ','Number of points','Units']
 
-
     def unitFlags(self):
          return ['True','self.MAT_FLAG  ==  2','self.MAT_FLAG  <=  1 ','self.MAT_FLAG  ==  1  &  self.UNIT  ==  3','True','True','self.GRID  !=  0','self.GRID  ==  1','self.GRID  ==  1','True']
 
-    def compute(self):
+    def get_help_name(self):
+        return 'xf1f2'
+
+    def check_fields(self):
+        pass
+
+    def do_xoppy_calculation(self):
         out_dict = self.xoppy_calc_xcrosssec()
 
         if "info" in out_dict.keys():
             print(out_dict["info"])
 
         #send exchange
-        tmp = DataExchangeObject("xoppy_calc_crosssec","xcrosssec")
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+        
         try:
-            tmp.add_content("data",out_dict["data"])
-            tmp.add_content("plot_x_col",0)
-            tmp.add_content("plot_y_col",-1)
+            calculated_data.add_content("xoppy_data", out_dict["data"].T)
+            calculated_data.add_content("plot_x_col",0)
+            calculated_data.add_content("plot_y_col",-1)
         except:
             pass
         try:
-            tmp.add_content("labels",out_dict["labels"])
+            calculated_data.add_content("labels", out_dict["labels"])
         except:
             pass
         try:
-            tmp.add_content("info",out_dict["info"])
+            calculated_data.add_content("info",out_dict["info"])
         except:
             pass
 
+        return calculated_data
 
-        self.send("ExchangeData",tmp)
+    def extract_data_from_xoppy_output(self, calculation_output):
+        try:
+            calculation_output.get_content("xoppy_data")
 
-    def defaults(self):
-         self.resetSettings()
-         self.compute()
-         return
+            labels = calculation_output.get_content("labels")
 
-    def help1(self):
-        print("help pressed.")
-        xoppy_util.xoppy_doc('xcrosssec')
+            self.xtitle = labels[0]
+            self.ytitle = labels[1]
+        except:
+            QMessageBox.information(self,
+                                    "Calculation Result",
+                                    "Calculation Result:\n"+calculation_output.get_content("info"),
+                                    QMessageBox.Ok)
+
+            self.xtitle = None
+            self.ytitle = None
+
+        return calculation_output
+
+    def plot_results(self, calculated_data, progressBarValue=80):
+        self.initializeTabs()
+
+        try:
+            calculated_data.get_content("xoppy_data")
+
+            super().plot_results(calculated_data, progressBarValue)
+        except:
+            self.plot_info(calculated_data.get_content("info") + "\n", progressBarValue, 0, 0)
+
+    def plot_info(self, info, progressBarValue, tabs_canvas_index, plot_canvas_index):
+        if self.plot_canvas[plot_canvas_index] is None:
+            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+            self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
+            self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
+            self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(False)
+            self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(False)
+
+            self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+
+        self.plot_canvas[plot_canvas_index].setGraphTitle(info)
+        self.plot_canvas[plot_canvas_index].setGraphXLabel("")
+        self.plot_canvas[plot_canvas_index].setGraphYLabel("")
+        self.plot_canvas[plot_canvas_index].resetZoom()
+        self.plot_canvas[plot_canvas_index].replot()
+
+        self.progressBarSet(progressBarValue)
+
+    def get_data_exchange_widget_name(self):
+        return "XCROSSSEC"
+
+    def getTitles(self):
+        return ["Calculation Result"]
+
+    def getXTitles(self):
+        if self.xtitle is None:
+            return [""]
+        else:
+            return [self.xtitle]
+
+    def getYTitles(self):
+        if self.ytitle is None:
+            return [""]
+        else:
+            return [self.ytitle]
+
+    def getVariablesToPlot(self):
+        return [(0, 1)]
+
+    def getLogPlot(self):
+        return[(False, False)]
 
 
     def xoppy_calc_xcrosssec(self):
