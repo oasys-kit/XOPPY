@@ -188,26 +188,23 @@ class OWundulator_radiation(XoppyWidget):
         pass
 
     def do_xoppy_calculation(self):
-        return  xoppy_calc_undulator_radiation(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,HSLITPOINTS=self.HSLITPOINTS,VSLITPOINTS=self.VSLITPOINTS,METHOD=self.METHOD)
+        return xoppy_calc_undulator_radiation(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,HSLITPOINTS=self.HSLITPOINTS,VSLITPOINTS=self.VSLITPOINTS,METHOD=self.METHOD)
+
 
     def extract_data_from_xoppy_output(self, calculation_output):
-        spec_file_name = calculation_output
+        h,v,p = calculation_output
 
-        print("Loading file:  ", spec_file_name)
-
+        # TODO...
         try:
-            out = xoppy_pymca_tools.xoppy_loadspec(spec_file_name)
 
-            print("data shape: ", out.shape)
 
             calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
-            calculated_data.add_content("xoppy_specfile", spec_file_name)
-            calculated_data.add_content("xoppy_data",  out.T)
+            calculated_data.add_content("xoppy_data",  [h,v,p])
 
             return calculated_data
         except Exception as e:
-            raise Exception("Problems while reading input: " + str(e))
+            raise Exception("Problems ... ")
 
 
     def get_data_exchange_widget_name(self):
@@ -266,34 +263,46 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
         energy = resonance_energy
 
 
+    #TODO SPEC file can be removed
     outFile = "undulator_radiation.spec"
 
 
+    # Memorandum:
+    # e = array with energy in eV
+    # h = array with horizontal positions in mm
+    # v = array with vertical positions in mm
+    # p = array with photon flux in photons/s/0.1%bw/mm^2 with shape (Ne,Nh.Nv)
     if METHOD == 0:
+        code = "US"
         print("Undulator radiation calculation using US. Please wait...")
         e,h,v,p = srundplug.calc3d_us(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
                                     photonEnergyMin=energy,photonEnergyMax=13000,photonEnergyPoints=1,zero_emittance=False)
         print("Done")
     if METHOD == 1:
+        code = "URGENT"
         print("Undulator radiation calculation using URGENT. Please wait...")
         e,h,v,p = srundplug.calc3d_urgent(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
                                     photonEnergyMin=energy,photonEnergyMax=13000,photonEnergyPoints=1,zero_emittance=False)
         print("Done")
     if METHOD == 2:
+        code = "SRW"
         print("Undulator radiation calculation using SRW. Please wait...")
         e,h,v,p = srundplug.calc3d_srw(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
                                     photonEnergyMin=energy,photonEnergyMax=13000,photonEnergyPoints=1,zero_emittance=False)
         print("Done")
     if METHOD == 3:
+        code = "pySRU"
         print("Undulator radiation calculation using SRW. Please wait...")
         e,h,v,p = srundplug.calc3d_pysru(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
                                     photonEnergyMin=energy,photonEnergyMax=13000,photonEnergyPoints=1,zero_emittance=False)
         print("Done")
 
+    #TODO place this plot in the corresponding place
+    print(">>>>> Result shapes",h.shape,v.shape,p[0].shape )
     from srxraylib.plot.gol import plot_image
-    plot_image(p[0],h,v)
+    plot_image(p[0],h,v,xtitle='H [mm]',ytitle='V [mm]',title='Code '+code+'; Flux [photons/s/0.1%bw/mm^2]')
 
-    return outFile
+    return p[0],h,v
 
 
 

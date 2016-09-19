@@ -9,14 +9,14 @@ from orangecontrib.xoppy.util import srundplug
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-class OWundulator_flux(XoppyWidget):
-    name = "undulator_flux"
-    id = "orange.widgets.dataundulator_flux"
-    description = "xoppy application to compute UNDULATOR_FLUX"
-    icon = "icons/xoppy_undulator_flux.png"
+class OWundulator_spectrum(XoppyWidget):
+    name = "undulator_spectrum"
+    id = "orange.widgets.dataundulator_spectrum"
+    description = "xoppy application to compute UNDULATOR_SPECTRUM"
+    icon = "icons/xoppy_undulator_spectrum.png"
     priority = 1
     category = ""
-    keywords = ["xoppy", "undulator_flux"]
+    keywords = ["xoppy", "undulator_spectrum"]
 
     ELECTRONENERGY = Setting(6.04)
     ELECTRONENERGYSPREAD = Setting(0.001)
@@ -186,19 +186,19 @@ class OWundulator_flux(XoppyWidget):
          return ["True", "self.METHOD != 1", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True"]
 
     def get_help_name(self):
-        return 'undulator_flux'
+        return 'undulator_spectrum'
 
     def check_fields(self):
         pass
 
     def do_xoppy_calculation(self):
-        return xoppy_calc_undulator_flux(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,PHOTONENERGYMIN=self.PHOTONENERGYMIN,PHOTONENERGYMAX=self.PHOTONENERGYMAX,PHOTONENERGYPOINTS=self.PHOTONENERGYPOINTS,METHOD=self.METHOD)
+        return xoppy_calc_undulator_spectrum(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,PHOTONENERGYMIN=self.PHOTONENERGYMIN,PHOTONENERGYMAX=self.PHOTONENERGYMAX,PHOTONENERGYPOINTS=self.PHOTONENERGYPOINTS,METHOD=self.METHOD)
 
     def get_data_exchange_widget_name(self):
-        return "UNDULATOR_FLUX"
+        return "UNDULATOR_SPECTRUM"
 
     def getTitles(self):
-        return ['Undulator Flux']
+        return ['Undulator Spectrum']
 
     def getXTitles(self):
         return ["Energy [eV]"]
@@ -206,18 +206,21 @@ class OWundulator_flux(XoppyWidget):
     def getYTitles(self):
         return ["Flux [Phot/sec/0.1%bw]"]
 
+    def getVariablesToPlot(self):
+        return [(0, 2)]
+
     def getLogPlot(self):
-        return [(True, True)]
+        return [(False, False)]
 
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
 
-def xoppy_calc_undulator_flux(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
+def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
                               ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
                               ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
                               PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
                               PHOTONENERGYMIN=3000.0,PHOTONENERGYMAX=55000.0,PHOTONENERGYPOINTS=500,METHOD=0):
-    print("Inside xoppy_calc_undulator_flux. ")
+    print("Inside xoppy_calc_undulator_spectrum. ")
 
     bl = OrderedDict()
     bl['ElectronBeamDivergenceH'] = ELECTRONBEAMDIVERGENCEH
@@ -234,23 +237,25 @@ def xoppy_calc_undulator_flux(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELE
     bl['gapH'] = GAPH
     bl['gapV'] = GAPV
 
-    outFile = "undulator_flux.spec"
+    #TODO remove file and export e,f arrays
+    outFile = "undulator_spectrum.spec"
 
     if METHOD == 0:
         print("Undulator flux calculation using US. Please wait...")
-        e,f = srundplug.calc1dUs(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
+        e,f = srundplug.calc1d_us(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
               photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
         print("Done")
     if METHOD == 1:
         print("Undulator flux calculation using URGENT. Please wait...")
-        e,f = srundplug.calc1dUrgent(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
+        e,f = srundplug.calc1d_urgent(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
               photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
         print("Done")
     if METHOD == 2:
         print("Undulator flux calculation using SRW. Please wait...")
-        e,f = srundplug.calc1dSrw(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
+        e,f = srundplug.calc1d_srw(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
               photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
         print("Done")
+
 
     return outFile
 
@@ -258,7 +263,7 @@ def xoppy_calc_undulator_flux(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELE
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    w = OWundulator_flux()
+    w = OWundulator_spectrum()
     w.show()
     app.exec()
     w.saveSettings()
