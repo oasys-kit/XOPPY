@@ -168,21 +168,27 @@ class OWxtc(XoppyWidget):
                     valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1)
         
-        #widget index 21 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "HELICAL",
+
+        #widget index 21
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "HELICAL",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 22 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "METHOD",
+                     items=['Planar undulator', 'Helical undulator'],
+                     valueType=int, orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
+
+
+        #widget index 22
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "METHOD",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
+                     items=['Finite-N', 'Infinite N with convolution'],
+                     valueType=int, orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
 
         
         #widget index 24 
