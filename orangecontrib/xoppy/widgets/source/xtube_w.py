@@ -78,7 +78,7 @@ class OWxtube_w(XoppyWidget):
         return ["Energy [eV]"]
 
     def getYTitles(self):
-        return ["Intensity (arbitrary units)"]
+        return ["Flux [photons/1keV(bw)/mA/mm^2(@1m)/s])"]
 
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
@@ -99,8 +99,6 @@ def xoppy_calc_xtube_w(VOLTAGE=100.0,RIPPLE=0.0,AL_FILTER=0.0):
         return "tasmip_tmp.dat"
     except Exception as e:
         raise e
-
-
 
 
 if __name__ == "__main__":

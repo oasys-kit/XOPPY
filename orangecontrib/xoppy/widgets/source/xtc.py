@@ -167,7 +167,7 @@ class OWxtc(XoppyWidget):
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1)
-        
+
 
         #widget index 21
         idx += 1

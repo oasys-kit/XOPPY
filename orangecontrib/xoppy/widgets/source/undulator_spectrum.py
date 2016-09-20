@@ -198,19 +198,19 @@ class OWundulator_spectrum(XoppyWidget):
         return "UNDULATOR_SPECTRUM"
 
     def getTitles(self):
-        return ['Undulator Spectrum']
+        return ['Flux','Spectral Power']
 
     def getXTitles(self):
-        return ["Energy [eV]"]
+        return ["Energy [eV]","Energy [eV]"]
 
     def getYTitles(self):
-        return ["Flux [Phot/sec/0.1%bw]"]
+        return ["Flux [Phot/sec/0.1%bw]","Spectral Power [W/eV]"]
 
     def getVariablesToPlot(self):
-        return [(0, 2)]
+        return [(0, 2),(0,3)]
 
     def getLogPlot(self):
-        return [(False, False)]
+        return [(False, False),(False, False)]
 
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------

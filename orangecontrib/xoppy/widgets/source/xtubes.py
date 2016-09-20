@@ -67,7 +67,7 @@ class OWxtubes(XoppyWidget):
         return ["Energy [eV]"]
 
     def getYTitles(self):
-        return ["Intensity (arbitrary units)"]
+        return ["Fluence [photons/s/mm^2/0.5keV(bw)/mA]"]
 
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
