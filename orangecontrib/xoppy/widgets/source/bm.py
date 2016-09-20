@@ -7,6 +7,9 @@ from orangewidget.settings import Setting
 
 from srxraylib.sources import srfunc
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+from oasys.widgets.exchange import DataExchangeObject
+
+
 
 class OWbm(XoppyWidget):
     name = "bm"
@@ -34,6 +37,7 @@ class OWbm(XoppyWidget):
     PSI_MIN = Setting(-1.0)
     PSI_MAX = Setting(1.0)
     PSI_NPOINTS = Setting(500)
+    FILE_DUMP = Setting(0)
 
     def build_gui(self):
 
@@ -180,17 +184,31 @@ class OWbm(XoppyWidget):
                     valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
+        #widget index 17
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "FILE_DUMP",
+                     label=self.unitLabels()[idx], addSpace=True,
+                     items=['No', 'YES (bm.spec)'],
+                     valueType=int, orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
     def unitLabels(self):
-         return ['Type of calculation','Machine name','B from:','Machine Radius [m]','Magnetic Field [T]','Beam energy [GeV]','Beam Current [A]','Horizontal div Theta [mrad]','Psi (vertical div) for energy spectra','Min Photon Energy [eV]','Max Photon Energy [eV]','Number of energy points','Separation between energy points','Max Psi[mrad] for angular plots','Psi min [mrad]','Psi max [mrad]','Number of Psi points']
+         return ['Type of calculation','Machine name','B from:','Machine Radius [m]','Magnetic Field [T]','Beam energy [GeV]','Beam Current [A]','Horizontal div Theta [mrad]','Psi (vertical div) for energy spectra','Min Photon Energy [eV]','Max Photon Energy [eV]','Number of energy points','Separation between energy points','Max Psi[mrad] for angular plots','Psi min [mrad]','Psi max [mrad]','Number of Psi points','Dump file']
 
     def unitFlags(self):
-         return ['True','True','True','self.RB_CHOICE  ==  0','self.RB_CHOICE  ==  1','True','True','True','True','True','True','True','True','True','self.VER_DIV  >=  2','self.VER_DIV  ==  2','self.VER_DIV  ==  2']
+         return ['True','True','True','self.RB_CHOICE  ==  0','self.RB_CHOICE  ==  1','True','True','True','True','True','True','True','True','True','self.VER_DIV  >=  2','self.VER_DIV  ==  2','self.VER_DIV  ==  2','True']
 
     def set_TYPE_CALC(self):
+
         self.initializeTabs()
+        if self.TYPE_CALC == 3:
+                self.VER_DIV = 2
+
 
     def set_VER_DIV(self):
         if self.TYPE_CALC == 0: self.initializeTabs()
+
 
     def get_help_name(self):
         return 'bm'
@@ -215,7 +233,8 @@ class OWbm(XoppyWidget):
                              PSI_MRAD_PLOT=self.PSI_MRAD_PLOT,
                              PSI_MIN=self.PSI_MIN,
                              PSI_MAX=self.PSI_MAX,
-                             PSI_NPOINTS=self.PSI_NPOINTS)
+                             PSI_NPOINTS=self.PSI_NPOINTS,
+                             FILE_DUMP=self.FILE_DUMP)
 
     def add_specific_content_to_calculated_data(self, calculated_data):
         calculated_data.add_content("is_log_plot", self.LOG_CHOICE)
@@ -225,22 +244,33 @@ class OWbm(XoppyWidget):
     def get_data_exchange_widget_name(self):
         return "BM"
 
+    def extract_data_from_xoppy_output(self, calculation_output):
+
+        try:
+            calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+
+            calculated_data.add_content("xoppy_data",  calculation_output)
+
+            return calculated_data
+        except Exception as e:
+            raise Exception("Problems ...")
+
     def getTitles(self):
         if self.TYPE_CALC == 0:
             if self.VER_DIV == 0:
-                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/sec/0.1%bw]', 'Power [Watts/eV]']
+                return ['E/Ec', 'Flux s-pol/Flux total', 'Flux p-pol/Flux total', 'Flux', 'Spectral Power']
             elif self.VER_DIV == 1:
-                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/sec/0.1%bw/mrad(Psi)]', 'Power[Watts/eV/mrad(Psi)]']
+                return ['E/Ec', 'Flux s-pol/Flux total', 'Flux p-pol/Flux total', 'Flux', 'Spectral Power']
             elif self.VER_DIV == 2:
-                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/sec/0.1%bw]', 'Power [Watts/eV]']
+                return ['E/Ec', 'Flux s-pol/Flux total', 'Flux p-pol/Flux total', 'Flux', 'Spectral Power']
             elif self.VER_DIV == 3:
-                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/sec/0.1%bw/mrad(Psi)]', 'Power [Watts/eV/mrad(Psi)]']
+                return ['E/Ec', 'Flux s-pol/Flux total', 'Flux p-pol/Flux total', 'Flux', 'Spectral Power']
         elif self.TYPE_CALC == 1:
-            return ["Psi[rad]*Gamma", "F", "F s-pol", "F p-pol", "Power [Watts/mrad(Psi)]"]
+            return ["Psi[rad]*Gamma", "F", "F s-pol", "F p-pol", "Spectral Power"]
         elif self.TYPE_CALC == 2:
-            return ["Psi[rad]*Gamma", "F", "F s-pol", "F p-pol", "Flux [Phot/sec/0.1%bw/mrad(Psi)]", "Power [Watts/mrad(Psi)]"]
+            return ["Psi[rad]*Gamma", "F", "F s-pol", "F p-pol", "Flux", "Spectral Power"]
         elif self.TYPE_CALC == 3:
-            return []
+            return ["2D Flux (angle,energy)","2D Spectral Power (angle,energy)"]
 
     def getXTitles(self):
         if self.TYPE_CALC == 0:
@@ -250,7 +280,7 @@ class OWbm(XoppyWidget):
         elif self.TYPE_CALC == 2:
             return ["Psi [mrad]", "Psi [mrad]", "Psi [mrad]", "Psi [mrad]", "Psi [mrad]", "Psi [mrad]"]
         elif self.TYPE_CALC == 3:
-            return []
+            return ["Energy [eV]","Energy [eV]"]
 
     def getYTitles(self):
         if self.TYPE_CALC == 0:
@@ -267,7 +297,7 @@ class OWbm(XoppyWidget):
         elif self.TYPE_CALC == 2:
            return ["Psi[rad]*Gamma", "F", "F s-pol", "F p-pol", "Flux [Phot/sec/0.1%bw/mrad(Psi)]", "Power [Watts/mrad(Psi)]"]
         elif self.TYPE_CALC == 3:
-           return []
+           return ["Psi [mrad]","Psi [mrad]"]
 
     def getVariablesToPlot(self):
         if self.TYPE_CALC == 0:
@@ -277,17 +307,17 @@ class OWbm(XoppyWidget):
         elif self.TYPE_CALC == 2:
             return [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6)]
         elif self.TYPE_CALC == 3:
-            return []
+            return [[(0, 1), (0, 1)]]
 
     def getLogPlot(self):
         if self.TYPE_CALC == 0:
-            return [(True, False), (True, False), (True, False), (True, True), (True, False)]
+            return [(True, False), (True, False), (True, False), (True, True), (True, True)]
         elif self.TYPE_CALC == 1:
             return [(False, False), (False, False), (False, False), (False, False), (False, False)]
         elif self.TYPE_CALC == 2:
-            return [(False, False), (False, False), (False, False), (False, False), (False, True), (False, False)]
+            return [(False, False), (False, False), (False, False), (False, False), (False, False), (False, False)]
         elif self.TYPE_CALC == 3:
-            return []
+            return [(False, False), (False, False)]
 
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
@@ -296,10 +326,10 @@ class OWbm(XoppyWidget):
 def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.0,BFIELD_T=0.8,\
                   BEAM_ENERGY_GEV=6.04,CURRENT_A=0.1,HOR_DIV_MRAD=1.0,VER_DIV=0,\
                   PHOT_ENERGY_MIN=100.0,PHOT_ENERGY_MAX=100000.0,NPOINTS=500,LOG_CHOICE=1,\
-                  PSI_MRAD_PLOT=1.0,PSI_MIN=-1.0,PSI_MAX=1.0,PSI_NPOINTS=500,TYPE_CALC=0):
+                  PSI_MRAD_PLOT=1.0,PSI_MIN=-1.0,PSI_MAX=1.0,PSI_NPOINTS=500,TYPE_CALC=0,FILE_DUMP=0):
     print("Inside xoppy_calc_bm. ")
 
-    outFile = "bm.spec"
+
 
     # electron energy in GeV
     gamma = BEAM_ENERGY_GEV*1e3 / srfunc.codata_mee
@@ -349,10 +379,10 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
         a6[0,:] = (a1)
         a6[1,:] = srfunc.m2ev * 1e10 / (a1)
         a6[2,:] = (a1)/ec_ev # E/Ec
-        a6[3,:] = (a5par)/(a5)
-        a6[4,:] = (a5per)/(a5)
-        a6[5,:] = (a5)
-        a6[6,:] = (a5)*1e3 * srfunc.codata_ec
+        a6[3,:] = numpy.array(a5par)/numpy.array(a5)
+        a6[4,:] = numpy.array(a5per)/numpy.array(a5)
+        a6[5,:] = numpy.array(a5)
+        a6[6,:] = numpy.array(a5)*1e3 * srfunc.codata_ec
 
     if TYPE_CALC == 1:  # angular distributions over over all energies
         angle_mrad = numpy.linspace(-PSI_MRAD_PLOT, +PSI_MRAD_PLOT,NPOINTS) # angle grid
@@ -383,7 +413,6 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
 
         coltitles=['Psi[mrad]','Psi[rad]*Gamma','F','F s-pol','F p-pol','Flux[Ph/sec/0.1%bw/mrad(Psi)]','Power[Watts/eV/mrad(Psi)]']
 
-
     if TYPE_CALC == 3:  # angular,energy distributions flux
         angle_mrad = numpy.linspace(-PSI_MRAD_PLOT, +PSI_MRAD_PLOT,NPOINTS) # angle grid
 
@@ -392,8 +421,16 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
         else:
             energy_ev = numpy.logspace(numpy.log10(PHOT_ENERGY_MIN),numpy.log10(PHOT_ENERGY_MAX),NPOINTS) # photon energy grid
 
-        tmp1, fm, a = srfunc.sync_ene(2, energy_ev, ec_ev=ec_ev, e_gev=BEAM_ENERGY_GEV, i_a=CURRENT_A, \
+        # fm[angle,energy]
+        fm = srfunc.sync_ene(4, energy_ev, ec_ev=ec_ev, e_gev=BEAM_ENERGY_GEV, i_a=CURRENT_A, \
                                       hdiv_mrad=HOR_DIV_MRAD, psi_min=PSI_MIN, psi_max=PSI_MAX, psi_npoints=PSI_NPOINTS)
+
+        a = numpy.linspace(PSI_MIN,PSI_MAX,PSI_NPOINTS)
+
+        # TODO send these 2D plots to the right places!!!
+        from srxraylib.plot.gol import plot_image
+        plot_image(fm,a,energy_ev,xtitle="Angle [mrad]",ytitle="Photon energy [eV]",title="Flux [photons/s/0.1%bw/mrad]",aspect='auto')
+        plot_image(fm*srfunc.codata_ec*1e3,a,energy_ev,xtitle="Angle [mrad]",ytitle="Photon energy [eV]",title="Spectral power [W/eV/mrad]",aspect='auto')
 
         a6 = numpy.zeros((4,len(a)*len(energy_ev)))
         ij = -1
@@ -407,47 +444,28 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
 
         coltitles=['Psi [mrad]','Photon Energy [eV]','Power [Watts/eV/mrad(Psi)]','Flux [Ph/sec/0.1%bw/mrad(Psi)]']
 
-        import matplotlib.pylab as plt
-        from mpl_toolkits.mplot3d import Axes3D  # need for example 6
-
-        toptitle='Flux vs vertical angle and photon energy'
-        xtitle  ='angle [mrad]'
-        ytitle  ='energy [eV]'
-        ztitle = "Photon flux [Ph/s/mrad/0.1%bw]"
-        pltN = 0
-        fig = plt.figure(pltN)
-        ax = fig.add_subplot(111, projection='3d')
-        fa, fe = numpy.meshgrid(a, energy_ev)
-        surf = ax.plot_surface(fa, fe, fm.T, \
-            rstride=1, cstride=1, \
-            linewidth=0, antialiased=False)
-
-        plt.title(toptitle)
-        ax.set_xlabel(xtitle)
-        ax.set_ylabel(ytitle)
-        ax.set_zlabel(ztitle)
-        plt.show()
-
     # write spec file
     ncol = len(coltitles)
     npoints = len(a6[0,:])
 
-    f = open(outFile,"w")
-    f.write("#F "+outFile+"\n")
-    f.write("\n")
-    f.write("#S 1 bm results\n")
-    f.write("#N %d\n"%(ncol))
-    f.write("#L")
-    for i in range(ncol):
-        f.write("  "+coltitles[i])
-    f.write("\n")
+    if FILE_DUMP == 1:
+        outFile = "bm.spec"
+        f = open(outFile,"w")
+        f.write("#F "+outFile+"\n")
+        f.write("\n")
+        f.write("#S 1 bm results\n")
+        f.write("#N %d\n"%(ncol))
+        f.write("#L")
+        for i in range(ncol):
+            f.write("  "+coltitles[i])
+        f.write("\n")
 
-    for i in range(npoints):
-            f.write((" %e "*ncol+"\n")%(tuple(a6[:,i].tolist())))
-    f.close()
-    print("File written to disk: " + outFile)
+        for i in range(npoints):
+                f.write((" %e "*ncol+"\n")%(tuple(a6[:,i].tolist())))
+        f.close()
+        print("File written to disk: " + outFile)
 
-    return outFile
+    return a6.T
 
 
 

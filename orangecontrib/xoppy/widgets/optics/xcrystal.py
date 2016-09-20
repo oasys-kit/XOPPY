@@ -355,7 +355,7 @@ class OWxcrystal(XoppyWidget):
             if MOSAIC > 1: # bent
                 f.write("%g\n"%RSAG)
                 f.write("%g\n"%RMER)
-                f.write("%0\n")
+                f.write("0\n")
 
                 if CRYSTAL_MATERIAL >=  5: # not Si,Ge,Diamond
                     if ((ANISOTROPY == 1) or (ANISOTROPY == 2)):
