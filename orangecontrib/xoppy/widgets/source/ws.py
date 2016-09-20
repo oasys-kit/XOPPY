@@ -7,10 +7,13 @@ from oasys.widgets import gui as oasysgui
 from orangecontrib.xoppy.util.xoppy_util import locations
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
+import numpy
+import scipy.constants as codata
+
 class OWws(XoppyWidget):
     name = "ws"
     id = "orange.widgets.dataws"
-    description = "xoppy application to compute WS"
+    description = "xoppy application to compute the wigggler spectrum over a screen"
     icon = "icons/xoppy_ws.png"
     priority = 5
     category = ""
@@ -22,10 +25,10 @@ class OWws(XoppyWidget):
     PERIOD = Setting(8.5)
     N = Setting(28.0)
     KX = Setting(0.0)
-    KY = Setting(8.739999771118164)
+    KY = Setting(8.74)
     EMIN = Setting(1000.0)
-    EMAX = Setting(100000.0)
-    NEE = Setting(2000)
+    EMAX = Setting(200000.0)
+    NEE = Setting(500)
     D = Setting(30.0)
     XPC = Setting(0.0)
     YPC = Setting(0.0)
@@ -194,13 +197,13 @@ class OWws(XoppyWidget):
         return "WS"
 
     def getTitles(self):
-        return ['Wiggler Flux']
+        return ['Flux']
 
     def getXTitles(self):
         return ["Energy [eV]"]
 
     def getYTitles(self):
-        return ["Flux [Phot/sec/0.1%bw]"]
+        return ["Flux [Photons/sec/0.1%bw]"]
 
     def getVariablesToPlot(self):
         return [(0, 1)]
@@ -221,8 +224,8 @@ def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.
             f.write("%s\n"%(TITLE))
             f.write("%f     %f\n"%(ENERGY,CUR))
             f.write("%f  %d  %f  %f\n"%(PERIOD,N,KX,KY))
-            f.write("%f  %f   %f\n"%(EMIN,EMAX,NEE))
-            f.write("%f  %f  %f  %f  %f  %f  %f\n"%(D,XPC,YPC,XPS,YPS,NXP,NYP))
+            f.write("%f  %f   %d\n"%(EMIN,EMAX,NEE))
+            f.write("%f  %f  %f  %f  %f  %d  %d\n"%(D,XPC,YPC,XPS,YPS,NXP,NYP))
             f.write("%d  \n"%(4))
 
         command = os.path.join(locations.home_bin(),'ws')
@@ -239,12 +242,13 @@ def xoppy_calc_ws(TITLE="Wiggler A at APS",ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.
         f.write("#F ws.spec\n")
         f.write("\n")
         f.write("#S 1 ws results\n")
-        f.write("#N 6\n")
-        f.write("#L  Energy(eV)  Flux(ph/s/0.1%bw)  p1  p2  p3  p4")
+        f.write("#N 3\n")
+        f.write("#L  Energy(eV)  Flux(photons/s/0.1%bw)  Spectral power(W/eV)\n")
         for i in txt:
             tmp = i.strip(" ")
             if tmp[0].isdigit():
-               f.write(tmp)
+                tmp1 = numpy.fromstring(tmp, dtype=float, sep=' ')
+                f.write("%f %f %f \n"%(tmp1[0],tmp1[1],tmp1[1]*codata.e*1e3))
             else:
                f.write("#UD "+tmp)
         f.close()
