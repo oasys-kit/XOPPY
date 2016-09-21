@@ -41,9 +41,9 @@ INSTALL_REQUIRES = (
     'numpy',
     'scipy',
     'matplotlib==1.4.3',
-    'srxraylib>=0.0.9',
+    'srxraylib>=1.0.7',
     'orange-widget-core>=0.0.2',
-    'oasys>=0.1.19',
+    'oasys>=0.1.22',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
@@ -51,7 +51,7 @@ PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
 PACKAGE_DATA = {
     "orangecontrib.xoppy.widgets.source":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.xoppy.widgets.optics":["icons/*.png", "icons/*.jpg", "misc/*.*"],
-    "orangecontrib.xoppy.widgets.tools":["icons/*.png", "icons/*.jpg"],
+    #"orangecontrib.xoppy.widgets.tools":["icons/*.png", "icons/*.jpg"],
 }
 
 NAMESPACE_PACAKGES = ["orangecontrib", "orangecontrib.xoppy", "orangecontrib.xoppy.widgets"]
@@ -61,12 +61,13 @@ ENTRY_POINTS = {
     'oasys.widgets' : (
         "XOPPY Sources = orangecontrib.xoppy.widgets.source",
         "XOPPY Optics = orangecontrib.xoppy.widgets.optics",
-        "XOPPY Tools = orangecontrib.xoppy.widgets.tools",
+        #"XOPPY Tools = orangecontrib.xoppy.widgets.tools",
     ),
     #'oasys.menus' : ("xoppymenu = orangecontrib.xoppy.menu",)
 }
 
 import site, shutil, sys
+
 
 if __name__ == '__main__':
     setup(
