@@ -226,8 +226,8 @@ class OWxfh(XoppyWidget):
             out[18,i] = dic2["REFRAC"].real
             out[19,i] = dic2["REFRAC"].imag
             out[20,i] = dic2["ABSORP"]
-            out[21,i] = dic2["ssr"]
-            out[22,i] = dic2["spr"]
+            out[21,i] = 1e6 * dic2["ssr"]  # in microrads
+            out[22,i] = 1e6 * dic2["spr"]  # in microrads
             out[23,i] = dic2["RATIO"]
             out[24,i] = dic2["psi_over_f"]
             info += "#\n#\n#\n"

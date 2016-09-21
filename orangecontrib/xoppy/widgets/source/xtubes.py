@@ -75,6 +75,12 @@ class OWxtubes(XoppyWidget):
 def xoppy_calc_xtubes(ITUBE=0,VOLTAGE=30.0):
     print("Inside xoppy_calc_xtubes. ")
 
+    for file in ["xtubes_tmp.dat"]:
+        try:
+            os.remove(os.path.join(locations.home_bin_run(),file))
+        except:
+            pass
+
     try:
         with open("xoppy.inp","wt") as f:
             f.write("%d\n%f\n"%(ITUBE+1,VOLTAGE))

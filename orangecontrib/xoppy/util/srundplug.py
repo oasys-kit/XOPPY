@@ -388,9 +388,15 @@ def calc1d_urgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnerg
     global scanCounter
     global home_bin
 
+    print("Inside calc1d_urgent")
 
     t0 = time.time()
-    print("Inside calc1d_urgent")
+    for file in ["urgent.inp","urgent.out"]:
+        try:
+            os.remove(os.path.join(locations.home_bin_run(),file))
+        except:
+            pass
+
     with open("urgent.inp","wt") as f:
         f.write("%d\n"%(1))               # ITYPE
         f.write("%f\n"%(bl['PeriodID']))  # PERIOD
@@ -512,6 +518,12 @@ def calc1d_us(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoi
 
 
     t0 = time.time()
+    for file in ["us.inp","us.out"]:
+        try:
+            os.remove(os.path.join(locations.home_bin_run(),file))
+        except:
+            pass
+
 
     print("Inside calc1d_us")
     with open("us.inp","wt") as f:
@@ -832,6 +844,11 @@ def calc2d_us(bl,zero_emittance=False,hSlitPoints=51,vSlitPoints=51,fileName=Non
     global home_bin
     print("Inside calc2d_us")
 
+    for file in ["us.inp","us.out"]:
+        try:
+            os.remove(os.path.join(locations.home_bin_run(),file))
+        except:
+            pass
 
     with open("us.inp","wt") as f:
         #f.write("%d\n"%(1))               # ITYPE
@@ -986,6 +1003,12 @@ def calc2d_urgent(bl,zero_emittance=False,fileName=None,fileAppend=False,hSlitPo
     global scanCounter
     global home_bin
     print("Inside calc2d_urgent")
+
+    for file in ["urgent.inp","urgent.out"]:
+        try:
+            os.remove(os.path.join(locations.home_bin_run(),file))
+        except:
+            pass
 
     with open("urgent.inp","wt") as f:
         f.write("%d\n"%(1))               # ITYPE
@@ -1393,6 +1416,12 @@ def calc3d_urgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergy
         ener = photonEnergyMin + iEner*eStep
         eArray[iEner] = ener
 
+        for file in ["urgent.inp","urgent.out"]:
+            try:
+                os.remove(os.path.join(locations.home_bin_run(),file))
+            except:
+                pass
+
         with open("urgent.inp","wt") as f:
             f.write("%d\n"%(1))               # ITYPE
             f.write("%f\n"%(bl['PeriodID']))  # PERIOD
@@ -1582,6 +1611,8 @@ def calc3d_us(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
     global home_bin
     print("Inside calc3d_us")
 
+
+
     if fileName is not None:
         if fileAppend:
             fout = open(fileName,"a")
@@ -1604,6 +1635,12 @@ def calc3d_us(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
     for iEner in range(photonEnergyPoints):
         ener = photonEnergyMin + iEner*eStep
         eArray[iEner] = ener
+
+        for file in ["us.inp","us.out"]:
+            try:
+                os.remove(os.path.join(locations.home_bin_run(),file))
+            except:
+                pass
 
         with open("us.inp","wt") as f:
             #f.write("%d\n"%(1))               # ITYPE

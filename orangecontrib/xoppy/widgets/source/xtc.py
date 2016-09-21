@@ -229,7 +229,6 @@ class OWxtc(XoppyWidget):
 
         super().plot_histo(x, y,progressBarValue, tabs_canvas_index, plot_canvas_index, title, xtitle, ytitle, log_x, log_y)
 
-        #TODO this part makes XTitles and YTitles disappearing...
         self.plot_canvas[plot_canvas_index].setDefaultPlotLines(False)
         self.plot_canvas[plot_canvas_index].setDefaultPlotPoints(True)
 
@@ -252,6 +251,12 @@ class OWxtc(XoppyWidget):
         return[(False, False), (False, False), (False, False), (False, False)]
 
     def xoppy_calc_xtc(self):
+
+        for file in ["tc.inp","tc.out"]:
+            try:
+                os.remove(os.path.join(locations.home_bin_run(),file))
+            except:
+                pass
 
         with open("tc.inp", "wt") as f:
             f.write("TS called from xoppy\n")

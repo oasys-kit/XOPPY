@@ -5,9 +5,9 @@ import scipy.constants as codata
 
 toangstroms = codata.h * codata.c / codata.e * 1e10
 
-#===============================================================================
+#=======================================================================================================================
 #  GENERIC UTILITIES
-#===============================================================================
+#=======================================================================================================================
 def write_spec_file(file_out,data,titles,scan_title=""):
     """
     Writes a spec-formatted file
@@ -600,7 +600,6 @@ def xpower_calc(energies=numpy.linspace(1000.0,50000.0,100),source=numpy.ones(10
             trans = numpy.exp(-tmp*dens[i]*(thick[i]/10.0))
             outArray = numpy.vstack((outArray,tmp))
             outColTitles.append("[oe %i] Total CS cm2/g"%(1+i))
-            print(outArray)
 
             outArray = numpy.vstack((outArray,tmp*dens[i]))
             outColTitles.append("[oe %i] Mu cm^-1"%(1+i))
@@ -665,7 +664,7 @@ def xpower_calc(energies=numpy.linspace(1000.0,50000.0,100),source=numpy.ones(10
     ncol = len(outColTitles)
     npoints = energies.size
 
-    if output_file != None:
+    if output_file is not None:
         f = open(output_file,"w")
         f.write("#F "+output_file+"\n")
         f.write("\n")
@@ -686,8 +685,6 @@ def xpower_calc(energies=numpy.linspace(1000.0,50000.0,100),source=numpy.ones(10
 
         f.close()
         print("File written to disk: " + output_file)
-
-    print(txt)
 
     return {"data":outArray,"labels":outColTitles,"info":txt}
 
@@ -1838,63 +1835,63 @@ if __name__ == "__main__":
 
 
 
+    # #
+    # # cross_calc*
+    # #
     #
-    # cross_calc*
+    # for unit in range(4):
+    #     for calculate in range(5):
+    #         print(">>>>>>>>>>>>>>unit=%d, calculate=%d, Z=26,result="%(unit,calculate), cross_calc(26,10000.0,unit=unit,calculate=calculate))
     #
-
-    for unit in range(4):
-        for calculate in range(5):
-            print(">>>>>>>>>>>>>>unit=%d, calculate=%d, Z=26,result="%(unit,calculate), cross_calc(26,10000.0,unit=unit,calculate=calculate))
-
-    for i in range(4):
-        print(">>>>>>>>>>>>>>unit=%d, H2O,result="%i, cross_calc_mix("H2O",10000.0,unit=i,density=1.0,parse_or_nist=0))
-
-    for i in range(4):
-        print(">>>>>>>>>>>>>>unit=%d, Acetone,result="%i, cross_calc_mix("Acetone",10000.0,unit=i,density=None,parse_or_nist=1))
-
+    # for i in range(4):
+    #     print(">>>>>>>>>>>>>>unit=%d, H2O,result="%i, cross_calc_mix("H2O",10000.0,unit=i,density=1.0,parse_or_nist=0))
     #
-    # XPOWER
+    # for i in range(4):
+    #     print(">>>>>>>>>>>>>>unit=%d, Acetone,result="%i, cross_calc_mix("Acetone",10000.0,unit=i,density=None,parse_or_nist=1))
     #
-
-    energies = numpy.linspace(1000.0,50000.0,100)
-    source = numpy.ones_like(energies)
-    fileOut = xpower_calc(energies,source,substance=["Be","Rh"],flags=[0,1],dens=["?","?"],thick=[0.5,0.0],angle=[0.0,3.0],roughness=[0.0,0.0],output_file="xpower.spec")
-
-
-
-
+    # #
+    # # XPOWER
+    # #
     #
-    # crystal tools
+    # energies = numpy.linspace(1000.0,50000.0,100)
+    # source = numpy.ones_like(energies)
+    # fileOut = xpower_calc(energies,source,substance=["Be","Rh"],flags=[0,1],dens=["?","?"],thick=[0.5,0.0],angle=[0.0,3.0],roughness=[0.0,0.0],output_file="xpower.spec")
     #
-
-    print("f0 coefficisnts for Z=30",f0_xop(30))
-
-    print("Bragg metric tensor for Si: ")
-    print("   d-spacing for 111: ",bragg_metrictensor(5.43,5.43,5.43,90.0,90.0,90.0,HKL=[1,1,1],RETURN_REAL_SPACE=0,RETURN_VOLUME=0))
-    print("   Volume of unit cell: ",bragg_metrictensor(5.43,5.43,5.43,90.0,90.0,90.0,RETURN_VOLUME=1))
-    print("   metric tensor in real spc: ",bragg_metrictensor(5.43,5.43,5.43,90.0,90.0,90.0,RETURN_REAL_SPACE=1))
-    print("   metric tensor in reciprocal spc: ",bragg_metrictensor(5.43,5.43,5.43,90.0,90.0,90.0))
-
-    print("LORENTZ(5.039)",lorentz(10))
-
-
-    dic1 = bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=7900.0,emax=8100.0,estep=5.0,fileout="bragg-tmp.dat")
-    print("KEYS: ",dic1.keys())
-    print(dic1)
-
     #
-    dic2 = crystal_fh(dic1,8000.0)
-
-    print(dic2["info"])
-    print("KEYS: ",dic2.keys())
-
-
     #
-    # MARE
     #
-    # # descriptor,H,K,L,HMAX,KMAX,LMAX,FHEDGE,DISPLAY,lambda1,deltalambda,PHI,DELTAPHI,verbose=1)
-    list_of_scripts = mare_calc("Si2",2,2,2,3,3,3,2e-8,3,1.54,0.01,-20.0,0.1)
-    for script in list_of_scripts:
-        exec(script)
+    # #
+    # # crystal tools
+    # #
+    #
+    # print("f0 coefficisnts for Z=30",f0_xop(30))
+    #
+    # print("Bragg metric tensor for Si: ")
+    # print("   d-spacing for 111: ",bragg_metrictensor(5.43,5.43,5.43,90.0,90.0,90.0,HKL=[1,1,1],RETURN_REAL_SPACE=0,RETURN_VOLUME=0))
+    # print("   Volume of unit cell: ",bragg_metrictensor(5.43,5.43,5.43,90.0,90.0,90.0,RETURN_VOLUME=1))
+    # print("   metric tensor in real spc: ",bragg_metrictensor(5.43,5.43,5.43,90.0,90.0,90.0,RETURN_REAL_SPACE=1))
+    # print("   metric tensor in reciprocal spc: ",bragg_metrictensor(5.43,5.43,5.43,90.0,90.0,90.0))
+    #
+    # print("LORENTZ(5.039)",lorentz(10))
+    #
+    #
+    # dic1 = bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=7900.0,emax=8100.0,estep=5.0,fileout="bragg-tmp.dat")
+    # print("KEYS: ",dic1.keys())
+    # print(dic1)
+    #
+    # #
+    # dic2 = crystal_fh(dic1,8000.0)
+    #
+    # print(dic2["info"])
+    # print("KEYS: ",dic2.keys())
+    #
+    #
+    # #
+    # # MARE
+    # #
+    # # # descriptor,H,K,L,HMAX,KMAX,LMAX,FHEDGE,DISPLAY,lambda1,deltalambda,PHI,DELTAPHI,verbose=1)
+    # list_of_scripts = mare_calc("Si2",2,2,2,3,3,3,2e-8,3,1.54,0.01,-20.0,0.1)
+    # for script in list_of_scripts:
+    #     exec(script)
 
 

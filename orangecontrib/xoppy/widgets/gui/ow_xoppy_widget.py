@@ -1,6 +1,10 @@
 import sys
 import numpy
+
 from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
+#TODO: migrate from PyMca to silx
+# from silx.gui.plot import PlotWindow
+
 from PyMca5.PyMcaIO import specfilewrapper as specfile
 
 from PyQt4 import QtGui
@@ -198,6 +202,18 @@ class XoppyWidget(widget.OWWidget):
     def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False):
         if self.plot_canvas[plot_canvas_index] is None:
             self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+
+            # TODO: this is for silx
+            # self.plot_canvas[plot_canvas_index] = PlotWindow(parent=None, backend=None,
+            #                          resetzoom=True, autoScale=True,
+            #                          logScale=True, grid=True,
+            #                          curveStyle=True, colormap=False,
+            #                          aspectRatio=False, yInverted=False,
+            #                          copy=True, save=True, print_=True,
+            #                          control=True, position=True,
+            #                          roi=True, mask=False, fit=True)
+            # self.plot_canvas[plot_canvas_index].enableActiveCurveHandling(True)
+
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
             self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
             self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(log_x)
@@ -277,6 +293,7 @@ class XoppyWidget(widget.OWWidget):
             print("Loading file:  ", spec_file_name)
 
             out = numpy.loadtxt(spec_file_name)
+
 
             if len(out) == 0 : raise Exception("Calculation gave no results (empty data)")
 

@@ -86,6 +86,12 @@ class OWxtube_w(XoppyWidget):
 def xoppy_calc_xtube_w(VOLTAGE=100.0,RIPPLE=0.0,AL_FILTER=0.0):
     print("Inside xoppy_calc_xtube_w. ")
 
+    for file in ["tasmip_tmp.dat"]:
+        try:
+            os.remove(os.path.join(locations.home_bin_run(),file))
+        except:
+            pass
+
     try:
         with open("xoppy.inp","wt") as f:
             f.write("%f\n%f\n%f\n"%(VOLTAGE,RIPPLE,AL_FILTER))
