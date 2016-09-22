@@ -217,6 +217,14 @@ def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,M
                 f.write("%d\n%f\n%f\n"%(2,XFROM,XTO))
             f.write("%d\n"%(NPOINTS))
 
+
+        for file in ["inpro.par","inpro.dat","inpro.spec"]:
+            try:
+                os.remove(os.path.join(locations.home_bin_run(),file))
+            except:
+                pass
+
+
         command = os.path.join(locations.home_bin(), 'inpro') + " < xoppy.inp"
         print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
         print("\n--------------------------------------------------------\n")
@@ -236,6 +244,12 @@ def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,M
         f.write(txt)
         f.close()
         print("File written to disk: inpro.dat, inpro.par, inpro.spec")
+
+        #show calculated parameters in standard output
+        txt_info = open("inpro.par").read()
+        for line in txt_info:
+            print(line,end="")
+
 
         return outFile
     except Exception as e:

@@ -19,8 +19,7 @@ class OWxtc(XoppyWidget):
     category = ""
     keywords = ["xoppy", "xtc"]
 
-    #19 variables
-    TITLE = Setting("APS Undulator A, Beam Parameters for regular lattice nux36nuy39.twi, 1.5% cpl.")
+    #19 variables (minus one: TITLE removed)
     ENERGY = Setting(7.0)
     CURRENT = Setting(100.0)
     ENERGY_SPREAD = Setting(0.00096)
@@ -44,14 +43,7 @@ class OWxtc(XoppyWidget):
 
         box = oasysgui.widgetBox(self.controlArea, "XTC Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
-        idx = -1 
-        
-        #widget index 0 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "TITLE",
-                     label=self.unitLabels()[idx],  addSpace=True, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
+        idx = -1
         
         #widget index 1 
         idx += 1 
@@ -175,22 +167,28 @@ class OWxtc(XoppyWidget):
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1)
-        
-        #widget index 21 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "HELICAL",
+
+
+        #widget index 21
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "HELICAL",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 22 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "METHOD",
+                     items=['Planar undulator', 'Helical undulator'],
+                     valueType=int, orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
+
+
+        #widget index 22
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "METHOD",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
+                     items=['Finite-N', 'Infinite N with convolution'],
+                     valueType=int, orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
 
         
         #widget index 24 
@@ -202,7 +200,7 @@ class OWxtc(XoppyWidget):
         self.show_at(self.unitFlags()[idx], box1)
 
     def unitLabels(self):
-         return ['Title','Electron energy (GeV)','Current (mA)','Energy Spread (DE/E)',
+         return ['Electron energy (GeV)','Current (mA)','Energy Spread (DE/E)',
                  'SigmaX (mm)','Sigma Y (mm)',"Sigma X' (mrad)","Sigma Z' (mrad)",
                  'Period length (cm)','Number of periods',
                  'E1 minimum energy (eV)','E1 maximum energy (eV)',
@@ -227,6 +225,8 @@ class OWxtc(XoppyWidget):
         return calculation_output
 
     def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False):
+
+
         super().plot_histo(x, y,progressBarValue, tabs_canvas_index, plot_canvas_index, title, xtitle, ytitle, log_x, log_y)
 
         self.plot_canvas[plot_canvas_index].setDefaultPlotLines(False)
@@ -239,10 +239,7 @@ class OWxtc(XoppyWidget):
         return ["Brilliance","Ky","Total Power","Power density"]
 
     def getXTitles(self):
-        return ["Energy (eV) with emittance",
-                "Energy (eV) with emittance",
-                "Energy (eV) with emittance",
-                "Energy (eV) with emittance"]
+        return ["Energy (eV)","Energy (eV)","Energy (eV)","Energy (eV)"]
 
     def getYTitles(self):
         return ["Brilliance (ph/s/mrad^2/mm^2/0.1%bw)","Ky","Total Power (W)","Power density (W/mr^2)"]
@@ -255,14 +252,20 @@ class OWxtc(XoppyWidget):
 
     def xoppy_calc_xtc(self):
 
+        for file in ["tc.inp","tc.out"]:
+            try:
+                os.remove(os.path.join(locations.home_bin_run(),file))
+            except:
+                pass
+
         with open("tc.inp", "wt") as f:
-            f.write("%s\n"%self.TITLE)
-            f.write("%10.3f %10.2f %10.6f %s\n"%(self.ENERGY,self.CURRENT,self.ENERGY_SPREAD,self.TITLE))
-            f.write("%10.4f %10.4f %10.4f %10.4f beam\n"%(self.SIGX,self.SIGY,self.SIGX1,self.SIGY1))
-            f.write("%10.3f %d undelator\n"%(self.PERIOD,self.NP))
-            f.write("%10.1f %10.1f %d energy\n"%(self.EMIN,self.EMAX,self.N))
-            f.write("%d %d %d harmonics\n"%(self.HARMONIC_FROM,self.HARMONIC_TO,self.HARMONIC_STEP))
-            f.write("%d %d %d %d parameters\n"%(self.HELICAL,self.METHOD,1,self.NEKS))
+            f.write("TS called from xoppy\n")
+            f.write("%10.3f %10.2f %10.6f %s\n"%(self.ENERGY,self.CURRENT,self.ENERGY_SPREAD,"Ring-Energy(GeV) Current(mA) Beam-Energy-Spread"))
+            f.write("%10.4f %10.4f %10.4f %10.4f %s\n"%(self.SIGX,self.SIGY,self.SIGX1,self.SIGY1,"Sx(mm) Sy(mm) Sx1(mrad) Sy1(mrad)"))
+            f.write("%10.3f %d %s\n"%(self.PERIOD,self.NP,"Period(cm) N"))
+            f.write("%10.1f %10.1f %d %s\n"%(self.EMIN,self.EMAX,self.N,"Emin Emax Ne"))
+            f.write("%d %d %d %s\n"%(self.HARMONIC_FROM,self.HARMONIC_TO,self.HARMONIC_STEP,"Hmin Hmax Hstep"))
+            f.write("%d %d %d %d %s\n"%(self.HELICAL,self.METHOD,1,self.NEKS,"Helical Method Print_K Neks"))
             f.write("foreground\n")
 
         command = os.path.join(locations.home_bin(), 'tc')
@@ -280,6 +283,11 @@ class OWxtc(XoppyWidget):
         with open("tc.out","r") as f:
             lines = f.readlines()
 
+        # print output file
+        for line in lines:
+            print(line, end="")
+
+
         # remove returns
         lines = [line[:-1] for line in lines]
 
@@ -294,8 +302,6 @@ class OWxtc(XoppyWidget):
                 txtlist.append(line)
 
         data = numpy.loadtxt(floatlist).T
-
-        #TODO: compute envelopes (as in XOP)
 
         #send exchange
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())

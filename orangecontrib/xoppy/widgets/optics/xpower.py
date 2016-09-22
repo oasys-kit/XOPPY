@@ -20,7 +20,7 @@ class OWxpower(XoppyWidget):
     category = ""
     keywords = ["xoppy", "xpower"]
 
-    SOURCE = Setting(1)
+    SOURCE = Setting(0)
     ENER_MIN = Setting(1000.0)
     ENER_MAX = Setting(50000.0)
     ENER_N = Setting(100)
@@ -56,6 +56,7 @@ class OWxpower(XoppyWidget):
     EL5_ANG = Setting(3.0)
     EL5_ROU = Setting(0.0)
     EL5_DEN = Setting("?")
+    FILE_DUMP = 0
 
     def build_gui(self):
         box = oasysgui.widgetBox(self.controlArea, "XPOWER Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-10)
@@ -67,7 +68,7 @@ class OWxpower(XoppyWidget):
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "SOURCE",
                      label=self.unitLabels()[idx], addSpace=True,
-                    items=['Normalized to 1 (Standard E grid)  ', 'Normalized to 1 (E from keyboard)  ', 'From external file.                ', 'xop/source Flux (file: SRCOMPE)    ', 'xop/source Power (file: SRCOMPW)   '],
+                    items=['Normalized to 1 (Standard E grid)  ', 'Normalized to 1 (E from keyboard)  ', 'From external file.                '],
                     valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1)
         
@@ -346,6 +347,15 @@ class OWxpower(XoppyWidget):
                      label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1)
 
+        #widget index 41
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "FILE_DUMP",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    items=['No', 'Yes (xpower.spec)'],
+                    valueType=int, orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
     def set_NELEMENTS(self):
         self.initializeTabs()
 
@@ -363,7 +373,8 @@ class OWxpower(XoppyWidget):
                  '2nd oe formula','kind:','Filter thick[mm]','Mirror angle[mrad]','Roughness[A]','Density [g/cm^3]',
                  '3rd oe formula','kind:','Filter thick[mm]','Mirror angle[mrad]','Roughness[A]','Density [g/cm^3]',
                  '4th oe formula','kind:','Filter thick[mm]','Mirror angle[mrad]','Roughness[A]','Density [g/cm^3]',
-                 '5th oe formula','kind:','Filter thick[mm]','Mirror angle[mrad]','Roughness[A]','Density [g/cm^3]']
+                 '5th oe formula','kind:','Filter thick[mm]','Mirror angle[mrad]','Roughness[A]','Density [g/cm^3]',
+                 "Dump file"]
 
 
     def unitFlags(self):
@@ -377,7 +388,8 @@ class OWxpower(XoppyWidget):
                  'self.NELEMENTS  >=  1',' self.NELEMENTS  >=  1','self.EL2_FLAG  ==  0  and  self.NELEMENTS  >=  1','self.EL2_FLAG  !=  0  and  self.NELEMENTS  >=  1','self.EL2_FLAG  !=  0  and  self.NELEMENTS  >=  1',' self.NELEMENTS  >=  1',
                  'self.NELEMENTS  >=  2',' self.NELEMENTS  >=  2','self.EL3_FLAG  ==  0  and  self.NELEMENTS  >=  2','self.EL3_FLAG  !=  0  and  self.NELEMENTS  >=  2','self.EL3_FLAG  !=  0  and  self.NELEMENTS  >=  2',' self.NELEMENTS  >=  2',
                  'self.NELEMENTS  >=  3',' self.NELEMENTS  >=  3','self.EL4_FLAG  ==  0  and  self.NELEMENTS  >=  3','self.EL4_FLAG  !=  0  and  self.NELEMENTS  >=  3','self.EL4_FLAG  !=  0  and  self.NELEMENTS  >=  3',' self.NELEMENTS  >=  3',
-                 'self.NELEMENTS  >=  4',' self.NELEMENTS  >=  4','self.EL5_FLAG  ==  0  and  self.NELEMENTS  >=  4','self.EL5_FLAG  !=  0  and  self.NELEMENTS  >=  4','self.EL5_FLAG  !=  0  and  self.NELEMENTS  >=  4',' self.NELEMENTS  >=  4']
+                 'self.NELEMENTS  >=  4',' self.NELEMENTS  >=  4','self.EL5_FLAG  ==  0  and  self.NELEMENTS  >=  4','self.EL5_FLAG  !=  0  and  self.NELEMENTS  >=  4','self.EL5_FLAG  !=  0  and  self.NELEMENTS  >=  4',' self.NELEMENTS  >=  4',
+                 'True']
 
     def get_help_name(self):
         return 'xpower'
@@ -550,7 +562,9 @@ class OWxpower(XoppyWidget):
 
 
         if self.SOURCE == 0:
-            energies = numpy.linspace(1,100,495)
+            energies = numpy.arange(0,500)
+            elefactor = numpy.log10(10000.0 / 30.0) / 300.0
+            energies = 10.0 * 10**(energies * elefactor)
             source = numpy.ones(energies.size)
             tmp = numpy.vstack( (energies,source))
         if self.SOURCE == 1:
@@ -570,9 +584,18 @@ class OWxpower(XoppyWidget):
                 print("Error loading file %s "%(source_file))
                 raise
 
+        if self.FILE_DUMP == 0:
+            output_file = None
+        else:
+            output_file = "xpower.spec"
         out_dictionary = xpower_calc(energies=energies,source=source,substance=substance,
-                                     flags=flags,dens=dens,thick=thick,angle=angle,roughness=roughness,output_file=None)
+                                     flags=flags,dens=dens,thick=thick,angle=angle,roughness=roughness,output_file=output_file)
 
+
+        try:
+            print(out_dictionary["info"])
+        except:
+            pass
         #send exchange
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 

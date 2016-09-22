@@ -94,10 +94,10 @@ class OWblack_body(XoppyWidget):
 
         calculated_data.add_content("xoppy_data", out_dict["data"])
 
-        calculated_data.add_content("labels", out_dict["labels"])
-        calculated_data.add_content("info", out_dict["info"])
-        calculated_data.add_content("plot_x_col", 0)
-        calculated_data.add_content("plot_y_col", 3)
+        # calculated_data.add_content("labels", out_dict["labels"])
+        # calculated_data.add_content("info", out_dict["info"])
+        # calculated_data.add_content("plot_x_col", 0)
+        # calculated_data.add_content("plot_y_col", 3)
 
         return calculated_data
 
@@ -111,13 +111,13 @@ class OWblack_body(XoppyWidget):
         return ["Energy [eV]", "Energy [eV]"]
 
     def getYTitles(self):
-        return ["Brightness [Photons/sec/mm2/mrad2/0.1%bw]", "Spectral Power [Watts/eV/mrad2/mm2]"]
+        return ["Brightness [Photons/sec/0.1%bw/mm2/mrad2]", "Spectral Power [Watts/eV/mrad2/mm2]"]
 
     def getVariablesToPlot(self):
         return [(0, 2), (0, 3)]
 
     def getLogPlot(self):
-        return[(False, True), (False, False)]
+        return[(False, False), (False, False)]
 
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------

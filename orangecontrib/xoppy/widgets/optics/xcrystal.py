@@ -306,6 +306,14 @@ class OWxcrystal(XoppyWidget):
         CUT = self.CUT
         FILECOMPLIANCE = self.FILECOMPLIANCE
 
+
+        for file in ["diff_pat.dat","diff_pat.gle","diff_pat.par","diff_pat.xop","xcrystal.bra"]:
+            try:
+                os.remove(os.path.join(locations.home_bin_run(),file))
+            except:
+                pass
+
+
         if (GEOMETRY == 1) or (GEOMETRY == 3):
             if ASYMMETRY_ANGLE == 0.0:
                 print("xoppy_calc_xcrystal: WARNING: In xcrystal the asymmetry angle is the angle between Bragg planes and crystal surface,"+
@@ -355,7 +363,7 @@ class OWxcrystal(XoppyWidget):
             if MOSAIC > 1: # bent
                 f.write("%g\n"%RSAG)
                 f.write("%g\n"%RMER)
-                f.write("%0\n")
+                f.write("0\n")
 
                 if CRYSTAL_MATERIAL >=  5: # not Si,Ge,Diamond
                     if ((ANISOTROPY == 1) or (ANISOTROPY == 2)):
@@ -382,13 +390,19 @@ class OWxcrystal(XoppyWidget):
                     f.write("%s\n"%FILECOMPLIANCE)
 
 
+
         command = os.path.join(locations.home_bin(), 'diff_pat') + " < xoppy.inp"
         print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
         print("\n--------------------------------------------------------\n")
         os.system(command)
         print("\n--------------------------------------------------------\n")
         
-        
+        #show calculated parameters in standard output
+        txt_info = open("diff_pat.par").read()
+        for line in txt_info:
+            print(line,end="")
+
+
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         try:

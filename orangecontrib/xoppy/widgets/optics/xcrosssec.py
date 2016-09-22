@@ -234,11 +234,14 @@ class OWxcrosssec(XoppyWidget):
         else:
             return [self.ytitle]
 
+    def getLogPlot(self):
+        return [(True, True)]
+
     def getVariablesToPlot(self):
         return [(0, 1)]
 
     def getLogPlot(self):
-        return[(False, False)]
+        return[(True, True)]
 
 
     def xoppy_calc_xcrosssec(self):

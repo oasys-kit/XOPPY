@@ -1,12 +1,12 @@
 import sys
 import numpy
+
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets.exchange import DataExchangeObject
 
-from orangecontrib.xoppy.util import xoppy_util
 from orangecontrib.xoppy.util.xoppy_xraylib_util import parse_formula
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
@@ -25,7 +25,7 @@ class OWxf0(XoppyWidget):
     MAT_FLAG = Setting(0)
     DESCRIPTOR = Setting("Si")
     GRIDSTART = Setting(0.0)
-    GRIDEND = Setting(4.0)
+    GRIDEND = Setting(8.0)
     GRIDN = Setting(100)
 
     def build_gui(self):
