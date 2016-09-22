@@ -3,7 +3,7 @@ import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from oasys.widgets import gui as oasysgui, congruence
 
 from orangecontrib.xoppy.util.xoppy_util import locations
 from oasys.widgets.exchange import DataExchangeObject
@@ -42,11 +42,16 @@ class OWxpowder_fml(XoppyWidget):
         
         #widget index 0 
         idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "FILE",
+        box1 = gui.widgetBox(box)
+
+        file_box = oasysgui.widgetBox(box1, "", addSpace=False, orientation="horizontal", height=25)
+
+        self.le_file = gui.lineEdit(file_box, self, "FILE",
                      label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
-        
+
+        gui.button(file_box, self, "...", callback=self.selectFile)
+
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
@@ -141,11 +146,24 @@ class OWxpowder_fml(XoppyWidget):
     def unitFlags(self):
          return ['1','1','1','1','1','1','1','1','1','1','1','1','1']
 
+    def selectFile(self):
+        self.le_file.setText(oasysgui.selectFileFromDialog(self, self.FILE, "Open CIF File", file_extension_filter="*.cif"))
+
     def get_help_name(self):
         return 'xpowder_fml'
 
     def check_fields(self):
-        pass
+        congruence.checkFile(self.FILE)
+        self.LAMBDA = congruence.checkStrictlyPositiveNumber(self.LAMBDA, "Lambda")
+        self.U = congruence.checkNumber(self.U, "U")
+        self.V = congruence.checkNumber(self.V, "V")
+        self.W = congruence.checkNumber(self.W, "W")
+        self.X = congruence.checkNumber(self.X, "X")
+        self.LS = congruence.checkNumber(self.LS, "LS")
+        self.THMIN = congruence.checkPositiveAngle(self.THMIN, "TwoTheta from")
+        self.THMAX = congruence.checkPositiveAngle(self.THMAX, "TwoTheta to")
+        self.STEP = congruence.checkStrictlyPositiveAngle(self.STEP, "TwoTheta step")
+        congruence.checkGreaterThan(self.THMAX, self.THMIN, "TwoTheta to", "TwoTheta from")
 
     def do_xoppy_calculation(self):
         return self.xoppy_calc_xpowder_fml()
