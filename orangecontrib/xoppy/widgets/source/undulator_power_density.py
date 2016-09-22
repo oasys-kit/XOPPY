@@ -17,7 +17,7 @@ class OWundulator_power_density(XoppyWidget):
     id = "orange.widgets.dataundulator_power_density"
     description = "xoppy application to compute UNDULATOR POWER DENSITY"
     icon = "icons/xoppy_undulator_power_density.png"
-    priority = 2
+    priority = 3
     category = ""
     keywords = ["xoppy", "undulator_power_density"]
 

@@ -154,7 +154,6 @@ class OWxwiggler(XoppyWidget):
 
     def check_fields(self):
         self.NPERIODS = congruence.checkStrictlyPositiveNumber(self.NPERIODS, "Number of Periods")
-
         self.ENERGY = congruence.checkStrictlyPositiveNumber(self.ENERGY, "Beam Energy")
         self.PHOT_ENERGY_MIN = congruence.checkPositiveNumber(self.PHOT_ENERGY_MIN, "Min Photon Energy")
         self.PHOT_ENERGY_MAX = congruence.checkStrictlyPositiveNumber(self.PHOT_ENERGY_MAX, "Max Photon Energy")
