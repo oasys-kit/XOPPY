@@ -116,7 +116,7 @@ class OWxcrystal(XoppyWidget):
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "SCAN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    items=['Theta (absolute)', 'Th - ThBragg(corrected)', 'Th - Th Bragg', 'Energy [eV]', 'y (Zachariasen)'],
+                    items=['Theta (absolute)', 'Th - Th Bragg (corrected)', 'Th - Th Bragg', 'Energy [eV]', 'y (Zachariasen)'],
                     valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
