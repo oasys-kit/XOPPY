@@ -1346,10 +1346,8 @@ def calc3d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
 
 
 
-    sys.stdout.write('  done\n')
-    sys.stdout.write('  saving SE Stokes...'); sys.stdout.flush()
-
-
+    print('  done\n')
+    print('  saving SE Stokes...')
     print('Done Performing Spectral Flux 3d calculation in sec '+str(time.time()-t0))
 
 
