@@ -249,7 +249,7 @@ class OWundulator_radiation(XoppyWidget):
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         calculated_data.add_content("xoppy_data", [h, v, p])
-        calculated_data.add_content("xoppy_code",    code)
+        calculated_data.add_content("xoppy_code", code)
 
         return calculated_data
 

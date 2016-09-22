@@ -12,7 +12,7 @@ from orangecontrib.xoppy.util import xoppy_util
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 class OWxxcom(XoppyWidget):
-    name = "xxcom"
+    name = "XCom"
     id = "orange.widgets.dataxxcom"
     description = "xoppy application to compute XXCOM"
     icon = "icons/xoppy_xxcom.png"

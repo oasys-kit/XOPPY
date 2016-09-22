@@ -15,7 +15,7 @@ import xraylib
 
 
 class OWxcrosssec(XoppyWidget):
-    name = "xcrosssec"
+    name = "CrossSec"
     id = "orange.widgets.dataxcrosssec"
     description = "xoppy application to compute XCROSSSEC"
     icon = "icons/xoppy_xcrosssec.png"

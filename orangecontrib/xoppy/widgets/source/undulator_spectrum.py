@@ -1,8 +1,10 @@
 import sys
+import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
+from oasys.widgets.exchange import DataExchangeObject
 
 from collections import OrderedDict
 from orangecontrib.xoppy.util import srundplug
@@ -210,6 +212,18 @@ class OWundulator_spectrum(XoppyWidget):
     def do_xoppy_calculation(self):
         return xoppy_calc_undulator_spectrum(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,PHOTONENERGYMIN=self.PHOTONENERGYMIN,PHOTONENERGYMAX=self.PHOTONENERGYMAX,PHOTONENERGYPOINTS=self.PHOTONENERGYPOINTS,METHOD=self.METHOD)
 
+    def extract_data_from_xoppy_output(self, calculation_output):
+        e, f = calculation_output
+
+        data = numpy.zeros((len(e), 2))
+        data[:, 0] = numpy.array(e)
+        data[:, 1] = numpy.array(f)
+
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+        calculated_data.add_content("xoppy_data", data)
+
+        return calculated_data
+
     def get_data_exchange_widget_name(self):
         return "UNDULATOR_FLUX"
 
@@ -255,21 +269,21 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
 
     if METHOD == 0:
         print("Undulator flux calculation using US. Please wait...")
-        e,f = srundplug.calc1d_us(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
+        e, f = srundplug.calc1d_us(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
               photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
         print("Done")
     if METHOD == 1:
         print("Undulator flux calculation using URGENT. Please wait...")
-        e,f = srundplug.calc1d_urgent(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
+        e, f = srundplug.calc1d_urgent(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
               photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
         print("Done")
     if METHOD == 2:
         print("Undulator flux calculation using SRW. Please wait...")
-        e,f = srundplug.calc1d_srw(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
+        e, f = srundplug.calc1d_srw(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
               photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
         print("Done")
 
-    return outFile
+    return e, f
 
 
 

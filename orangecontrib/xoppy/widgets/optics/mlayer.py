@@ -16,7 +16,7 @@ import scipy.constants as codata
 import xraylib
 
 class OWmlayer(XoppyWidget):
-    name = "mlayer"
+    name = "MLayer"
     id = "orange.widgets.datamlayer"
     description = "xoppy application to compute MLAYER"
     icon = "icons/xoppy_mlayer.png"

@@ -12,7 +12,7 @@ from orangecontrib.xoppy.util import xoppy_util
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 class OWxinpro(XoppyWidget):
-    name = "xinpro"
+    name = "INPRO"
     id = "orange.widgets.dataxinpro"
     description = "xoppy application to compute XINPRO"
     icon = "icons/xoppy_xinpro.png"

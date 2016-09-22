@@ -12,7 +12,7 @@ from oasys.widgets.exchange import DataExchangeObject
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 class OWxpower(XoppyWidget):
-    name = "xpower"
+    name = "Power"
     id = "orange.widgets.dataxpower"
     description = "xoppy application to compute XPOWER"
     icon = "icons/xoppy_xpower.png"

@@ -11,7 +11,7 @@ from srxraylib.sources import srfunc
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 class OWxwiggler(XoppyWidget):
-    name = "xwiggler"
+    name = "Wiggler Spectrum"
     id = "orange.widgets.dataxwiggler"
     description = "xoppy application to compute XWIGGLER"
     icon = "icons/xoppy_xwiggler.png"
