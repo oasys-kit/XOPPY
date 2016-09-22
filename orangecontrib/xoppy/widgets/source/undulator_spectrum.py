@@ -10,7 +10,7 @@ from orangecontrib.xoppy.util import srundplug
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 class OWundulator_spectrum(XoppyWidget):
-    name = "undulator_spectrum"
+    name = "Undulator Spectrum"
     id = "orange.widgets.dataundulator_spectrum"
     description = "xoppy application to compute UNDULATOR_FLUX"
     icon = "icons/xoppy_undulator_spectrum.png"
@@ -190,7 +190,7 @@ class OWundulator_spectrum(XoppyWidget):
 
     def check_fields(self):
         self.ELECTRONENERGY = congruence.checkStrictlyPositiveNumber(self.ELECTRONENERGY, "Electron Energy")
-        self.ELECTRONENERGYSPREAD = congruence.checkPositiveNumber(self.ELECTRONENERGYSPREAD, "Electron Energy Spread")
+        if not self.METHOD == 1: self.ELECTRONENERGYSPREAD = congruence.checkPositiveNumber(self.ELECTRONENERGYSPREAD, "Electron Energy Spread")
         self.ELECTRONCURRENT = congruence.checkStrictlyPositiveNumber(self.ELECTRONCURRENT, "Electron Current")
         self.ELECTRONBEAMSIZEH = congruence.checkPositiveNumber(self.ELECTRONBEAMSIZEH, "Electron Beam Size H")
         self.ELECTRONBEAMSIZEV = congruence.checkPositiveNumber(self.ELECTRONBEAMSIZEV, "Electron Beam Size V")
@@ -268,7 +268,6 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
         e,f = srundplug.calc1d_srw(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
               photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
         print("Done")
-
 
     return outFile
 

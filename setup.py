@@ -44,6 +44,7 @@ INSTALL_REQUIRES = (
     'srxraylib>=1.0.7',
     'orange-widget-core>=0.0.2',
     'oasys>=0.1.23',
+    'pySRU',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
