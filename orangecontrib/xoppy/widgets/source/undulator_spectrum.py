@@ -2,7 +2,7 @@ import sys
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from oasys.widgets import gui as oasysgui, congruence
 
 from collections import OrderedDict
 from orangecontrib.xoppy.util import srundplug
@@ -12,7 +12,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 class OWundulator_spectrum(XoppyWidget):
     name = "undulator_spectrum"
     id = "orange.widgets.dataundulator_spectrum"
-    description = "xoppy application to compute UNDULATOR_SPECTRUM"
+    description = "xoppy application to compute UNDULATOR_FLUX"
     icon = "icons/xoppy_undulator_spectrum.png"
     priority = 1
     category = ""
@@ -45,138 +45,138 @@ class OWundulator_spectrum(XoppyWidget):
         #widget index 0
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "ELECTRONENERGY",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ELECTRONENERGY",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 1
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "ELECTRONENERGYSPREAD",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ELECTRONENERGYSPREAD",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 2
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "ELECTRONCURRENT",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ELECTRONCURRENT",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 3
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "ELECTRONBEAMSIZEH",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ELECTRONBEAMSIZEH",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 4
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "ELECTRONBEAMSIZEV",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ELECTRONBEAMSIZEV",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 5
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEH",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEH",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 6
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEV",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEV",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 7
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "PERIODID",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "PERIODID",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 8
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "NPERIODS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+        oasysgui.lineEdit(box1, self, "NPERIODS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 9
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "KV",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "KV",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 10
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "DISTANCE",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "DISTANCE",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 11
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "GAPH",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "GAPH",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 12
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "GAPV",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "GAPV",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 13
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "PHOTONENERGYMIN",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "PHOTONENERGYMIN",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 14
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "PHOTONENERGYMAX",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "PHOTONENERGYMAX",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 15
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "PHOTONENERGYPOINTS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+        oasysgui.lineEdit(box1, self, "PHOTONENERGYPOINTS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 16
         idx += 1
         box1 = gui.widgetBox(box)
         gui.comboBox(box1, self, "METHOD",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['US', 'URGENT', 'SRW'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
     def unitLabels(self):
@@ -189,28 +189,41 @@ class OWundulator_spectrum(XoppyWidget):
         return 'undulator_spectrum'
 
     def check_fields(self):
-        pass
+        self.ELECTRONENERGY = congruence.checkStrictlyPositiveNumber(self.ELECTRONENERGY, "Electron Energy")
+        self.ELECTRONENERGYSPREAD = congruence.checkPositiveNumber(self.ELECTRONENERGYSPREAD, "Electron Energy Spread")
+        self.ELECTRONCURRENT = congruence.checkStrictlyPositiveNumber(self.ELECTRONCURRENT, "Electron Current")
+        self.ELECTRONBEAMSIZEH = congruence.checkPositiveNumber(self.ELECTRONBEAMSIZEH, "Electron Beam Size H")
+        self.ELECTRONBEAMSIZEV = congruence.checkPositiveNumber(self.ELECTRONBEAMSIZEV, "Electron Beam Size V")
+        self.ELECTRONBEAMDIVERGENCEH = congruence.checkPositiveNumber(self.ELECTRONBEAMDIVERGENCEH, "Electron Beam Divergence H")
+        self.ELECTRONBEAMDIVERGENCEV = congruence.checkPositiveNumber(self.ELECTRONBEAMDIVERGENCEV, "Electron Beam Divergence V")
+        self.PERIODID = congruence.checkStrictlyPositiveNumber(self.PERIODID, "Period ID")
+        self.NPERIODS = congruence.checkStrictlyPositiveNumber(self.NPERIODS, "Number of Periods")
+        self.KV = congruence.checkPositiveNumber(self.KV, "Kv")
+        self.DISTANCE = congruence.checkPositiveNumber(self.DISTANCE, "Distance to slit")
+        self.GAPH = congruence.checkPositiveNumber(self.GAPH, "Slit gap H")
+        self.GAPV = congruence.checkPositiveNumber(self.GAPV, "Slit gap V")
+        self.PHOTONENERGYMIN = congruence.checkPositiveNumber(self.PHOTONENERGYMIN, "photon Energy Min")
+        self.PHOTONENERGYMAX = congruence.checkStrictlyPositiveNumber(self.PHOTONENERGYMAX, "photon Energy Max")
+        congruence.checkLessThan(self.PHOTONENERGYMIN, self.PHOTONENERGYMAX, "photon Energy Min", "photon Energy Max")
+        self.PHOTONENERGYPOINTS = congruence.checkStrictlyPositiveNumber(self.PHOTONENERGYPOINTS, "photon Energy Points")
 
     def do_xoppy_calculation(self):
         return xoppy_calc_undulator_spectrum(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,PHOTONENERGYMIN=self.PHOTONENERGYMIN,PHOTONENERGYMAX=self.PHOTONENERGYMAX,PHOTONENERGYPOINTS=self.PHOTONENERGYPOINTS,METHOD=self.METHOD)
 
     def get_data_exchange_widget_name(self):
-        return "UNDULATOR_SPECTRUM"
+        return "UNDULATOR_FLUX"
 
     def getTitles(self):
-        return ['Flux','Spectral Power']
+        return ['Undulator Flux']
 
     def getXTitles(self):
-        return ["Energy [eV]","Energy [eV]"]
+        return ["Energy [eV]"]
 
     def getYTitles(self):
-        return ["Flux [Phot/sec/0.1%bw]","Spectral Power [W/eV]"]
-
-    def getVariablesToPlot(self):
-        return [(0, 2),(0,3)]
+        return ["Flux [Phot/sec/0.1%bw]"]
 
     def getLogPlot(self):
-        return [(False, False),(False, False)]
+        return [(True, True)]
 
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
