@@ -2,13 +2,13 @@ import sys, os
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from oasys.widgets import gui as oasysgui, congruence
 
 from orangecontrib.xoppy.util.xoppy_util import locations
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 class OWxtubes(XoppyWidget):
-    name = "xtubes"
+    name = "X-ray Tubes"
     id = "orange.widgets.dataxtubes"
     description = "xoppy application to compute XTUBES"
     icon = "icons/xoppy_xtubes.png"
@@ -29,7 +29,7 @@ class OWxtubes(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "ITUBE",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Mo', 'Rh', 'W'],
                     valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
@@ -37,9 +37,9 @@ class OWxtubes(XoppyWidget):
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "VOLTAGE",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "VOLTAGE",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
     def unitLabels(self):
@@ -52,7 +52,7 @@ class OWxtubes(XoppyWidget):
         return 'xtubes'
 
     def check_fields(self):
-        if self.VOLTAGE < 18 or self.VOLTAGE > 42: raise Exception("Voltage out of range")
+        if self.VOLTAGE <= 18 or self.VOLTAGE >= 42: raise Exception("Voltage out of range")
 
     def do_xoppy_calculation(self):
         return xoppy_calc_xtubes(ITUBE=self.ITUBE,VOLTAGE=self.VOLTAGE)

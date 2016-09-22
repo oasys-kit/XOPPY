@@ -2,13 +2,13 @@ import sys, os
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from oasys.widgets import gui as oasysgui, congruence
 
 from orangecontrib.xoppy.util.xoppy_util import locations
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 class OWxtube_w(XoppyWidget):
-    name = "xtube_w"
+    name = "W X-ray Tube"
     id = "orange.widgets.dataxtube_w"
     description = "xoppy application to compute XTUBE_W"
     icon = "icons/xoppy_xtube_w.png"
@@ -30,25 +30,25 @@ class OWxtube_w(XoppyWidget):
         #widget index 0 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "VOLTAGE",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "VOLTAGE",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "RIPPLE",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "RIPPLE",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "AL_FILTER",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "AL_FILTER",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
     def unitLabels(self):
@@ -63,7 +63,10 @@ class OWxtube_w(XoppyWidget):
         return 'xtube_w'
 
     def check_fields(self):
+        self.VOLTAGE = congruence.checkStrictlyPositiveNumber(self.VOLTAGE, "Voltage")
         if self.VOLTAGE < 30 or self.VOLTAGE > 140: raise Exception("Voltage out of range")
+        self.RIPPLE = congruence.checkPositiveNumber(self.RIPPLE, "Voltage ripple")
+        self.AL_FILTER = congruence.checkPositiveNumber(self.AL_FILTER, "Al filter")
 
     def do_xoppy_calculation(self):
         return xoppy_calc_xtube_w(VOLTAGE=self.VOLTAGE,RIPPLE=self.RIPPLE,AL_FILTER=self.AL_FILTER)
