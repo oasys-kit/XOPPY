@@ -4,7 +4,7 @@ r"""
 srundplug: Undulator spectra calculations. An easy (or not too difficult) 
            interface to make these calculations using Srw, Urgent, and Us.
 
-     
+
      functions (summary): 
 
         calc1d<code>   returns (e,f) 
@@ -18,48 +18,16 @@ srundplug: Undulator spectra calculations. An easy (or not too difficult)
                            f = flux (phot/s/0.1%bw/mm^2) versus e=energy in eV,
                            h and v slit directions in mm 
 
-        <code>=Srw,urgent,Us
 
 
-     functions(list): 
 
-         auxiliary:
-            getGlossaryElement()
-            getFWHM()
-            getBeamline()
-    
-         main parameters:
-            calcUndulator()
-    
-         flux spectrum versus energy:
-            calc1dSrw()
-            calc1dUrgent()
-            calc1dUs
-    
-         power density versus (h,v):
-            calc2dSrw()
-            calc2dUrgent()
-            calc2dUs()
-    
-         flux in a slit vs (energy,h,v)
-            calc3dSrw
-            calc3dUrgent
-            calc3dUs
 
-TODO: 
-     -rename the package
-     -documentation write and adapt to sphynx? 
-     -think in structuring the Glossary
-     -restructure the code to OO (class/methods)
-     -think on plots
-     -check timing routines (delete?)
-     -manage globals
  
 """
 
 __author__    = "Manuel Sanchez del Rio"
 __contact__   = "srio@esrf.eu"
-__copyright__ = "ESRF, 2014"
+__copyright__ = "ESRF, 2014-2016"
 
 #
 #----------------------------  IMPORT ------------------------------------------
@@ -67,19 +35,17 @@ __copyright__ = "ESRF, 2014"
 
 import os
 import sys
-from collections import OrderedDict
 import time
-import platform
+import array
 
 import numpy
-from orangecontrib.xoppy.util.xoppy_util import locations
+import shutil # to copy files
+
 
 #SRW
 try:
     import srwlib
-    srwlib_supported = True
 except ImportError:
-    srwlib_supported = False
     print("Failed to import srwlib. Do not try to use it!")
 
 #catch standard optput
@@ -88,42 +54,38 @@ try:
 except ImportError:
     from StringIO import StringIO  # Python2
 
-#
-#----------------------------  GLOBAL NAMES ------------------------------------
-#
-
-#Physical constants (global, by now)
 try:
-    import scipy.constants.codata
-    codata = scipy.constants.codata.physical_constants
-    
-    codata_c, tmp1, tmp2 = codata["speed of light in vacuum"]
-    codata_c = numpy.array(codata_c)
-    
-    codata_mee, tmp1, tmp2 = codata["electron mass energy equivalent in MeV"]
-    codata_mee = numpy.array(codata_mee)
-    
-    codata_h, tmp1, tmp2 = codata["Planck constant"]
-    codata_h = numpy.array(codata_h)
-    
-    codata_ec, tmp1, tmp2 = codata["elementary charge"]
-    codata_ec = numpy.array(codata_ec)
+    import matplotlib.pylab as plt
 except ImportError:
-    print("Failed to import scipy. Finding alternative ways.")
-    codata_c = numpy.array(299792458.0)
-    codata_mee = numpy.array(9.10938356e-31)
-    codata_h = numpy.array(6.626070040e-34)
-    codata_ec = numpy.array(1.6021766208e-19)
+    print("failed to import matplotlib. Do not try to do on-line plots.")
 
-m2ev = codata_c*codata_h/codata_ec      # lambda(m)  = m2eV / energy(eV)
+from srxraylib.plot.gol import plot, plot_contour, plot_surface, plot_image, plot_show
+
+########################################################################################################################
+#
+# GLOBAL NAMES
+#
+########################################################################################################################
+
+# #Physical constants (global, by now)
+import scipy.constants as codata
+codata_mee = numpy.array(codata.physical_constants["electron mass energy equivalent in MeV"][0])
+m2ev = codata.c * codata.h / codata.e      # lambda(m)  = m2eV / energy(eV)
 
 # counter for output files
 scanCounter = 0
 
+# try:
+#     from orangecontrib.xoppy.util.xoppy_util import locations
+# except:
+#     raise Exception("IMPORT")
+
 # directory  where to find urgent and us binaries
 try:
+    from orangecontrib.xoppy.util.xoppy_util import locations
     home_bin = locations.home_bin()
-except NameError:
+except:
+    import platform
     if platform.system() == 'Linux':
         home_bin='/scisoft/xop2.4/bin.linux/'
         print("srundplug: undefined home_bin. It has been set to ", home_bin)
@@ -132,290 +94,143 @@ except NameError:
         print("srundplug: undefined home_bin. It has been set to ", home_bin)
     else:
         raise FileNotFoundError("srundplug: undefined home_bin")
-#check
 
+#check
 if os.path.isfile(home_bin + 'us') == False:
     print("srundplug: File not found: "+home_bin+'us')
 if os.path.isfile(home_bin + 'urgent') == False:
     raise FileNotFoundError("srundplug: File not found: " + home_bin + 'urgent')
 
-#
-#----------------------------  FUNCTIONS -------------------------------------
-#
 
-def calcFWHM(h,binSize):
-  t = numpy.where(h>=max(h)*0.5)
-  return binSize*(t[0][-1]-t[0][0]+1), t[0][-1], t[0][0]
 
-def getGlossaryElement(str1=""):
+
+# directory  where to find urgent and us binaries
+try:
+    home_bin
+except NameError:
+    #home_bin='/users/srio/Oasys/Orange-XOPPY/orangecontrib/xoppy/bin.linux/'
+    home_bin='/scisoft/xop2.4/bin.linux/'
+    print("srundplug: undefined home_bin. It has been set to ",home_bin)
+
+#check
+if os.path.isfile(home_bin+'us') == False:
+    print("srundplug: File not found: "+home_bin+'us')
+if os.path.isfile(home_bin+'urgent') == False:
+    sys.exit("srundplug: File not found: "+home_bin+'urgent')
+
+
+
+
+########################################################################################################################
+#
+# 1D: calc1d<code> Flux calculations
+#
+########################################################################################################################
+def calc1d_pysru(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoints=5,
+                npoints_grid=51,zero_emittance=False,fileName=None,fileAppend=False):
+
     r"""
-     Gets a dictionary for a given element in the Glossary
+        run pySRU for calculating flux
 
-     MODIFICATION HISTORY: 
-            Written by:     M. Sanchez del Rio, srio@esrf.eu, 2004-09-16
-      
-    """ 
-    dict1 = None
-    dict1 = OrderedDict()
-    if (str1 == "BC_ElectronBeamGaussian"):
-        dict1.update(  {
-            "ElectronEnergy" : 6.04, 
-            "ElectronCurrent" : 0.2,
-            "ElectronBeamSizeH" : 413e-6,
-            "ElectronBeamSizeV" : 3e-6,
-            "ElectronBeamDivergenceH" : 10.0e-6,
-            "ElectronBeamDivergenceV" : 1.2e-6 } )
-        return dict1
+        input: a dictionary with beamline
+        output: file name with results
+    """
 
-    if (str1 == "BC_InsertionDevice"):
-        dict1.update(  {
-            "PeriodID" : 26.0e-3,
-            "NPeriods" : 96,
-            "Kv" : 0.82} )
+    global scanCounter
 
-    if (str1 == "IC_DriftSpace"):
-        dict1.update(  {
-            "d" : 20.0} )
+    t0 = time.time()
+    print("Inside calc1d_pysru")
 
-    if (str1 == "BC_Slit"):
-        dict1.update(  {
-            "gapH" : 1.0e-3,
-            "gapV" : 1.0e-3 } )
+    from pySRU.Simulation import create_simulation
+    from pySRU.ElectronBeam import ElectronBeam
+    from pySRU.MagneticStructureUndulatorPlane import MagneticStructureUndulatorPlane
+    from pySRU.TrajectoryFactory import TrajectoryFactory, TRAJECTORY_METHOD_ANALYTIC,TRAJECTORY_METHOD_ODE
 
-    return dict1
-
-def getBeamline(nameBeamline,silent=False):
-    #
-    # get the elements
-    #
-    ebeam = getGlossaryElement("BC_ElectronBeamGaussian")
-    idv = getGlossaryElement("BC_InsertionDevice")
-    drift = getGlossaryElement("IC_DriftSpace")
-    slit = getGlossaryElement("BC_Slit")
-    
-    #
-    # modify elements
-    #
-    if nameBeamline == "ID16_NA":
-        if silent == False:
-            print("Setting inputs for ESRF-ID16_NA")
-        ebeam['ElectronBeamDivergenceH'] = 10.3e-06
-        ebeam['ElectronBeamDivergenceV'] = 1.2e-06
-        ebeam['ElectronBeamSizeH'] = 0.0004131
-        ebeam['ElectronBeamSizeV'] = 3.4e-06
-        ebeam['ElectronCurrent'] = 0.2
-        ebeam['ElectronEnergy'] = 6.04
-        idv['Kv'] = 4.0 # 0.82
-        idv['NPeriods'] = 77
-        idv['PeriodID'] = 0.026
-        drift['distance'] = 20.0
-        slit['gapH'] = 0.001 #0.001
-        slit['gapV'] = 0.001 #0.001
-    
-    if nameBeamline == "ESRF_LB":
-        if silent == False:
-            print("Setting inputs for ESRF Low Beta")
-        ebeam['ElectronBeamDivergenceH'] = 88.3e-6
-        ebeam['ElectronBeamDivergenceV'] = 3.8e-6
-        ebeam['ElectronBeamSizeH'] = 57e-6
-        ebeam['ElectronBeamSizeV'] = 10.3e-6
-        ebeam['ElectronCurrent'] = 0.2
-        ebeam['ElectronEnergy'] = 6.04
-        idv['Kv'] = 1.68
-        idv['NPeriods'] = int(4.0/0.018)
-        idv['PeriodID'] = 0.018
-        drift['distance'] = 30.0
-        slit['gapH'] = 0.001
-        slit['gapV'] = 0.001
-
-    if nameBeamline == "ESRF_LB_OB":
-        if silent == False:
-            print("Setting inputs for ESRF Low Beta after OB")
-        ebeam['ElectronBeamDivergenceH'] = 106.9e-6
-        ebeam['ElectronBeamDivergenceV'] = 1.2e-6
-        ebeam['ElectronBeamSizeH'] = 37.4e-6
-        ebeam['ElectronBeamSizeV'] = 3.5e-6
-        ebeam['ElectronCurrent'] = 0.2
-        ebeam['ElectronEnergy'] = 6.04
-        idv['Kv'] = 1.68
-        idv['NPeriods'] = int(4.0/0.018)
-        idv['PeriodID'] = 0.018
-        drift['distance'] = 30.0
-        slit['gapH'] = 0.001
-        slit['gapV'] = 0.001
+    from pySRU.RadiationFactory import RadiationFactory,RADIATION_METHOD_NEAR_FIELD, \
+                                     RADIATION_METHOD_APPROX_FARFIELD
 
 
-    if nameBeamline == "ESRF_HB":
-        if silent == False:
-            print("Setting inputs for ESRF High Beta")
-        ebeam['ElectronBeamDivergenceH'] = 10.5e-6
-        ebeam['ElectronBeamDivergenceV'] = 3.9e-6
-        ebeam['ElectronBeamSizeH'] = 395e-6
-        ebeam['ElectronBeamSizeV'] = 9.9e-6
-        ebeam['ElectronCurrent'] = 0.2
-        ebeam['ElectronEnergy'] = 6.04
-        idv['Kv'] = 1.68
-        idv['NPeriods'] = int(4.0/0.018)
-        idv['PeriodID'] = 0.018
-        drift['distance'] = 30.0
-
-    if nameBeamline == "ESRF_HB_OB":
-        if silent == False:
-            print("Setting inputs for ESRF High Beta after OB")
-        ebeam['ElectronBeamDivergenceH'] = 10.3e-6
-        ebeam['ElectronBeamDivergenceV'] = 1.2e-6
-        ebeam['ElectronBeamSizeH'] = 387.8e-6
-        ebeam['ElectronBeamSizeV'] = 3.5e-6
-        ebeam['ElectronCurrent'] = 0.2
-        ebeam['ElectronEnergy'] = 6.04
-        idv['Kv'] = 1.68
-        idv['NPeriods'] = int(4.0/0.018)
-        idv['PeriodID'] = 0.018
-        drift['distance'] = 30.0
-        slit['gapH'] = 0.001 
-        slit['gapV'] = 0.001 
+    myBeam = ElectronBeam(Electron_energy=bl['ElectronEnergy'], I_current=bl['ElectronCurrent'])
+    myUndulator = MagneticStructureUndulatorPlane(K=bl['Kv'], period_length=bl['PeriodID'], length=bl['PeriodID']*bl['NPeriods'])
 
 
+    is_quadrant = 1
 
-    if nameBeamline == "ESRF_NEW_OB":
-        if silent == False:
-            print("Setting inputs for ESRF Low Beta")
-        ebeam['ElectronBeamDivergenceH'] = 5.2e-6
-        ebeam['ElectronBeamDivergenceV'] = 1.4e-6
-        ebeam['ElectronBeamSizeH'] = 27.2e-6
-        ebeam['ElectronBeamSizeV'] = 3.4e-6
-        ebeam['ElectronCurrent'] = 0.2
-        ebeam['ElectronEnergy'] = 6.0
-        idv['Kv'] = 1.68
-        idv['NPeriods'] = int(4.0/0.018)
-        idv['PeriodID'] = 0.018
-        drift['distance'] = 30.0
-        slit['gapH'] = 0.001 
-        slit['gapV'] = 0.001 
+    if is_quadrant:
+        X = numpy.linspace(0,0.5*bl['gapH'],npoints_grid)
+        Y = numpy.linspace(0,0.5*bl['gapV'],npoints_grid)
+    else:
+        X = numpy.linspace(-0.5*bl['gapH'],0.5*bl['gapH'],npoints_grid)
+        Y = numpy.linspace(-0.5*bl['gapH'],0.5*bl['gapH'],npoints_grid)
+
 
     #
-    # build the beamline as a list
-    # 
-    #    bl = [ebeam,idv,drift,slit]
+    # Warning: The automatic calculation of Nb_pts_trajectory dependens on the energy at this setup and it
+    #           will kept constant over the full spectrum. Therefore, the setup here is done for the most
+    #           "difficult" case, i.e., the highest energy.
+    #           Setting photon_energy=None will do it at the first harmonic, and it was found that the flux
+    #           diverges at high energies in some cases (energy_radiated_approximation_and_farfield)
     #
-    #    print ("-----------------------------------------------------")
-    #    print ("-----------------------------------------------------")
-    #    for oe in bl: #range(len(bl)):
-    #        for i,j in oe.items():
-    #            print ("%s = %s" % (i,j) )
-    #        print ("-----------------------------------------------------")
-    #    print ("-----------------------------------------------------")
-    
-    #
-    # build the beamline as a merged dictionary
-    # TODO: merge elements is dangerous (possible key duplication) and 
-    #       does not allow multiple identical elements. Find a better solution...
-    # 
-    bl = OrderedDict()
-    bl.update(ebeam)
-    bl.update(idv)
-    bl.update(drift)
-    bl.update(slit)
-    #if silent == False:
-    #    print ("\n\n-----------------------------------------------------")
-    #    for i,j in bl.items(): 
-    #        print ("%s = %s" % (i,j) )
-    #    print ("-----------------------------------------------------\n\n")
-    return bl
+    simulation_test = create_simulation(magnetic_structure=myUndulator,electron_beam=myBeam,
+                        magnetic_field=None, photon_energy=photonEnergyMax,
+                        traj_method=TRAJECTORY_METHOD_ODE,Nb_pts_trajectory=None,
+                        rad_method=RADIATION_METHOD_NEAR_FIELD, Nb_pts_radiation=None,
+                        initial_condition=None, distance=bl['distance'],XY_are_list=False,X=X,Y=Y)
+
+    # simulation_test.trajectory.plot()
 
 
-def calcUndulator(bl,photonEnergy=None,distance=None,silent=False):
+    simulation_test.print_parameters()
+    # simulation_test.radiation.plot(title=("radiation in a screen for first harmonic"))
+    print("Integrated flux at resonance: %g photons/s/0.1bw"%(simulation_test.radiation.integration(is_quadrant=is_quadrant)))
 
-    #init capture standard output 
-    # see http://wrongsideofmemphis.com/2010/03/01/store-standard-output-on-a-variable-in-python/
-    old_stdout = sys.stdout
-    result = StringIO()
-    sys.stdout = result
+    energies = numpy.linspace(photonEnergyMin,photonEnergyMax,photonEnergyPoints)
 
-    print("=============  Undulator parameters =============================\n")
-    print("Inputs: \n")
-    for i,j in bl.items(): 
-        print ("%s = %s" % (i,j) )
-    print("\n\nOutputs (supposing at waist): \n")
-    print ("Electron beam Emittance H [m.rad]: %e \n"%(bl['ElectronBeamSizeH']*bl['ElectronBeamDivergenceH']))
-    print ("Electron beam Emittance V [m.rad]: %e \n"%(bl['ElectronBeamSizeV']*bl['ElectronBeamDivergenceV']))
-    print ("Electron Beta H [m]: %e \n"%(bl['ElectronBeamSizeH']/bl['ElectronBeamDivergenceH']))
-    print ("Electron Beta V [m]: %e \n"%(bl['ElectronBeamSizeV']/bl['ElectronBeamDivergenceV']))
-    l1 = bl['PeriodID']*bl['NPeriods']
-    print ("Undulator length [m]: %f \n"%(l1))
+    eArray,intensArray = simulation_test.calculate_spectrum_on_slit(abscissas_array=energies,use_eV=1,is_quadrant=is_quadrant,do_plot=0)
 
-    # 
-    # energy-dependent parameters
-    #
-    if photonEnergy != None:
-        phE = numpy.array(photonEnergy)
-        phE.shape = -1
-        for phEi in phE:
-            print ("\n\n----------------------  photon energy [eV]: %0.2f \n"%(phEi))
-            print('\n')
-            lambda1 = m2ev/phEi
-            print ("   photon wavelength [A]: %f \n"%(lambda1*1e10))
-        
-            # calculate sizes of the photon undulator beam
-            # see formulas 25 & 30 in Elleaume (Onaki & Elleaume)
-            s_phot = 2.740/(4e0*numpy.pi)*numpy.sqrt(l1*lambda1)
-            sp_phot = 0.69*numpy.sqrt(lambda1/l1)
-            print('\n')
-            print('   RMS electon size H/V [um]: '+
-                 repr(bl['ElectronBeamSizeH']*1e6)+ ' /  '+
-                 repr(bl['ElectronBeamSizeV']*1e6) )
-            print('   RMS electon divergence H/V[urad]: '+
-                 repr(bl['ElectronBeamDivergenceH']*1e6)+ ' /  '+
-                 repr(bl['ElectronBeamDivergenceV']*1e6)  )
-            print('\n')
-            print('   RMS radiation size [um]: '+repr(s_phot*1e6))
-            print('   RMS radiation divergence [urad]: '+repr(sp_phot*1e6))
-            print('\n')
-            print('   Photon beam (convolution): ')
-            photon_h = numpy.sqrt(numpy.power(bl['ElectronBeamSizeH'],2) + numpy.power(s_phot,2) )
-            photon_v = numpy.sqrt(numpy.power(bl['ElectronBeamSizeV'],2) + numpy.power(s_phot,2) )
-            photon_hp = numpy.sqrt(numpy.power(bl['ElectronBeamDivergenceH'],2) + numpy.power(sp_phot,2) )
-            photon_vp = numpy.sqrt(numpy.power(bl['ElectronBeamDivergenceV'],2) + numpy.power(sp_phot,2) )
-            print('   RMS size H/V [um]: '+ repr(photon_h*1e6) + '  /  '+repr(photon_v*1e6))
-            print('   RMS divergence H/V [um]: '+ repr(photon_hp*1e6) + '  /  '+repr(photon_vp*1e6))
-         
-            print('\n')
-            cohH = lambda1/4/numpy.pi / photon_h / photon_hp
-            cohV = lambda1/4/numpy.pi / photon_v / photon_vp
-            print('   Coherent volume in H phase space: '+ repr(cohH) )
-            print('   Coherent volume in V phase space: '+ repr(cohV) )
-            print('\n')
-            dls = numpy.sqrt(2*l1*lambda1)/4/numpy.pi
-            print('   RMS diffraction limit source size [um]: '+ repr(dls*1e6) )
-            print('   FWHM diffraction limit source size [um]: '+ repr(dls*2.35*1e6) )
-            #
-            # values that depen on screen distance
-            #
-            if distance != None:
-                print('\n')
-                hRMS = numpy.sqrt( numpy.power(photon_hp*distance,2) + numpy.power(photon_h,2))
-                vRMS = numpy.sqrt( numpy.power(photon_vp*distance,2) + numpy.power(photon_v,2))
-            
-                print('   At a screen placed at :%f m from the source:\n'%(distance))
-                print('   RMS size H/V [mm]: '+ repr(hRMS*1e3) + '  /  '+repr(vRMS*1e3))
-                print('   FWHM size H/V [mm]: '+ repr(hRMS*2.35*1e3) + '  /  '+repr(vRMS*2.35*1e3))
-                print('\n')
-                print('   FWHM coherence length H [um] : '+ repr(hRMS*cohH*2.35*1e6) )
-                print('   FWHM coherence length V [um] : '+ repr(vRMS*cohV*2.35*1e6) )
+    #**********************Saving results
 
-        
-    print("=================================================================\n")
+    if fileName is not None:
+        if fileAppend:
+            f = open(fileName,"a")
+        else:
+            scanCounter = 0
+            f = open(fileName,"w")
+            f.write("#F "+fileName+"\n")
 
-    sys.stdout = old_stdout
-    result_string = result.getvalue()
+        f.write("\n")
+        scanCounter +=1
+        f.write("#S %d Undulator spectrum calculation using pySRU\n"%(scanCounter))
 
-    if silent == False:
-        print(result_string)
+        for i,j in bl.items(): # write bl values
+            f.write ("#UD %s = %s\n" % (i,j) )
+        f.write("#UD photonEnergyMin =  %f\n"%(photonEnergyMin))
+        f.write("#UD photonEnergyMax =  %f\n"%(photonEnergyMax))
+        f.write("#UD photonEnergyPoints =  %d\n"%(photonEnergyPoints))
 
-    return  result_string
+        #
+        # write flux to file
+        #
+        header="#N 4 \n#L PhotonEnergy[eV]  PhotonWavelength[A]  Flux[phot/sec/0.1%bw]  Spectral Power[W/eV]\n"
+        f.write(header)
+
+        for i in range(eArray.size):
+            f.write(' ' + repr(eArray[i]) + '   ' + repr(m2ev/eArray[i]*1e10) + '    ' +
+                    repr(intensArray[i]) + '    ' +
+                    repr(intensArray[i]*codata.e*1e3) + '\n')
+        f.close()
+
+        if fileAppend:
+            print("Data appended to file: "+fileName)
+        else:
+            print("File written to disk: "+fileName)
+
+    return (eArray,intensArray)
 
 
-def calc1dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoints=500,fileName="/dev/null",fileAppend=True):
+
+def calc1d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoints=500,zero_emittance=False,
+              srw_max_harmonic_number=21,fileName=None,fileAppend=False):
 
     r"""
         run SRW for calculating flux
@@ -425,33 +240,31 @@ def calc1dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
     """
     
     global scanCounter
-    global srwlib_supported
-
-    if not srwlib_supported: raise NotImplementedError("srwlib is not present!")
 
     t0 = time.time()
-    print("Inside calc1dSrw")
-    outFile = 'flux.spec'
+    print("Inside calc1d_srw")
     #Maximum number of harmonics considered. This is critical for speed. 
     #TODO: set it automatically to a reasonable value (see how is done by Urgent).
-    Nmax = 21
+    Nmax = srw_max_harmonic_number # 21,61
     #derived
     #TODO calculate the numerical factor using codata
-    B0 = bl['Kv']/0.934/(bl['PeriodID']*1e2)
-    
-    
+    #B0 = bl['Kv']/0.934/(bl['PeriodID']*1e2)
+
+    cte = codata.e/(2*numpy.pi*codata.electron_mass*codata.c)
+    B0 = bl['Kv']/bl['PeriodID']/cte
+
     
     print('Running SRW (SRWLIB Python)')
     
     #***********Undulator
     harmB = srwlib.SRWLMagFldH() #magnetic field harmonic
     harmB.n = 1 #harmonic number
-    harmB.h_or_v = 'v' #magnetic field plane: horzontal ('h') or vertical ('v') '\u0068' or '\u0076'
+    harmB.h_or_v = 'v' #magnetic field plane: horzontal ('h') or vertical ('v')
     harmB.B = B0 #magnetic field amplitude [T]
 
     und = srwlib.SRWLMagFldU([harmB])
-    und.per = float(bl['PeriodID']) #period length [m]
-    und.nPer = int(bl['NPeriods']) #number of periods (will be rounded to integer)
+    und.per = bl['PeriodID'] #period length [m]
+    und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
 
     #Container of all magnetic field elements
     magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('d', [0]), srwlib.array('d', [0]), srwlib.array('d', [0]))
@@ -464,17 +277,20 @@ def calc1dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
     eBeam.partStatMom1.z = 0. #initial longitudinal positions (set in the middle of undulator)
     eBeam.partStatMom1.xp = 0 #initial relative transverse velocities
     eBeam.partStatMom1.yp = 0
-    eBeam.partStatMom1.gamma = bl['ElectronEnergy']/0.51099890221e-03 #relative energy
+    eBeam.partStatMom1.gamma = bl['ElectronEnergy']*1e3/codata_mee #relative energy
 
-    sigX =  bl['ElectronBeamSizeH'] #horizontal RMS size of e-beam [m]
-    sigXp = bl['ElectronBeamDivergenceH'] #horizontal RMS angular divergence [rad]
-    sigY =  bl['ElectronBeamSizeV'] #vertical RMS size of e-beam [m]
-    sigYp = bl['ElectronBeamDivergenceV'] #vertical RMS angular divergence [rad]
-
-    if 'ElectronEnergySpread' in bl.keys():
-        sigEperE = bl['ElectronEnergySpread']
+    if zero_emittance:
+        sigX     = 1e-25
+        sigXp    = 1e-25
+        sigY     = 1e-25
+        sigYp    = 1e-25
+        sigEperE = 1e-25
     else:
-        sigEperE = 0.001 #relative RMS energy spread
+        sigX =  bl['ElectronBeamSizeH'] #horizontal RMS size of e-beam [m]
+        sigXp = bl['ElectronBeamDivergenceH'] #horizontal RMS angular divergence [rad]
+        sigY =  bl['ElectronBeamSizeV'] #vertical RMS size of e-beam [m]
+        sigYp = bl['ElectronBeamDivergenceV'] #vertical RMS angular divergence [rad]
+        sigEperE = bl['ElectronEnergySpread']
 
     print("calc1dSrw: starting calculation using ElectronEnergySpead=%e \n"%((sigEperE)))
 
@@ -509,55 +325,59 @@ def calc1dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
     
     #**********************Calculation (SRWLIB function calls)
     print('Performing Spectral Flux (Stokes parameters) calculation ... ') # , end='')
+
     srwlib.srwl.CalcStokesUR(stkF, eBeam, und, arPrecF)
 
+    print('Done calc1dSrw calculation in sec '+str(time.time()-t0))
     #**********************Saving results
-    
-    if fileAppend:
-        f = open(fileName,"a")
-    else:
-        scanCounter = 0
-        f = open(fileName,"w")
-        f.write("#F "+fileName+"\n")
 
-    f.write("\n")
-    scanCounter +=1 
-    f.write("#S %d Undulator spectrum calculation using SRW\n"%(scanCounter))
-    
-    for i,j in bl.items(): # write bl values
-        f.write ("#UD %s = %s\n" % (i,j) )
-    f.write("#UD photonEnergyMin =  %f\n"%(photonEnergyMin))
-    f.write("#UD photonEnergyMax =  %f\n"%(photonEnergyMax))
-    f.write("#UD photonEnergyPoints =  %d\n"%(photonEnergyPoints))
-    f.write("#UD B0 =  %f\n"%(B0))
+    if fileName is not None:
+        if fileAppend:
+            f = open(fileName,"a")
+        else:
+            scanCounter = 0
+            f = open(fileName,"w")
+            f.write("#F "+fileName+"\n")
 
-    #
-    # write flux to file
-    #
-    header="#N 4 \n#L PhotonEnergy[eV]  PhotonWavelength[A]  Flux[phot/sec/0.1%bw]  Spectral Power[W/eV]\n"
-    f.write(header)
+        f.write("\n")
+        scanCounter +=1
+        f.write("#S %d Undulator spectrum calculation using SRW\n"%(scanCounter))
+
+        for i,j in bl.items(): # write bl values
+            f.write ("#UD %s = %s\n" % (i,j) )
+        f.write("#UD photonEnergyMin =  %f\n"%(photonEnergyMin))
+        f.write("#UD photonEnergyMax =  %f\n"%(photonEnergyMax))
+        f.write("#UD photonEnergyPoints =  %d\n"%(photonEnergyPoints))
+        f.write("#UD B0 =  %f\n"%(B0))
+
+        #
+        # write flux to file
+        #
+        header="#N 4 \n#L PhotonEnergy[eV]  PhotonWavelength[A]  Flux[phot/sec/0.1%bw]  Spectral Power[W/eV]\n"
+        f.write(header)
+
     eArray = numpy.zeros(photonEnergyPoints)
     intensArray = numpy.zeros(photonEnergyPoints)
-    for i in range(stkF.mesh.ne): 
+    for i in range(stkF.mesh.ne):
         ener = stkF.mesh.eStart+i*(stkF.mesh.eFin-stkF.mesh.eStart)/numpy.array((stkF.mesh.ne-1)).clip(min=1)
-        f.write(' ' + repr(ener) + '   ' + repr(m2ev/ener*1e10) + '    ' +
+        if fileName is not None: f.write(' ' + repr(ener) + '   ' + repr(m2ev/ener*1e10) + '    ' +
                 repr(stkF.arS[i]) + '    ' +
-                repr(stkF.arS[i]*codata_ec*1e3) + '\n')
+                repr(stkF.arS[i]*codata.e*1e3) + '\n')
         eArray[i] = ener
         intensArray[i] = stkF.arS[i]
-    
-    f.close()
 
-    if fileAppend:
-        print("Data appended to file: "+fileName)
-    else:
-        print("File written to disk: "+fileName)
+    if fileName is not None:
+        f.close()
 
-    print('Done calc1dSrw calculation in sec '+str(time.time()-t0))
+        if fileAppend:
+            print("Data appended to file: "+fileName)
+        else:
+            print("File written to disk: "+fileName)
+
 
     return (eArray,intensArray) 
 
-def calc1dUrgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoints=500,fileName="/dev/null",fileAppend=False):
+def calc1d_urgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoints=500,zero_emittance=False,fileName=None,fileAppend=False):
 
     r"""
         run Urgent for calculating flux
@@ -568,9 +388,15 @@ def calc1dUrgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergy
     global scanCounter
     global home_bin
 
+    print("Inside calc1d_urgent")
 
     t0 = time.time()
-    print("Inside calc1dUrgent")
+    for file in ["urgent.inp","urgent.out"]:
+        try:
+            os.remove(os.path.join(locations.home_bin_run(),file))
+        except:
+            pass
+
     with open("urgent.inp","wt") as f:
         f.write("%d\n"%(1))               # ITYPE
         f.write("%f\n"%(bl['PeriodID']))  # PERIOD
@@ -599,7 +425,10 @@ def calc1dUrgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergy
         f.write("%d\n"%(50))              #NYP
 
         f.write("%d\n"%(4))               #MODE
-        f.write("%d\n"%(1))               #ICALC
+        if zero_emittance:                #ICALC
+            f.write("%d\n"%(3))
+        else:
+            f.write("%d\n"%(1))
         f.write("%d\n"%(-1))              #IHARM
 
         f.write("%d\n"%(0))               #NPHI
@@ -616,28 +445,30 @@ def calc1dUrgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergy
     print("Done.")
     print("\n--------------------------------------------------------\n")
 
+    print('Done calc1dUrgent calculation in sec '+str(time.time()-t0))
+
     # write spec file
-    
     txt = open("urgent.out").readlines()
+    if fileName is not None:
 
-    if fileAppend:
-        f = open(fileName,"a")
-    else:
-        scanCounter = 0
-        f = open(fileName,"w")
-        f.write("#F "+fileName+"\n")
+        if fileAppend:
+            f = open(fileName,"a")
+        else:
+            scanCounter = 0
+            f = open(fileName,"w")
+            f.write("#F "+fileName+"\n")
 
-    f.write("\n")
-    scanCounter +=1 
-    f.write("#S %d Undulator spectrum calculation using Urgent\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        f.write ("#UD %s = %s\n" % (i,j) )
-    f.write("#UD photonEnergyMin =  %f\n"%(photonEnergyMin))
-    f.write("#UD photonEnergyMax =  %f\n"%(photonEnergyMax))
-    f.write("#UD photonEnergyPoints =  %d\n"%(photonEnergyPoints))
+        f.write("\n")
+        scanCounter +=1
+        f.write("#S %d Undulator spectrum calculation using Urgent\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            f.write ("#UD %s = %s\n" % (i,j) )
+        f.write("#UD photonEnergyMin =  %f\n"%(photonEnergyMin))
+        f.write("#UD photonEnergyMax =  %f\n"%(photonEnergyMax))
+        f.write("#UD photonEnergyPoints =  %d\n"%(photonEnergyPoints))
 
-    f.write("#N 10\n")
-    f.write("#L  Energy(eV)  Wavelength(A)  Flux(ph/s/0.1%bw)  Spectral Power(W/eV)  imin  imax  p1  p2  p3  p4\n")
+        f.write("#N 10\n")
+        f.write("#L  Energy(eV)  Wavelength(A)  Flux(ph/s/0.1%bw)  Spectral Power(W/eV)  imin  imax  p1  p2  p3  p4\n")
 
     nArray = 0
     for i in txt:
@@ -645,12 +476,17 @@ def calc1dUrgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergy
         if tmp[0].isdigit():
            nArray += 1
            tmp = tmp.replace('D','e')
-           f.write(tmp)
+           if fileName is not None: f.write(tmp)
         else:
-           f.write("#UD "+tmp)
+           if fileName is not None: f.write("#UD "+tmp)
 
-    f.close()
+    if fileName is not None:
+        f.close()
 
+        if fileAppend:
+            print("Data appended to file: "+fileName)
+        else:
+            print("File written to disk: "+fileName)
 
     # stores results in numpy arrays for return
     eArray = numpy.zeros(nArray)
@@ -665,16 +501,11 @@ def calc1dUrgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergy
            eArray[iArray] = tmpf[0]
            intensArray[iArray] = tmpf[2]
 
-    if fileAppend:
-        print("Data appended to file: "+fileName)
-    else:
-        print("File written to disk: "+fileName)
 
-    print('Done calc1dUrgent calculation in sec '+str(time.time()-t0))
 
     return (eArray,intensArray)
 
-def calc1dUs(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoints=500,fileName="/tmp/null",fileAppend=False):
+def calc1d_us(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoints=500,zero_emittance=False,fileName=None,fileAppend=False):
 
     r"""
         run US for calculating flux
@@ -687,15 +518,19 @@ def calc1dUs(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoin
 
 
     t0 = time.time()
+    for file in ["us.inp","us.out"]:
+        try:
+            os.remove(os.path.join(locations.home_bin_run(),file))
+        except:
+            pass
 
-    print("Inside calc1dUs")
+
+    print("Inside calc1d_us")
     with open("us.inp","wt") as f:
-        #f.write("%d\n"%(1))               # ITYPE
-        #f.write("%f\n"%(bl['PeriodID']))  # PERIOD
 
         f.write("US run\n")
-        f.write("    %f  %f                               Ring-Energy Current\n"%
-               (bl['ElectronEnergy'],bl['ElectronCurrent']*1e3))
+        f.write("    %f  %f   %f                         Ring-Energy Current\n"%
+               (bl['ElectronEnergy'],bl['ElectronCurrent']*1e3,bl['ElectronEnergySpread']))
         f.write("  %f  %f  %f  %f               Sx Sy Sxp Syp\n"%
                (bl['ElectronBeamSizeH']*1e3,bl['ElectronBeamSizeV']*1e3,
                 bl['ElectronBeamDivergenceH']*1e3,bl['ElectronBeamDivergenceV']*1e3) )
@@ -705,7 +540,11 @@ def calc1dUs(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoin
                (photonEnergyMin,photonEnergyMax,photonEnergyPoints) )
         f.write("  %f   0.000   0.000   %f   %f    50    50   D Xpc Ypc Xps Yps Nxp Nyp\n"%
                (bl['distance'],bl['gapH']*1e3,bl['gapV']*1e3) )
-        f.write("       4       4       0                       Mode Method Iharm\n")
+        # f.write("       4       4       0                       Mode Method Iharm\n")
+        if zero_emittance:
+            f.write("       4       3       0                       Mode Method Iharm\n")
+        else:
+            f.write("       4       4       0                       Mode Method Iharm\n")
         f.write("       0       0     0.0      64     8.0     0 Nphi Nalpha Dalpha2 Nomega Domega Nsigma\n")
         f.write("foreground\n")
 
@@ -716,39 +555,48 @@ def calc1dUs(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoin
     print("Done.")
     print("\n--------------------------------------------------------\n")
 
-    # write spec file
+    print('Done calc1dUs calculation in sec '+str(time.time()-t0))
     txt = open("us.out").readlines()
+    # write spec file
+    if fileName is not None:
 
-    if fileAppend:
-        f = open(fileName,"a")
-    else:
-        scanCounter = 0
-        f = open(fileName,"w")
-        f.write("#F "+fileName+"\n")
+        if fileAppend:
+            f = open(fileName,"a")
+        else:
+            scanCounter = 0
+            f = open(fileName,"w")
+            f.write("#F "+fileName+"\n")
 
-    f.write("\n")
-    scanCounter +=1 
-    f.write("#S %d Undulator spectrum calculation using US\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        f.write ("#UD %s = %s\n" % (i,j) )
-    f.write("#UD photonEnergyMin =  %f\n"%(photonEnergyMin))
-    f.write("#UD photonEnergyMax =  %f\n"%(photonEnergyMax))
-    f.write("#UD photonEnergyPoints =  %d\n"%(photonEnergyPoints))
+        f.write("\n")
+        scanCounter +=1
+        f.write("#S %d Undulator spectrum calculation using US\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            f.write ("#UD %s = %s\n" % (i,j) )
+        f.write("#UD photonEnergyMin =  %f\n"%(photonEnergyMin))
+        f.write("#UD photonEnergyMax =  %f\n"%(photonEnergyMax))
+        f.write("#UD photonEnergyPoints =  %d\n"%(photonEnergyPoints))
 
-    f.write("#N 6\n")
-    f.write("#L  Energy(eV)  Flux(ph/s/0.1%bw)  p1  p2  p3  p4\n")
+        f.write("#N 8\n")
+        f.write("#L  Energy(eV)  Wavelength(A)  Flux(ph/s/0.1%bw)  SpectralPower(W/ev)  p1  p2  p3  p4\n")
 
     nArray = 0
     for i in txt:
         tmp = i.strip(" ")
         if tmp[0].isdigit():
            tmp = tmp.replace('D','e')
-           f.write(tmp)
+           tmp = numpy.fromstring(tmp,dtype=float,sep=' ')
+           if fileName is not None:
+               f.write(("%g "*8+"\n")%(tmp[0],1e10*m2ev/tmp[0],tmp[1],tmp[1]*1e3*codata.e,tmp[2],tmp[3],tmp[4],tmp[5]))
            nArray  += 1
         else:
-           f.write("#UD "+tmp)
+           if fileName is not None: f.write("#UD "+tmp)
 
-    f.close()
+    if fileName is not None:
+        f.close()
+        if fileAppend:
+            print("Data appended to file: "+fileName)
+        else:
+            print("File written to disk: "+fileName)
 
     # stores results in numpy arrays for return
     eArray = numpy.zeros(nArray)
@@ -763,17 +611,40 @@ def calc1dUs(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoin
            eArray[iArray] = tmpf[0]
            intensArray[iArray] = tmpf[1]
 
-    if fileAppend:
-        print("Data appended to file: "+fileName)
-    else:
-        print("File written to disk: "+fileName)
-
-    print('Done calc1dUs calculation in sec '+str(time.time()-t0))
-
     return (eArray,intensArray)
 
 
-def calc2dSrw(bl,fileName="/dev/null",fileAppend=True,hSlitPoints=101,vSlitPoints=51):
+
+
+
+########################################################################################################################
+#
+# 2D: calc2d<code> Power density calculations
+#
+########################################################################################################################
+
+
+def calc2d_pysru(bl,zero_emittance=False,hSlitPoints=51,vSlitPoints=51,
+                photonEnergyMin=50.0,photonEnergyMax=2500.0,photonEnergyPoints=2451,
+                fileName=None,fileAppend=False):
+
+    e,h,v,i = calc3d_pysru(bl,zero_emittance=zero_emittance,
+                photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
+                hSlitPoints=hSlitPoints,vSlitPoints=vSlitPoints,
+                fileName=fileName,fileAppend=fileAppend)
+
+
+    e_step = (photonEnergyMax - photonEnergyMin) / photonEnergyPoints
+    plot(e,(i.sum(axis=2)).sum(axis=1)*(v[1]-v[0])*(h[1]-h[0]),show=0,title="Spectrum for %s"%bl)
+
+    return (h,v,i.sum(axis=0)*e_step*codata.e*1e3)
+
+
+
+
+
+def calc2d_srw(bl,zero_emittance=False,hSlitPoints=101,vSlitPoints=51,srw_max_harmonic_number=21,
+              fileName=None,fileAppend=False,):
 
     r"""
         run SRW for calculating power density
@@ -783,14 +654,15 @@ def calc2dSrw(bl,fileName="/dev/null",fileAppend=True,hSlitPoints=101,vSlitPoint
     """
     
     global scanCounter
-    print("Inside calc2dSrw")
+    print("Inside calc2d_srw")
     #Maximum number of harmonics considered. This is critical for speed. 
     #TODO: set it automatically to a reasonable value (see how is done by Urgent).
-    Nmax = 21
+    Nmax = srw_max_harmonic_number # 21,61
     #derived
     #TODO calculate the numerical factor using codata
-    B0 = bl['Kv']/0.934/(bl['PeriodID']*1e2)
-    
+    # B0 = bl['Kv']/0.934/(bl['PeriodID']*1e2)
+    cte = codata.e/(2*numpy.pi*codata.electron_mass*codata.c)
+    B0 = bl['Kv']/bl['PeriodID']/cte
     
     print('Running SRW (SRWLIB Python)')
     
@@ -805,10 +677,7 @@ def calc2dSrw(bl,fileName="/dev/null",fileAppend=True,hSlitPoints=101,vSlitPoint
     und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
 
     #Container of all magnetic field elements
-    magFldCnt = srwlib.SRWLMagFldC([und],
-                                   srwlib.array('distance', [0]),
-                                   srwlib.array('distance', [0]),
-                                   srwlib.array('distance', [0]))
+    magFldCnt = srwlib.SRWLMagFldC([und], array.array('d', [0]), array.array('d', [0]), array.array('d', [0]))
     
     #***********Electron Beam
     eBeam = srwlib.SRWLPartBeam()
@@ -818,13 +687,20 @@ def calc2dSrw(bl,fileName="/dev/null",fileAppend=True,hSlitPoints=101,vSlitPoint
     eBeam.partStatMom1.z = 0. #initial longitudinal positions (set in the middle of undulator)
     eBeam.partStatMom1.xp = 0 #initial relative transverse velocities
     eBeam.partStatMom1.yp = 0
-    eBeam.partStatMom1.gamma = bl['ElectronEnergy']/0.51099890221e-03 #relative energy
+    eBeam.partStatMom1.gamma = bl['ElectronEnergy']*1e3/codata_mee #relative energy
 
-    sigEperE = 0.00089 #relative RMS energy spread
-    sigX =  bl['ElectronBeamSizeH'] #horizontal RMS size of e-beam [m]
-    sigXp = bl['ElectronBeamDivergenceH'] #horizontal RMS angular divergence [rad]
-    sigY =  bl['ElectronBeamSizeV'] #vertical RMS size of e-beam [m]
-    sigYp = bl['ElectronBeamDivergenceV'] #vertical RMS angular divergence [rad]
+    if zero_emittance:
+        sigEperE = 1e-25
+        sigX     = 1e-25
+        sigXp    = 1e-25
+        sigY     = 1e-25
+        sigYp    = 1e-25
+    else:
+        sigEperE = bl['ElectronEnergySpread'] #relative RMS energy spread
+        sigX =  bl['ElectronBeamSizeH'] #horizontal RMS size of e-beam [m]
+        sigXp = bl['ElectronBeamDivergenceH'] #horizontal RMS angular divergence [rad]
+        sigY =  bl['ElectronBeamSizeV'] #vertical RMS size of e-beam [m]
+        sigYp = bl['ElectronBeamDivergenceV'] #vertical RMS angular divergence [rad]
 
     #2nd order stat. moments:
     eBeam.arStatMom2[0] = sigX*sigX #<(x-<x>)^2> 
@@ -859,25 +735,26 @@ def calc2dSrw(bl,fileName="/dev/null",fileAppend=True,hSlitPoints=101,vSlitPoint
     print('Done Performing Power Density calculation (from field).')
 
     #**********************Saving results
-    
-    if fileAppend:
-        f = open(fileName,"a")
-    else:
-        scanCounter = 0
-        f = open(fileName,"w")
-        f.write("#F "+fileName+"\n")
 
-    #
-    # write power density to file as mesh scan
-    #
-    scanCounter +=1 
-    f.write("\n#S %d Undulator power density calculation using SRW\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        f.write ("#UD %s = %s\n" % (i,j) )
-    f.write('\n#U B0 = ' + repr(B0 ) + '\n' )
-    f.write('\n#U hSlitPoints = ' + repr(hSlitPoints) + '\n' )
-    f.write('\n#U vSlitPoints = ' + repr(vSlitPoints) + '\n' )
-    f.write("#N 3 \n#L H[mm]  V[mm]  PowerDensity[W/mm^2] \n" )
+    if fileName is not None:
+        if fileAppend:
+            f = open(fileName,"a")
+        else:
+            scanCounter = 0
+            f = open(fileName,"w")
+            f.write("#F "+fileName+"\n")
+
+        #
+        # write power density to file as mesh scan
+        #
+        scanCounter +=1
+        f.write("\n#S %d Undulator power density calculation using SRW\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            f.write ("#UD %s = %s\n" % (i,j) )
+        f.write('\n#U B0 = ' + repr(B0 ) + '\n' )
+        f.write('\n#U hSlitPoints = ' + repr(hSlitPoints) + '\n' )
+        f.write('\n#U vSlitPoints = ' + repr(vSlitPoints) + '\n' )
+        f.write("#N 3 \n#L H[mm]  V[mm]  PowerDensity[W/mm^2] \n" )
     
     hArray = numpy.zeros(stkP.mesh.nx)
     vArray = numpy.zeros(stkP.mesh.ny)
@@ -900,57 +777,62 @@ def calc2dSrw(bl,fileName="/dev/null",fileAppend=True,hSlitPoints=101,vSlitPoint
             hArray[i] = xx*1e3 # mm
             vArray[j] = yy*1e3 # mm
 
-    # dump 
-    for i in range(stkP.mesh.nx):  
-        for j in range(stkP.mesh.ny): 
-            f.write(repr(hArray[i]) + ' ' + repr(vArray[j]) + ' ' + repr(powerArray[i,j]) + '\n')
+    # dump
+    if fileName is not None:
+        for i in range(stkP.mesh.nx):
+            for j in range(stkP.mesh.ny):
+                f.write(repr(hArray[i]) + ' ' + repr(vArray[j]) + ' ' + repr(powerArray[i,j]) + '\n')
 
 
     totPower = totPower * \
                (stkP.mesh.xFin-stkP.mesh.xStart)/(stkP.mesh.nx-1)*1e3 * \
                (stkP.mesh.yFin-stkP.mesh.yStart)/(stkP.mesh.ny-1)*1e3
+    hStep = (stkP.mesh.xFin-stkP.mesh.xStart)/(stkP.mesh.nx-1)
 
     # dump profiles
+    if fileName is not None:
 
-    hStep = (stkP.mesh.xFin-stkP.mesh.xStart)/(stkP.mesh.nx-1)
-    scanCounter +=1 
-    f.write("\n#S %d Undulator power density calculation using SRW: H profile\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        f.write ("#UD %s = %s\n" % (i,j) )
-    f.write( "#UD Total power [W]: "+repr(totPower)+"\n")
-    f.write( "#UD FWHM [mm] : "+repr(calcFWHM(hProfile,hStep)[0]*1e3)+"\n")
-    f.write( "#N 2 \n")
-    f.write( "#L H[mm]  PowerDensityCentralProfile[W/mm2] \n" )
-    for i in range(stkP.mesh.nx):  
-        #xx = stkP.mesh.xStart + i*hStep
-        #f.write(repr(xx*1e3) + ' ' + repr(hProfile[i]) + '\n')
-        f.write(repr(hArray[i]) + ' ' + \
-                repr(powerArray[i,int(len(vArray)/2)]) + '\n')
-    
-    scanCounter +=1 
-    vStep = (stkP.mesh.yFin-stkP.mesh.yStart)/(stkP.mesh.ny-1)
-    f.write("\n#S %d Undulator power density calculation using SRW: V profile\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        f.write ("#UD %s = %s\n" % (i,j) )
-    f.write( "#UD Total power [W]: "+repr(totPower)+"\n")
-    f.write( "#UD FWHM [mm] : "+repr(calcFWHM(vProfile,vStep)[0]*1e3)+"\n")
-    f.write( "#N 2 \n")
-    f.write( "#L V[mm]  PowerDensityCentralProfile[W/mm2] \n" )
-    for j in range(stkP.mesh.ny):  
-        f.write(repr(vArray[j]) + ' ' +  \
-                repr(powerArray[int(len(hArray)/2),j]) + '\n')
-    
-    f.close()
 
-    if fileAppend:
-        print("Data appended to file: "+fileName)
-    else:
-        print("File written to disk: "+fileName)
+        scanCounter +=1
+        f.write("\n#S %d Undulator power density calculation using SRW: H profile\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            f.write ("#UD %s = %s\n" % (i,j) )
+        f.write( "#UD Total power [W]: "+repr(totPower)+"\n")
+        f.write( "#UD FWHM [mm] : "+repr(calc_fwhm(hProfile,hStep)[0]*1e3)+"\n")
+        f.write( "#N 2 \n")
+        f.write( "#L H[mm]  PowerDensityCentralProfile[W/mm2] \n" )
+        for i in range(stkP.mesh.nx):
+            #xx = stkP.mesh.xStart + i*hStep
+            #f.write(repr(xx*1e3) + ' ' + repr(hProfile[i]) + '\n')
+            f.write(repr(hArray[i]) + ' ' + \
+                    repr(powerArray[i,int(len(vArray)/2)]) + '\n')
+
+        scanCounter +=1
+        vStep = (stkP.mesh.yFin-stkP.mesh.yStart)/(stkP.mesh.ny-1)
+        f.write("\n#S %d Undulator power density calculation using SRW: V profile\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            f.write ("#UD %s = %s\n" % (i,j) )
+        f.write( "#UD Total power [W]: "+repr(totPower)+"\n")
+        f.write( "#UD FWHM [mm] : "+repr(calc_fwhm(vProfile,vStep)[0]*1e3)+"\n")
+        f.write( "#N 2 \n")
+        f.write( "#L V[mm]  PowerDensityCentralProfile[W/mm2] \n" )
+        for j in range(stkP.mesh.ny):
+            f.write(repr(vArray[j]) + ' ' +  \
+                    repr(powerArray[int(len(hArray)/2),j]) + '\n')
+
+        f.close()
+
+        if fileAppend:
+            print("Data appended to file: "+fileName)
+        else:
+            print("File written to disk: "+fileName)
+
+    print( "Total power SRW [W]: "+repr(totPower))
 
     return (hArray, vArray, powerArray)
 
 
-def calc2dUs(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPoints=51):
+def calc2d_us(bl,zero_emittance=False,hSlitPoints=51,vSlitPoints=51,fileName=None,fileAppend=False):
 
     r"""
         run US for calculating power density
@@ -960,23 +842,38 @@ def calc2dUs(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPoints
     """
     global scanCounter
     global home_bin
-    print("Inside calc2dUs")
+    print("Inside calc2d_us")
+
+    for file in ["us.inp","us.out"]:
+        try:
+            os.remove(os.path.join(locations.home_bin_run(),file))
+        except:
+            pass
+
     with open("us.inp","wt") as f:
         #f.write("%d\n"%(1))               # ITYPE
         #f.write("%f\n"%(bl['PeriodID']))  # PERIOD
 
         f.write("US run\n")
-        f.write("    %f  %f                               Ring-Energy Current\n"%
-               (bl['ElectronEnergy'],bl['ElectronCurrent']*1e3))
+        f.write("    %f  %f  %f                           Ring-Energy Current\n"%
+               (bl['ElectronEnergy'],bl['ElectronCurrent']*1e3,bl['ElectronEnergySpread']))
         f.write("  %f  %f  %f  %f               Sx Sy Sxp Syp\n"%
                (bl['ElectronBeamSizeH']*1e3,bl['ElectronBeamSizeV']*1e3,
                 bl['ElectronBeamDivergenceH']*1e3,bl['ElectronBeamDivergenceV']*1e3) )
+
+
+
+
+
         f.write("    %f      %d   0.000   %f               Period N Kx Ky\n"%
                 (bl['PeriodID']*1e2,bl['NPeriods'],bl['Kv']) )
         f.write("    9972.1   55000.0     500                   Emin Emax Ne\n")
         f.write("  %f   0.000   0.000   %f   %f    %d    %d   D Xpc Ypc Xps Yps Nxp Nyp\n"%
                (bl['distance'],bl['gapH']*1e3,bl['gapV']*1e3,hSlitPoints-1,vSlitPoints-1) )
-        f.write("       6       1       0                       Mode Method Iharm\n")
+        if zero_emittance:
+            f.write("       6       3       0                       Mode Method Iharm\n")
+        else:
+            f.write("       6       1       0                       Mode Method Iharm\n")
         f.write("       0       0     0.0      64     8.0     0 Nphi Nalpha Dalpha2 Nomega Domega Nsigma\n")
         f.write("foreground\n")
 
@@ -987,25 +884,29 @@ def calc2dUs(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPoints
     print("Done.")
     print("\n--------------------------------------------------------\n")
 
-    # write spec file
     txt = open("us.out").readlines()
+    # write spec file
 
-    if fileAppend:
-        f = open(fileName,"a")
-    else:
-        scanCounter = 0
-        f = open(fileName,"w")
-        f.write("#F "+fileName+"\n")
+    if fileName is not None:
 
-    f.write("\n")
-    scanCounter +=1 
-    f.write("#S %d Undulator power density calculation using US\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        f.write ("#UD %s = %s\n" % (i,j) )
-    f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-    f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-    f.write("#N 7\n")
-    f.write("#L  H[mm]  V[mm]  PowerDensity[W/mm^2]  p1  p2  p3  p4\n")
+
+
+        if fileAppend:
+            f = open(fileName,"a")
+        else:
+            scanCounter = 0
+            f = open(fileName,"w")
+            f.write("#F "+fileName+"\n")
+
+        f.write("\n")
+        scanCounter +=1
+        f.write("#S %d Undulator power density calculation using US\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            f.write ("#UD %s = %s\n" % (i,j) )
+        f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+        f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+        f.write("#N 7\n")
+        f.write("#L  H[mm]  V[mm]  PowerDensity[W/mm^2]  p1  p2  p3  p4\n")
 
     mesh = numpy.zeros((7,(hSlitPoints)*(vSlitPoints)))
     hh = numpy.zeros((hSlitPoints))
@@ -1015,12 +916,12 @@ def calc2dUs(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPoints
     for i in txt:
         tmp = i.strip(" ")
         if tmp[0].isdigit():
-           f.write(tmp)
+           if fileName is not None: f.write(tmp)
            tmpf = numpy.array( [float(j) for j in tmp.split()] )
            imesh = imesh + 1
            mesh[:,imesh] = tmpf
         else:
-           f.write("#UD "+tmp)
+           if fileName is not None: f.write("#UD "+tmp)
 
     imesh = -1
     for i in range(hSlitPoints):
@@ -1036,58 +937,62 @@ def calc2dUs(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPoints
     tmp = numpy.concatenate( (int_mesh[::-1,:],int_mesh[1:,:]), axis=0)
     int_mesh2 = numpy.concatenate( (tmp[:,::-1],tmp[:,1:]),axis=1)
 
-    scanCounter += 1
-    f.write("\n#S %d Undulator power density calculation using US (whole slit)\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        f.write ("#UD %s = %s\n" % (i,j) )
-    f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-    f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-    f.write("#N 3\n")
-    f.write("#L  H[mm]  V[mm]  PowerDensity[W/mm^2]\n")
-    for i in range(len(hhh)):
-        for j in range(len(vvv)):
-           f.write("%f  %f  %f\n"%(hhh[i],vvv[j],int_mesh2[i,j]) )
-
-            
-    totPower = int_mesh2.sum() * (hh[1]-hh[0]) * (vv[1]-vv[0]) 
+    if fileName is not None:
+        scanCounter += 1
+        f.write("\n#S %d Undulator power density calculation using US (whole slit)\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            f.write ("#UD %s = %s\n" % (i,j) )
+        f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+        f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+        f.write("#N 3\n")
+        f.write("#L  H[mm]  V[mm]  PowerDensity[W/mm^2]\n")
+        for i in range(len(hhh)):
+            for j in range(len(vvv)):
+               f.write("%f  %f  %f\n"%(hhh[i],vvv[j],int_mesh2[i,j]) )
 
 
-    scanCounter += 1
-    f.write("\n#S %d Undulator power density calculation using US: H profile\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        f.write ("#UD %s = %s\n" % (i,j) )
-    f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-    f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-    f.write("#UD Total power [W]: "+repr(totPower)+"\n")
-    f.write("#N 2\n")
-    f.write("#L  H[mm]  PowerDensity[W/mm2]\n")
-    for i in range(len(hhh)):
-       f.write("%f  %f\n"%(hhh[i],int_mesh2[i,int(len(vvv)/2)]) )
-            
-    scanCounter += 1
-    f.write("\n#S %d Undulator power density calculation using US: V profile\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        f.write ("#UD %s = %s\n" % (i,j) )
-    f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-    f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-    f.write("#UD Total power [W]: "+repr(totPower)+"\n")
-    f.write("#N 2\n")
-    f.write("#L  V[mm]  PowerDensity[W/mm2]\n")
-    for i in range(len(vvv)):
-       f.write("%f  %f\n"%(vvv[i],int_mesh2[int(len(hhh)/2),i]) )
- 
-    f.close()
+    totPower = int_mesh2.sum() * (hh[1]-hh[0]) * (vv[1]-vv[0])
 
-    #os.chdir(pwd)
-    if fileAppend:
-        print("Data appended to file: "+fileName)
-    else:
-        print("File written to disk: "+fileName)
+    if fileName is not None:
+        scanCounter += 1
+        f.write("\n#S %d Undulator power density calculation using US: H profile\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            f.write ("#UD %s = %s\n" % (i,j) )
+        f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+        f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+        f.write("#UD Total power [W]: "+repr(totPower)+"\n")
+        f.write("#N 2\n")
+        f.write("#L  H[mm]  PowerDensity[W/mm2]\n")
+        for i in range(len(hhh)):
+           f.write("%f  %f\n"%(hhh[i],int_mesh2[i,int(len(vvv)/2)]) )
 
+        scanCounter += 1
+        f.write("\n#S %d Undulator power density calculation using US: V profile\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            f.write ("#UD %s = %s\n" % (i,j) )
+        f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+        f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+        f.write("#UD Total power [W]: "+repr(totPower)+"\n")
+        f.write("#N 2\n")
+        f.write("#L  V[mm]  PowerDensity[W/mm2]\n")
+        for i in range(len(vvv)):
+           f.write("%f  %f\n"%(vvv[i],int_mesh2[int(len(hhh)/2),i]) )
+
+        f.close()
+
+
+
+        #os.chdir(pwd)
+        if fileAppend:
+            print("Data appended to file: "+fileName)
+        else:
+            print("File written to disk: "+fileName)
+
+    print( "Total power US [W]: "+repr(totPower))
     return (hhh, vvv, int_mesh2)
 
 
-def calc2dUrgent(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPoints=51):
+def calc2d_urgent(bl,zero_emittance=False,fileName=None,fileAppend=False,hSlitPoints=21,vSlitPoints=51):
 
     r"""
         run Urgent for calculating power density
@@ -1097,7 +1002,13 @@ def calc2dUrgent(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPo
     """
     global scanCounter
     global home_bin
-    print("Inside calc2dUrgent")
+    print("Inside calc2d_urgent")
+
+    for file in ["urgent.inp","urgent.out"]:
+        try:
+            os.remove(os.path.join(locations.home_bin_run(),file))
+        except:
+            pass
 
     with open("urgent.inp","wt") as f:
         f.write("%d\n"%(1))               # ITYPE
@@ -1127,7 +1038,10 @@ def calc2dUrgent(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPo
         f.write("%d\n"%(vSlitPoints-1))             #NYP
 
         f.write("%d\n"%(6))               #MODE
-        f.write("%d\n"%(1))               #ICALC
+        if zero_emittance:                #ICALC
+            f.write("%d\n"%(2))
+        else:
+            f.write("%d\n"%(1))
         f.write("%d\n"%(-200))             #IHARM   TODO: check max harmonic number
 
         f.write("%d\n"%(0))               #NPHI
@@ -1146,21 +1060,22 @@ def calc2dUrgent(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPo
     # write spec file
     txt = open("urgent.out").readlines()
 
-    if fileAppend:
-        f = open(fileName,"a")
-    else:
-        scanCounter = 0
-        f = open(fileName,"w")
-        f.write("#F "+fileName+"\n")
+    if fileName is not None:
+        if fileAppend:
+            f = open(fileName,"a")
+        else:
+            scanCounter = 0
+            f = open(fileName,"w")
+            f.write("#F "+fileName+"\n")
 
-    scanCounter += 1
-    f.write("\n#S %d Undulator power density calculation using Urgent (a slit quadrant)\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        f.write ("#UD %s = %s\n" % (i,j) )
-    f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-    f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-    f.write("#N 4\n")
-    f.write("#L  H[mm]  V[mm]  PowerDensity[W/mm^2]  Flux[Phot/s/0.1%bw]\n")
+        scanCounter += 1
+        f.write("\n#S %d Undulator power density calculation using Urgent (a slit quadrant)\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            f.write ("#UD %s = %s\n" % (i,j) )
+        f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+        f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+        f.write("#N 4\n")
+        f.write("#L  H[mm]  V[mm]  PowerDensity[W/mm^2]  Flux[Phot/s/0.1%bw]\n")
 
     mesh = numpy.zeros((4,(hSlitPoints)*(vSlitPoints)))
     hh = numpy.zeros((hSlitPoints))
@@ -1170,7 +1085,7 @@ def calc2dUrgent(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPo
     for i in txt:
         tmp = i.strip(" ")
         if tmp[0].isdigit():
-           f.write(tmp)
+           if fileName is not None: f.write(tmp)
            tmp = tmp.replace('D','e')
            tmpf = numpy.array( [float(j) for j in tmp.split()] )
            imesh = imesh + 1
@@ -1179,7 +1094,7 @@ def calc2dUrgent(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPo
            if len(tmp) > 0:  # remove the last block
                if tmp.split(" ")[0] == 'HARMONIC':
                    break
-           f.write("#UD "+tmp)
+           if fileName is not None: f.write("#UD "+tmp)
 
     imesh = -1
     for i in range(hSlitPoints):
@@ -1194,61 +1109,74 @@ def calc2dUrgent(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPo
 
     tmp = numpy.concatenate( (int_mesh[::-1,:],int_mesh[1:,:]), axis=0)
     int_mesh2 = numpy.concatenate( (tmp[:,::-1],tmp[:,1:]),axis=1)
+    totPower = int_mesh2.sum() * (hh[1]-hh[0]) * (vv[1]-vv[0])
 
-    scanCounter += 1
-    f.write("\n#S %d Undulator power density calculation using Urgent (whole slit)\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        f.write ("#UD %s = %s\n" % (i,j) )
-    f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-    f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-    f.write("#N 3\n")
-    f.write("#L  H[mm]  V[mm]  PowerDensity[W/mm^2]\n")
-    for i in range(len(hhh)):
-        for j in range(len(vvv)):
-           f.write("%f  %f  %f\n"%(hhh[i],vvv[j],int_mesh2[i,j]) )
+    if fileName is not None:
+        scanCounter += 1
+        f.write("\n#S %d Undulator power density calculation using Urgent (whole slit)\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            f.write ("#UD %s = %s\n" % (i,j) )
+        f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+        f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+        f.write("#N 3\n")
+        f.write("#L  H[mm]  V[mm]  PowerDensity[W/mm^2]\n")
+        for i in range(len(hhh)):
+            for j in range(len(vvv)):
+               f.write("%f  %f  %f\n"%(hhh[i],vvv[j],int_mesh2[i,j]) )
 
-            
-    totPower = int_mesh2.sum() * (hh[1]-hh[0]) * (vv[1]-vv[0]) 
 
-    scanCounter += 1
-    f.write("\n#S %d Undulator power density calculation using Urgent: H profile\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        f.write ("#UD %s = %s\n" % (i,j) )
-    f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-    f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-    f.write("#UD Total power [W]: "+repr(totPower)+"\n")
-    f.write("#N 2\n")
-    f.write("#L  H[mm]  PowerDensity[W/mm2]\n")
-    for i in range(len(hhh)):
-       f.write("%f  %f\n"%(hhh[i],int_mesh2[i,int(len(vvv)/2)]) )
-            
-    scanCounter += 1
-    f.write("\n#S %d Undulator power density calculation using Urgent: V profile\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        f.write ("#UD %s = %s\n" % (i,j) )
-    f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-    f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-    f.write("#UD Total power [W]: "+repr(totPower)+"\n")
-    f.write("#N 2\n")
-    f.write("#L  V[mm]  PowerDensity[W/mm2]\n")
-    for i in range(len(vvv)):
-       f.write("%f  %f\n"%(vvv[i],int_mesh2[int(len(hhh)/2),i]) )
-            
 
-    f.close()
 
-    #os.chdir(pwd)
-    if fileAppend:
-        print("Data appended to file: "+fileName)
-    else:
-        print("File written to disk: "+fileName)
+        scanCounter += 1
+        f.write("\n#S %d Undulator power density calculation using Urgent: H profile\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            f.write ("#UD %s = %s\n" % (i,j) )
+        f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+        f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+        f.write("#UD Total power [W]: "+repr(totPower)+"\n")
+        f.write("#N 2\n")
+        f.write("#L  H[mm]  PowerDensity[W/mm2]\n")
+        for i in range(len(hhh)):
+           f.write("%f  %f\n"%(hhh[i],int_mesh2[i,int(len(vvv)/2)]) )
 
+        scanCounter += 1
+        f.write("\n#S %d Undulator power density calculation using Urgent: V profile\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            f.write ("#UD %s = %s\n" % (i,j) )
+        f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+        f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+        f.write("#UD Total power [W]: "+repr(totPower)+"\n")
+        f.write("#N 2\n")
+        f.write("#L  V[mm]  PowerDensity[W/mm2]\n")
+        for i in range(len(vvv)):
+           f.write("%f  %f\n"%(vvv[i],int_mesh2[int(len(hhh)/2),i]) )
+
+
+        f.close()
+
+
+
+        #os.chdir(pwd)
+        if fileAppend:
+            print("Data appended to file: "+fileName)
+        else:
+            print("File written to disk: "+fileName)
+
+    print( "Total power URGENT [W]: "+repr(totPower))
     print("\n--------------------------------------------------------\n\n")
 
     return (hhh, vvv, int_mesh2)
 
 
-def calc3dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoints=500,fileName="/dev/null",fileAppend=True,hSlitPoints=11,vSlitPoints=11):
+
+########################################################################################################################
+#
+# 3D: calc3d<code> Emission calculations
+#
+########################################################################################################################
+def calc3d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoints=500,
+               zero_emittance=False,hSlitPoints=51,vSlitPoints=51,
+               fileName=None,fileAppend=False):
 
     r"""
         run SRW for calculating intensity vs H,V,energy
@@ -1256,218 +1184,203 @@ def calc3dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
         input: a dictionary with beamline
         output: file name with results
     """
-    
+
     global scanCounter
-    print("Inside calc3dSrw")
-    outFile = 'flux3d.spec'
-    #Maximum number of harmonics considered. This is critical for speed. 
-    #TODO: set it automatically to a reasonable value (see how is done by Urgent).
-    Nmax = 8 # 21
-    #derived
+
+    print("Inside calc3d_srw")
+
+    if fileName is not None:
+        if fileAppend:
+            fout = open(fileName,"a")
+        else:
+            scanCounter = 0
+            fout = open(fileName,"w")
+            fout.write("#F "+fileName+"\n")
+
+
     #TODO calculate the numerical factor using codata
-    B0 = bl['Kv']/0.934/(bl['PeriodID']*1e2)
-    
-    
+    # B0 = bl['Kv']/0.934/(bl['PeriodID']*1e2)
+    cte = codata.e/(2*numpy.pi*codata.electron_mass*codata.c)
+    B0 = bl['Kv']/bl['PeriodID']/cte
+
     print('Running SRW (SRWLIB Python)')
-    
-    #***********Undulator
-    harmB = srwlib.SRWLMagFldH() #magnetic field harmonic
-    harmB.n = 1 #harmonic number
-    harmB.h_or_v = 'v' #magnetic field plane: horzontal ('h') or vertical ('v')
-    harmB.B = B0 #magnetic field amplitude [T]
 
-    und = srwlib.SRWLMagFldU([harmB])
-    und.per = bl['PeriodID'] #period length [m]
-    und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
 
-    #Container of all magnetic field elements
-    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('distance', [0]), srwlib.array('distance', [0]), srwlib.array('distance', [0]))
-    
-    #***********Electron Beam
-    eBeam = srwlib.SRWLPartBeam()
-    eBeam.Iavg = bl['ElectronCurrent'] #average current [A]
-    eBeam.partStatMom1.x = 0. #initial transverse positions [m]
-    eBeam.partStatMom1.y = 0.
-    eBeam.partStatMom1.z = 0. #initial longitudinal positions (set in the middle of undulator)
-    eBeam.partStatMom1.xp = 0 #initial relative transverse velocities
-    eBeam.partStatMom1.yp = 0
-    eBeam.partStatMom1.gamma = bl['ElectronEnergy']/0.51099890221e-03 #relative energy
+    if zero_emittance:
+        eBeam = _srw_electron_beam(E=bl['ElectronEnergy'],Iavg=bl['ElectronCurrent'],) # no emmitance now
+    else:
+        eBeam = _srw_electron_beam(E=bl['ElectronEnergy'], sigE = bl['ElectronEnergySpread'], Iavg=bl['ElectronCurrent'],
+                     sigX=bl['ElectronBeamSizeH'], sigY=bl['ElectronBeamSizeV'],
+                     sigXp=bl['ElectronBeamDivergenceH'], sigYp=bl['ElectronBeamDivergenceV'])
 
-    sigEperE = 0.00089 #relative RMS energy spread
-    sigX =  bl['ElectronBeamSizeH'] #horizontal RMS size of e-beam [m]
-    sigXp = bl['ElectronBeamDivergenceH'] #horizontal RMS angular divergence [rad]
-    sigY =  bl['ElectronBeamSizeV'] #vertical RMS size of e-beam [m]
-    sigYp = bl['ElectronBeamDivergenceV'] #vertical RMS angular divergence [rad]
 
-    #2nd order stat. moments:
-    eBeam.arStatMom2[0] = sigX*sigX #<(x-<x>)^2> 
-    eBeam.arStatMom2[1] = 0 #<(x-<x>)(x'-<x'>)>
-    eBeam.arStatMom2[2] = sigXp*sigXp #<(x'-<x'>)^2> 
-    eBeam.arStatMom2[3] = sigY*sigY #<(y-<y>)^2>
-    eBeam.arStatMom2[4] = 0 #<(y-<y>)(y'-<y'>)>
-    eBeam.arStatMom2[5] = sigYp*sigYp #<(y'-<y'>)^2>
-    eBeam.arStatMom2[10] = sigEperE*sigEperE #<(E-<E>)^2>/<E>^2
-    
+
     #***********Precision Parameters
-    arPrecF = [0]*5 #for spectral flux vs photon energy
-    arPrecF[0] = 1 #initial UR harmonic to take into account
-    arPrecF[1] = Nmax #final UR harmonic to take into account
-    arPrecF[2] = 1.5 #longitudinal integration precision parameter
-    arPrecF[3] = 1.5 #azimuthal integration precision parameter
-    arPrecF[4] = 1 #calculate flux (1) or flux per unit surface (2)
-    
-    #***********UR Stokes Parameters (mesh) for Spectral Flux
-    stkF = srwlib.SRWLStokes() #for spectral flux vs photon energy
-    stkF.allocate(photonEnergyPoints, hSlitPoints, vSlitPoints) #numbers of points vs photon energy, horizontal and vertical positions
-    stkF.mesh.zStart = bl['distance'] #longitudinal position [m] at which UR has to be calculated
-    stkF.mesh.eStart = photonEnergyMin #initial photon energy [eV]
-    stkF.mesh.eFin =   photonEnergyMax #final photon energy [eV]
-    stkF.mesh.xStart = -bl['gapH']/2 #initial horizontal position [m]
-    stkF.mesh.xFin =    bl['gapH']/2 #final horizontal position [m]
-    stkF.mesh.yStart = -bl['gapV']/2 #initial vertical position [m]
-    stkF.mesh.yFin =    bl['gapV']/2 #final vertical position [m]
-    
+
+    mesh = srwlib.SRWLRadMesh(photonEnergyMin,photonEnergyMax,photonEnergyPoints,
+                              -bl['gapH']/2,bl['gapH']/2,hSlitPoints,
+                              -bl['gapV']/2,bl['gapV']/2,vSlitPoints,bl['distance'])
+
+
+    #
+    # #***********UR Stokes Parameters (mesh) for Spectral Flux
+    # stkF = srwlib.SRWLStokes() #for spectral flux vs photon energy
+    # stkF.allocate(photonEnergyPoints, hSlitPoints, vSlitPoints) #numbers of points vs photon energy, horizontal and vertical positions
+    # stkF.mesh.zStart = bl['distance'] #longitudinal position [m] at which UR has to be calculated
+    # stkF.mesh.eStart = photonEnergyMin #initial photon energy [eV]
+    # stkF.mesh.eFin =   photonEnergyMax #final photon energy [eV]
+    # stkF.mesh.xStart = -bl['gapH']/2 #initial horizontal position [m]
+    # stkF.mesh.xFin =    bl['gapH']/2 #final horizontal position [m]
+    # stkF.mesh.yStart = -bl['gapV']/2 #initial vertical position [m]
+    # stkF.mesh.yFin =    bl['gapV']/2 #final vertical position [m]
+
     #**********************Calculation (SRWLIB function calls)
-    print('Performing Spectral Flux 3d (Stokes parameters) calculation ... ') # , end='')
+    print('Performing Spectral Flux 3d calculation ... ') # , end='')
     t0 = time.time()
-    srwlib.srwl.CalcStokesUR(stkF, eBeam, und, arPrecF)
-    print('Done Performing Spectral Flux 3d (Stokes parameters) calculation in sec '+str(time.time()-t0))
 
-    #reshape array
-    aaaa = numpy.array(stkF.arS)
-    aaaa.shape = (4,stkF.mesh.ny,stkF.mesh.nx,stkF.mesh.ne)
-    #**********************Saving results
-    
-    if fileAppend:
-        f = open(fileName,"a")
+
+    if zero_emittance:
+        #
+        # single electron
+        #
+        und0 = srwlib.SRWLMagFldU([srwlib.SRWLMagFldH(1, 'v', B0)],bl['PeriodID'],bl['NPeriods'])
+        und = srwlib.SRWLMagFldC([und0],array.array('d', [0]), array.array('d', [0]), array.array('d', [0]))
+
+        # arPrecS = [0]*7 #for electric field and single-electron intensity
+        # arPrecS[0] = 1 #SR calculation method: 0- "manual", 1- "auto-undulator", 2- "auto-wiggler"
+        # arPrecS[1] = 0.01 #relative precision
+        # arPrecS[2] = 0 #longitudinal position to start integration (effective if < zEndInteg)
+        # arPrecS[3] = 0 #longitudinal position to finish integration (effective if > zStartInteg)
+        # arPrecS[4] = 20000 #Number of points for intermediate trajectory calculation
+        # arPrecS[5] = 1 #Use "terminating terms" (i.e. asymptotic expansions at zStartInteg and zEndInteg) or not (1 or 0 respectively)
+        # arPrecS[6] = -1 #0.1 #sampling factor for adjusting nx, ny (effective if > 0)
+
+        paramSE = [1, 0.01, 0, 0, 50000, 1, 0]
+
+        wfr = srwlib.SRWLWfr()
+        wfr.mesh = mesh
+        wfr.partBeam = eBeam
+        wfr.allocate(mesh.ne, mesh.nx, mesh.ny)
+        # eBeam = SrwDriftElectronBeam(eBeam, und)
+        srwlib.srwl.CalcElecFieldSR(wfr, 0, und, paramSE)
+        stk = srwlib.SRWLStokes()
+        stk.mesh = mesh
+        stk.allocate(mesh.ne, mesh.nx, mesh.ny)
+        # eBeam = SrwDriftElectronBeam(eBeam, -eBeam.moved)
+        wfr.calc_stokes(stk)
+
+        # Stokes0ToSpec(stk,fname=fileName)
+        #
+        # intensArray,eArray,hArray,vArray = Stokes0ToArrays(stk)
+
+
+
+        Shape = (4,stk.mesh.ny,stk.mesh.nx,stk.mesh.ne)
+        data = numpy.ndarray(buffer=stk.arS, shape=Shape,dtype=stk.arS.typecode)
+        data0 = data #[0]
+        hArray = numpy.linspace(stk.mesh.xStart,stk.mesh.xFin,stk.mesh.nx)
+        vArray = numpy.linspace(stk.mesh.yStart,stk.mesh.yFin,stk.mesh.ny)
+        eArray = numpy.linspace(stk.mesh.eStart,stk.mesh.eFin,stk.mesh.ne)
+        # intensArray = numpy.zeros((eArray.size,hArray.size,vArray.size))
+        intensArray = numpy.zeros((eArray.size,hArray.size,vArray.size))
+        for ie in range(eArray.size):
+          for ix in range(hArray.size):
+              for iy in range(vArray.size):
+                # intensArray[ie,ix,iy] = data0[iy,ix,ie]
+                intensArray[ie,ix,iy,] = data[0,iy,ix,ie]
+
     else:
-        scanCounter = 0
-        f = open(fileName,"w")
-        f.write("#F "+fileName+"\n")
+        #
+        # convolution
+        #
+        und0 = srwlib.SRWLMagFldU([srwlib.SRWLMagFldH(1, 'v', B0)],bl['PeriodID'],bl['NPeriods'])
+        und = srwlib.SRWLMagFldC([und0],array.array('d', [0]), array.array('d', [0]), array.array('d', [0]))
 
-   
+        # arPrecS = [0]*7 #for electric field and single-electron intensity
+        # arPrecS[0] = 1 #SR calculation method: 0- "manual", 1- "auto-undulator", 2- "auto-wiggler"
+        # arPrecS[1] = 0.01 #relative precision
+        # arPrecS[2] = 0 #longitudinal position to start integration (effective if < zEndInteg)
+        # arPrecS[3] = 0 #longitudinal position to finish integration (effective if > zStartInteg)
+        # arPrecS[4] = 20000 #Number of points for intermediate trajectory calculation
+        # arPrecS[5] = 1 #Use "terminating terms" (i.e. asymptotic expansions at zStartInteg and zEndInteg) or not (1 or 0 respectively)
+        # arPrecS[6] = -1 #0.1 #sampling factor for adjusting nx, ny (effective if > 0)
 
-    #
-    # brute force loop to verify that reshape works correctly
-    #
-    #bruteforce = False
-    #if bruteforce:
-    #    kijs=-1
-    #    print(aaaa.shape)
-    #    for s in range(4):
-    #        for j in range(stkF.mesh.ny): 
-    #            for i in range(hSlitPoints):  
-    #                for k in range(vSlitPoints): 
-    #                         kijs = kijs + 1
-    #                         ener = stkF.mesh.eStart+k*(stkF.mesh.eFin-stkF.mesh.eStart)/numpy.array((stkF.mesh.ne-1)).clip(min=1)
-    #                         xx = stkF.mesh.xStart + i*(stkF.mesh.xFin-stkF.mesh.xStart)/numpy.array((stkF.mesh.nx-1)).clip(min=1)
-    #                         yy = stkF.mesh.yStart + j*(stkF.mesh.yFin-stkF.mesh.yStart)/numpy.array((stkF.mesh.ny-1)).clip(min=1)
-    #                         if s == 0:
-    #                             print(ener,xx,yy,k,i,j,s,stkF.arS[kijs],
-    #                                   aaaa[s,j,i,k])
+        paramME = [1, 0.01, 0, 0, 50000, 1, 0]
 
-    #
-    # write flux to file
-    #
-    flux2 = numpy.zeros(photonEnergyPoints)
-    mesh2 = numpy.zeros((vSlitPoints,hSlitPoints))
-
-    # for output
-    intensArray = numpy.zeros((photonEnergyPoints,hSlitPoints,vSlitPoints))
-    eArray = numpy.zeros(photonEnergyPoints)
-    hArray = numpy.zeros(hSlitPoints)
-    vArray = numpy.zeros(vSlitPoints)
-
-    for k in range(stkF.mesh.ne): 
-        ener = stkF.mesh.eStart+k*(stkF.mesh.eFin-stkF.mesh.eStart)/numpy.array((stkF.mesh.ne-1)).clip(min=1)
-        eArray[k] = ener
-        scanCounter += 1
-        f.write("\n#S %d Undulator 3d flux distribition using SRW at E= %0.3f eV\n"%(k+1,ener*1e-3))
-        for i,j in bl.items(): # write bl values
-            f.write ("#UD %s = %s\n" % (i,j) )
-        f.write("#UD photonEnergyMin =  %f\n"%(photonEnergyMin))
-        f.write("#UD photonEnergyMax =  %f\n"%(photonEnergyMax))
-        f.write("#UD photonEnergyPoints =  %d\n"%(photonEnergyPoints))
-        f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-        f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-        f.write("#UD B0 =  %f\n"%(B0))
-    
-        f.write("#N 3 \n#L H[mm]  V[mm]  Flux[phot/s/0.1%bw/mm^2]\n")
-        for i in range(hSlitPoints):  
-            xx = stkF.mesh.xStart + i*(stkF.mesh.xFin-stkF.mesh.xStart)/numpy.array((stkF.mesh.nx-1)).clip(min=1)
-            hArray[i] = xx
-            for j in range(vSlitPoints): 
-                yy = stkF.mesh.yStart + j*(stkF.mesh.yFin-stkF.mesh.yStart)/numpy.array((stkF.mesh.ny-1)).clip(min=1)
-                f.write(' ' + repr(xx*1e3) + '   ' + repr(yy*1e3) + '    ' +
-                repr(aaaa[0,j,i,k]) + '\n')
-                flux2[k] = flux2[k] + aaaa[0,j,i,k]
-                mesh2[j,i] = mesh2[j,i] + aaaa[0,j,i,k]
-
-                vArray[j] = yy
-                intensArray[k,i,j] = aaaa[0,j,i,k]
-
-    #
-    # write flux integrated over all energies
-    #
-    #scanCounter += 1
-    #f.write("\n#S %d Undulator flux 3d distribution using SRW at E=[%0.3f,%0.3f] keV\n"%(k+10,photonEnergyMin*1e-3,photonEnergyMax*1e-3))
-    #for i,j in bl.items(): # write bl values
-    #    f.write ("#UD %s = %s\n" % (i,j) )
-    #f.write("#UD photonEnergyMin =  %f\n"%(photonEnergyMin))
-    #f.write("#UD photonEnergyMax =  %f\n"%(photonEnergyMax))
-    #f.write("#UD photonEnergyPoints =  %d\n"%(photonEnergyPoints))
-    #f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-    #f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-    #f.write("#UD B0 =  %f\n"%(B0))
-
-    #f.write("#N 3 \n#L H[mm]  V[mm]  Flux[Phot/s/0.1%bw] \n")
-    #for i in range(hSlitPoints):  
-    #    xx = stkF.mesh.xStart + i*(stkF.mesh.xFin-stkF.mesh.xStart)/numpy.array((stkF.mesh.nx-1)).clip(min=1)
-    #    for j in range(vSlitPoints): 
-    #        yy = stkF.mesh.yStart + j*(stkF.mesh.yFin-stkF.mesh.yStart)/numpy.array((stkF.mesh.ny-1)).clip(min=1)
-    #        f.write(' ' + repr(xx*1e3) + '   ' + repr(yy*1e3) + '    ' +
-    #        repr(mesh2[j,i]) + '\n')
-    
-
-    #
-    # write flux to file
-    #
-    scanCounter += 1
-    f.write("\n#S %d  Integrated flux comparison (recalculated and sum)\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        f.write ("#UD %s = %s\n" % (i,j) )
-    f.write("#UD photonEnergyMin =  %f\n"%(photonEnergyMin))
-    f.write("#UD photonEnergyMax =  %f\n"%(photonEnergyMax))
-    f.write("#UD photonEnergyPoints =  %d\n"%(photonEnergyPoints))
-    f.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-    f.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-    f.write("#UD B0 =  %f\n"%(B0))
-    f.write("#N 3 \n#L PhotonEnergy[eV]  Flux[Photo/s/0.1%bw](sum)  Spectral Power[W/eV](sum)\n")
-    for k in range(stkF.mesh.ne): 
-        ener = stkF.mesh.eStart+k*(stkF.mesh.eFin-stkF.mesh.eStart)/numpy.array((stkF.mesh.ne-1)).clip(min=1)
-        f.write(' ' + repr(ener) + '   ' + 
-                repr(flux2[k]) + '    ' +
-                repr(flux2[k]*codata_ec*1e3) + '    '+
-                '\n')
-
-    f.close()
-
-    if fileAppend:
-        print("Data appended to file: "+fileName)
-    else:
-        print("File written to disk: "+fileName)
-
-    # append direct calculation for comparison
-    tmp = calc1dSrw(bl,photonEnergyMin=photonEnergyMin,
-                  photonEnergyMax=photonEnergyMax,
-                  photonEnergyPoints=photonEnergyPoints,
-                  fileName=fileName,fileAppend=True)
-
-    return (eArray, hArray, vArray, intensArray)
+        wfr = srwlib.SRWLWfr()
+        wfr.mesh = mesh
+        wfr.partBeam = eBeam
+        wfr.allocate(mesh.ne, mesh.nx, mesh.ny)
+        # eBeam = _srw_drift_electron_beam(eBeam, und)
+        srwlib.srwl.CalcElecFieldSR(wfr, 0, und, paramME)
 
 
 
-def calc3dUrgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoints=500,fileName="/dev/null",fileAppend=False,hSlitPoints=50,vSlitPoints=50):
+        #
+        # Extract intensity
+        #
+
+        mesh0 = wfr.mesh
+        # arI0 = array.array('f', [0]*mesh0.nx*mesh0.ny) #"flat" array to take 2D intensity data
+        # arI0 = array.array('f', [0]*mesh0.nx*mesh0.ny*mesh.ne) #"flat" array to take 2D intensity data
+
+        INTENSITY_TYPE_SINGLE_ELECTRON=0
+        INTENSITY_TYPE_MULTI_ELECTRON=1
+
+        hArray=numpy.linspace(wfr.mesh.xStart,wfr.mesh.xFin, wfr.mesh.nx)
+        vArray=numpy.linspace(wfr.mesh.yStart,wfr.mesh.yFin, wfr.mesh.ny)
+        eArray=numpy.linspace(wfr.mesh.eStart,wfr.mesh.eFin, wfr.mesh.ne)
+
+        intensArray = numpy.zeros((eArray.size,hArray.size,vArray.size,))
+        for ie in range(eArray.size):
+            arI0 = array.array('f', [0]*mesh0.nx*mesh0.ny) #"flat" array to take 2D intensity data
+            # 6 is for total polarizarion; 0=H, 1=V
+            srwlib.srwl.CalcIntFromElecField(arI0, wfr, 6, INTENSITY_TYPE_MULTI_ELECTRON, 3, eArray[ie], 0, 0)
+
+            Shape = (mesh0.ny,mesh0.nx)
+            data = numpy.ndarray(buffer=arI0, shape=Shape,dtype=arI0.typecode)
+
+            for ix in range(hArray.size):
+                for iy in range(vArray.size):
+                    intensArray[ie,ix,iy,] = data[iy,ix]
+
+
+
+    sys.stdout.write('  done\n')
+    sys.stdout.write('  saving SE Stokes...'); sys.stdout.flush()
+
+
+    print('Done Performing Spectral Flux 3d calculation in sec '+str(time.time()-t0))
+
+
+    if fileName is not None:
+        for ie in range(eArray.size):
+            scanCounter += 1
+            fout.write("\n#S %d Undulator 3d flux density (irradiance) calculation using SRW at E=%6.3f eV (whole slit )\n"%(scanCounter,eArray[ie]))
+            for i,j in bl.items(): # write bl values
+                fout.write ("#UD %s = %s\n" % (i,j) )
+            fout.write("#UD hSlitPoints =  %f\n"%(hArray.size))
+            fout.write("#UD vSlitPoints =  %f\n"%(vArray.size))
+            fout.write("#N 3\n")
+            fout.write("#L  H[mm]  V[mm]  Flux[phot/s/0.1%bw/mm^2]\n")
+            for i in range(len(hArray)):
+                for j in range(len(vArray)):
+                   fout.write("%f  %f  %f\n"%(hArray[i],vArray[j],intensArray[ie,i,j]) )
+
+        fout.close()
+        if fileAppend:
+            print("Data appended to file: "+fileName)
+        else:
+            print("File written to disk: "+fileName)
+
+    # grid in mm
+    return (eArray, 1e3*hArray, 1e3*vArray, intensArray)
+
+
+
+def calc3d_urgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoints=500,
+                  zero_emittance=False,hSlitPoints=50,vSlitPoints=50,
+                  fileName=None,fileAppend=False,):
 
     r"""
         run Urgent for calculating intensity vs H,V,energy
@@ -1477,17 +1390,21 @@ def calc3dUrgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
     """
     global scanCounter
     global home_bin
-    print("Inside calc3dUrgent")
+    print("Inside calc3d_urgent")
 
-    
-    if fileAppend:
-        fout = open(fileName,"a")
+
+    if fileName is not None:
+        if fileAppend:
+            fout = open(fileName,"a")
+        else:
+            scanCounter = 0
+            fout = open(fileName,"w")
+            fout.write("#F "+fileName+"\n")
+
+    if photonEnergyPoints == 1:
+        eStep = 0.0
     else:
-        scanCounter = 0
-        fout = open(fileName,"w")
-        fout.write("#F "+fileName+"\n")
-
-    eStep = (photonEnergyMax-photonEnergyMin)/(photonEnergyPoints-1)
+        eStep = (photonEnergyMax-photonEnergyMin)/(photonEnergyPoints-1)
     eArray = numpy.zeros( photonEnergyPoints )
     intensArray = numpy.zeros( photonEnergyPoints )
     hArray = numpy.zeros( (hSlitPoints*2-1) )
@@ -1498,6 +1415,12 @@ def calc3dUrgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
     for iEner in range(photonEnergyPoints):
         ener = photonEnergyMin + iEner*eStep
         eArray[iEner] = ener
+
+        for file in ["urgent.inp","urgent.out"]:
+            try:
+                os.remove(os.path.join(locations.home_bin_run(),file))
+            except:
+                pass
 
         with open("urgent.inp","wt") as f:
             f.write("%d\n"%(1))               # ITYPE
@@ -1527,8 +1450,11 @@ def calc3dUrgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
             f.write("%d\n"%(vSlitPoints-1))     #NYP
     
             f.write("%d\n"%(1))               #MODE
-            f.write("%d\n"%(1))               #ICALC
-            f.write("%d\n"%(-61))             #IHARM   TODO: check max harmonic number
+            if zero_emittance:                #ICALC
+                f.write("%d\n"%(3))
+            else:
+                f.write("%d\n"%(1))
+            f.write("%d\n"%(-81))             #IHARM   TODO: check max harmonic number
     
             f.write("%d\n"%(0))               #NPHI
             f.write("%d\n"%(0))               #NSIG
@@ -1542,13 +1468,15 @@ def calc3dUrgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
         print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
         os.system(command)
         print("Done.")
-    
+
+        shutil.copy2("urgent.inp","urgent_energy_index%d.inp"%iEner)
+        shutil.copy2("urgent.out","urgent_energy_index%d.out"%iEner)
         # write spec file
         txt = open("urgent.out").readlines()
     
     
-        iWrite = 0
-        if iWrite:
+
+        if fileName is not None:
             scanCounter += 1
             fout.write("\n#S %d Undulator 3d flux density (irradiance) calculation using Urgent at E=%0.3f keV (a slit quadrant)\n"%(scanCounter,ener*1e-3))
             for i,j in bl.items(): # write bl values
@@ -1558,7 +1486,10 @@ def calc3dUrgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
             fout.write("#N 7\n")
             fout.write("#L  H[mm]  V[mm]  Flux[Phot/s/mm^2/0.1%bw]  l1  l2  l3  l4\n")
     
-        mesh = numpy.zeros((7,(hSlitPoints)*(vSlitPoints)))
+        if zero_emittance:
+            mesh = numpy.zeros((8,(hSlitPoints)*(vSlitPoints)))
+        else:
+            mesh = numpy.zeros((7,(hSlitPoints)*(vSlitPoints)))
         hh = numpy.zeros((hSlitPoints))
         vv = numpy.zeros((vSlitPoints))
         int_mesh = numpy.zeros( ((hSlitPoints),(vSlitPoints)) )
@@ -1566,14 +1497,14 @@ def calc3dUrgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
         for i in txt:
             tmp = i.strip(" ")
             if tmp[0].isdigit():
-               if iWrite:
+               if fileName is not None:
                    fout.write(tmp)
                tmp = tmp.replace('D','e')
                tmpf = numpy.array( [float(j) for j in tmp.split()] )
                imesh = imesh + 1
                mesh[:,imesh] = tmpf
             else:
-               if iWrite:
+               if fileName is not None:
                    fout.write("#UD "+tmp)
     
         imesh = -1
@@ -1592,18 +1523,19 @@ def calc3dUrgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
     
         tmp = numpy.concatenate( (int_mesh[::-1,:],int_mesh[1:,:]), axis=0)
         int_mesh2 = numpy.concatenate( (tmp[:,::-1],tmp[:,1:]),axis=1)
-    
-        scanCounter += 1
-        fout.write("\n#S %d Undulator 3d flux density (irradiance) calculation using Urgent at E=%0.3f eV (whole slit )\n"%(scanCounter,ener*1e-3))
-        for i,j in bl.items(): # write bl values
-            fout.write ("#UD %s = %s\n" % (i,j) )
-        fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-        fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-        fout.write("#N 3\n")
-        fout.write("#L  H[mm]  V[mm]  Flux[phot/s/0.1%bw/mm^2]\n")
+
+        if fileName is not None:
+            scanCounter += 1
+            fout.write("\n#S %d Undulator 3d flux density (irradiance) calculation using Urgent at E=%6.3f eV (whole slit )\n"%(scanCounter,ener))
+            for i,j in bl.items(): # write bl values
+                fout.write ("#UD %s = %s\n" % (i,j) )
+            fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+            fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+            fout.write("#N 3\n")
+            fout.write("#L  H[mm]  V[mm]  Flux[phot/s/0.1%bw/mm^2]\n")
         for i in range(len(hArray)):
             for j in range(len(vArray)):
-               fout.write("%f  %f  %f\n"%(hArray[i],vArray[j],int_mesh2[i,j]) )
+               if fileName is not None: fout.write("%f  %f  %f\n"%(hArray[i],vArray[j],int_mesh2[i,j]) )
                int_mesh3[iEner,i,j] = int_mesh2[i,j]
                int_mesh2integrated[i,j] += int_mesh2[i,j]
                totIntens += int_mesh2[i,j]
@@ -1614,56 +1546,60 @@ def calc3dUrgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
 
     # now dump the integrated power
     # convert from phot/s/0,1%bw/mm2 to W/mm^2
-    int_mesh2integrated = int_mesh2integrated *codata_ec*1e3 * eStep
+    int_mesh2integrated = int_mesh2integrated *codata.e*1e3 * eStep
 
-    scanCounter += 1
-    fout.write("\n#S %d Undulator 3d flux density vs H,E (integrated in energy) calculation using Urgent\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        fout.write ("#UD %s = %s\n" % (i,j) )
-    fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-    fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-    fout.write("#UD IntegratedPower[W] =  %f\n"%( int_mesh2integrated.sum()*(hArray[1]-hArray[0])*(vArray[1]-vArray[0])))
-    fout.write("#N 3\n")
-    fout.write("#L  H[mm]  V[mm]  PowerDensity[W/mm^2]\n")
-    for i in range(len(hArray)):
-        for j in range(len(vArray)):
-            fout.write("%f  %f  %f\n"%(hArray[i],vArray[j],int_mesh2integrated[i,j]) )
-    #print(">>>>>>>>>>>>>>>power1",int_mesh2integrated.sum()*(hArray[1]-hArray[0])*(vArray[1]-vArray[0]))
-    #print(">>>>>>>>>>>>>>>power2",intensArray.sum()*codata_ec*1e3*(eArray[1]-eArray[0]))
-    #print(">>>>>>>>>>>>>>>power3",int_mesh3.sum()*codata_ec*1e3*(eArray[1]-eArray[0])*(hArray[1]-hArray[0])*(vArray[1]-vArray[0]))
+    if fileName is not None:
+        scanCounter += 1
+        fout.write("\n#S %d Undulator 3d flux density vs H,E (integrated in energy) calculation using Urgent\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            fout.write ("#UD %s = %s\n" % (i,j) )
+        fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+        fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+        fout.write("#UD IntegratedPower[W] =  %f\n"%( int_mesh2integrated.sum()*(hArray[1]-hArray[0])*(vArray[1]-vArray[0])))
+        fout.write("#N 3\n")
+        fout.write("#L  H[mm]  V[mm]  PowerDensity[W/mm^2]\n")
+        for i in range(len(hArray)):
+            for j in range(len(vArray)):
+                fout.write("%f  %f  %f\n"%(hArray[i],vArray[j],int_mesh2integrated[i,j]) )
+        #print(">>>>>>>>>>>>>>>power1",int_mesh2integrated.sum()*(hArray[1]-hArray[0])*(vArray[1]-vArray[0]))
+        #print(">>>>>>>>>>>>>>>power2",intensArray.sum()*codata.e*1e3*(eArray[1]-eArray[0]))
+        #print(">>>>>>>>>>>>>>>power3",int_mesh3.sum()*codata.e*1e3*(eArray[1]-eArray[0])*(hArray[1]-hArray[0])*(vArray[1]-vArray[0]))
 
-    # now dump the spectrum as the sum
-    scanCounter += 1
-    fout.write("\n#S %d Undulator 3d flux density vs energy (integrated in H,V) calculation using Urgent\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        fout.write ("#UD %s = %s\n" % (i,j) )
-    fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-    fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-    fout.write("#UD IntegratedPower[W] =  %f\n"%(intensArray.sum()*codata_ec*1e3*(eArray[1]-eArray[0])))
-    fout.write("#N 3\n")
-    fout.write("#L  photonEnergy[eV]  Flux[phot/s/0.1%bw]  PowerDensity[W/eV]\n")
-    for i in range(photonEnergyPoints):
-       fout.write("%f  %f  %f\n"%(eArray[i],intensArray[i],intensArray[i]*codata_ec*1e3) )
+        # now dump the spectrum as the sum
+        scanCounter += 1
+        fout.write("\n#S %d Undulator 3d flux density vs energy (integrated in H,V) calculation using Urgent\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            fout.write ("#UD %s = %s\n" % (i,j) )
+        fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+        fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+        if photonEnergyPoints > 1:
+            fout.write("#UD IntegratedPower[W] =  %f\n"%(intensArray.sum()*codata.e*1e3*(eArray[1]-eArray[0])))
+        fout.write("#N 3\n")
+        fout.write("#L  photonEnergy[eV]  Flux[phot/s/0.1%bw]  PowerDensity[W/eV]\n")
+        for i in range(photonEnergyPoints):
+           fout.write("%f  %f  %f\n"%(eArray[i],intensArray[i],intensArray[i]*codata.e*1e3) )
 
-    fout.close()
+        fout.close()
 
-    if fileAppend:
-        print("Data appended to file: "+fileName)
-    else:
-        print("File written to disk: "+fileName)
+        if fileAppend:
+            print("Data appended to file: "+fileName)
+        else:
+            print("File written to disk: "+fileName)
 
     print("\n--------------------------------------------------------\n\n")
     # append direct calculation for comparison
-    tmp = calc1dUrgent(bl,photonEnergyMin=photonEnergyMin,
+    tmp = calc1d_urgent(bl,photonEnergyMin=photonEnergyMin,
                   photonEnergyMax=photonEnergyMax,
                   photonEnergyPoints=photonEnergyPoints,
                   fileName=fileName,fileAppend=True)
-
+    # return abscissas in mm
     return  (eArray, hArray, vArray, int_mesh3)
 
 
 
-def calc3dUs(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoints=500,fileName="/dev/null",fileAppend=False,hSlitPoints=50,vSlitPoints=50):
+def calc3d_us(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoints=500,
+              zero_emittance=False,hSlitPoints=50,vSlitPoints=50,
+              fileName=None,fileAppend=True,):
 
     r"""
         run Us for calculating intensity vs H,V,energy
@@ -1673,17 +1609,22 @@ def calc3dUs(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoint
     """
     global scanCounter
     global home_bin
-    print("Inside calc3dUs")
+    print("Inside calc3d_us")
 
-    
-    if fileAppend:
-        fout = open(fileName,"a")
+
+
+    if fileName is not None:
+        if fileAppend:
+            fout = open(fileName,"a")
+        else:
+            scanCounter = 0
+            fout = open(fileName,"w")
+            fout.write("#F "+fileName+"\n")
+
+    if photonEnergyPoints == 1:
+        eStep = 0.0
     else:
-        scanCounter = 0
-        fout = open(fileName,"w")
-        fout.write("#F "+fileName+"\n")
-
-    eStep = (photonEnergyMax-photonEnergyMin)/(photonEnergyPoints-1)
+        eStep = (photonEnergyMax-photonEnergyMin)/(photonEnergyPoints-1)
     eArray = numpy.zeros( photonEnergyPoints )
     intensArray = numpy.zeros( photonEnergyPoints )
     hArray = numpy.zeros( (hSlitPoints*2-1) )
@@ -1695,13 +1636,19 @@ def calc3dUs(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoint
         ener = photonEnergyMin + iEner*eStep
         eArray[iEner] = ener
 
+        for file in ["us.inp","us.out"]:
+            try:
+                os.remove(os.path.join(locations.home_bin_run(),file))
+            except:
+                pass
+
         with open("us.inp","wt") as f:
             #f.write("%d\n"%(1))               # ITYPE
             #f.write("%f\n"%(bl['PeriodID']))  # PERIOD
     
             f.write("US run\n")
-            f.write("    %f  %f                               Ring-Energy Current\n"%
-                   (bl['ElectronEnergy'],bl['ElectronCurrent']*1e3))
+            f.write("    %f  %f  %f                           Ring-Energy Current\n"%
+                   (bl['ElectronEnergy'],bl['ElectronCurrent']*1e3,bl['ElectronEnergySpread']))
             f.write("  %f  %f  %f  %f               Sx Sy Sxp Syp\n"%
                    (bl['ElectronBeamSizeH']*1e3,bl['ElectronBeamSizeV']*1e3,
                     bl['ElectronBeamDivergenceH']*1e3,bl['ElectronBeamDivergenceV']*1e3) )
@@ -1710,7 +1657,10 @@ def calc3dUs(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoint
             f.write("    %f   55000.0       1                   Emin Emax Ne\n"%(ener))
             f.write("  %f   0.000   0.000   %f   %f    %d    %d   D Xpc Ypc Xps Yps Nxp Nyp\n"%
                    (bl['distance'],bl['gapH']*1e3,bl['gapV']*1e3,hSlitPoints-1,vSlitPoints-1) )
-            f.write("       1       1       0                       Mode Method Iharm\n")
+            if zero_emittance:
+                f.write("       1       3       0                       Mode Method Iharm\n")
+            else:
+                f.write("       1       1       0                       Mode Method Iharm\n")
             f.write("       0       0     0.0      64     8.0     0 Nphi Nalpha Dalpha2 Nomega Domega Nsigma\n")
             f.write("foreground\n")
     
@@ -1719,15 +1669,18 @@ def calc3dUs(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoint
         print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
         os.system(command)
         print("Done.")
-    
+
+        shutil.copy2("us.inp","us_energy_index%d.inp"%iEner)
+        shutil.copy2("us.out","us_energy_index%d.out"%iEner)
+        # shutil.copy2("us.log","us%d.log"%iEner)
+
         # write spec file
         txt = open("us.out").readlines()
     
-    
-        iWrite = False
-        if iWrite:
+
+        if fileName is not None:
             scanCounter += 1
-            fout.write("\n#S %d Undulator 3d flux density (irradiance) calculation using Us at E=%0.3f keV (a slit quadrant)\n"%(scanCounter,ener*1e-3))
+            fout.write("\n#S %d Undulator 3d flux density (irradiance) calculation using Us at E=%6.3f eV (a slit quadrant)\n"%(scanCounter,ener))
             for i,j in bl.items(): # write bl values
                 fout.write ("#UD %s = %s\n" % (i,j) )
             fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
@@ -1743,14 +1696,14 @@ def calc3dUs(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoint
         for i in txt:
             tmp = i.strip(" ")
             if tmp[0].isdigit():
-               if iWrite:
+               if fileName is not None:
                    fout.write(tmp)
                #tmp = tmp.replace('D','e')
                tmpf = numpy.array( [float(j) for j in tmp.split()] )
                imesh = imesh + 1
                mesh[:,imesh] = tmpf
             else:
-               if iWrite:
+               if fileName is not None:
                    fout.write("#UD "+tmp)
     
         imesh = -1
@@ -1763,209 +1716,605 @@ def calc3dUs(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoint
     
         hArray = numpy.concatenate((-hh[::-1],hh[1:]))
         vArray = numpy.concatenate((-vv[::-1],vv[1:]))
-        #hArray = hhh*0.0
-        #vArray = vvv*0.0
         totIntens = 0.0
     
         tmp = numpy.concatenate( (int_mesh[::-1,:],int_mesh[1:,:]), axis=0)
         int_mesh2 = numpy.concatenate( (tmp[:,::-1],tmp[:,1:]),axis=1)
-    
-        scanCounter += 1
-        fout.write("\n#S %d Undulator 3d flux density (irradiance) calculation using Us at E=%0.3f eV (whole slit )\n"%(scanCounter,ener*1e-3))
-        for i,j in bl.items(): # write bl values
-            fout.write ("#UD %s = %s\n" % (i,j) )
-        fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-        fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-        fout.write("#N 3\n")
-        fout.write("#L  H[mm]  V[mm]  Flux[phot/s/0.1%bw/mm^2]\n")
+
+        if fileName is not None:
+            scanCounter += 1
+            fout.write("\n#S %d Undulator 3d flux density (irradiance) calculation using Us at E=%6.3f eV (whole slit )\n"%(scanCounter,ener))
+            for i,j in bl.items(): # write bl values
+                fout.write ("#UD %s = %s\n" % (i,j) )
+            fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+            fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+            fout.write("#N 3\n")
+            fout.write("#L  H[mm]  V[mm]  Flux[phot/s/0.1%bw/mm^2]\n")
+
         for i in range(len(hArray)):
             for j in range(len(vArray)):
-               fout.write("%f  %f  %f\n"%(hArray[i],vArray[j],int_mesh2[i,j]) )
+               if fileName is not None:
+                   fout.write("%f  %f  %f\n"%(hArray[i],vArray[j],int_mesh2[i,j]) )
                int_mesh3[iEner,i,j] = int_mesh2[i,j]
                int_mesh2integrated[i,j] += int_mesh2[i,j]
                totIntens += int_mesh2[i,j]
-               #hArray[i] += int_mesh2[i,j]
-               #vArray[j] += int_mesh2[i,j]
-               #totIntens += int_mesh2[i,j]
 
-            
-        #hArray = hArray * (hh[1]-hh[0]) 
-        #vArray = vArray * (vv[1]-vv[0]) 
-        #totIntens += (hh[1]-hh[0]) * (vv[1]-vv[0]) 
         totIntens = totIntens * (hh[1]-hh[0]) * (vv[1]-vv[0]) 
         intensArray[iEner] = totIntens
 
 
     # now dump the integrated power
     # convert from phot/s/0,1%bw/mm2 to W/mm^2
-    int_mesh2integrated = int_mesh2integrated *codata_ec*1e3 * eStep
+    int_mesh2integrated = int_mesh2integrated *codata.e*1e3 * eStep
 
-    scanCounter += 1
-    fout.write("\n#S %d Undulator 3d flux density vs H,E (integrated in energy) calculation using Us\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        fout.write ("#UD %s = %s\n" % (i,j) )
-    fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-    fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-    fout.write("#UD IntegratedPower[W] =  %f\n"%( int_mesh2integrated.sum()*(hArray[1]-hArray[0])*(vArray[1]-vArray[0])))
-    fout.write("#N 3\n")
-    fout.write("#L  H[mm]  V[mm]  PowerDensity[W/mm^2]\n")
-    for i in range(len(hArray)):
-        for j in range(len(vArray)):
-            fout.write("%f  %f  %f\n"%(hArray[i],vArray[j],int_mesh2integrated[i,j]) )
-    print(">>>>>>>>>>>>>>>power1",int_mesh2integrated.sum()*(hArray[1]-hArray[0])*(vArray[1]-vArray[0]))
-    print(">>>>>>>>>>>>>>>power2",intensArray.sum()*codata_ec*1e3*(eArray[1]-eArray[0]))
-    print(">>>>>>>>>>>>>>>power3",int_mesh3.sum()*codata_ec*1e3*(eArray[1]-eArray[0])*(hArray[1]-hArray[0])*(vArray[1]-vArray[0]))
+    # print(">>>>>>>>>>>>>>>power1",int_mesh2integrated.sum()*(hArray[1]-hArray[0])*(vArray[1]-vArray[0]))
+    # if photonEnergyPoints > 1:
+    #     print(">>>>>>>>>>>>>>>power2",intensArray.sum()*codata.e*1e3*(eArray[1]-eArray[0]))
+    #     print(">>>>>>>>>>>>>>>power3",int_mesh3.sum()*codata.e*1e3*(eArray[1]-eArray[0])*(hArray[1]-hArray[0])*(vArray[1]-vArray[0]))
 
-    # now dump the spectrum as the sum
-    scanCounter += 1
-    fout.write("\n#S %d Undulator 3d flux density vs energy (integrated in H,V) calculation using Us\n"%(scanCounter))
-    for i,j in bl.items(): # write bl values
-        fout.write ("#UD %s = %s\n" % (i,j) )
-    fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-    fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-    fout.write("#UD IntegratedPower[W] =  %f\n"%(intensArray.sum()*codata_ec*1e3*(eArray[1]-eArray[0])))
-    fout.write("#N 3\n")
-    fout.write("#L  photonEnergy[eV]  Flux[phot/s/0.1%bw]  PowerDensity[W/eV]\n")
-    for i in range(photonEnergyPoints):
-       fout.write("%f   %f  %f\n"%(eArray[i],intensArray[i],intensArray[i]*codata_ec*1e3) )
+    if fileName is not None:
+        scanCounter += 1
+        fout.write("\n#S %d Undulator 3d flux density vs H,E (integrated in energy) calculation using Us\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            fout.write ("#UD %s = %s\n" % (i,j) )
+        fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+        fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+        fout.write("#UD IntegratedPower[W] =  %f\n"%( int_mesh2integrated.sum()*(hArray[1]-hArray[0])*(vArray[1]-vArray[0])))
+        fout.write("#N 3\n")
+        fout.write("#L  H[mm]  V[mm]  PowerDensity[W/mm^2]\n")
+        for i in range(len(hArray)):
+            for j in range(len(vArray)):
+                fout.write("%f  %f  %f\n"%(hArray[i],vArray[j],int_mesh2integrated[i,j]) )
 
-    fout.close()
 
-    if fileAppend:
-        print("Data appended to file: "+fileName)
-    else:
-        print("File written to disk: "+fileName)
+
+        # now dump the spectrum as the sum
+        scanCounter += 1
+        fout.write("\n#S %d Undulator 3d flux density vs energy (integrated in H,V) calculation using Us\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            fout.write ("#UD %s = %s\n" % (i,j) )
+        fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+        fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+        if photonEnergyPoints > 1:
+            fout.write("#UD IntegratedPower[W] =  %f\n"%(intensArray.sum()*codata.e*1e3*(eArray[1]-eArray[0])))
+        fout.write("#N 3\n")
+        fout.write("#L  photonEnergy[eV]  Flux[phot/s/0.1%bw]  PowerDensity[W/eV]\n")
+        for i in range(photonEnergyPoints):
+           fout.write("%f   %f  %f\n"%(eArray[i],intensArray[i],intensArray[i]*codata.e*1e3) )
+
+        fout.close()
+
+        if fileAppend:
+            print("Data appended to file: "+fileName)
+        else:
+            print("File written to disk: "+fileName)
 
     # append direct calculation for comparison
-    tmp = calc1dUs(bl,photonEnergyMin=photonEnergyMin,
+    tmp = calc1d_us(bl,photonEnergyMin=photonEnergyMin,
                   photonEnergyMax=photonEnergyMax,
                   photonEnergyPoints=photonEnergyPoints,
                   fileName=fileName,fileAppend=True)
     print("\n--------------------------------------------------------\n\n")
 
+    # grid in mn
     return  (eArray, hArray, vArray, int_mesh3)
 
 
+def calc3d_pysru(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoints=500,
+                 zero_emittance=False,hSlitPoints=51,vSlitPoints=51,
+                 fileName=None,fileAppend=True):
+
+    r"""
+        run pySRU for calculating intensity vs H,V,energy
+
+        input: a dictionary with beamline
+        output: file name with results
+    """
+
+    from pySRU.Simulation import create_simulation
+    from pySRU.ElectronBeam import ElectronBeam
+    from pySRU.MagneticStructureUndulatorPlane import MagneticStructureUndulatorPlane
+    from pySRU.TrajectoryFactory import TrajectoryFactory, TRAJECTORY_METHOD_ANALYTIC,TRAJECTORY_METHOD_ODE
+
+    from pySRU.RadiationFactory import RadiationFactory,RADIATION_METHOD_NEAR_FIELD, \
+                                     RADIATION_METHOD_APPROX_FARFIELD
+
+    global scanCounter
+
+    print("Inside calc3d_pysru")
+
+    if fileName is not None:
+        if fileAppend:
+            fout = open(fileName,"a")
+        else:
+            scanCounter = 0
+            fout = open(fileName,"w")
+            fout.write("#F "+fileName+"\n")
+
+
+    print('Running pySRU')
+
+    # Example_spectrum_on_central_cone()
+
+    hArray = numpy.linspace(-0.5*bl['gapH'], 0.5*bl['gapH'],hSlitPoints)
+    vArray = numpy.linspace(-0.5*bl['gapV'], 0.5*bl['gapV'],vSlitPoints)
+    H = numpy.outer(hArray,numpy.ones_like(vArray))
+    V = numpy.outer(numpy.ones_like(hArray),vArray)
+    eArray = numpy.linspace(photonEnergyMin,photonEnergyMax,photonEnergyPoints)
+
+    myBeam = ElectronBeam(Electron_energy=bl['ElectronEnergy'], I_current=bl['ElectronCurrent'])
+    myUndulator = MagneticStructureUndulatorPlane(K=bl['Kv'], period_length=bl['PeriodID'], length=bl['PeriodID']*bl['NPeriods'])
+
+
+
+    intensArray = numpy.zeros((photonEnergyPoints,hArray.size,vArray.size))
+
+    method = 0
+    if method == 0:   # recreate simulation object at each step
+        for ie in range(eArray.size):
+            print(">> pySRU running energy point %d of %d..."%(ie+1,eArray.size))
+            simulation_test = create_simulation(magnetic_structure=myUndulator,electron_beam=myBeam,
+                                magnetic_field=None, photon_energy=eArray[ie],
+                                traj_method=TRAJECTORY_METHOD_ODE,Nb_pts_trajectory=None,
+                                rad_method=RADIATION_METHOD_NEAR_FIELD, Nb_pts_radiation=None,
+                                initial_condition=None, distance=bl['distance'],XY_are_list=False,
+                                X=hArray,Y=vArray)
+
+            # simulation_test.radiation.plot("title=photon energy = %f"%eArray[ie])
+            tmp = simulation_test.radiation.intensity.copy()
+            intensArray[ie] = tmp
+    elif method == 1:
+        #create simulation object for the highest energy
+        simulation_test = create_simulation(magnetic_structure=myUndulator,electron_beam=myBeam,
+                            magnetic_field=None, photon_energy=eArray[-1],
+                            traj_method=TRAJECTORY_METHOD_ODE,Nb_pts_trajectory=None,
+                            rad_method=RADIATION_METHOD_NEAR_FIELD, Nb_pts_radiation=None,
+                            initial_condition=None, distance=bl['distance'],XY_are_list=False,
+                            X=hArray,Y=vArray)
+        for ie in range(eArray.size):
+            print(">> pySRU setting new energy point %d of %d..."%(ie+1,eArray.size))
+            simulation_test.change_energy_eV(eArray[ie],update_radiation=1)
+            # simulation_test.radiation.plot("title=photon energy = %f"%eArray[ie])
+            tmp = simulation_test.radiation.intensity.copy()
+            intensArray[ie] = tmp
+    else:
+        raise Exception("Not implemented method.")
+
+
+
+    #
+    # testing convolution for non zero emittance
+    #
+    if not zero_emittance:
+        from scipy.ndimage.filters import convolve as convolve
+        from scipy.ndimage.filters import gaussian_filter1d as gaussian_filter1d
+        SigmaH = numpy.sqrt( bl['ElectronBeamSizeH']**2 + (bl['distance']*bl['ElectronBeamDivergenceH'])**2 )
+        SigmaV = numpy.sqrt( bl['ElectronBeamSizeV']**2 + (bl['distance']*bl['ElectronBeamDivergenceV'])**2 )
+        tmp1 = numpy.exp(-H*H/2/SigmaH/SigmaH) * numpy.exp(-V*V/2/SigmaV/SigmaV)
+        for ie in range(eArray.size):
+            # pass
+            #OK  intensArray[ie] = convolve(intensArray[ie],tmp1)/tmp1.sum()
+            intensArray[ie] = gaussian_filter1d(intensArray[ie],SigmaH/(hArray[1]-hArray[0]),axis=0)
+            intensArray[ie] = gaussian_filter1d(intensArray[ie],SigmaV/(vArray[1]-vArray[0]),axis=1)
+            # intensArray[ie] = gaussian_filter1d(tmp1,SigmaV,axis=1)
+
+    if fileName is not None:
+        for ie in range(eArray.size):
+            scanCounter += 1
+            fout.write("\n#S %d Undulator 3d flux density vs H,E (integrated in energy) calculation using pySRU et E=%f eV\n"%
+                       (scanCounter,eArray[ie]))
+            for i,j in bl.items(): # write bl values
+                fout.write ("#UD %s = %s\n" % (i,j) )
+            fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+            fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+            # fout.write("#UD IntegratedPower[W] =  %f\n"%( int_mesh2integrated.sum()*(hArray[1]-hArray[0])*(vArray[1]-vArray[0])))
+            fout.write("#N 3\n")
+            fout.write("#L  H[mm]  V[mm]  PowerDensity[W/mm^2]\n")
+            for i in range(len(hArray)):
+                for j in range(len(vArray)):
+                    fout.write("%f  %f  %f\n"%(hArray[i],vArray[j],intensArray[ie,i,j]) )
+
+
+        # now dump the spectrum as the sum
+        scanCounter += 1
+        fout.write("\n#S %d Undulator 3d flux density vs energy (integrated in H,V) calculation using pySRU\n"%(scanCounter))
+        for i,j in bl.items(): # write bl values
+            fout.write ("#UD %s = %s\n" % (i,j) )
+        fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+        fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+        if photonEnergyPoints > 1:
+            fout.write("#UD IntegratedPower[W] =  %f\n"%(intensArray.sum()*codata.e*1e3*(eArray[1]-eArray[0])))
+        fout.write("#N 3\n")
+        fout.write("#L  photonEnergy[eV]  Flux[phot/s/0.1%bw]  PowerDensity[W/eV]\n")
+        for i in range(photonEnergyPoints):
+           fout.write("%f   %f  %f\n"%(eArray[i],intensArray[i].sum(),intensArray[i].sum()*codata.e*1e3) )
+
+        fout.close()
+
+        if fileAppend:
+            print("Data appended to file: "+fileName)
+        else:
+            print("File written to disk: "+fileName)
+
+    # append direct calculation for comparison
+    # tmp = calc1d_us(bl,photonEnergyMin=photonEnergyMin,
+    #               photonEnergyMax=photonEnergyMax,
+    #               photonEnergyPoints=photonEnergyPoints,
+    #               fileName=fileName,fileAppend=True)
+    print("\n--------------------------------------------------------\n\n")
+
+    # grid in mm
+    return (eArray, 1e3*hArray, 1e3*vArray, intensArray)
+
+########################################################################################################################
 #
-#----------------------------  MAIN CODE -------------------------------------
+# Do 3d calculations and obtain power density and spectrum by integration
 #
+########################################################################################################################
+
+def calc_from_3d(code,bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoints=5,
+                npoints_grid=101,zero_emittance=False,fileName=None,fileAppend=False):
+
+    if code == "pySRU":
+        e,h,v,i = calc3d_pysru(bl,zero_emittance=zero_emittance,fileName=fileName,
+                    photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
+                    hSlitPoints=npoints_grid,vSlitPoints=npoints_grid)
+    elif code == "SRW":
+        e,h,v,i = calc3d_srw(bl,zero_emittance=zero_emittance,fileName=fileName,
+                    photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
+                    hSlitPoints=npoints_grid,vSlitPoints=npoints_grid)
+    elif code == "US":
+        e,h,v,i = calc3d_us(bl,zero_emittance=zero_emittance,fileName=fileName,
+                    photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
+                    hSlitPoints=npoints_grid,vSlitPoints=npoints_grid)
+    elif code == "URGENT":
+        e,h,v,i = calc3d_urgent(bl,zero_emittance=zero_emittance,fileName=fileName,
+                    photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
+                    hSlitPoints=npoints_grid,vSlitPoints=npoints_grid)
+    else:
+        raise Exception("Undefined code")
+
+    e_step = (photonEnergyMax - photonEnergyMin) / photonEnergyPoints
+    # plot(e,(i.sum(axis=2)).sum(axis=1)*(v[1]-v[0])*(h[1]-h[0]),show=0,title="Spectrum for %s"%bl)
+    # plot_contour(i.sum(axis=0)*e_step*codata.e*1e3,h,v,title="PySRU Power density",show=0)
+
+    out = {"e":e,"h":h,"v":v,"radiance":i,
+           "power_density":i.sum(axis=0)*e_step*codata.e*1e3,
+           "spectrum":(i.sum(axis=2)).sum(axis=1)*(v[1]-v[0])*(h[1]-h[0])}
+    return out
+
+########################################################################################################################
+#
+# Tools
+#
+########################################################################################################################
+
+def calc_fwhm(h,binSize):
+  t = numpy.where(h>=max(h)*0.5)
+  return binSize*(t[0][-1]-t[0][0]+1), t[0][-1], t[0][0]
+
+
+
+
+def _srw_electron_beam(E=6.0, sigE = 1.e-30, Iavg=0.2,sigX=1.e-30, sigY=1.e-30, sigXp=1.e-30, sigYp=1.e-30):
+
+    # #2nd order stat. moments:
+    # eBeam.arStatMom2[0] = sigX*sigX #<(x-<x>)^2>
+    # eBeam.arStatMom2[1] = 0 #<(x-<x>)(x'-<x'>)>
+    # eBeam.arStatMom2[2] = sigXp*sigXp #<(x'-<x'>)^2>
+    # eBeam.arStatMom2[3] = sigY*sigY #<(y-<y>)^2>
+    # eBeam.arStatMom2[4] = 0 #<(y-<y>)(y'-<y'>)>
+    # eBeam.arStatMom2[5] = sigYp*sigYp #<(y'-<y'>)^2>
+    # eBeam.arStatMom2[10] = sigEperE*sigEperE #<(E-<E>)^2>/<E>^2
+
+    el_rest = codata_mee * 1e-3 # 0.51099890221e-03
+    eBeam = srwlib.SRWLPartBeam()
+    eBeam.Iavg = Iavg
+    eBeam.partStatMom1.gamma =  E / el_rest
+
+
+    # always fixed here
+    eBeam.partStatMom1.relE0 =  1.0
+    eBeam.partStatMom1.nq    = -1
+    eBeam.arStatMom2[1]   = 0.0
+    eBeam.arStatMom2[4]   = 0.0
+    eBeam.partStatMom1.x  = 0.0
+    eBeam.partStatMom1.y  = 0.0
+    eBeam.partStatMom1.z  = 0.0
+    eBeam.partStatMom1.xp = 0.0
+    eBeam.partStatMom1.yp = 0.0
+
+    #from inputs
+    eBeam.arStatMom2[ 0] = sigX**2
+    eBeam.arStatMom2[ 2] = sigXp**2
+    eBeam.arStatMom2[ 3] = sigY**2
+    eBeam.arStatMom2[ 5] = sigYp**2
+    eBeam.arStatMom2[10] = sigE**2
+
+    return eBeam
+
+def _srw_drift_electron_beam(eBeam, und ):
+    if isinstance(und, float):
+        length = und
+    elif isinstance(und, srwlib.SRWLMagFldU):    # Always defined in (0., 0., 0.) move the electron beam before the magnetic field.
+        length = 0.0-0.55*und.nPer*und.per-eBeam.partStatMom1.z
+    elif isinstance(und, srwlib.SRWLMagFldC):
+        if isinstance(und.arMagFld[0], srwlib.SRWLMagFldU):
+            length = und.arZc[0]-0.55*und.arMagFld[0].nPer*und.arMagFld[0].per-eBeam.partStatMom1.z
+        else: raise NameError
+    else: raise NameError
+    eBeam.partStatMom1.z += length
+    eBeam.arStatMom2[0]  += 2*length*eBeam.arStatMom2[1]+length**2*eBeam.arStatMom2[2]
+    eBeam.arStatMom2[1]  += length*eBeam.arStatMom2[2]
+    eBeam.arStatMom2[3]  += 2*length*eBeam.arStatMom2[4]+length**2*eBeam.arStatMom2[5]
+    eBeam.arStatMom2[4]  += length*eBeam.arStatMom2[5]
+    eBeam.moved = length
+    return eBeam
+
+
+########################################################################################################################
+#
+# Comparison scripts
+#
+########################################################################################################################
+def compare_flux(beamline,emin=3000.0,emax=50000.0,npoints=200,include_pysru=True,
+                 zero_emittance=False,fileName=None,iplot=False,show=True,
+                 srw_max_harmonic_number=21):
+
+
+    gamma = beamline['ElectronEnergy'] / (codata_mee * 1e-3)
+    print ("Gamma: %f \n"%(gamma))
+
+    resonance_wavelength = (1 + beamline['Kv']**2 / 2.0) / 2 / gamma**2 * beamline["PeriodID"]
+    resonance_energy = m2ev / resonance_wavelength
+
+    print ("Resonance wavelength [A]: %g \n"%(1e10*resonance_wavelength))
+    print ("Resonance energy [eV]: %g \n"%(resonance_energy))
+
+    if emin == None:
+        emin = resonance_energy - 5000
+        emax = resonance_energy + 5000
+
+    print("Calculating %d spectrum points in [%f,%f] eV"%(npoints,emin,emax))
+
+
+    e_s,f_s = calc1d_srw(beamline,photonEnergyMin=emin,photonEnergyMax=emax,
+          photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True,
+                         srw_max_harmonic_number=srw_max_harmonic_number)
+
+    e_ur,f_ur = calc1d_urgent(beamline,photonEnergyMin=emin,photonEnergyMax=emax,
+          photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+
+    e_us,f_us = calc1d_us(beamline,photonEnergyMin=emin,photonEnergyMax=emax,
+          photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+
+    if include_pysru:
+        e_py,f_py = calc1d_pysru(beamline,photonEnergyMin=emin,photonEnergyMax=emax,
+              photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+
+
+    if iplot:
+        if include_pysru:
+            plot(e_s,f_s,e_ur,f_ur,e_us,f_us,e_py,f_py,title=beamline['name'],show=0,legend=["SRW","URGENT","US",'pySRU'],ylog=True)
+            plot(e_s,f_s,e_ur,f_ur,e_us,f_us,e_py,f_py,title=beamline['name'],show=0,legend=["SRW","URGENT","US",'pySRU'],ylog=False)
+
+            plot(e_s,f_s,e_py,f_py,title=beamline['name'],show=0,legend=["SRW",'pySRU'],ylog=True)
+            plot(e_s,f_s,e_py,f_py,title=beamline['name'],show=0,legend=["SRW",'pySRU'],ylog=False)
+        else:
+            plot(e_s,f_s,e_ur,f_ur,e_us,f_us,title=beamline['name'],show=0,legend=["SRW","URGENT","US"],ylog=True)
+            plot(e_s,f_s,e_ur,f_ur,e_us,f_us,title=beamline['name'],show=0,legend=["SRW","URGENT","US"],ylog=False)
+
+        if show:
+            plot_show()
+
+
+def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,include_pysru=True,
+                 zero_emittance=False,fileName=None,iplot=False,show=True):
+
+    gamma = beamline['ElectronEnergy'] / (codata_mee * 1e-3)
+    print ("Gamma: %f \n"%(gamma))
+
+    resonance_wavelength = (1 + beamline['Kv']**2 / 2.0) / 2 / gamma**2 * beamline["PeriodID"]
+    resonance_energy = m2ev / resonance_wavelength
+
+    print ("Resonance wavelength [A]: %g \n"%(1e10*resonance_wavelength))
+    print ("Resonance energy [eV]: %g \n"%(resonance_energy))
+
+    if emin == None:
+        emin = resonance_energy - 5000
+        emax = resonance_energy + 5000
+
+    print("Calculating %d spectrum points in [%f,%f] eV"%(npoints,emin,emax))
+
+    npoints_grid = 51
+
+    if include_pysru:
+        r_pysru = calc_from_3d("pySRU",  beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
+                             npoints_grid=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+    r_srw = calc_from_3d("SRW",      beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
+                             npoints_grid=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+    r_us = calc_from_3d("US",        beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
+                             npoints_grid=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+    r_urgent = calc_from_3d("URGENT",beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
+                             npoints_grid=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+
+
+
+    if iplot:
+        if include_pysru:
+            plot(r_pysru["e"],r_pysru["spectrum"],
+                 r_srw["e"],r_srw["spectrum"],
+                 r_us["e"],r_us["spectrum"],
+                 r_urgent["e"],r_urgent["spectrum"],
+                 title=beamline,show=0,legend=["pySRU","SRW","US","URGENT"],ylog=True)
+            plot(r_pysru["e"],r_pysru["spectrum"],
+                 r_srw["e"],r_srw["spectrum"],
+                 r_us["e"],r_us["spectrum"],
+                 r_urgent["e"],r_urgent["spectrum"],
+                 title=beamline,show=0,legend=["pySRU","SRW","US","URGENT"],ylog=False)
+        else:
+            plot(r_srw["e"],r_srw["spectrum"],
+                 r_us["e"],r_us["spectrum"],
+                 r_urgent["e"],r_urgent["spectrum"],
+                 title=beamline,show=0,legend=["SRW","US","URGENT"],ylog=True)
+            plot(r_srw["e"],r_srw["spectrum"],
+                 r_us["e"],r_us["spectrum"],
+                 r_urgent["e"],r_urgent["spectrum"],
+                 title=beamline,show=0,legend=["SRW","US","URGENT"],ylog=False)
+
+
+        if show:
+            plot_show()
+
+
+def compare_power_density(beamline,npoints_grid=21,include_pysru=True,
+                          zero_emittance=False,fileName=None,iplot=False,show=True):
+
+
+    h_s,v_s,p_s =       calc2d_srw(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+    h_ur,v_ur,p_ur = calc2d_urgent(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+    h_us,v_us,p_us =     calc2d_us(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+
+    if include_pysru:
+        h_py,v_py,p_py =  calc2d_pysru(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+
+    if iplot:
+        if include_pysru:
+            contour_levels = numpy.linspace(0,numpy.max([p_s.max(),p_ur.max(),p_us.max(),p_py.max()]),100)
+        else:
+            contour_levels = numpy.linspace(0,numpy.max([p_s.max(),p_ur.max(),p_us.max()]),100)
+
+        plot_contour(p_s,h_s,v_s,title="%s SRW"%beamline['name'],xtitle="H [mm]",ytitle="V [mm]",plot_points=0,
+                     contour_levels=contour_levels,cmap=None,cbar=1,cbar_title="Power density [$W/mm^2$]",show=0)
+
+        plot_contour(p_ur,h_ur,v_ur,title="%s URGENT"%beamline['name'],xtitle="H [mm]",ytitle="V [mm]",plot_points=0,
+                     contour_levels=contour_levels,cmap=None,cbar=1,cbar_title="Power density [$W/mm^2$]",show=0)
+
+        plot_contour(p_us,h_us,v_us,title="%s US"%beamline['name'],xtitle="H [mm]",ytitle="V [mm]",plot_points=0,
+                     contour_levels=contour_levels,cmap=None,cbar=1,cbar_title="Power density [$W/mm^2$]",show=0)
+
+        if include_pysru:
+            plot_contour(p_py,h_py,v_py,title="%s pySRU"%beamline['name'],xtitle="H [mm]",ytitle="V [mm]",plot_points=0,
+                     contour_levels=contour_levels,cmap=None,cbar=1,cbar_title="Power density [$W/mm^2$]",show=0)
+
+        plot_surface(p_s ,h_s,v_s,  title="SRW;    ",xtitle="H [mm]",ytitle="V [mm]",show=0)
+        plot_surface(p_ur,h_ur,v_ur,title="URGENT; ",xtitle="H [mm]",ytitle="V [mm]",show=0)
+        plot_surface(p_us,h_us,v_us,title="US;     ",xtitle="H [mm]",ytitle="V [mm]",show=0)
+        if include_pysru:
+            plot_surface(p_py,h_py,v_py,title="pySRU;  ",xtitle="H [mm]",ytitle="V [mm]",show=0)
+
+        if show:
+            plot_show()
+
+def compare_radiation(beamline,energy=None,npoints_grid=51,
+                      zero_emittance=False,fileName=None,iplot=False,show=True):
+
+
+
+    gamma = beamline['ElectronEnergy'] / (codata_mee * 1e-3)
+    print ("Gamma: %f \n"%(gamma))
+
+    resonance_wavelength = (1 + beamline['Kv']**2 / 2.0) / 2 / gamma**2 * beamline["PeriodID"]
+    resonance_energy = m2ev / resonance_wavelength
+
+    print ("Resonance wavelength [A]: %g \n"%(1e10*resonance_wavelength))
+    print ("Resonance energy [eV]: %g \n"%(resonance_energy))
+
+    if energy == None:
+        energy = resonance_energy
+
+
+    e_s,h_s,v_s,f_s = calc3d_srw(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+                        hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
+                        zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+
+
+    e_py,h_py,v_py,f_py = calc3d_pysru(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+                        hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
+                        zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+
+    print("Shapes for SRW:",e_s.shape,h_s.shape,v_s.shape,f_s.shape)
+    # print("Shapes for URGENT:",e_u.shape,h_u.shape,v_u.shape,f_u.shape)
+    # print("Shapes for US:",e_us.shape,h_us.shape,v_us.shape,f_us.shape,"MAX: ",f_us.max())
+    print("Shapes for pySRU:",e_py.shape,h_py.shape,v_py.shape,f_py.shape,"MAX: ",f_py.max())
+
+
+    print("Integrals for:")
+    print("         SRW   :",f_s.sum()*(h_s[1]-h_s[0])*(v_s[1]-v_s[0]) )
+    # print("         URGENT:",f_u.sum()*(h_u[1]-h_u[0])*(v_u[1]-v_u[0]) )
+    # print("         US    :",f_us.sum()*(h_us[1]-h_us[0])*(v_us[1]-v_us[0]) )
+    print("         pySRU :",f_py.sum()*(h_py[1]-h_py[0])*(v_py[1]-v_py[0]) )
+
+    #
+    if iplot:
+
+        contour_levels = numpy.linspace(0,numpy.max([f_s.max(),f_py.max()]),20)
+
+        plot_contour(f_s[e_s.size/2],h_s,v_s,title="%s SRW; E=%g eV"%(beamline['name'],e_s[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,cmap=None,
+                     cbar=1,cbar_title="Flux ",show=False)
+
+        plot_contour(f_py[e_py.size/2],h_py,v_py,title="%s pySRU; E=%g eV"%(beamline['name'],e_py[e_py.size/2]),xtitle="H [mm]",ytitle="V [mm]",
+                 plot_points=0,contour_levels=contour_levels,cmap=None,
+                 cbar=1,cbar_title="Flux ",show=False)
+
+        plot_surface(f_s[e_s.size/2],h_s,v_s,title="%s SRW; E=%g eV"%(beamline['name'],e_s[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=False)
+        plot_surface(f_py[e_py.size/2],h_py,v_py,title="%s pySRU; E=%g eV"%(beamline['name'],e_py[e_py.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=False)
+
+        if show:
+            plot_show()
+
+
+def main(radiance=True,flux=True,flux_from_3d=True,power_density=True):
+
+    #
+    # example fig 2-5 in X-ray Data Booklet
+    #
+
+    beamline = {}
+    beamline['name'] = "XRAY_BOOKLET"
+    beamline['ElectronBeamDivergenceH'] = 1e-20
+    beamline['ElectronBeamDivergenceV'] = 1e-20
+    beamline['ElectronBeamSizeH'] = 1e-20
+    beamline['ElectronBeamSizeV'] = 1e-20
+    beamline['ElectronEnergySpread'] = 1e-20
+    beamline['ElectronCurrent'] = 1.0
+    beamline['ElectronEnergy'] = 1.3
+    beamline['Kv'] = 1.87
+    beamline['NPeriods'] = 14
+    beamline['PeriodID'] = 0.035
+    beamline['distance'] =   1.0*1e2
+    beamline['gapH']      = 0.002*1e2 #0.001
+    beamline['gapV']      = 0.002*1e2 #0.001
+
+
+    zero_emittance = True
+
+
+
+    #
+    # Radiance
+    #
+
+    if radiance:
+        compare_radiation(beamline,zero_emittance=zero_emittance,npoints_grid=101,energy=None,iplot=True)
+
+
+
+    #
+    # Flux
+    #
+
+    if flux:
+        compare_flux(beamline,emin=100,emax=900,npoints=200,include_pysru=False,zero_emittance=zero_emittance,iplot=True)
+    if flux_from_3d:
+        compare_flux_from_3d(beamline,emin=100,emax=900,npoints=10,include_pysru=False,zero_emittance=zero_emittance,iplot=True)
+
+    #
+    # Power density
+    #
+
+    if power_density:
+        compare_power_density(beamline,npoints_grid=51,include_pysru=False,zero_emittance=zero_emittance,iplot=True)
 
 if __name__ == '__main__':
-
-    pltOk = True
-    try:
-        import matplotlib.pylab as plt
-    except ImportError:
-        pltOk = False
-        print("failed to import matplotlib. No on-line plots.")
-
-#
-# type of calculation and output file
-#
-    fileName = "srundplug.spec"
-
-    #bl = getBeamline("ID16_NA")
-    bl = getBeamline("ESRF_HB")
-
-    icalc = 1  # 0=generalities
-               # 1=flux spectrum
-               # 2=power density
-               # 3=3d matrix (Hor,Ver,Ener,Intens)
-
-
-#
-# calculate info
-#
-    if icalc == 0:
-        tmp = calcUndulator(bl,photonEnergy=[5e3,10e3,20e3],distance=20.0)
-
-#
-# calculate flux
-#
-    if icalc == 1:
-        emin = 3000.0
-        emax = 55000.0
-        npoints = 500
-
-        e,f = calc1dSrw(bl,photonEnergyMin=emin,photonEnergyMax=emax,
-              photonEnergyPoints=npoints,fileName=fileName,fileAppend=False)
-        if pltOk:
-            plt.figure(1)
-            plt0 = plt.plot(e,f,'blue',label='Srw')
-
-        e,f = calc1dUrgent(bl,photonEnergyMin=emin,photonEnergyMax=emax,
-              photonEnergyPoints=npoints,fileName=fileName,fileAppend=True)
-        if pltOk:
-            plt1 = plt.plot(e,f,'green',label='Urgent')
-
-        e,f = calc1dUs(bl,photonEnergyMin=emin,photonEnergyMax=emax,
-              photonEnergyPoints=npoints,fileName=fileName,fileAppend=True)
-        if pltOk:
-            plt2 = plt.plot(e,f,'red',label='Us')
-            #TODO: can be done simpler?
-            ax = plt.subplot(111)
-            ax.legend(bbox_to_anchor=(1.1, 1.05))
-            ax.set_yscale('log')
-
-#
-# calculate power density
-#
-    if icalc == 2:
-        h,v,p = calc2dSrw(bl,fileName=fileName,fileAppend=False)
-        #
-        if pltOk:
-            plt.figure(2)
-            h1,v1 = numpy.meshgrid(h,v) # not needed!
-            plt3 = plt.contour(h1,v1,p.T,levels=numpy.linspace(0,p.max(),100))
-            plt.title('Srw')
-            plt.xlabel('H [mm]')
-            plt.ylabel('V [mm]')
-            cbar = plt.colorbar(plt3 , format="%.2f")
-            cbar.ax.set_ylabel('Power density [$W/mm^2$]')
-
-        h,v,p = calc2dUrgent(bl,fileName=fileName,fileAppend=True)
-        #
-        if pltOk:
-            plt.figure(3)
-            h1,v1 = numpy.meshgrid(h,v) # not needed!
-            plt4 = plt.contour(h1,v1,p.T,levels=numpy.linspace(0,p.max(),100))
-            plt.title('Urgent')
-            plt.xlabel('H [mm]')
-            plt.ylabel('V [mm]')
-            cbar = plt.colorbar(plt4 , format="%.2f")
-            cbar.ax.set_ylabel('Power density [$W/mm^2$]')
-
-
-        h,v,p = calc2dUs(bl,fileName=fileName,fileAppend=True)
-        #
-        if pltOk:
-            plt.figure(4)
-            h1,v1 = numpy.meshgrid(h,v) # not needed!
-            plt5 = plt.contour(h1,v1,p.T,levels=numpy.linspace(0,p.max(),100))
-            plt.title('Us')
-            plt.xlabel('H [mm]')
-            plt.ylabel('V [mm]')
-            cbar = plt.colorbar(plt5 , format="%.2f")
-            cbar.ax.set_ylabel('Power density [$W/mm^2$]')
-
-#
-# calculate intensity vs H,V,E
-#
-    if icalc == 3:
-        emin = 6000.0
-        emax = 12000.0
-        npoints = 11
-
-        e,h,v,f = calc3dSrw(bl,photonEnergyMin=emin,photonEnergyMax=emax,
-              photonEnergyPoints=npoints,fileName=fileName,fileAppend=False)
-
-        e,h,v,f = calc3dUrgent(bl,photonEnergyMin=emin,photonEnergyMax=emax, \
-              photonEnergyPoints=npoints,fileName=fileName,fileAppend=True)
-
-        e,h,v,f = calc3dUs(bl,photonEnergyMin=emin,photonEnergyMax=emax, \
-              photonEnergyPoints=npoints,fileName=fileName,fileAppend=True)
-
-
-
-    if pltOk:
-        plt.show()
+    main(radiance=True,flux=True,flux_from_3d=False,power_density=True)

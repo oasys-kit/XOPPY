@@ -197,12 +197,19 @@ class OWxf1f2(XoppyWidget):
 
     def extract_data_from_xoppy_output(self, calculation_output):
         try:
-            calculation_output.get_content("xoppy_data")
-
+            tmp = calculation_output.get_content("xoppy_data")
             labels = calculation_output.get_content("labels")
 
             self.xtitle = labels[0]
             self.ytitle = labels[1]
+
+            if tmp.shape == (1,2): # single value calculation
+                message = calculation_output.get_content("info")
+                QMessageBox.information(self,
+                                        "Calculation Result",
+                                        "Calculation Result:\n %s"%message,
+                                        QMessageBox.Ok)
+
         except:
             QMessageBox.information(self,
                                     "Calculation Result",
@@ -266,6 +273,17 @@ class OWxf1f2(XoppyWidget):
     def getLogPlot(self):
         return[(False, False)]
 
+    def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False):
+
+
+        super().plot_histo(x, y,progressBarValue, tabs_canvas_index, plot_canvas_index, title, xtitle, ytitle, log_x, log_y)
+
+        # place a big dot if there is only a single value
+        if ((x.size == 1) and (y.size == 1)):
+            self.plot_canvas[plot_canvas_index].setDefaultPlotLines(False)
+            self.plot_canvas[plot_canvas_index].setDefaultPlotPoints(True)
+
+
     def xoppy_calc_xf1f2(self):
 
         MAT_FLAG   = self.MAT_FLAG
@@ -319,7 +337,10 @@ class OWxf1f2(XoppyWidget):
 
         if ((energy.size == 1) and (theta.size == 1)):
             info = "** Single value calculation E=%g eV, theta=%g mrad, Result(F=%d)=%g "%(energy[0],theta[0],1+CALCULATE,out[0,0])
-            out_dict = {"application":"xoppy","name":"xf12","info":info}
+            labels = ["Energy [eV]",CALCULATE_items[CALCULATE]]
+            tmp = numpy.vstack((energy,out[:,0]))
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",energy.shape,out.shape,tmp.shape)
+            out_dict = {"application":"xoppy","name":"xf12","info":info, "data":tmp,"labels":labels}
         elif theta.size == 1:
             tmp = numpy.vstack((energy,out[:,0]))
             labels = ["Energy [eV]",CALCULATE_items[CALCULATE]]

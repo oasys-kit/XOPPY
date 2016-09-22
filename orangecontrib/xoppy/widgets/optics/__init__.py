@@ -2,7 +2,7 @@ __author__ = 'srio'
 
 NAME = "XOPPY: Optics"
 
-ID = "orangecontrib.xoppy.widgets.source"
+ID = "orangecontrib.xoppy.widgets.optics"
 
 DESCRIPTION = """Widgets for x-ray oriented programs under python (xoppy)"""
 

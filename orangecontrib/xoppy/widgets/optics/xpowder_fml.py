@@ -20,7 +20,8 @@ class OWxpowder_fml(XoppyWidget):
     category = ""
     keywords = ["xoppy", "xpowder_fml"]
 
-    FILE = Setting("/scisoft/xop2.4/examples/icsd_31142_sepiolite_BraunerPreisinger.cif")
+
+    FILE = Setting(os.path.join(locations.home_data(), "cif" + os.sep + "icsd_31142_sepiolite_BraunerPreisinger.cif"))
     TITLE = Setting("powder pattern using crysFML")
     LAMBDA = Setting(1.54056)
     JOB = Setting(0)
@@ -184,6 +185,12 @@ class OWxpowder_fml(XoppyWidget):
 
     def xoppy_calc_xpowder_fml(self):
 
+        for file in ["xpowder_fml.par","xpowder_fml.ref","xpowder_fml.out"]:
+            try:
+                os.remove(os.path.join(locations.home_bin_run(),file))
+            except:
+                pass
+
         with open("xoppy.inp", "wt") as f:
             f.write("%s\n"% (self.FILE))
             f.write("%s\n"%(self.TITLE))
@@ -204,11 +211,9 @@ class OWxpowder_fml(XoppyWidget):
         os.system(command)
         print("\n--------------------------------------------------------\n")
 
-        print("Files written to disk: xpowder_fml.par (text output), xpowder_fml.ref (reflections), xpowder_fml.out (diffractogram)",)
-
-        data = numpy.loadtxt("xpowder_fml.out",skiprows=3).T
-
-        print(">>>>>>>>>>>",data.shape)
+        print("Files written to disk:\n    xpowder_fml.par (text output)\n    xpowder_fml.ref (reflections)\n    xpowder_fml.out (diffractogram)",)
+        #
+        # data = numpy.loadtxt("xpowder_fml.out",skiprows=3).T
 
         #send exchange
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
@@ -230,7 +235,7 @@ class OWxpowder_fml(XoppyWidget):
             calculated_data.add_content("info",info)
         except:
             pass
-        print(info)
+
 
         return calculated_data
 

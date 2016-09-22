@@ -158,16 +158,19 @@ class OWxwiggler(XoppyWidget):
         return "XWIGGLER"
 
     def getTitles(self):
-        return ['Wiggler Flux']
+        return ['Flux','Spectral Power']
 
     def getXTitles(self):
-        return ["Energy [eV]"]
+        return ["Energy [eV]","Energy [eV]"]
 
     def getYTitles(self):
-        return ["Flux [Phot/sec/0.1%bw]"]
+        return ["Flux [Phot/sec/0.1%bw]","Spectral Power [W/eV]"]
 
     def getLogPlot(self):
-        return [(True, True)]
+        return [(True, True),(True, True)]
+
+    def getVariablesToPlot(self):
+        return [(0, 1), (0, 2)]
 
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
@@ -199,7 +202,6 @@ def xoppy_calc_xwiggler(FIELD=0,NPERIODS=12,ULAMBDA=0.125,K=14.0,ENERGY=6.04,PHO
     #
     e, f0 = srfunc.wiggler_spectrum(t0, enerMin=PHOT_ENERGY_MIN, enerMax=PHOT_ENERGY_MAX, nPoints=NPOINTS, \
                                     electronCurrent=CURRENT*1e-3, outFile=outFile, elliptical=False)
-
     return outFile
 
 

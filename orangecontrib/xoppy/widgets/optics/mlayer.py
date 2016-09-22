@@ -221,6 +221,12 @@ class OWmlayer(XoppyWidget):
         NLAYERS = self.NLAYERS
         FILE=self.FILE
 
+        for file in ["mlayer.inp","mlayer.par","mlayer.f12"]:
+            try:
+                os.remove(os.path.join(locations.home_bin_run(),file))
+            except:
+                pass
+
         #
         # write input file for Fortran mlayer: mlayer.inp
         #

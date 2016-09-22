@@ -7,7 +7,7 @@ ID = "orangecontrib.xoppy.widgets.source"
 DESCRIPTION = """Widgets for x-ray oriented programs under python (xoppy)"""
 
 LONG_DESRIPTION = """
-This category contains widgets for calculating spectra of x-ray sources.
+This category contains widgets for calculating spectra and emission of x-ray sources.
 
 """
 

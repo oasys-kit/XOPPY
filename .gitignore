@@ -1,6 +1,0 @@
-dist*
-build/*
-.idea/*
-XOPPY-Devel.egg-info/*
-*.pyc
-orangecontrib/xoppy/util/bin_run/*

@@ -214,9 +214,7 @@ def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:
                 nn = DESCRIPTION.split(":")
                 mm = FRACTION.split(":")
                 f.write("%d\n"%( len(nn)))
-                print(">>>>>>>",nn,len(nn))
                 for i in range(len(nn)):
-                    print("<><><><>",i,nn[i],mm[i])
                     f.write(nn[i]+"\n")
                     f.write(mm[i]+"\n")
                 f.write("1\n")
@@ -270,6 +268,11 @@ def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:
 
 
         txt = open("xcom.out").readlines()
+
+        # copy to standard output
+        for line in txt:
+            print(line,end="")
+
         outFile = "xcom.spec"
 
         f = open(outFile, "w")
