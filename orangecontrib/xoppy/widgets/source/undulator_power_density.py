@@ -187,23 +187,19 @@ class OWundulator_power_density(XoppyWidget):
         return  xoppy_calc_undulator_power_density(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,HSLITPOINTS=self.HSLITPOINTS,VSLITPOINTS=self.VSLITPOINTS,METHOD=self.METHOD)
 
     def extract_data_from_xoppy_output(self, calculation_output):
-        spec_file_name = calculation_output
+        h,v,p = calculation_output
 
         print("Loading file:  ", spec_file_name)
 
+        # TODO
         try:
-            out = xoppy_pymca_tools.xoppy_loadspec(spec_file_name)
-
-            print("data shape: ", out.shape)
-
             calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
-            calculated_data.add_content("xoppy_specfile", spec_file_name)
-            calculated_data.add_content("xoppy_data",  out.T)
+            calculated_data.add_content("xoppy_data",  p)
 
             return calculated_data
         except Exception as e:
-            raise Exception("Problems while reading input: " + str(e))
+            raise Exception("Problems ...")
 
 
     def get_data_exchange_widget_name(self):
@@ -246,23 +242,32 @@ def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=
     bl['gapH'] = GAPH
     bl['gapV'] = GAPV
 
+    #TODO remove SPEC file
     outFile = "undulator_power_density.spec"
 
     if METHOD == 0:
+        code = "US"
         print("Undulator power_density calculation using US. Please wait...")
-        h,v,p = srundplug.calc2dUs(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS)
+        h,v,p = srundplug.calc2d_us(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS)
         print("Done")
     if METHOD == 1:
+        code = "URGENT"
         print("Undulator power_density calculation using URGENT. Please wait...")
-        h,v,p = srundplug.calc2dUrgent(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS)
+        h,v,p = srundplug.calc2d_urgent(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS)
         print("Done")
     if METHOD == 2:
+        code = "SRW"
         print("Undulator power_density calculation using SRW. Please wait...")
-        h,v,p = srundplug.calc2dSrw(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS)
+        h,v,p = srundplug.calc2d_srw(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS)
         print("Done")
 
-    return outFile
 
+    #TODO place this plot in the corresponding place
+    print(">>>>> Result shapes",h.shape,v.shape,p.shape )
+    from srxraylib.plot.gol import plot_image
+    plot_image(p,h,v,xtitle='H [mm]',ytitle='V [mm]',title='Code '+code+'; Power density [W/mm^2]')
+
+    return h,v,p
 
 
 if __name__ == "__main__":
