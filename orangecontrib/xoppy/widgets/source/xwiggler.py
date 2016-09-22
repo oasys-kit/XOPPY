@@ -1,17 +1,16 @@
 import sys
 import numpy
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from PyMca5.PyMcaIO import specfilewrapper as specfile
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from oasys.widgets import gui as oasysgui, congruence
 
 from srxraylib.sources import srfunc
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 class OWxwiggler(XoppyWidget):
-    name = "xwiggler"
+    name = "Wiggler Spectrum"
     id = "orange.widgets.dataxwiggler"
     description = "xoppy application to compute XWIGGLER"
     icon = "icons/xoppy_xwiggler.png"
@@ -42,98 +41,104 @@ class OWxwiggler(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "FIELD",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Sinusoidal', 'B from file', 'B from harmonics'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "NPERIODS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "NPERIODS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "ULAMBDA",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ULAMBDA",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "K",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "K",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "ENERGY",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ENERGY",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "PHOT_ENERGY_MIN",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "PHOT_ENERGY_MIN",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "PHOT_ENERGY_MAX",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "PHOT_ENERGY_MAX",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "NPOINTS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "NPOINTS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "LOGPLOT",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Lin', 'Log'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "NTRAJPOINTS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "NTRAJPOINTS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "CURRENT",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "CURRENT",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
         idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "FILE",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+
+        box1 = gui.widgetBox(box)
+
+        file_box = oasysgui.widgetBox(box1, "", addSpace=False, orientation="horizontal", height=25)
+
+        self.le_file = oasysgui.lineEdit(file_box, self, "FILE",
+                                         label=self.unitLabels()[idx], addSpace=False, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
+
+        gui.button(file_box, self, "...", callback=self.selectFile)
 
     def unitLabels(self):
          return ['Magnetic field: ','Number of periods','Wiggler period [m]','K value','Beam energy [GeV]','Min Photon Energy [eV]','Max Photon Energy [eV]','Number of energy points','Energy points spacing','Number of traj points per period','Electron Beam Current [mA]','File with Magnetic Field']
@@ -141,12 +146,31 @@ class OWxwiggler(XoppyWidget):
     def unitFlags(self):
          return ['True','True','self.FIELD  !=  1','self.FIELD  ==  0','True','True','True','True','True','self.FIELD  !=  1','True','self.FIELD  !=  0']
 
+    def selectFile(self):
+        self.le_file.setText(oasysgui.selectFileFromDialog(self, self.FILE, "Open B File"))
 
     def get_help_name(self):
         return 'xwiggler'
 
     def check_fields(self):
-        pass
+        self.NPERIODS = congruence.checkStrictlyPositiveNumber(self.NPERIODS, "Number of Periods")
+        self.ENERGY = congruence.checkStrictlyPositiveNumber(self.ENERGY, "Beam Energy")
+        self.PHOT_ENERGY_MIN = congruence.checkPositiveNumber(self.PHOT_ENERGY_MIN, "Min Photon Energy")
+        self.PHOT_ENERGY_MAX = congruence.checkStrictlyPositiveNumber(self.PHOT_ENERGY_MAX, "Max Photon Energy")
+        congruence.checkLessThan(self.PHOT_ENERGY_MIN, self.PHOT_ENERGY_MAX, "Min Photon Energy", "Max Photon Energy")
+        self.NPOINTS = congruence.checkStrictlyPositiveNumber(self.NPOINTS, "Number of Energy Points")
+        self.CURRENT = congruence.checkStrictlyPositiveNumber(self.CURRENT, "Electron Beam Current")
+
+        if self.FIELD == 0:
+            self.ULAMBDA = congruence.checkStrictlyPositiveNumber(self.ULAMBDA, "Wiggler period")
+            self.K = congruence.checkStrictlyPositiveNumber(self.K, "K")
+            self.NTRAJPOINTS = congruence.checkStrictlyPositiveNumber(self.NTRAJPOINTS, "Number of traj points per period")
+        elif self.FIELD == 1:
+            self.ULAMBDA = congruence.checkStrictlyPositiveNumber(self.ULAMBDA, "Wiggler period")
+            self.NTRAJPOINTS = congruence.checkStrictlyPositiveNumber(self.NTRAJPOINTS, "Number of traj points per period")
+            congruence.checkFile(self.FILE)
+        elif self.FIELD == 2:
+            congruence.checkFile(self.FILE)
 
     def do_xoppy_calculation(self):
         return xoppy_calc_xwiggler(FIELD=self.FIELD,NPERIODS=self.NPERIODS,ULAMBDA=self.ULAMBDA,K=self.K,ENERGY=self.ENERGY,PHOT_ENERGY_MIN=self.PHOT_ENERGY_MIN,PHOT_ENERGY_MAX=self.PHOT_ENERGY_MAX,NPOINTS=self.NPOINTS,LOGPLOT=self.LOGPLOT,NTRAJPOINTS=self.NTRAJPOINTS,CURRENT=self.CURRENT,FILE=self.FILE)

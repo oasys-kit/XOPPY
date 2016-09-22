@@ -2,7 +2,7 @@ import sys, os
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from oasys.widgets import gui as oasysgui, congruence
 
 from orangecontrib.xoppy.util.xoppy_util import locations
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
@@ -11,7 +11,7 @@ import numpy
 import scipy.constants as codata
 
 class OWws(XoppyWidget):
-    name = "ws"
+    name = "Wiggler Spectrum + Screen"
     id = "orange.widgets.dataws"
     description = "xoppy application to compute the wigggler spectrum over a screen"
     icon = "icons/xoppy_ws.png"
@@ -46,129 +46,129 @@ class OWws(XoppyWidget):
         #widget index 1
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "ENERGY",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ENERGY",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "CUR",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "CUR",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "PERIOD",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "PERIOD",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "N",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "N",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "KX",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "KX",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "KY",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "KY",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EMIN",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EMIN",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EMAX",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EMAX",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "NEE",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "NEE",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "D",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "D",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "XPC",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "XPC",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 12 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "YPC",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "YPC",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 13 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "XPS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "XPS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 14 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "YPS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "YPS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 15 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "NXP",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "NXP",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 16 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "NYP",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "NYP",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
     def unitLabels(self):
@@ -181,7 +181,23 @@ class OWws(XoppyWidget):
         return 'ws'
 
     def check_fields(self):
-        pass
+        self.ENERGY = congruence.checkStrictlyPositiveNumber(self.ENERGY, "Beam Energy")
+        self.CUR = congruence.checkStrictlyPositiveNumber(self.CUR, "Beam Current")
+        self.PERIOD = congruence.checkStrictlyPositiveNumber(self.PERIOD, "Period")
+        self.N = congruence.checkStrictlyPositiveNumber(self.N, "Number of Periods")
+        self.KX = congruence.checkNumber(self.KX, "Kx")
+        self.KY = congruence.checkNumber(self.KY, "Ky")
+        self.EMIN = congruence.checkPositiveNumber(self.EMIN, "Min Energy")
+        self.EMAX = congruence.checkStrictlyPositiveNumber(self.EMAX, "Max Energy")
+        congruence.checkLessThan(self.EMIN, self.EMAX, "Min Energy", "Max Energy")
+        self.NEE = congruence.checkStrictlyPositiveNumber(self.NEE, "Number of energy steps")
+        self.D = congruence.checkPositiveNumber(self.D, "Distance")
+        self.XPC = congruence.checkNumber(self.XPC, "X-pos")
+        self.YPC = congruence.checkNumber(self.YPC, "Y-pos")
+        self.XPS = congruence.checkNumber(self.XPS, "X slit")
+        self.YPS = congruence.checkNumber(self.YPS, "Y Slit")
+        self.NXP = congruence.checkStrictlyPositiveNumber(self.NXP, "Integration points X")
+        self.NYP = congruence.checkStrictlyPositiveNumber(self.NYP, "Integration points Y")
 
     def do_xoppy_calculation(self):
         return xoppy_calc_ws(ENERGY=self.ENERGY,CUR=self.CUR,PERIOD=self.PERIOD,N=self.N,KX=self.KX,KY=self.KY,EMIN=self.EMIN,EMAX=self.EMAX,NEE=self.NEE,D=self.D,XPC=self.XPC,YPC=self.YPC,XPS=self.XPS,YPS=self.YPS,NXP=self.NXP,NYP=self.NYP)

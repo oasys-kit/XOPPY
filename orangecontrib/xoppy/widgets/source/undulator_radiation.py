@@ -19,7 +19,7 @@ class OWundulator_radiation(XoppyWidget):
     id = "orange.widgets.dataundulator_radiation"
     description = "xoppy application to compute UNDULATOR RADIATION"
     icon = "icons/xoppy_undulator_radiation.png"
-    priority = 2
+    priority = 4
     category = ""
     keywords = ["xoppy", "undulator_radiation"]
 
@@ -249,7 +249,7 @@ class OWundulator_radiation(XoppyWidget):
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         calculated_data.add_content("xoppy_data", [h, v, p])
-        calculated_data.add_content("xoppy_code",    code)
+        calculated_data.add_content("xoppy_code", code)
 
         return calculated_data
 

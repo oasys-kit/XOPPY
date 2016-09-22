@@ -15,7 +15,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 from xraylib import Crystal_GetCrystalsList
 
 class OWxcrystal(XoppyWidget):
-    name = "xcrystal"
+    name = "Crystal"
     id = "orange.widgets.dataxcrystal"
     description = "xoppy application to compute XCRYSTAL"
     icon = "icons/xoppy_xcrystal.png"

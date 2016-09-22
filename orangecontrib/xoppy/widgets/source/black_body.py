@@ -1,16 +1,15 @@
 import sys
 import numpy
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from oasys.widgets import gui as oasysgui, congruence
 
-from orangecontrib.xoppy.util import xoppy_util
 from oasys.widgets.exchange import DataExchangeObject
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 class OWblack_body(XoppyWidget):
-    name = "black_body"
+    name = "Black Body"
     id = "orange.widgets.datablack_body"
     description = "xoppy application to compute BLACK_BODY"
     icon = "icons/xoppy_black_body.png"
@@ -33,40 +32,40 @@ class OWblack_body(XoppyWidget):
         #widget index 0 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "TITLE",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "TITLE",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "TEMPERATURE",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "TEMPERATURE",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "E_MIN",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "E_MIN",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "E_MAX",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "E_MAX",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "NPOINTS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "NPOINTS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
     def unitLabels(self):
@@ -79,7 +78,12 @@ class OWblack_body(XoppyWidget):
         return 'black_body'
 
     def check_fields(self):
-        pass
+        self.TEMPERATURE = congruence.checkPositiveNumber(self.TEMPERATURE, "Temperature")
+        self.E_MIN = congruence.checkPositiveNumber(self.E_MIN, "Min Energy")
+        self.E_MAX = congruence.checkStrictlyPositiveNumber(self.E_MAX, "Max Energy")
+        congruence.checkLessThan(self.E_MIN, self.E_MAX, "Min Energy", "Max Energy")
+        self.NPOINTS = congruence.checkStrictlyPositiveNumber(self.NPOINTS, "Number of Points")
+
 
     def do_xoppy_calculation(self):
         return self.xoppy_calc_black_body()
@@ -91,13 +95,7 @@ class OWblack_body(XoppyWidget):
             print(out_dict["info"])
 
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
-
         calculated_data.add_content("xoppy_data", out_dict["data"])
-
-        # calculated_data.add_content("labels", out_dict["labels"])
-        # calculated_data.add_content("info", out_dict["info"])
-        # calculated_data.add_content("plot_x_col", 0)
-        # calculated_data.add_content("plot_y_col", 3)
 
         return calculated_data
 

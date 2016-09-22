@@ -13,7 +13,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 from xraylib import Crystal_GetCrystalsList
 
 class OWxfh(XoppyWidget):
-    name = "xfh"
+    name = "Fh"
     id = "orange.widgets.dataxfh"
     description = "xoppy application to compute XFH"
     icon = "icons/xoppy_xfh.png"

@@ -12,7 +12,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 
 class OWxpowder_fml(XoppyWidget):
-    name = "xpowder_fml"
+    name = "Powder Fml"
     id = "orange.widgets.dataxpowder_fml"
     description = "xoppy application to compute XPOWDER_FML"
     icon = "icons/xoppy_xpowder_fml.png"
@@ -46,8 +46,8 @@ class OWxpowder_fml(XoppyWidget):
 
         file_box = oasysgui.widgetBox(box1, "", addSpace=False, orientation="horizontal", height=25)
 
-        self.le_file = gui.lineEdit(file_box, self, "FILE",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        self.le_file = oasysgui.lineEdit(file_box, self, "FILE",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
 
         gui.button(file_box, self, "...", callback=self.selectFile)
@@ -55,89 +55,89 @@ class OWxpowder_fml(XoppyWidget):
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "TITLE",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "TITLE",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "LAMBDA",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "LAMBDA",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "JOB",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['X rays', 'Neutrons'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "U",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "U",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "V",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "V",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "W",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "W",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "X",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "X",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "LS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "LS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "THMIN",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "THMIN",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "STEP",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "STEP",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "THMAX",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "THMAX",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
     def unitLabels(self):

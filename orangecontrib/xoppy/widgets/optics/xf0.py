@@ -14,7 +14,7 @@ import xraylib
 
 
 class OWxf0(XoppyWidget):
-    name = "xf0"
+    name = "F0"
     id = "orange.widgets.dataxf0"
     description = "xoppy application to compute XF0"
     icon = "icons/xoppy_xf0.png"

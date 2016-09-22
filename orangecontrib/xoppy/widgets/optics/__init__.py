@@ -11,7 +11,7 @@ This category contains widgets for calculating reflectivities of optical element
 
 """
 
-ICON = "icons/xoppy.png"
+ICON = "icons/xoppy_2.png"
 
 BACKGROUND = "#FFD39F"
 

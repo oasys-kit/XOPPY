@@ -14,7 +14,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 
 class OWmare(XoppyWidget):
-    name = "mare"
+    name = "MARE"
     id = "orange.widgets.datamare"
     description = "xoppy application to compute MARE"
     icon = "icons/xoppy_mare.png"
