@@ -12,7 +12,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 from oasys.widgets.exchange import DataExchangeObject
 
 class OWbm(XoppyWidget):
-    name = "Bending Magnet"
+    name = "BM"
     id = "orange.widgets.databm"
     description = "xoppy application to compute Bending Magnet Spectrum"
     icon = "icons/xoppy_bm.png"
@@ -41,7 +41,7 @@ class OWbm(XoppyWidget):
 
     def build_gui(self):
 
-        box = oasysgui.widgetBox(self.controlArea, "BM Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
         idx = -1 
         

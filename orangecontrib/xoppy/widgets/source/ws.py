@@ -11,9 +11,9 @@ import numpy
 import scipy.constants as codata
 
 class OWws(XoppyWidget):
-    name = "Wiggler Spectrum + Screen"
+    name = "WS"
     id = "orange.widgets.dataws"
-    description = "xoppy application to compute the wigggler spectrum over a screen"
+    description = "Wiggler spectrum on a screen"
     icon = "icons/xoppy_ws.png"
     priority = 5
     category = ""
@@ -38,7 +38,7 @@ class OWws(XoppyWidget):
 
     def build_gui(self):
 
-        box = oasysgui.widgetBox(self.controlArea, "WIGGLER Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
         idx = -1 
 

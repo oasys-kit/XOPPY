@@ -232,6 +232,8 @@ class XoppyWidget(widget.OWWidget):
         self.progressBarInit()
 
         try:
+            self.xoppy_output.setText("")
+
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
             self.progressBarSet(20)

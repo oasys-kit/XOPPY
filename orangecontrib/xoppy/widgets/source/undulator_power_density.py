@@ -40,7 +40,7 @@ class OWundulator_power_density(XoppyWidget):
 
     def build_gui(self):
 
-        box = oasysgui.widgetBox(self.controlArea, "UNDULATOR Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1 
         
@@ -200,6 +200,9 @@ class OWundulator_power_density(XoppyWidget):
         self.HSLITPOINTS = congruence.checkStrictlyPositiveNumber(self.HSLITPOINTS, "Number of slit mesh points in H")
         self.VSLITPOINTS = congruence.checkStrictlyPositiveNumber(self.VSLITPOINTS, "Number of slit mesh points in V")
 
+        if sys.platform == 'linux' and self.METHOD == 2:
+            raise Exception("SRW calculation code not supported under Linux")
+
     def plot_results(self, calculated_data, progressBarValue=80):
         if not self.view_type == 0:
             if not calculated_data is None:
@@ -248,7 +251,7 @@ class OWundulator_power_density(XoppyWidget):
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         calculated_data.add_content("xoppy_data", [h, v, p])
-        calculated_data.add_content("xoppy_code",    code)
+        calculated_data.add_content("xoppy_code",  code)
 
         return calculated_data
 
