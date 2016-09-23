@@ -1,12 +1,10 @@
 import sys
 
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
-from srxraylib.plot import gol
 from collections import OrderedDict
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 from orangecontrib.xoppy.util import srundplug
@@ -220,19 +218,10 @@ class OWundulator_radiation(XoppyWidget):
                 try:
                     print(">>>>> Result shapes",h.shape,v.shape,p[0].shape )
 
-                    figure = FigureCanvas(gol.plot_image(p[0],
-                                                         h,
-                                                         v,
-                                                         xtitle='H [mm]',
-                                                         ytitle='V [mm]',
-                                                         title='Code '+code+'; Flux [photons/s/0.1%bw/mm^2]',
-                                                         show=False))
-
-                    if not self.plot_canvas[0] is None:
-                        self.tab[0].layout().removeItem(self.tab[0].layout().itemAt(0))
-
-                    self.plot_canvas[0] = figure
-                    self.tab[0].layout().addWidget(self.plot_canvas[0])
+                    self.plot_data2D(p[0], h, v, 0, 0,
+                                     xtitle='H [mm]',
+                                     ytitle='V [mm]',
+                                     title='Code '+code+'; Flux [photons/s/0.1%bw/mm^2]')
 
                     self.tabs.setCurrentIndex(0)
                 except Exception as e:

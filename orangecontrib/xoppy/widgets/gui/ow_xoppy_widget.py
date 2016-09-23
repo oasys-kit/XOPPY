@@ -11,6 +11,9 @@ from PyQt4 import QtGui
 from PyQt4.QtCore import QRect
 from PyQt4.QtGui import QApplication
 
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from srxraylib.plot import gol
+
 from orangewidget import gui
 from orangewidget.settings import Setting
 from orangewidget.widget import OWAction
@@ -225,6 +228,53 @@ class XoppyWidget(widget.OWWidget):
 
         self.progressBarSet(progressBarValue)
 
+    def plot_data2D(self, data2D, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", mode=1):
+
+        self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
+
+        if mode == 0:
+            figure = FigureCanvas(gol.plot_image(data2D,
+                                                 dataX,
+                                                 dataY,
+                                                 xtitle=xtitle,
+                                                 ytitle=ytitle,
+                                                 title=title,
+                                                 show=False,
+                                                 aspect='auto'))
+
+
+            self.plot_canvas[plot_canvas_index] = figure
+        else:
+            xmin = numpy.min(dataX)
+            xmax = numpy.max(dataX)
+            ymin = numpy.min(dataY)
+            ymax = numpy.max(dataY)
+
+            origin = (xmin, ymin)
+            scale = (abs((xmax-xmin)/len(dataX)), abs((ymax-ymin)/len(dataY)))
+
+            # PyMCA inverts axis!!!! histogram must be calculated reversed
+            data_to_plot = []
+            for y_index in range(0, len(dataY)):
+                x_values = []
+                for x_index in range(0, len(dataX)):
+                    x_values.append(data2D[x_index][y_index])
+
+                data_to_plot.append(x_values)
+
+            self.plot_canvas[plot_canvas_index] = XoppyPlot.XoppyImageView()
+            colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
+
+            self.plot_canvas[plot_canvas_index]._imagePlot.setDefaultColormap(colormap)
+            self.plot_canvas[plot_canvas_index].setImage(numpy.array(data_to_plot), origin=origin, scale=scale)
+
+            self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
+            self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
+            self.plot_canvas[plot_canvas_index].setGraphTitle(title)
+            self.plot_canvas[plot_canvas_index]._histoHPlot.setGraphYLabel(title)
+            self.plot_canvas[plot_canvas_index]._histoVPlot.setGraphXLabel(title)
+
+        self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
     def compute(self):
         self.setStatusMessage("Running XOPPY")
