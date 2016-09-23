@@ -1,14 +1,10 @@
 import sys, os
-import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from PyMca5.PyMcaIO import specfilewrapper as specfile
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from oasys.widgets import gui as oasysgui, congruence
 
 from orangecontrib.xoppy.util.xoppy_util import locations
-from orangecontrib.xoppy.util import xoppy_util
-
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 class OWxxcom(XoppyWidget):
@@ -40,14 +36,14 @@ class OWxxcom(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NAME",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=80)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "SUBSTANCE",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Element (Atomic number)', 'Element (Symbol)', 'Compound (Formula)', 'Mixture (F1:F2:F3...)'],
                     valueType=int, orientation="horizontal", callback=self.set_SUBSTANCE)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -56,46 +52,46 @@ class OWxxcom(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "DESCRIPTION",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=80)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "FRACTION",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=80)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "GRID",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Standard', 'Standard+points', 'Points only'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "GRIDINPUT",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['From Keyboard', 'From file'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "GRIDDATA",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "ELEMENTOUTPUT",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Cross section [b/atom]', 'Cross section [b/atom] & Attenuation coeff [cm2/g]', 'Partial interaction coeff & Attenuation coeff [cm2/g]'],
                     valueType=int, orientation="horizontal", callback=self.set_ELEMENTOUTPUT)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -118,7 +114,16 @@ class OWxxcom(XoppyWidget):
         return 'xxcom'
 
     def check_fields(self):
-        pass
+        self.DESCRIPTION = congruence.checkEmptyString(self.DESCRIPTION, "Description")
+
+        if self.SUBSTANCE == 3:
+            self.FRACTION = congruence.checkEmptyString(self.FRACTION, "fraction")
+
+        if self.GRID != 0:
+            if self.GRIDINPUT == 0:
+                self.GRIDDATA = congruence.checkEmptyString(self.GRIDDATA, "grid points")
+            else:
+                congruence.checkFile(self.GRIDDATA)
 
     def do_xoppy_calculation(self):
         return xoppy_calc_xxcom(NAME=self.NAME,SUBSTANCE=self.SUBSTANCE,DESCRIPTION=self.DESCRIPTION,FRACTION=self.FRACTION,GRID=self.GRID,GRIDINPUT=self.GRIDINPUT,GRIDDATA=self.GRIDDATA,ELEMENTOUTPUT=self.ELEMENTOUTPUT)
