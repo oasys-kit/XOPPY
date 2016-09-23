@@ -23,6 +23,8 @@ from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.util.xoppy_util import xoppy_doc, XoppyPlot, EmittingStream
 
+import matplotlib
+
 class XoppyWidget(widget.OWWidget):
     author = "Manuel Sanchez del Rio, Luca Rebuffi"
     maintainer_email = "srio@esrf.eu"
@@ -228,7 +230,7 @@ class XoppyWidget(widget.OWWidget):
 
         self.progressBarSet(progressBarValue)
 
-    def plot_data2D(self, data2D, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", mode=1):
+    def plot_data2D(self, data2D, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", mode=2):
 
         self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
 
@@ -262,17 +264,49 @@ class XoppyWidget(widget.OWWidget):
 
                 data_to_plot.append(x_values)
 
-            self.plot_canvas[plot_canvas_index] = XoppyPlot.XoppyImageView()
-            colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
+            if mode == 1:
+                self.plot_canvas[plot_canvas_index] = XoppyPlot.XoppyImageView()
+                colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
 
-            self.plot_canvas[plot_canvas_index]._imagePlot.setDefaultColormap(colormap)
-            self.plot_canvas[plot_canvas_index].setImage(numpy.array(data_to_plot), origin=origin, scale=scale)
+                self.plot_canvas[plot_canvas_index]._imagePlot.setDefaultColormap(colormap)
+                self.plot_canvas[plot_canvas_index].setImage(numpy.array(data_to_plot), origin=origin, scale=scale)
+            elif mode == 2:
+                self.plot_canvas[plot_canvas_index] = PlotWindow(colormap=False,
+                                                                 flip=False,
+                                                                 grid=False,
+                                                                 togglePoints=False,
+                                                                 logx=False,
+                                                                 logy=False,
+                                                                 copy=False,
+                                                                 save=True,
+                                                                 aspect=True,
+                                                                 roi=False,
+                                                                 control=False,
+                                                                 position=False,
+                                                                 plugins=False)
+
+                colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
+
+                self.plot_canvas[plot_canvas_index].setDefaultColormap(colormap)
+
+                self.plot_canvas[plot_canvas_index].addImage(numpy.array(data_to_plot),
+                                                             legend="zio billy",
+                                                             xScale=(origin[0], scale[0]),
+                                                             yScale=(origin[1], scale[1]),
+                                                             colormap=colormap,
+                                                             replace=True,
+                                                             replot=True)
+                self.plot_canvas[plot_canvas_index].setActiveImage("zio billy")
+
+                from matplotlib.image import AxesImage
+                image = AxesImage(self.plot_canvas[plot_canvas_index]._plot.ax)
+                image.set_data(numpy.array(data_to_plot))
+
+                self.plot_canvas[plot_canvas_index]._plot.graph.fig.colorbar(image, ax=self.plot_canvas[plot_canvas_index]._plot.ax)
 
             self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
             self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
             self.plot_canvas[plot_canvas_index].setGraphTitle(title)
-            self.plot_canvas[plot_canvas_index]._histoHPlot.setGraphYLabel(title)
-            self.plot_canvas[plot_canvas_index]._histoVPlot.setGraphXLabel(title)
 
         self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
@@ -315,7 +349,7 @@ class XoppyWidget(widget.OWWidget):
 
             self.setStatusMessage("Error!")
 
-            #raise exception
+            raise exception
 
         self.progressBarFinished()
 
