@@ -12,7 +12,7 @@ from oasys.widgets.exchange import DataExchangeObject
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 class OWxpower(XoppyWidget):
-    name = "Power"
+    name = "POWER"
     id = "orange.widgets.dataxpower"
     description = "xoppy application to compute XPOWER"
     icon = "icons/xoppy_xpower.png"
@@ -59,7 +59,7 @@ class OWxpower(XoppyWidget):
     FILE_DUMP = 0
 
     def build_gui(self):
-        box = oasysgui.widgetBox(self.controlArea, "XPOWER Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-10)
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-10)
 
         idx = -1 
 

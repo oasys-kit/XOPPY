@@ -12,7 +12,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 
 class OWxpowder_fml(XoppyWidget):
-    name = "Powder Fml"
+    name = "POWDER_FML"
     id = "orange.widgets.dataxpowder_fml"
     description = "xoppy application to compute XPOWDER_FML"
     icon = "icons/xoppy_xpowder_fml.png"
@@ -36,7 +36,7 @@ class OWxpowder_fml(XoppyWidget):
 
     def build_gui(self):
 
-        box = oasysgui.widgetBox(self.controlArea, "XPOWDER_FML Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
         idx = -1 
         

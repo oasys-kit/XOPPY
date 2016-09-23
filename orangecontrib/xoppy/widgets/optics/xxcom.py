@@ -12,7 +12,7 @@ from orangecontrib.xoppy.util import xoppy_util
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 class OWxxcom(XoppyWidget):
-    name = "XCom"
+    name = "XCOM"
     id = "orange.widgets.dataxxcom"
     description = "xoppy application to compute XXCOM"
     icon = "icons/xoppy_xxcom.png"
@@ -32,7 +32,7 @@ class OWxxcom(XoppyWidget):
 
     def build_gui(self):
 
-        box = oasysgui.widgetBox(self.controlArea, "XXCOM Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1 
         

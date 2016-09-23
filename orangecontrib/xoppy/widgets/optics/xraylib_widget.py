@@ -61,7 +61,7 @@ class OWxraylib_widget(widget.OWWidget):
 
         gui.separator(self.controlArea, height=10)
 
-        box = oasysgui.widgetBox(self.controlArea, "XRAYLIB Input Parameters",orientation="vertical", width=self.CONTROL_AREA_WIDTH-5, height=150)
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters",orientation="vertical", width=self.CONTROL_AREA_WIDTH-5, height=150)
 
         self.xoppy_output = QTextEdit()
         self.xoppy_output.setReadOnly(True)
