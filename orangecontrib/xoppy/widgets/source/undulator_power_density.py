@@ -1,12 +1,10 @@
 import sys
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
-from srxraylib.plot import gol
 from collections import OrderedDict
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
@@ -216,23 +214,14 @@ class OWundulator_power_density(XoppyWidget):
                 p = data[2]
 
                 try:
+
                     print(">>>>> Result shapes", h.shape, v.shape, p.shape )
 
-                    figure = FigureCanvas(gol.plot_image(p,
-                                                         h,
-                                                         v,
-                                                         xtitle='H [mm]',
-                                                         ytitle='V [mm]',
-                                                         title='Code '+code+'; Power density [W/mm^2]',
-                                                         show=False))
+                    self.plot_data2D(p, h, v, 0, 0,
+                                     xtitle='H [mm]',
+                                     ytitle='V [mm]',
+                                     title='Code '+code+'; Power density [W/mm^2]')
 
-                    if not self.plot_canvas[0] is None:
-                        self.tab[0].layout().removeItem(self.tab[0].layout().itemAt(0))
-
-                    self.plot_canvas[0] = figure
-                    self.tab[0].layout().addWidget(self.plot_canvas[0])
-
-                    self.tabs.setCurrentIndex(0)
                 except Exception as e:
                     self.view_type_combo.setEnabled(True)
 

@@ -1,12 +1,10 @@
 import sys
 import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 
 from orangewidget import gui
 from oasys.widgets import gui as oasysgui, congruence
 from orangewidget.settings import Setting
-from srxraylib.plot import gol
 from srxraylib.sources import srfunc
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 from oasys.widgets.exchange import DataExchangeObject
@@ -250,35 +248,21 @@ class OWbm(XoppyWidget):
                 energy_ev = data[2]
 
                 try:
-                    figure_1 = FigureCanvas(gol.plot_image(fm,
-                                                           a,
-                                                           energy_ev,
-                                                           xtitle="Angle [mrad]",
-                                                           ytitle="Photon energy [eV]",
-                                                           title="Flux [photons/s/0.1%bw/mrad]",
-                                                           aspect='auto',
-                                                           show=False))
+                    self.plot_data2D(fm,
+                                     a,
+                                     energy_ev,
+                                     0, 0,
+                                     xtitle="Angle [mrad]",
+                                     ytitle="Photon energy [eV]",
+                                     title="Flux [photons/s/0.1%bw/mrad]")
 
-                    figure_2 = FigureCanvas(gol.plot_image(fm*srfunc.codata_ec*1e3,
-                                                           a,
-                                                           energy_ev,
-                                                           xtitle="Angle [mrad]",
-                                                           ytitle="Photon energy [eV]",
-                                                           title="Spectral power [W/eV/mrad]",
-                                                           aspect='auto',
-                                                           show=False))
-
-                    if not self.plot_canvas[0] is None:
-                        self.tab[0].layout().removeItem(self.tab[0].layout().itemAt(0))
-
-                    self.plot_canvas[0] = figure_1
-                    self.tab[0].layout().addWidget(self.plot_canvas[0])
-
-                    if not self.plot_canvas[1] is None:
-                        self.tab[1].layout().removeItem(self.tab[1].layout().itemAt(0))
-
-                    self.plot_canvas[1] = figure_2
-                    self.tab[1].layout().addWidget(self.plot_canvas[1])
+                    self.plot_data2D(fm*srfunc.codata_ec*1e3,
+                                     a,
+                                     energy_ev,
+                                     1, 1,
+                                     xtitle="Angle [mrad]",
+                                     ytitle="Photon energy [eV]",
+                                     title="Spectral power [W/eV/mrad]")
 
                     self.tabs.setCurrentIndex(1)
                 except Exception as e:

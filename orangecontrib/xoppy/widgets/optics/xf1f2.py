@@ -2,13 +2,12 @@ import sys
 import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QMessageBox
 from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
-from srxraylib.plot import gol
 
+from orangecontrib.xoppy.util.xoppy_util import XoppyPlot
 from orangecontrib.xoppy.util.xoppy_xraylib_util import f1f2_calc,f1f2_calc_mix
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
@@ -262,26 +261,16 @@ class OWxf1f2(XoppyWidget):
                 dataX = calculated_data.get_content("dataX")
                 dataY = calculated_data.get_content("dataY")
 
-                print (data2D.size, dataX.size, dataY.size)
-                figure = FigureCanvas(gol.plot_image(data2D,
-                                                     dataX,
-                                                     dataY,
-                                                     xtitle='Energy [eV]',
-                                                     ytitle='Theta [mrad]',
-                                                     title='Reflectivity',
-                                                     show=False,
-                                                     aspect='auto'))
-
-                self.tab[0].layout().removeItem(self.tab[0].layout().itemAt(0))
-
-                self.plot_canvas[0] = figure
-                self.tab[0].layout().addWidget(self.plot_canvas[0])
-
+                self.plot_data2D(data2D, dataX, dataY, 0, 0,
+                                 xtitle='Energy [eV]',
+                                 ytitle='Theta [mrad]',
+                                 title='Reflectivity')
             except:
                 try:
                     self.plot_info(calculated_data.get_content("info") + "\n", progressBarValue, 0, 0)
                 except:
                     pass
+
 
     def plot_info(self, info, progressBarValue, tabs_canvas_index, plot_canvas_index):
         self.tab[0].layout().removeItem(self.tab[0].layout().itemAt(0))
