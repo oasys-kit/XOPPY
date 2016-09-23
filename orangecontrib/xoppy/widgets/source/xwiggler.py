@@ -4,15 +4,15 @@ from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
-
+from oasys.widgets.exchange import DataExchangeObject
 from srxraylib.sources import srfunc
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 class OWxwiggler(XoppyWidget):
-    name = "Wiggler Spectrum"
+    name = "WIGGLER"
     id = "orange.widgets.dataxwiggler"
-    description = "xoppy application to compute XWIGGLER"
+    description = "Wiggler Full Spectrum"
     icon = "icons/xoppy_xwiggler.png"
     priority = 6
     category = ""
@@ -33,7 +33,7 @@ class OWxwiggler(XoppyWidget):
 
     def build_gui(self):
 
-        box = oasysgui.widgetBox(self.controlArea, "WIGGLER Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1
         
@@ -108,7 +108,7 @@ class OWxwiggler(XoppyWidget):
         gui.comboBox(box1, self, "LOGPLOT",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=['Lin', 'Log'],
-                    valueType=int, orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=350)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
@@ -175,6 +175,19 @@ class OWxwiggler(XoppyWidget):
     def do_xoppy_calculation(self):
         return xoppy_calc_xwiggler(FIELD=self.FIELD,NPERIODS=self.NPERIODS,ULAMBDA=self.ULAMBDA,K=self.K,ENERGY=self.ENERGY,PHOT_ENERGY_MIN=self.PHOT_ENERGY_MIN,PHOT_ENERGY_MAX=self.PHOT_ENERGY_MAX,NPOINTS=self.NPOINTS,LOGPLOT=self.LOGPLOT,NTRAJPOINTS=self.NTRAJPOINTS,CURRENT=self.CURRENT,FILE=self.FILE)
 
+    def extract_data_from_xoppy_output(self, calculation_output):
+        e, f, sp = calculation_output
+
+        data = numpy.zeros((len(e), 3))
+        data[:, 0] = numpy.array(e)
+        data[:, 1] = numpy.array(f)
+        data[:, 2] = numpy.array(sp)
+
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+        calculated_data.add_content("xoppy_data", data)
+
+        return calculated_data
+
     def add_specific_content_to_calculated_data(self, calculated_data):
         calculated_data.add_content("is_log_plot", self.LOGPLOT)
 
@@ -188,10 +201,10 @@ class OWxwiggler(XoppyWidget):
         return ["Energy [eV]","Energy [eV]"]
 
     def getYTitles(self):
-        return ["Flux [Phot/sec/0.1%bw]","Spectral Power [W/eV]"]
+        return ["Flux [Phot/sec/0.1%bw]", "Spectral Power [W/eV]"]
 
     def getLogPlot(self):
-        return [(True, True),(True, True)]
+        return [(True, True), (True, True)]
 
     def getVariablesToPlot(self):
         return [(0, 1), (0, 2)]
@@ -224,9 +237,9 @@ def xoppy_calc_xwiggler(FIELD=0,NPERIODS=12,ULAMBDA=0.125,K=14.0,ENERGY=6.04,PHO
     #
     # now spectra
     #
-    e, f0 = srfunc.wiggler_spectrum(t0, enerMin=PHOT_ENERGY_MIN, enerMax=PHOT_ENERGY_MAX, nPoints=NPOINTS, \
+    e, f0, p0 = srfunc.wiggler_spectrum(t0, enerMin=PHOT_ENERGY_MIN, enerMax=PHOT_ENERGY_MAX, nPoints=NPOINTS, \
                                     electronCurrent=CURRENT*1e-3, outFile=outFile, elliptical=False)
-    return outFile
+    return e, f0, p0
 
 
 

@@ -25,7 +25,7 @@ class OWblack_body(XoppyWidget):
 
     def build_gui(self):
 
-        box = oasysgui.widgetBox(self.controlArea, "BLACK BODY Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1 
         

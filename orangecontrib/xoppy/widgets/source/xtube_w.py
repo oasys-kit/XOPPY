@@ -8,7 +8,7 @@ from orangecontrib.xoppy.util.xoppy_util import locations
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 class OWxtube_w(XoppyWidget):
-    name = "W X-ray Tube"
+    name = "Tube_W"
     id = "orange.widgets.dataxtube_w"
     description = "xoppy application to compute XTUBE_W"
     icon = "icons/xoppy_xtube_w.png"
@@ -23,7 +23,7 @@ class OWxtube_w(XoppyWidget):
 
     def build_gui(self):
 
-        box = oasysgui.widgetBox(self.controlArea, "XTUBE_W Input Parameters",orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters",orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1 
         

@@ -11,9 +11,9 @@ from oasys.widgets.exchange import DataExchangeObject
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 class OWxtc(XoppyWidget):
-    name = "Undulator Tuning Curves"
+    name = "TC"
     id = "orange.widgets.dataxtc"
-    description = "xoppy application to compute..."
+    description = "Undulator Tuning Curves"
     icon = "icons/xoppy_xtc.png"
     priority = 2
     category = ""
@@ -41,7 +41,7 @@ class OWxtc(XoppyWidget):
 
     def build_gui(self):
 
-        box = oasysgui.widgetBox(self.controlArea, "XTC Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
         idx = -1
         

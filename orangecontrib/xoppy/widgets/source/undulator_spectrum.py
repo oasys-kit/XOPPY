@@ -8,6 +8,7 @@ from oasys.widgets.exchange import DataExchangeObject
 
 from collections import OrderedDict
 from orangecontrib.xoppy.util import srundplug
+from srxraylib.sources import srfunc
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
@@ -40,7 +41,7 @@ class OWundulator_spectrum(XoppyWidget):
 
     def build_gui(self):
 
-        box = oasysgui.widgetBox(self.controlArea, "UNDULATOR Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
         idx = -1
 
@@ -209,15 +210,19 @@ class OWundulator_spectrum(XoppyWidget):
         congruence.checkLessThan(self.PHOTONENERGYMIN, self.PHOTONENERGYMAX, "photon Energy Min", "photon Energy Max")
         self.PHOTONENERGYPOINTS = congruence.checkStrictlyPositiveNumber(self.PHOTONENERGYPOINTS, "photon Energy Points")
 
+        if sys.platform == 'linux' and self.METHOD == 2:
+            raise Exception("SRW calculation code not supported under Linux")
+
     def do_xoppy_calculation(self):
         return xoppy_calc_undulator_spectrum(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,PHOTONENERGYMIN=self.PHOTONENERGYMIN,PHOTONENERGYMAX=self.PHOTONENERGYMAX,PHOTONENERGYPOINTS=self.PHOTONENERGYPOINTS,METHOD=self.METHOD)
 
     def extract_data_from_xoppy_output(self, calculation_output):
-        e, f = calculation_output
+        e, f, sp = calculation_output
 
-        data = numpy.zeros((len(e), 2))
+        data = numpy.zeros((len(e), 3))
         data[:, 0] = numpy.array(e)
         data[:, 1] = numpy.array(f)
+        data[:, 2] = numpy.array(sp)
 
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
         calculated_data.add_content("xoppy_data", data)
@@ -228,17 +233,19 @@ class OWundulator_spectrum(XoppyWidget):
         return "UNDULATOR_FLUX"
 
     def getTitles(self):
-        return ['Undulator Flux']
+        return ['Undulator Flux', 'Spectral Power']
 
     def getXTitles(self):
-        return ["Energy [eV]"]
+        return ["Energy [eV]", "Energy [eV]"]
 
     def getYTitles(self):
-        return ["Flux [Phot/sec/0.1%bw]"]
+        return ["Flux [Phot/sec/0.1%bw]", "Spectral Power [W/eV]"]
 
     def getLogPlot(self):
-        return [(True, True)]
+        return [(False, False), (False, False)]
 
+    def getVariablesToPlot(self):
+        return [(0, 1), (0, 2)]
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
 
@@ -283,7 +290,7 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
               photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
         print("Done")
 
-    return e, f
+    return e, f, f*srfunc.codata_ec * 1e3
 
 
 
