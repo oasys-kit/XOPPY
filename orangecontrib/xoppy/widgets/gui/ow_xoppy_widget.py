@@ -23,8 +23,6 @@ from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.util.xoppy_util import xoppy_doc, XoppyPlot, EmittingStream
 
-import matplotlib
-
 class XoppyWidget(widget.OWWidget):
     author = "Manuel Sanchez del Rio, Luca Rebuffi"
     maintainer_email = "srio@esrf.eu"
@@ -349,7 +347,7 @@ class XoppyWidget(widget.OWWidget):
 
             self.setStatusMessage("Error!")
 
-            raise exception
+            #raise exception
 
         self.progressBarFinished()
 

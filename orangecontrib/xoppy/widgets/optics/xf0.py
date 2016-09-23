@@ -4,7 +4,7 @@ import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.util.xoppy_xraylib_util import parse_formula
@@ -38,40 +38,40 @@ class OWxf0(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "MAT_FLAG",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Element(formula)', 'Mixture(formula)'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "DESCRIPTOR",
-                     label=self.unitLabels()[idx], addSpace=True)
+        oasysgui.lineEdit(box1, self, "DESCRIPTOR",
+                     label=self.unitLabels()[idx], orientation="horizontal", addSpace=False)
         self.show_at(self.unitFlags()[idx], box1)
         
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "GRIDSTART",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+        oasysgui.lineEdit(box1, self, "GRIDSTART",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "GRIDEND",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator())
+        oasysgui.lineEdit(box1, self, "GRIDEND",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "GRIDN",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator())
+        oasysgui.lineEdit(box1, self, "GRIDN",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
 
@@ -85,7 +85,11 @@ class OWxf0(XoppyWidget):
         return 'xf0'
 
     def check_fields(self):
-        pass
+        self.DESCRIPTOR = congruence.checkEmptyString(self.DESCRIPTOR, "formula")
+        self.GRIDSTART = congruence.checkPositiveNumber(self.GRIDSTART, "Q from")
+        self.GRIDEND = congruence.checkStrictlyPositiveNumber(self.GRIDEND, "Q to")
+        congruence.checkLessThan(self.GRIDSTART, self.GRIDEND, "Q from", "Q to")
+        self.GRIDN = congruence.checkStrictlyPositiveNumber(self.GRIDN, "Number of q Points")
 
     def do_xoppy_calculation(self):
         out_dict = self.xoppy_calc_xf0()

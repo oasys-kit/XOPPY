@@ -2,10 +2,9 @@ import sys
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy, QTextEdit, QFileDialog, QMessageBox, QWidget
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
-from orangecontrib.xoppy.util import xoppy_util
 from orangecontrib.xoppy.util.xoppy_xraylib_util import mare_calc
 from xraylib import Crystal_GetCrystalsList
 
@@ -48,106 +47,106 @@ class OWmare(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "CRYSTAL",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=Crystal_GetCrystalsList(),
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "H",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "H",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "K",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "K",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "L",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "L",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "HMAX",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "HMAX",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "KMAX",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "KMAX",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "LMAX",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "LMAX",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "FHEDGE",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "FHEDGE",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "DISPLAY",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Spaghetti', 'Spaghetti+Umweg', 'Spaghetti+Glitches', 'All'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "LAMBDA",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "LAMBDA",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "DELTALAMBDA",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "DELTALAMBDA",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "PHI",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "PHI",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 12 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "DELTAPHI",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "DELTAPHI",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
         gui.rubber(self.controlArea)
@@ -163,7 +162,21 @@ class OWmare(XoppyWidget):
         return 'mare'
 
     def check_fields(self):
-        pass
+        self.H = congruence.checkNumber(self.H, "h main")
+        self.K = congruence.checkNumber(self.K, "k main")
+        self.L = congruence.checkNumber(self.L, "l main")
+        self.HMAX = congruence.checkNumber(self.HMAX, "h max")
+        self.KMAX = congruence.checkNumber(self.KMAX, "k max")
+        self.LMAX = congruence.checkNumber(self.LMAX, "l max")
+        self.FHEDGE = congruence.checkNumber(self.FHEDGE, "Fh less than")
+
+        if self.DISPLAY == 1 or self.DISPLAY == 3:
+            self.LAMBDA = congruence.checkStrictlyPositiveNumber(self.LAMBDA, "Wavelength")
+            self.DELTALAMBDA = congruence.checkStrictlyPositiveNumber(self.DELTALAMBDA, "Delta Wavelength")
+
+        if self.DISPLAY == 2 or self.DISPLAY == 3:
+            self.PHI = congruence.checkNumber(self.PHI, "Phi")
+            self.DELTAPHI = congruence.checkStrictlyPositiveNumber(self.DELTALAMBDA, "Delta Phi")
 
     def do_xoppy_calculation(self):
         descriptor = Crystal_GetCrystalsList()[self.CRYSTAL]
@@ -245,20 +258,20 @@ class PythonWidget(QWidget):
 
         self.pythonScript = QTextEdit()
         self.pythonScript.setReadOnly(False)  # asked by Manolo
-        self.pythonScript.setMaximumHeight(350)
+        self.pythonScript.setMaximumHeight(340)
 
-        script_box = oasysgui.widgetBox(self, "", addSpace=True, orientation="vertical", height=545, width=750)
+        script_box = oasysgui.widgetBox(self, "", addSpace=False, orientation="vertical", height=545, width=750)
         script_box.layout().addWidget(self.pythonScript)
 
-        console_box = oasysgui.widgetBox(script_box, "", addSpace=True, orientation="vertical", height=150, width=750)
+        console_box = oasysgui.widgetBox(script_box, "", addSpace=False, orientation="vertical", height=150, width=750)
 
         self.console = PythonConsole(self.__dict__, self)
         console_box.layout().addWidget(self.console)
 
-        button_box = oasysgui.widgetBox(script_box, "", addSpace=True, orientation="horizontal")
+        button_box = oasysgui.widgetBox(script_box, "", addSpace=False, orientation="horizontal")
 
-        gui.button(button_box, self, "Run Script", callback=self.execute_script, height=40)
-        gui.button(button_box, self, "Save Script to File", callback=self.save_script, height=40)
+        gui.button(button_box, self, "Run Script", callback=self.execute_script, height=35)
+        gui.button(button_box, self, "Save Script to File", callback=self.save_script, height=35)
 
     def execute_script(self):
         self._script = str(self.pythonScript.toPlainText())
