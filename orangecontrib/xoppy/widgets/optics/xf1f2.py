@@ -2,11 +2,12 @@ import sys
 import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QMessageBox
 from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
-
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
+from srxraylib.plot import gol
 
 from orangecontrib.xoppy.util.xoppy_xraylib_util import f1f2_calc,f1f2_calc_mix
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
@@ -43,7 +44,7 @@ class OWxf1f2(XoppyWidget):
 
     def build_gui(self):
 
-        box = oasysgui.widgetBox(self.controlArea, "XF1F2 Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1
         
@@ -51,108 +52,108 @@ class OWxf1f2(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "MAT_FLAG",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Element(formula)', 'Mixture(formula)'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
         
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "DESCRIPTOR",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "DESCRIPTOR",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "DENSITY",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "DENSITY",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "CALCULATE",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['f1', 'f2', 'delta', 'beta *see help*', 'mu [cm^-1] *see help*', 'mu [cm^2/g] *see help*', 'Cross Section[barn] *see help*', 'reflectivity-s', 'reflectivity-p', 'reflectivity-unpol', 'delta/beta **see help**'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "GRID",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Standard', 'User defined', 'Single Value'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "GRIDSTART",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "GRIDSTART",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "GRIDEND",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "GRIDEND",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "GRIDN",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "GRIDN",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "THETAGRID",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Single value', 'User Defined'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "ROUGH",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ROUGH",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 12 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "THETA1",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "THETA1",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 13
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "THETA2",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "THETA2",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 14
         idx += 1
         box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "THETAN",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "THETAN",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
     def unitLabels(self):
@@ -190,34 +191,58 @@ class OWxf1f2(XoppyWidget):
         return 'xf1f2'
 
     def check_fields(self):
-        pass
+        self.DESCRIPTOR = congruence.checkEmptyString(self.DESCRIPTOR, "formula")
+        if self.MAT_FLAG == 1:
+            self.DENSITY = congruence.checkStrictlyPositiveNumber(self.DENSITY, "density")
+
+        if self.GRID > 0:
+            self.GRIDSTART = congruence.checkPositiveNumber(self.GRIDSTART, "Starting Energy")
+
+            if self.GRID == 1:
+                self.GRIDEND = congruence.checkStrictlyPositiveNumber(self.GRIDEND, "Energy to")
+                congruence.checkLessThan(self.GRIDSTART, self.GRIDEND, "Starting Energy", "Energy to")
+                self.GRIDN = congruence.checkStrictlyPositiveNumber(self.GRIDN, "Number of points")
+
+        if self.CALCULATE >= 7 and self.CALCULATE <= 9:
+            self.ROUGH = congruence.checkPositiveNumber(self.ROUGH, "Roughness")
+            self.THETA1 = congruence.checkPositiveNumber(self.THETA1, "Starting Graz angle")
+
+            if self.THETAGRID == 1:
+                self.THETA2 = congruence.checkStrictlyPositiveNumber(self.THETA2, "Graz angle to")
+                congruence.checkLessThan(self.THETA1, self.THETA2, "Starting Graz angle", "Graz angle to")
+                self.THETAN = congruence.checkStrictlyPositiveNumber(self.THETAN, "Number of angular points")
+        else:
+            self.THETAGRID = 0
 
     def do_xoppy_calculation(self):
         return self.xoppy_calc_xf1f2()
 
     def extract_data_from_xoppy_output(self, calculation_output):
         try:
-            tmp = calculation_output.get_content("xoppy_data")
-            labels = calculation_output.get_content("labels")
+            calculation_output.get_content("data2D")
+        except:
+            try:
+                tmp = calculation_output.get_content("xoppy_data")
+                labels = calculation_output.get_content("labels")
 
-            self.xtitle = labels[0]
-            self.ytitle = labels[1]
+                self.xtitle = labels[0]
+                self.ytitle = labels[1]
 
-            if tmp.shape == (1,2): # single value calculation
-                message = calculation_output.get_content("info")
+                if tmp.shape == (1, 2): # single value calculation
+                    message = calculation_output.get_content("info")
+                    QMessageBox.information(self,
+                                            "Calculation Result",
+                                            "Calculation Result:\n %s"%message,
+                                            QMessageBox.Ok)
+
+            except:
                 QMessageBox.information(self,
                                         "Calculation Result",
-                                        "Calculation Result:\n %s"%message,
+                                        "Calculation Result:\n"+calculation_output.get_content("info"),
                                         QMessageBox.Ok)
 
-        except:
-            QMessageBox.information(self,
-                                    "Calculation Result",
-                                    "Calculation Result:\n"+calculation_output.get_content("info"),
-                                    QMessageBox.Ok)
-
-            self.xtitle = None
-            self.ytitle = None
+                self.xtitle = None
+                self.ytitle = None
 
         return calculation_output
 
@@ -227,19 +252,47 @@ class OWxf1f2(XoppyWidget):
         try:
             calculated_data.get_content("xoppy_data")
 
+            self.tab[0].layout().removeItem(self.tab[0].layout().itemAt(0))
+            self.plot_canvas[0] = None
+
             super().plot_results(calculated_data, progressBarValue)
         except:
-            self.plot_info(calculated_data.get_content("info") + "\n", progressBarValue, 0, 0)
+            try:
+                data2D = calculated_data.get_content("data2D")
+                dataX = calculated_data.get_content("dataX")
+                dataY = calculated_data.get_content("dataY")
+
+                print (data2D.size, dataX.size, dataY.size)
+                figure = FigureCanvas(gol.plot_image(data2D,
+                                                     dataX,
+                                                     dataY,
+                                                     xtitle='Energy [eV]',
+                                                     ytitle='Theta [mrad]',
+                                                     title='Reflectivity',
+                                                     show=False,
+                                                     aspect='auto'))
+
+                self.tab[0].layout().removeItem(self.tab[0].layout().itemAt(0))
+
+                self.plot_canvas[0] = figure
+                self.tab[0].layout().addWidget(self.plot_canvas[0])
+
+            except:
+                try:
+                    self.plot_info(calculated_data.get_content("info") + "\n", progressBarValue, 0, 0)
+                except:
+                    pass
 
     def plot_info(self, info, progressBarValue, tabs_canvas_index, plot_canvas_index):
-        if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
-            self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
-            self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
-            self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(False)
-            self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(False)
+        self.tab[0].layout().removeItem(self.tab[0].layout().itemAt(0))
 
-            self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+        self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+        self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
+        self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
+        self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(False)
+        self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(False)
+
+        self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
         self.plot_canvas[plot_canvas_index].setGraphTitle(info)
         self.plot_canvas[plot_canvas_index].setGraphXLabel("")
@@ -274,8 +327,6 @@ class OWxf1f2(XoppyWidget):
         return[(False, False)]
 
     def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False):
-
-
         super().plot_histo(x, y,progressBarValue, tabs_canvas_index, plot_canvas_index, title, xtitle, ytitle, log_x, log_y)
 
         # place a big dot if there is only a single value
@@ -368,14 +419,17 @@ class OWxf1f2(XoppyWidget):
             calculated_data.add_content("plot_y_col", -1)
         except:
             pass
+
         try:
             calculated_data.add_content("labels", out_dict["labels"])
         except:
             pass
+
         try:
             calculated_data.add_content("info", out_dict["info"])
         except:
             pass
+
         try:
             calculated_data.add_content("data2D", out_dict["data2D"])
             calculated_data.add_content("dataX", out_dict["dataX"])

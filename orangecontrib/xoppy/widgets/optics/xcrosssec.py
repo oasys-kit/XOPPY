@@ -5,7 +5,7 @@ from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
 
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.util.xoppy_xraylib_util import cross_calc, cross_calc_mix
@@ -40,7 +40,7 @@ class OWxcrosssec(XoppyWidget):
 
     def build_gui(self):
 
-        box = oasysgui.widgetBox(self.controlArea, "XCROSSSEC Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
         idx = -1
         
@@ -48,9 +48,9 @@ class OWxcrosssec(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "MAT_FLAG",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Element(formula)', 'Mixture(formula)', 'Mixture(table)'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
@@ -58,75 +58,75 @@ class OWxcrosssec(XoppyWidget):
         box1 = gui.widgetBox(box)
         items = xraylib.GetCompoundDataNISTList()
         gui.comboBox(box1, self, "MAT_LIST",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                      items=items,
-                     valueType=int, orientation="horizontal")
+                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "DESCRIPTOR",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "DESCRIPTOR",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "DENSITY",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "DENSITY",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "CALCULATE",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                      items=['Total','PhotoElectric','Rayleigh','Compton','Total-Rayleigh'],
-                     valueType=int, orientation="horizontal")
+                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
         
         #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "GRID",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Standard', 'User defined', 'Single Value'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "GRIDSTART",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "GRIDSTART",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "GRIDEND",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "GRIDEND",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "GRIDN",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "GRIDN",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "UNIT",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['barn/atom [Cross Section] *see help*', 'cm^2 [Cross Section] *see help*', 'cm^2/g [Mass abs coef]', 'cm^-1 [Linear abs coef]'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
         gui.rubber(self.controlArea)
@@ -141,7 +141,18 @@ class OWxcrosssec(XoppyWidget):
         return 'xf1f2'
 
     def check_fields(self):
-        pass
+        self.DESCRIPTOR = congruence.checkEmptyString(self.DESCRIPTOR, "formula")
+        if self.MAT_FLAG == 1:
+            self.DENSITY = congruence.checkStrictlyPositiveNumber(self.DENSITY, "density")
+
+        if self.GRID > 0:
+            self.GRIDSTART = congruence.checkPositiveNumber(self.GRIDSTART, "Starting Energy")
+
+            if self.GRID == 1:
+                self.GRIDEND = congruence.checkStrictlyPositiveNumber(self.GRIDEND, "Energy to")
+                congruence.checkLessThan(self.GRIDSTART, self.GRIDEND, "Starting Energy", "Energy to")
+                self.GRIDN = congruence.checkStrictlyPositiveNumber(self.GRIDN, "Number of points")
+
 
     def do_xoppy_calculation(self):
         out_dict = self.xoppy_calc_xcrosssec()
