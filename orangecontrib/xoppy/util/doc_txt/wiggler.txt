@@ -1,0 +1,39 @@
+
+==============================  Wiggler   ====================================
+
+ Wiggler calculates the spectrum of a Wiggler Synchrotron Radiation source.
+
+ The Flux and Spectral Power values calculated with Wiggler
+ correspond to the integration in FULL vertical and horizontal emission angles.
+
+ Wiggler calculations are done using the program wiggler_spectrum, a python
+ version of the Fortran program with the same name available in the SHADOW
+ ray-tracing package.
+
+Description of the input parameters for BM:
+===========================================
+
+MAGNETIC FIELD three possibilities:
+  Sinusoidal or standard wiggler
+  Asymmetric wiggler with magnetic field profile (for a single priod)
+    from a two columns file (y[meters], B[Tesla])
+    An example of this option can be found in the files ex3_b.dat
+	in the $XOP_HOME/examples directory.
+  Asymmetric wiggler with magnetic field calculated in function of a
+    supplied file containing the harmonic expansion of the magnetic field
+    profile. The file contains two columns: (# of harmonic, Bmax [T])
+    An example of this option can be found in the files ex3_b.dat
+    in the $XOP_HOME/examples directory.
+NUMBER OF PERIODS of the Wiggler
+WIGGLER PERIOD in meters
+K VALUE
+BEAM ENERGY of the electrons in GeV
+MINIMUM PHOTON ENERGY for the calculation in eV
+MAXIMUM PHOTON ENERGY for the calculation in eV
+NUMBER OF ENERGY POINTS
+ENERGY POINT SPACING: Sel linear of logarithmic for the corresponding
+	energy point spacing
+NUMBER OF TRAJECTORY POINTS PER PERIOD of electron trajectory
+ELECTRON BEAM INTENSITY in mA
+EXTERNAL FILE with Magnetic field profile or Harmonic expansion. (Case of
+  asymmetric wiggler). Type ? for starting a file browser to get it.

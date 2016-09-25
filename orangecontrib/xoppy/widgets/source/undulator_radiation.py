@@ -15,7 +15,7 @@ codata_mee = codata.codata.physical_constants["electron mass energy equivalent i
 class OWundulator_radiation(XoppyWidget):
     name = "Undulator Radiation"
     id = "orange.widgets.dataundulator_radiation"
-    description = "xoppy application to compute UNDULATOR RADIATION"
+    description = "Undulator Radiation"
     icon = "icons/xoppy_undulator_radiation.png"
     priority = 4
     category = ""

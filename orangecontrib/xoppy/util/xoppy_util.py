@@ -82,12 +82,12 @@ def xoppy_doc(app):
     home_doc = locations.home_doc()
 
     filename1 = os.path.join(home_doc,app+'.txt')
-    filename2 = os.path.join(home_doc,app+'_par.txt')
 
+    print("xoppy_doc: opening file %s"%filename1)
     if sys.platform == 'darwin':
-        command = "open -a TextEdit "+filename1+" "+filename2+" &"
+        command = "open -a TextEdit "+filename1+" &"
     elif sys.platform == 'linux':
-        command = "gedit "+filename1+" "+filename2+" &"
+        command = "gedit "+filename1+" &"
 
     os.system(command)
 

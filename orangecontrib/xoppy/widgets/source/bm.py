@@ -12,7 +12,7 @@ from oasys.widgets.exchange import DataExchangeObject
 class OWbm(XoppyWidget):
     name = "BM"
     id = "orange.widgets.databm"
-    description = "xoppy application to compute Bending Magnet Spectrum"
+    description = "Bending Magnet Spectrum"
     icon = "icons/xoppy_bm.png"
     priority = 7
     category = ""

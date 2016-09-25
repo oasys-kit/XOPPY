@@ -11,7 +11,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 class OWblack_body(XoppyWidget):
     name = "Black Body"
     id = "orange.widgets.datablack_body"
-    description = "xoppy application to compute BLACK_BODY"
+    description = "Black Body Spectrum"
     icon = "icons/xoppy_black_body.png"
     priority = 10
     category = ""

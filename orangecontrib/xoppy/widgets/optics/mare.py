@@ -15,7 +15,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 class OWmare(XoppyWidget):
     name = "MARE"
     id = "orange.widgets.datamare"
-    description = "xoppy application to compute MARE"
+    description = "Crystal Multiple Diffraction"
     icon = "icons/xoppy_mare.png"
     priority = 8
     category = ""

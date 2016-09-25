@@ -1,0 +1,103 @@
+
+=================================   crystal   ================================
+
+
+   Crystal calculates diffraction profiles of perfect crystals, and
+   some imperfect crystals: curved crystals and mosaic crystals.
+
+   It allows Bragg and Laue geometries and (in the case of perfect crystals)
+   diffracted and transmitted intensity calculations.
+   The diffracted intensity can be calculated as a function of either rock
+   angle or photon energy.
+   It uses XRAYLIB to define the crystal structure and to
+   retrieve the scattering factors to build the crystal structure factors.
+
+
+
+Reference:
+
+Sanchez del Rio, M., Perez-Bocanegra, N., Shi, X., Honkimaki, V. & Zhang, L. (2015).
+J. Appl. Cryst. 48, 477-491. http://dx.doi.org/10.1107/S1600576715002782
+in free acces at:
+https://arxiv.org/abs/1502.03059
+
+Zachariasen, W. (1967). Theory of X-ray Diffraction in Crystals. New York: Dover
+
+
+
+This is a description of the input parameters for crystal:
+==========================================================
+
+CRYSTAL: Select a crystal from this list of crystals.
+
+h MILLER INDEX: The h Miller index
+k MILLER INDEX: The k Miller index
+l MILLER INDEX: The l Miller index
+
+
+TEMPERATURE FACTOR: Three possibilites:
+       Enter the exp(-M) value (a positive value between 0 and 1)
+
+MOSAIC CRYSTAL: Select YES when you want "mosaic crystal", otherwise
+	"perfect crystal" is set.
+
+CRYSTAL MODEL:
+    Perfect crystal: Used the theory of Zachariasen
+    Mosaic: Used modaic crystal model of Zachariasen
+    Bent Crystal ML: uses Multilamellar model for curved crystals
+    Bent Crystal PP: Used Penning-Polder model for LAUE (only working for
+        Laue!!) curved crystals.
+
+GEOMETRY: select one of the four cases combining Laue and Bragg cases
+	for either diffracted or transmitted beam. Note that the
+	transmitted intensity is not implemented for mosaic crystals.
+
+SCAN: The scanned variable for the plot. Angular and Energy scans are
+	allowed. The angular variable can be: Theta, when absolute angle
+	is wanted; Th-ThBragg(corrected) or angular scan with zero at
+	the bragg angle corrected for refraction; Th-ThBragg or angular
+	scan with zero at the bragg angle; and y is dimensionless angular
+	variable defined by (for instance) in the Zachariasen book.
+	In the case of angular scans the unit can be set, except in the
+	case of y. Energy is always in eV.
+
+SCAN UNITS: angular units, if angular scan is set.
+
+MIN SCAN VALUE: min value for the scanning variable.
+
+MAX SCAN VALUE: max value for the scanning variable.
+
+SCAN POINTS: the number of scanning points.
+
+FIX VALUE (E[eV]) OR Theta[deg]): Place here either the energy value of the
+	monochromatic incident photon beam (when angular scan is
+	selected) or the grazing angle [in degrees] when a energy scan
+	is wanted.
+	In the case of energy scan, the program can calculate
+	automatically the theta angle if one inputs the energy. If this
+	option is selected, enter the Energy with a minus sign in this box.
+
+ASYMMETRY ANGLE [deg]: the angle between the Bragg planes and the crystal
+	surface. It is 0.0 for the symmetrical Bragg case and 90.0 for
+	the symmetrical Laue case.
+	This input is not present when using Mosaic crystals, which are
+	always symmetrical.
+
+CRYSTAL THICKNESS [cm]: the crystal thickness in cm
+
+MOSAICITY [deg fwhm]: The mosaicirty of the mosaic crystal (if selected).
+
+For bent crystal models (ML or PP) you also have:
+
+R SAGITTAL [cm]: The radius of curvature in the sagittal direction (in
+    direction perpendicular to the diffraction plane)
+
+R MERIDIONAL [cm]: The radius of curvature in the meridional direction
+    (in the diffraction plane)
+
+ANYSOTROPY: Select ISOTROPIC OR ANYSOTROPIC MODEL. If ISOTROPIC define the
+    Poisson ratio. If ANYSOTROPIC define the cutting directions, or the
+    compliance tensor from an external file.
+
+
+

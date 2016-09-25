@@ -218,7 +218,7 @@ class OWxtc(XoppyWidget):
 
 
     def get_help_name(self):
-        return 'xtc'
+        return 'tc'
 
     def check_fields(self):
         self.ENERGY = congruence.checkStrictlyPositiveNumber(self.ENERGY, "Electron Energy")

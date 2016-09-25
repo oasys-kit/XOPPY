@@ -15,7 +15,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 class OWundulator_spectrum(XoppyWidget):
     name = "Undulator Spectrum"
     id = "orange.widgets.dataundulator_spectrum"
-    description = "xoppy application to compute UNDULATOR_FLUX"
+    description = "Undulator Spectrum"
     icon = "icons/xoppy_undulator_spectrum.png"
     priority = 1
     category = ""

@@ -1,0 +1,71 @@
+
+
+==================================  CrossSec      =============================
+
+ CrossSec is a widget based graphical interface to calculate Photon-Atom
+ Cross Sections, Mass Absorption Coefficients and Liner Absorption Coefficients
+ for elements, compounds and mixtures.
+ The data are taken from the XRAYLIB data base:
+ https://github.com/tschoonj/xraylib/wiki
+
+
+ Possible calculations:
+	Cross Section [barn/atom]
+	Cross Section [cm^2]
+	Mass Absorption Coefficient [cm^2/g]
+	Linear Absorption Coefficient [cm^-1]
+
+
+
+Contents:
+    1) Calculation method (for mixtures)
+    2) Important notice (for mixtures)
+    3) Description of the input parameters
+
+
+
+
+    3) Description of the input parameters
+    ======================================
+
+
+material: Select the desired material type. Three options are available:
+	a) Element(formula) calculation for a single element.
+	b) Mixture(formula) calculation for a compound or a mixture. The user
+		defines the mixture formula.
+		The syntax is the following: string with the chemical
+		formula of the compound(s) with their weight fraction between
+		parenthesis.
+		Examples:
+		H20
+		SiO2(0.807)B2O3(0.129)Na2O(0.038)Al2O3(0.022)K2O(0.004)
+		H2O(0.99)Cl2(0.01)
+		H(0.11189834)O(0.88810166)
+	c) Mixture(table) calculation for a compound or a mixture defined
+		in the included mixture-table
+
+table: Compound table, only available if the c) option in material is chosen.
+
+formula: The element or compound or mixture formula, depending the "material"
+		selection.
+
+calculate: type the calculation magnitude.
+
+Energy [eV] grid: the abscissas values for the calculations. Two
+		options are available:
+		a) Standard
+		b) User-defined, with the parameters described below.
+		c) Single-value, with the energy to be entered in
+		   "Starting Energy [eV]" box.
+
+Stating Energy [eV]: the initial energy value (only available if either
+		b) or c) is chosen in the "Energy [eV] grid" entry.
+
+To: the last energy value (only available if b) is chosen in the
+		"Energy [eV] grid" entry.
+
+Number of points: the number of energy points (only available if b) is
+		chosen in the "sin_theta/lambda grid" entry.
+
+Units: the units in which the Cross Sections are presented
+

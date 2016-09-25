@@ -12,7 +12,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 class OWxwiggler(XoppyWidget):
     name = "WIGGLER"
     id = "orange.widgets.dataxwiggler"
-    description = "Wiggler Full Spectrum"
+    description = "Wiggler Spectrum (Full Emission)"
     icon = "icons/xoppy_xwiggler.png"
     priority = 6
     category = ""
@@ -150,7 +150,7 @@ class OWxwiggler(XoppyWidget):
         self.le_file.setText(oasysgui.selectFileFromDialog(self, self.FILE, "Open B File"))
 
     def get_help_name(self):
-        return 'xwiggler'
+        return 'wiggler'
 
     def check_fields(self):
         self.NPERIODS = congruence.checkStrictlyPositiveNumber(self.NPERIODS, "Number of Periods")

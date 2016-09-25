@@ -18,7 +18,7 @@ import xraylib
 class OWmlayer(XoppyWidget):
     name = "MLayer"
     id = "orange.widgets.datamlayer"
-    description = "xoppy application to compute MLAYER"
+    description = "Multilayer Reflectivity"
     icon = "icons/xoppy_mlayer.png"
     priority = 10
     category = ""

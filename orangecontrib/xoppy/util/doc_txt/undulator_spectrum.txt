@@ -1,0 +1,810 @@
+
+==================================   Undulator Spectrum  ===============================
+
+
+ Undulator Spectrum calculates the spectum (flux or spectral power) of an undulator  as
+ a function of the photon energy.
+
+ It can use several codes: US, URGENT and SRW.
+
+
+
+               Description of the input parameters for Undulator Spectrum:
+               ===========================================================
+
+"Electron Energy [GeV]"
+"Electron Energy Spread": DeltaE/E for the electroon beam
+"Electron Current [A]"
+"Electron Beam Size H [m]"
+"Electron Beam Size V [m]"
+"Electron Beam Divergence H [rad]"
+"Electron Beam Divergence V [rad]"
+"Period ID [m]"
+"Number of periods"
+"Kv [undulator K value vertical field]"
+"Distance to slit [m]", "Slit gap H [m]"
+"Slit gap V [m]"
+"photon Energy Min [eV]"
+"photon Energy Max [eV]"
+"photon Energy Points"
+"calculation code" US, URGENT or SRW
+
+See SRW documentation at: https://github.com/ochubar/SRW
+The documentation of US and URGENT follows:
+
+
+===============================  us   ========================================
+
+   us calculates spectral properties of ideal undulator insertion devices.
+
+
+
+!+
+! Last modification date of this file: Mon Nov 24 21:29:54 CST 2014
+! Roger J. Dejus (dejus@aps.anl.gov)
+!
+! PROGRAM DESCRIPTION:
+!  Program to calculate undulator spectra using the Bessel function
+!  approximation for an ideal planar undulator or an ideal elliptical
+!  undulator (including polarization for both cases).
+!  The program may be executed from the XOP interface.
+!
+! AUTHORS:
+!  Roger J. Dejus
+!  The Advanced Photon Source
+!  Experimental Facilities Division (now in Accelerator Systems Division)
+!  Argonne National Laboratory
+!
+! CREATION DATE:
+!  25-MAR-1991
+!
+! INPUT PARAMETERS:
+!  The input parameters are divided into sections related to the storage ring,
+!  the undulator, and the quantity to be calculated. Note: when modifying
+!  parameters under the Xus interface, double click the input field parameter and
+!  press the RETURN key so that the new parameter is accepted.
+! Title:				TITLE
+! Machine Parameters:
+!  Storage ring energy 			ENERGY (GeV)
+!  Storage ring current			CUR (mA)
+!  RMS relative beam energy spread	SIGE
+!  RMS beam size (horizontal)		SIGX (mm)
+!  RMS beam size (vertical)		SIGY (mm)
+!  RMS beam divergence (horizontal)	SIGX1 (mrad)
+!  RMS beam divergence (vertical)	SIGY1 (mrad)
+! Undulator Parameters:
+!  Period length			PERIOD (cm)
+!  Number of periods			NPER
+!  Deflection parameter (hor.  field) 	KX (= 0.0 for a regular planar device)
+!  Deflection parameter (vert. field) 	KY
+! Scan Parameters:
+!  Minimum energy			EMINU (eV)
+!  Maximum energy EMAX			EMAXU (eV)
+!  Number of energy points		NEU
+! Pinhole Parameters:
+!  Distance from the source		DU (m)
+!    (DU=0.0 => angular units)
+!  X-coordinate for center of pinhole	XPC (mm) or (mrad)
+!  Y-coordinate for center of pinhole	YPC (mm) or (mrad)
+!  X-size of pinhole (full width)	XPS (mm) or (mrad)
+!  Y-size of pinhole (full width)	YPS (mm) or (mrad)
+!    (for angular units (DU=0.0) values are entered in mrad)
+!    (X is for the horizontal direction)
+!    (Y is for the vertical direction)
+!  Number of X subdivisions of pinhole	NXP
+!  Number of Y subdivisions of pinhole	NYP
+!    (for plotting 3D results with interface Xus, the X-size, Y-size, and the number of
+!     of subdivisions in the two directions should be equal)
+!
+! Mode:
+!  Depending on the mode selected, some of the pinhole parameters may be set to different values
+!  by the program; see below and check the beginning (header) in the output file.
+!  MODE    1    Angular/spatial flux density distribution
+!  MODE    2    Angular/spatial flux density spectrum
+!  MODE    3    On-axis brilliance spectrum
+!  MODE    4    Flux spectrum through a pinhole
+!  MODE    5    Flux spectrum integrated over all angles
+!  MODE    6    Power density and integrated power
+!
+!  Angular/spatial flux density distribution
+!    - Flux distribution at the chosen minimum energy EMINU.
+!      The EMAXU and NEU are not used.
+!  Angular/spatial flux density spectrum
+!    - Spectrum at a given point in space selected by the XPC and YPC coordinate
+!      for the center of the pinhole.
+!      The XPS, YPS, NXP and NYP are not used.
+!  On-axis brilliance spectrum
+!    - The pinhole parameters have no significance here.
+!      The DU, XPC, YPC, XPS, YPS, NXP and NYP are not used.
+!  Flux spectrum through a pinhole
+!    - Spectrum through a pinhole centered at XPC and YPC with total size XPS and YPS.
+!  Flux spectrum integrated over all angles.
+!    - The pinhole parameters have no significance here.
+!      The DU, XPC, YPC, XPS, YPS, NXP and NYP are not used.
+!  Power density and integrated power
+!    - Integrated over all energies, thus the energy parameters have no
+!      significance here. The EMINU, EMAXU and NEU are not used.
+!      The SIGE is not used and is set to zero.
+!
+! Method (N refers to the number of undulator periods):
+!  METHOD  1    Non-zero emittance; finite-N
+!  METHOD  2    Non-zero emittance; infinite-N
+!  METHOD  3    Zero emittance;     finite-N
+!  METHOD  4    Non-zero emittance; infinite-N + convolution (Dejus' approach)
+!  METHOD 14    Non-zero emittance; infinite-N + convolution (Walker's approach)
+!
+!  Non-zero emittance; finite-N
+!    - Required for MODE 1 "Angular/spatial flux density distribution."
+!      Use also for MODE 6 "Power density and integrated power" (any non-zero emittance method may be used).
+!      Not allowed for angle-intergrated spectra (MODE 5). Not recommended for other modes due to slow speed.
+!  Non-zero emittance; infinite-N
+!    - For test purposes; do not use (not available from the XOP menu).
+!  Zero emittance; finite-N
+!    - Use for zero emittance calculations. Not allowed for angle-integrated spectra (MODE 5).
+!  Non-zero emittance; infinite-N/convolution
+!    - Recommended for all runs with emittance.
+!    - Only METHOD 4 (Dejus' approach) is available on the XOP menu. This method uses an internally
+!      generated energy mesh with variable step size: at the location of the harmonics the step size
+!      is made small and in between the harmonics the step size is made large.
+!
+! Harmonic Number:
+!  IHARM   0    All harmonics
+!  IHARM  -1    Lowest order harmonic (except MODE=6, include to harmonics -IHARM)
+!  IHARM   I    I''th harmonic
+!
+!  All harmonics
+!    - Selects all contributing harmonics (generally used).
+!  Lowest order harmonic
+!    - Selects the lowest order contributing harmonic.
+!  Harmonic #
+!    - Selects the harmonic number displayed.
+!  Edit harmonic number (XOP Menu)
+!    - Modifies the displayed harmonic number.
+!    - For MODES 1,2,3,4 with METHOD 3 (zero emittance) the IHARM -1 is not used.
+!
+! Intrinsic Parameters:
+!  Several internal parameters used in the calculations. They are commonly not modified
+!  by the user. All parameters can be set to zero in which case they default to the values
+!  given in the parenthesis.
+!
+!  NPHI    - Number of steps in angle phi between 0 and pi/2.0 (20).
+!            Used in MODES 1,2,3,4,5 for non-zero emittance calculations.
+!
+!  NALPHA  - Number of steps in angle alpha (gamma*theta) (40).
+!            Used in MODES 1,2,3,4 for METHOD 1 (non-zero emittance with finite-N).
+!
+!  CALPHA2 - Range of angles in alpha^2 in units of the angular equivalent of 1/N (2.0).
+!            Used in MODES 1,2,3,4 for METHOD 1 (finite-N) and for METHOD 3 (zero emittance calculations).
+!
+!  NOMEGA  - Number of steps in photon energy for the natural lineshape (64).
+!            Used in MODES 2,3,4,5 for METHOD 14 (infinite-N + convolution Walker's method).
+!
+!  COMEGA  - Range of photon energies to be included in the natural lineshape in units (energy of fundamental/N) (8.0)
+!            The default value covers the range +/- 2/N of the natural lineshape.
+!            Used in MODES 2,3,4,5 for METHOD 14 (infinite-N + convolution Walker's method).
+!
+!  NSIGMA  - Number of standard deviations of the electron beam size and divergence (4).
+!            Used in MODES 1,2,3,4,6 for non-zero emittance calculations.
+!
+! Polarization:
+!  The normalized Stokes parameters are calculated including the
+!  unpolarized component.
+!
+!  NOTES:
+!
+!  1) For MODES 2,3,4,5 the finite-N spectrum is obtained by convoluting the infinite-N
+!     spectrum with the natural lineshape. For Walker's method the point spacing in photon
+!     energy must be the same for the two curves. This can be achieved as follows: set NEU=0,
+!     in which case the spacing is set by the values of NOMEGA and COMEGA and NEU is set accordingly.
+!     Set NEU to the approximate number of points desired in the energy range EMINU, EMAXU.
+!     A new value of NEU is then calculated which gives the closest match with the spacing
+!     of the natural lineshape. In either case EMAXU will also be adjusted so that the convolution
+!     can be carried out correctly over the defined energy region.
+!
+!  2) If DU is set to zero, this indicates that angular flux and power density is to be calculated
+!     rather than spatial flux and power density in MODEs 1,2,4 and 6. In this case SIGX and SIGY
+!     are ignored, and the acceptance XPC, YPC, XPS, YPS is entered in mrad rather than mm units.
+!
+!  3) If the acceptance is centred on the axis (XPC=YPC=0.0) then only one quarter of the acceptance
+!     needs to be calculated because of symmetry. In this case the range from (0,0) to (XPS/2.0,YPS/2.0)
+!     will be divided into NXP,NYP intervals. The printed values of integrated flux and power, including
+!     Stokes parameters will however be correct for the total acceptance.
+!
+!  4) The angle theta (alpha/gamma) is the angle between the undulator axis and the direction of observation.
+!     The angle phi is the angle between the projection of the angle of observation in the x-y plane and the x-axis.
+!
+!  5) For MODE 6 "Power density and integrated power" with non-zero emittance an internally generated
+!     cartesian grid is used and none of the intrinsic parameters are used except NSIGMA.
+!
+!  6) The definition of SIGX must include the contribution of the horizontal dispersion times the beam energy spread.
+!     (The dispersion is not an input parameter and hence the user must enter the correct value of SIGX.)
+!
+!  7) The variable names of some parameters are changed when printed. For example DU is printed as D (distance).
+!     EMINU is printed as EMIN, etc. The trailing "U" of a variable name indicates a user value. Some of those
+!     are changed inside the code and the actual values used are printed.
+!
+! DESIGN ISSUES:
+!  Program is based on the Bessel function approximation and is valid in the
+!  far-field for an ideal sinusoidal magnetic field profile. It is further
+!  based on the code URGENT by Richard P. Walker with added features.
+!
+! COPYRIGHT:
+!  This routine may be used at The Advanced Photon Source and any other facility
+!  without explicit consent of the author. No warranties are given as to the
+!  accuracy of the results.
+!
+! FILES USED:
+!  Input file - us.dat (us.inp for XOP)  File in the user's current directory
+!  containing the input parameters.
+!  Output file - us.plt (us.out for XOP) File in the user's current directory
+!  containing the results of the calculation. The header contains all input parameters
+!  and the calculated zero emittance on-axis first harmonic energy (e1), the corresponding
+!  wavelength (l1), total power (ptot), and the on-axis power density (pd).
+!
+! KEYWORDS:
+!  Undulator Spectrum, Bessel Function Approximation
+!
+! LINK/LIBRARY ISSUES:
+!  Calls routines BRIGHTE and HUNT. BRIGHTE calculates the brilliance and HUNT
+!  searches an array of real numbers (from Numerical Recipes).
+!
+! PORTABILITY ISSUES:
+!  Runs on DEC 3000/400 AXP alpha (Tru64Unix v5.0), SUN (Solaris: SunOS
+!  Release v5.6), and Windows 95/98/NT (Pentium and higher).
+!
+!  Updated October 8, 2013 (Argonne National Laboratory)
+!  *** Linux Red Hat Enterprise Linux Workstation release 6.3 (Santiago) ***
+!  Red Hat Enterprise Linux (RHEL) 64-bit with the Intel(R) Fortran
+!  Intel(R) 64 Compiler XE for applications running on Intel(R) 64,
+!  Version 13.1.1.163 Build 2013031, and with GFORTRAN, gcc version 4.4.6 20120305
+!  (Red Hat 4.4.6-4) (GCC).
+!  *** Sun Solaris SunOS 5.10 Generic_147440-27 sun4u sparc SUNW,Sun-Blade-2500 ***
+!  Sun Fortran 90/95 8.4 SunOS_sparc Patch 128231-02 2009/10/20 with the -f77 switch.
+!  and with GFORTRAN, gcc version 4.5.1 (GCC).
+!  Windows 7/8 64-bit and MacOS X 10.6 (and newer) are also supported.
+!  The GFORTRAN compiler (GCC) v4.8.1 was used for compilations on Windows and (GCC) v4.6.1 on MacOS.
+!
+!  Updated November 24, 2014 (Argonne National Laboratory)
+!  *** Linux Red Hat Enterprise Linux Workstation release 6.5 (Santiago) ***
+!  Red Hat Enterprise Linux (RHEL) 64-bit with the Intel(R) Fortran
+!  Intel(R) 64 Compiler XE for applications running on Intel(R) 64,
+!  Version 14.0.1 Build 20131008
+!  GNU Fortran (GCC) 4.4.7 20120313 (Red Hat 4.4.7-4)
+!  Copyright (C) 2010 Free Software Foundation, Inc.
+!
+!  *** Sun Solaris SunOS 5.10 Generic_147440-27 sun4u sparc SUNW,Sun-Blade-2500 ***
+!  Sun Fortran 90/95 8.4 SunOS_sparc Patch 128231-02 2009/10/20 with the -f77 switch.
+!  GNU Fortran (GCC) 4.5.1
+!  Copyright (C) 2010 Free Software Foundation, Inc.
+!
+!  *** Windows 7/8 64-bit ***
+!  GNU Fortran (GCC) 4.9.1
+!  Copyright (C) 2014 Free Software Foundation, Inc.
+!
+!  *** MacOS X 10.6 - 10.10 ***
+!  GNU Fortran (GCC) 4.9.2 20141029 (prerelease)
+!  Copyright (C) 2014 Free Software Foundation, Inc.
+!
+! TIMING:
+!  Execution times vary considerably depending on computer and the
+!  quantity being calculated. The zero emittance calculations are fast
+!  (few seconds), whereas the non-zero emittance calculations may range from
+!  seconds (on-axis brilliance) to an hour (flux spectrum through a pinhole).
+!
+! EXAMPLES:
+! Ex. 1 using the input file ~/test/us.txt (output file becomes us.plt in the current working directory)
+! % us ~/test/us.txt
+! Ex. 2 using the default input file us.dat in the current working directory (the output file becomes us.plt).
+! % us
+! Ex. 3 using the input abc in the current working directory (the output file becomes abc.plt).
+! % us abc
+!
+! VERSION:
+!  1.94
+!
+! MODIFICATION HISTORY:
+!
+!	 Date     | Name  | Description
+! ----------------+-------+-----------------------------------------------------
+! 06-JUL-1994     | RJD   | Modified value for E1MIN for angle-integrated
+!                 |       | spectrum (MODE=5) to be non-zero; gamma*theta
+!                 |       | corresponds to sqrt(200) (somewhat arbitrarily
+!                 |       | chosen)
+! ----------------+-------+-----------------------------------------------------
+! 04-OCT-1994     | RJD   | Modified program to include polarization properties.
+!                 |       | The four Stokes parameters are now calculated.
+!                 |       | Program is for an ideal planar undulator or an ideal
+!                 |       | elliptical undulator. Many other changes. The value
+!                 |       | of the parameter IHARM has a different meaning.
+!                 |       | IHARM=0 now gives 'all harmonics' and IHARM= <0
+!                 |       | gives the lowest order harmonic except for the power
+!                 |       | option. For the power option, a negative IHARM means
+!                 |       | include all harmonics up to and including -IHARM.
+!                 |       | This version is 1.6.
+! ----------------+-------+-----------------------------------------------------
+! 21-JUN-1995     | RJD   | Modified print-out of "Contributing harmonics" in
+!		  |       | subroutine PRINT_OUT. Routine incorrectly calculated
+!		  |       | IMIN and IMAX for METHOD 4 (Dejus method) for
+!		  |       | "Spectral distributions". The spectra and integrated
+!		  |       | quantities were calculated correctly and are
+!		  |       | unaffected by this modification.
+!                 |       | The current version is 1.7.
+! ----------------+-------+-----------------------------------------------------
+! 04-JAN-1996     | RJD   | Modified the number of decimal places for the sigx1
+!                 |       | and sigy1 variables to four in the printout. Added
+!                 |       | one more digit for the emax variable to avoid
+!                 |       | overflow on rare occasions. Formats 260 and 256 were
+!                 |       | changed accordingly.
+!                 |       | The current version is 1.8.
+! ----------------+-------+-----------------------------------------------------
+! 11-NOV-1997     | RJD   | Changed notation: Brightness -> Brilliance.
+!                 |       | The current version is 1.9.
+! ----------------+-------+-----------------------------------------------------
+! 16-JUL-2000     | RJD   | Minor change in the code to compile error-free on
+!                 |       | Unix and Windows (no change in results vs. v1.9).
+!                 |       | Current version is v1.91.
+! ----------------+-------+-----------------------------------------------------
+! 02-NOV-2013     | RJD   | Updated date and time routines.
+!                 |       | Changed printout of number of decimal places for sigx and sigy.
+!                 |       | Increased the number of subdivisions of the pinhole
+!                 |       | from 50 to 200 (P_SZ=201).
+!                 |       | Changed rank of variable "SL" to become an array in subroutine
+!                 |       | ANGLE_INTEGRATION to avoid compilation warning with gfortran.
+!                 |       | Current version is v1.92.
+! ----------------+-------+-----------------------------------------------------
+! 10-JUN-2014     | RJD   | Updated so that an arbitrary input file can be used on the command line.
+!                 |       | If no input file is given on the command line then the file 'us.dat'
+!                 |       | is assumed ('us.inp' for the XOP version). The output filename is created
+!                 |       | from the rootname, which is derived from the input filename using the string after
+!                 |       | the last directory separator (/) without its trailing file extension (if it exists).
+!                 |       | The output filename is the rootname with the extension (.plt) appended (.out for the
+!                 |       | XOP version). Search "standalone" for changing defaults.
+!                 |       | Current version is v1.93.
+! ----------------+-------+-----------------------------------------------------
+! 22-OCT-2014     | RJD   | Added beam energy spread to all modes and introduced parameter SIGE.
+!                 |       | Uses routine econ_func() to do the energy convolution.
+!                 |       | NOTE: the definition of SIGX remains unchanged and it must include the value of the
+!                 |       | horizontal dispersion times the beam energy spread.
+!                 |       | Fixed error in SUBROUTINE CONVOLUTE_ENERGY_VSTEP. The array HE() was
+!                 |       | accessed with index 0 (out of bounds for J2 = 1). See RJD 10/23/2014.
+!                 |       | Fix has no effect on the results because the calculated spectra SP1 would
+!                 |       | typically be zero at the boundary.
+!                 |       | Completely rewritten to take advantage of modern Fortran 90/95 features including dynamic
+!                 |       | allocation of arrays. Array size limitations were removed. Warnings are given if predefined array
+!                 !       ! sizes are exceeded but code will run ok although execution times may be quite large.
+!                 !       ! Rewrote algorithm for power density distributions (MODE 6) for the non-zero emittance case.
+!                 !       ! Now uses a cartesian coordinates for the convolution. Previously used polar coordinates and it gave
+!                 !       ! spurios/unreal results for small values of the beam divergence.
+!                 |       | Increased values of default parameters NALPHA, NSIGMA, NOMEGA, and COMEGA.
+!                 |       | Numerous checks added.
+!                 |       | Current version is v1.94.
+! ----------------+-------+-----------------------------------------------------
+!-
+
+
+
+==============================  urgent   =====================================
+
+ urgent calculates spectra of undulator insertion devices.
+
+
+******************************************************************************
+******************************************************************************
+
+!!    UU      UU  RRRRRR      GGGGGGG  EEEEEEEE  NNN      NN  TTTTTTTTTT    !!
+!!    UU      UU  RR   RR   GGGGGGGGG  EE        NNNN     NN  TTTTTTTTTT    !!
+!!    UU      UU  RR   RR  GGG         EE        NN NN    NN      TT        !!
+!!    UU      UU  RR  RR   GG          EEEEEEE   NN  NN   NN      TT        !!
+!!    UU      UU  RRRRR    GG    GGGG  EEEEEEE   NN   NN  NN      TT        !!
+      UU      UU  RR  RR   GGG     GG  EE        NN    NN NN      TT
+!!    UUU    UUU  RR   RR   GGGGGGGGG  EE        NN     NNNN      TT        !!
+!!     UUUUUUUU   RR    RR    GGGGGGG  EEEEEEEE  NN      NNN      TT        !!
+
+******************************************************************************
+******************************************************************************
+
+           A program for calculating Undulator Radiation properties.
+
+          Authors : R.P.Walker and B.Diviacco, Sincrotrone Trieste
+
+                 Reference : R.P.Walker and B.Diviacco,
+Proc. 4th Int. Conf. Synchrotron Radiation Instrumentation, Chester, July 1991,
+            to be published in Rev. Sci. Instrum. Jan. 1992,
+                 Sincrotrone Trieste report ST/M-91/12
+
+Modification record :
+06/11/89 - Version 1
+           first distributed version
+19/03/90 - Version 1.1
+           changes in output format to include power information
+           new  MODE=6 for radiation power calculations
+           addition of beam current parameter (CUR)
+           elimination of an error in MODE=1 ICALC=1
+15/05/90 - Version 2
+           includes polarization parameters and eliptical
+           trajectories (KX, KY parameters)
+04/09/91 - Version 3.0
+           includes crossed undulator
+           new definition of l4
+           changes to MODE=6 method of calculation and parameters
+           various other small changes
+*******************************************************************
+
+The following are complete up-to-date instructions for running URGENT.
+Please use the latest version available.
+
+1. INTRODUCTION
+
+ URGENT is designed for the accurate and efficient calculation of
+the basic properties (angular, spectral, polarization, power density)
+of the radiation generated in ideal plane, helical or elliptical undulators,
+and also the crossed-undulators scheme [Nikitin,Kim].
+
+ It can take into account :
+- non-zero electron beam emittance (size and divergence)
+- finite number of undulator periods (N)
+- multiple harmonics contributing at a given photon energy
+but also has options for :
+- zero emittance
+- infinite N
+- single harmonic
+
+ The main approximations are :
+- ideal electron trajectory (i.e. no tapering or field errors)
+- far-field.
+
+ It is written in standard FORTRAN 77, calls no library routines,
+and needs no graphics package and so should be easily transportable.
+
+ URGENT uses the Bessel function method to calculate the basic radiation
+angular flux density function in an efficient manner. An appropriate
+choice is made of routine depending on whether the magnet is plane or
+helical, in order to minimize cpu time.
+
+
+2. DATA INPUT
+
+ The data is read on unit 5 (FOR005) in free-format (READ(5,*)).
+There are 6 lines, containing the following parameters  :
+
+1) ITYPE, PERIOD, KX, KY, PHASE, N
+2) EMIN, EMAX, NE
+3) ENERGY, CUR, SIGX, SIGY, SIGX1, SIGY1
+4) D, XPC, YPC, XPS, YPS, NXP, NYP
+5) MODE, ICALC, IHARM
+6) NPHI, NSIG, NALPHA, DALPHA, NOMEGA, DOMEGA
+
+A value must be entered for each parameter, even if not relevant for
+the calculation that is to be performed. Parameters ITYPE, N, NE, NXP,
+NYP, MODE, ICALC, IHARM, NPHI, NSIG, NALPHA, NOMEGA are integers.
+
+The parameters have the following meaning :
+
+Line 1 : Undulator
+ITYPE - either ITYPE=1 : plane/helical/elliptical magnet
+            or ITYPE=2 : crossed undulator
+PERIOD - magnet period (m)
+KX, KY - magnet deflection parameters coresponding to a horizontal and
+         vertical field direction respectively
+PHASE - phase difference between the two undulators in the crossed undulator
+        scheme (degrees)
+N - number of magnet periods
+
+Line 2 : Photon Energy
+EMIN - minimum photon energy (eV) (>0)
+EMAX - maximum photon energy (eV)
+NE - number of photon energy intervals (<5000)
+
+Line 3 : Electron Beam
+ENERGY - electron beam energy (GeV)
+CUR - electron beam current (A)
+SIGX, SIGY - rms horizontal and vertical electron beam sizes (mm)
+SIGX1, SIGY1 - rms horizontal and vertical electron beam divergences (mrad)
+
+Line 4 : Observation point and range of acceptance
+D - distance from centre of undulator to the observation point (m)
+XPC, YPC - horizontal and vertical position of the observation point
+           or centre of the range of acceptance (mm or mrad)
+XPS, YPS - TOTAL horizontal and vertical acceptance (mm or mrad)
+NXP, NYP - number of intervals into which the acceptance is divided in the
+           horizontal and vertical directions (<50)
+
+Line 5 : Calculation Method
+MODE -  type of calculation, having the following possible values :
+   MODE=1 angular/spatial flux density distribution at photon energy EMIN
+          In this case EMAX, NE are irrelevant.
+   MODE=2 spectrum of angular/spatial flux density at position XPC, YPC
+          In this case XPS, YPS, NXP and NYP are irrelevant.
+   MODE=3 spectrum of on-axis brightness.
+          In this case D, XPC, YPC, XPS, YPS, NXP and NYP are irrelevant.
+   MODE=4 spectrum of flux integrated over the defined range of acceptance.
+   MODE=5 spectrum of flux integrated over all angles
+          In this case D, XPC, YPC, XPS, YPS, NXP and NYP are irrelevant.
+   MODE=6 angular/spatial distribution of power density in a given harmonic
+          or range of harmonics; central power density and integrated power
+          over the range of acceptance, listed for each harmonic
+          In this case EMIN, EMAX, NE are irrelevant
+          Note : to increase the options available MODE=-6 can also
+          be used (see below under IHARM).
+
+ICALC - calculation method, having the following possible values :
+   For MODE=1,2,3,4 :   ICALC=1 non-zero emittance, finite N
+                        ICALC=2 non-zero emittance, infinite N
+                        ICALC=3 zero emittance, finite N
+   For MODE=5 :         ICALC=1 finite N
+                        ICALC=2 infinite N
+   For MODE=6 :         ICALC=1 non-zero emittance
+                        ICALC=2 zero emittance
+
+IHARM - number of harmonics to be included, having the following values :
+   For MODE=1,2,3,4,5 with ICALC=1,2 :
+             IHARM=-1 include all harmonics contributing at a
+             given point and given photon energy
+             IHARM=0 use only the lowest order contributing harmonic
+             IHARM=i use only the i'th harmonic
+   For MODE=1,2,3,4 with ICALC=3 : IHARM is not relevant
+   For MODE=6 :
+         IHARM=i  angular/spatial distribution of power density for harmonic i
+         IHARM=-i include all harmonics from 1 to i
+            MODE=-6 :
+            angular/spatial distribution of power density for each harmonic
+          + angular/spatial distribution of power density for sum of harmonics
+          + central power density and integrated power for each i
+            MODE=6 :
+            angular/spatial distribution of power density for sum of harmonics
+          + central power density and integrated power for each i
+         IHARM=0  include harmonics up to some limit determined by the program
+            MODE=-6 or MODE=6 as above
+
+LINE 6 : Calculation Parameters
+- All of the following parameters can be set to zero in which
+case they default to the values given in brackets [].
+
+NPHI -   no. of steps in phi between 0 and pi/2.0 [20]. NPHI < 100.
+         used in (MODE=1,2,3,4,5 ICALC=1,2)
+NSIG -   no. of standard deviations of electron beam dimensions (size and
+         divergence) to be included [4].
+         used in (MODE=1,2,3,4 ICALC=1,2) and (MODE=6 ICALC=1)
+NALPHA - no. of steps in angle alpha (gamma*theta) [15]. NALPHA < 100.
+         used in (MODE=1 ICALC=1).
+DALPHA - range of angles in alpha**2 to be used, in units of the angular
+         equivalent of 1/N [2.0].
+         used in (MODE=1 ICALC=1) and ICALC=3.
+NOMEGA - no. of steps in photon energy for the natural lineshape [16].
+         NOMEGA < 5000.
+         used in (MODE=2,3,4,5 ICALC=1)
+DOMEGA - range of photon energies to be included in the natural lineshape
+         in units (energy of fundamental/N) [2.0] i.e. the default value
+         covers the range +/- 2/N of the natural lineshape.
+         used in (MODE=2,3,4,5 ICALC=1)
+
+
+NOTES :
+
+i/ For (MODE=2,3,4,5 ICALC=1 ITYPE=1) the finite N spectrum is obtained by
+convoluting the infinite N spectrum with the natural lineshape.
+To make this easy the point spacing in photon energy must be the same
+for the two curves. This can be achieved as follows :
+- set NE=0, in which case the spacing is set by the values of NOMEGA and
+  DOMEGA and NE is set accordingly.
+- set NE to the approximate number of points desired in the energy range
+  EMIN,EMAX. A new value of NE is then calculated which gives the closest
+  match with the spacing of the natural lineshape.
+In either case  EMAX will also be adjusted so that the convolution
+can be carried out correctly over the defined energy region.
+In order to get an accurate convolution the program insists that
+the rule (NOMEGA/DOMEGA) >= 4 is respected.
+
+ii/ In cases with non-zero emittance (MODE=1,2,3,4,ICALC=1,2 and MODE=6,
+ICALC=1) both SIGX and SIGY may be zero, but both SIGX1 and SIGY1 must
+be non-zero.
+
+iii/ If D is set to zero, this indicates that angular flux and power density
+is to be calculated rather than spatial flux and power density in MODEs
+1,2,4 and 6. In this case SIGX and SIGY are ignored, and the acceptance
+(XPC, YPC, XPS, YPS) is entered in mrad rather than mm units.
+
+iv/ If the acceptance is centred on the axis (XPC=YPC=0.0) then only
+one quarter of the acceptance needs to be calculated because of symmetry.
+In this case the range from (0,0) to (XPS/2.0,YPS/2.0) will be divided
+into NXP, NYP intervals. The printed values of integrated flux and power,
+including Stokes parameters will however be correct for the total acceptance.
+
+v/ Theta (alpha/gamma) is the angle between the undulator axis and the
+direction of observation. Phi is the angle between the projection of the
+angle of observation in the x-y plane and the x-axis.
+
+vi/ MODE=6 : In addition to power density the program now also prints total
+flux density (photons/s/mrad**2 or mm**2), and as well as integrated power
+the total flux (photons/s). The central value means at the centre of the
+defined acceptance in the case of a 2D acceptance (NXP>0, NYP>0). In other
+cases it refers to the first point. It is permitted to enter NXP=0 or NYP=0
+to obtain values of the power density for example as a function of vertical
+or horizontal position (angle) respectively.
+
+vii/ For the crossed undulator (ITYPE=2) the following special rules apply :
+- KX is set to 0.0; both undulators are assummed to have deflection parameter KY
+- each undulator is assumed to have N periods
+- only MODE = 1, 2 or 4 can be used
+- NPHI <= 25
+- The calculation method is different to that for standard
+magnets (ITYPE=1); finite N is taken into account directly and no
+convolution with the natural lineshape is necessary. ICALC=1 or ICALC=2
+can be entered equally; NOMEGA and DOMEGA are irrelevant. DALPHA is needed
+in all cases, NALPHA for ICALC=1,2.
+
+3. DATA OUTPUT
+
+Data are output on unit 6 (FOR006). In all cases the main data start on line 33.
+
+The input parameters are firstly printed. Parameters on lines 1,2,4,6 that
+are not relevant for the type of calculation required are set to zero.
+The on-axis photon energy and wavelength, and the total power and peak power
+density (zero emittance) are also given. The power density is only given for
+the plane and helical (KX=KY) case.
+
+The units used throughout are as follows :
+
+Photon energy                   [eV]
+Wavelength                      [Angstrom]
+Spatial flux density=Irradiance [photons/s/mm**2/0.1%bandwidth]
+Angular flux density            [photons/s/mrad**2/0.1%bandwidth]
+Brightness                      [photons/s/mm**2/mrad**2/0.1%bandwidth]
+Flux                            [photons/s/0.1%bandwidth]
+Spectral power density          [Watts/mm**2 or mrad**2/eV bandwidth]
+Power density                   [Watts/mm**2 or mrad**2]
+Spectral power                  [Watts/eV bandwidth]
+Power                           [Watts]
+
+
+4. POLARIZATION
+
+ Angular/spatial flux densities and integrated flux are given in terms
+of polarization parameters l1, l2, l3, l4 where :
+   l1 = s1/s0  l2 = s2/s0  l3 = s3/s0
+   and l4 = 1 - sqrt((l1**2)+(l2**2)+(l3**2))
+s0, s1, s2 and s3 are the Stokes parameters, integrated over the
+beam emittance, range of acceptance etc. :
+   s0 = total intensity
+   s1 = difference in intensity between radiation polarized linearly in the
+        horizontal direction and in the vertical direction
+   s2 = difference in intensity between radiation polarized linearly in the
+        directions at +45 degrees and -45 degrees with respect to the
+        horizontal and vertical directions
+   s3 = difference in intensity between radiation polarized circularly in the
+        right-handed and left-handed sense
+Thus, the fraction of radiation that is polarized is
+                  sqrt((l1**2)+(l2**2)+(l3**2))
+and l4 represents the fraction of radiation that is unpolarized.
+l1, l2 and l3 vary between -1 and +1; l4 varies between 0 and 1.
+Note the change in definition of l4 from URGENT version 2. It now is in
+agreement with the definition of Born and Wolf, Principles of Optics p.555.
+
+ With the assumption that the undulator fields are parallel to the x and y
+axes, and that electron beam distributions that are symmetrical with respect
+to the x and y axes -
+In general : l2 = 0 on-axis, or with an acceptance that is symmetric with
+respect to the x and y axes
+In a plane undulator (KX=0, KY#0) : l3 = 0 always
+
+
+5. COMMENTS AND SUGGESTIONS
+
+ In a program of this sort it is impossible to guarantee that sensible
+results will be obtained in all circumstances. Thus, the user should (as with
+any reasonably complicated computer program) judge himself whether the
+results are sensible by the usual techniques of changing the input
+parameters (e.g. number of energy intervals, number of points in the
+acceptance etc.) in order to check that the results remain reasonably
+consistent, or change in the expected way (changing for example the
+emittance parameters, or choosing options for infinite N etc.)
+
+ In most cases the default values for parameters in line 6 are appropriate,
+i.e. enter 0 0 0 0 0 0.
+
+ The default values should give accurate values of the flux to a level
+of the order 0.1% of the main peak. If accuracy is wanted to lower values,
+it may be necessary to increase NSIG (e.g. 6).
+
+ For MODE=1,2,3,4,5 if in doubt use IHARM=-1; the data output will include
+information on which harmonics were actually used in the calculation.
+
+ For MODE=2,3,4,5 there is little difference in the calculation time for
+spectra with ICALC=1 or 2, however ICALC=2 allows the photon energy interval
+to be set independently of any natural lineshape criterion, which can be
+useful for either a preliminary calculation or in some particular cases [e.g.
+at high photon energies compared to the first harmonic where the infinite
+N approximation is a good approximation to the finite N result].
+
+ For cases with small emittance and small photon energy ICALC=3 can
+be a reasonable approximation (MODE=1,2,3,4).
+
+ For cases with large emittance and large photon energy ICALC=2 can
+be a reasonable approximation (MODE=1,2,3,4).
+
+ For MODE=6, when the electron beam emittance (divergence) is small
+compared to 1/gamma, ICALC=2 is a good approximation. When the emittance
+and pinhole are sufficiently small that different harmonics in the spectrum
+do not overlap, the power density and integrated power in the individual
+harmonics can conveniently be calculated directly (IHARM=0), rather than by
+spectral calculations for each separate harmonic.
+
+ Some problems can occur in computing spectra in the case with small
+emittance and small photon energy i.e. the "diffraction limited" case.
+Here it is necessary to make sure that the infinite N spectrum first
+calculated by the program is sensible - i.e. has sufficient points in
+it (determined by the photon energy interval used) and in the case of
+integrating over a pinhole is suitably "smooth" (determined by the
+spacing of points in the pinhole). A reasonable criterion for the
+latter is that the spacing XPS/NXP should be as follows :
+           XPS/NXP < 2.0 * SQRT((SIGX*SIGX)+(D*D*SIGX1*SIGX1))
+and the same in the vertical plane.
+
+6. USING THE PROGRAM
+
+ The FORTRAN source program comes in a single part : URGENT.FOR
+which should be compiled and linked to form an executable program.
+No external routines are called. Although the program has been developed on
+a VAX, it compiles under FOR/STANDARD and has also been compiled on a PC.
+
+ Most calculations can be performed in an interactive mode
+in a few seconds to a few minutes cpu time. A simple VAX
+COM file to run the program URGENT.EXE reading the data from INP.DAT and
+outputing to OUT.DAT is as follows :
+
+   $ ASSIGN INP.DAT FOR005
+   $ ASSIGN OUT.DAT FOR006
+   $ RUN URGENT
+   $ DEASS FOR005
+   $ DEASS FOR006
+   $ EXIT
+
+ A sample input file is as follows :
+
+   1 0.056 0.0 3.39 0.0 81
+   295. 303. 0
+   2.0 0.4 0.228 0.044 0.033 0.017
+   20.0   0. 0. 2. 2. 10 10
+   4 1 3
+   0 0 0 0 0 0
+
+In this example the flux is integrated over a 2 mm x 2 mm
+pinhole 20 m from the source, for a 5.6 cm period undulator in ELETTRA
+at 2 GeV 400mA, near the third harmonic. The photon energy range is defined,
+but not the interval - which is determined by the program for compatibility
+with the natural lineshape. For this run the calculation time on a VAXSTATION
+3100/MOD.30 is 21 s for 27 photon energy points.
+
+
+7. PROGRAM DISTRIBUTION and FURTHER INFORMATION
+
+ The program may be freely copied to anyone else who would like it.
+However, it is in the best interest of anyone who uses the program to
+let me know so that they can receive further updates of the program.
+
+ Anyone who has difficulty in using the program and requires advice
+should feel free to contact me. Comments on the operation of the
+program and suggestions for new developments would also be welcome.
+
+ Communication is preferred by e-mail :
+
+           Bitnet - R.WALKER@ELETTRA.TRIESTE.IT
+           DecNet - SYNCTS::WALKER or 40082::WALKER
+
+alternatively :
+
+                R.P.Walker
+                Sincrotrone Trieste
+                Area di Ricerca
+                Padriciano 99
+                34012 Trieste
+                Italy
+
+tel.       39-40-37581
+fax.       39-40-226338
+
+
+R.P.Walker,
+September 4th, 1991
+
+

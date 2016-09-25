@@ -1,0 +1,159 @@
+
+ =================================   f1f2      ============================
+
+ f1f2 calculates Elastic Anomalous Photon-Atom Scattering, and their derived
+ parameters (refraction index, photoelectric absorption, reflectivity).
+
+ ** VERY IMPORTANT **
+
+ PLEASE NOTE THAT F1F2 APPLICATION DOES NOT INCLUDE COMPTON SCATTERING
+ CALCULATIONS. IF FOR YOUR CALCULATIONS COMPTON IS IMPORTANT, PLEASE
+ USE CROSSSEC OR POWER APPLICATIONS.
+ THIS AFFECTS THE VALUES: BETA, MU, CROSS SECTION AND DELTA/BETA
+
+
+		Practical tip: 
+
+		For cross section, scattering factors and reflectivity, use
+		    f1f2 and try to define your material in molecular
+		    form. 
+		For calculating attenuation coefficients, beta and cross
+                   sections use CrossSec (and not f1f2) because:
+		    i) it is more accurate in case of defining the material
+			by its weight fractions.
+		    ii) it used all channels in the attenuation (contrary to 
+		        f1f2 that only uses photoelectron cross section).
+
+
+ The data are taken from the XRAYLIB data base.
+
+ Possible calculations:
+	       f1
+	       f2
+	       delta [n=1-delta-i beta]
+	       betaPh [n=1-delta-i beta, betaPh is the Photoelectric component]
+	       Photoelectric linear abs coeff (mu [cm^-1)]
+	       Photoelectric mass  abs coeff (mu [cm^2/g)]
+	       Photoelectric Cross Section [barns]
+	       s-pol reflectivity
+	       p-pol reflectivity
+	       unpolarized reflectivity
+              delta/betaPh (delta/beta from Photoelectric interaction only)
+
+
+
+    Calculation method (for mixtures)
+    =================================
+
+
+	i) calculate the scattering factors f1_i and f2_i for each elements by
+	   calling f1f2_calc
+	ii) Calculate the atomic composition f_i of each element in the
+	   mixture by calling parse_mixture
+	iii) The mean scattering factors for the mixture ate the
+	   averaged scattering factors from the elements (f_i):
+		f1 = Sum{ f_i * f1_i }  (similarly for f2)
+
+	The MW (molecular weight) is MW = Sum { f_i * Ai), being Ai
+		the atomic weight of the i-th element available in
+		the molecule (mixture) formula.
+
+
+    Important notice (for mixtures)
+    ===============================
+
+	   A mixture can be defined, either
+		i) as a function of the weight fractions
+		ii) as a molecular mixture.
+
+	   Therefore, water can be either defined as "H2O" (molecule)
+		or "H(0.11)O(0.89)" (weight).
+
+		FOR f1f2_ CALCULATIONS, THE MIXTURE SHOULD BE
+		DEFINED IN ITS MOLECULAR FORM (like "H2O") AND NOT IN ITS
+		WEIGHT FRACTION (like "H(0.11)O(0.89)").
+
+		The reason is that the averaging coefficient f_i is
+		is the atomic fraction and NOT the weight fraction.
+
+
+		Practical tip:
+
+		For cross section, scattering factors and reflectivity, use
+		    f1f2 and try to define your material in molecular
+		    form.
+		For calculating attenuation coefficients, use CrossSec
+		    (and not f1f2) because:
+		    i) it is more accurate in case of defining the material
+			by its weight fractions.
+		    ii) it used all channels in the attenuation (contrary to
+		        f1f2 that only uses photoelectron cross section).
+
+
+    3) Description of the input parameters
+    ======================================
+material: Select the desired material type. Three options are available:
+	a) Element(formula) calculation for a single element.
+	b) Mixture(formula) calculation for a compound or a mixture. The user
+		defines the mixture formula.
+		The syntaxis is the following: string with the chemical
+		formula of the compound(s) with their weight fraction between
+		parenthesis.
+		Examples:
+		H20
+		SiO2(0.807)B2O3(0.129)Na2O(0.038)Al2O3(0.022)K2O(0.004)
+		H2O(0.99)Cl2(0.01)
+		H(0.11189834)O(0.88810166)
+
+
+formula: The element or compound or mixture formula, depending the "material"
+		selection.
+
+density: The mixture density in the case that option b) has been
+		selected.
+
+calculate: select the calculation magnitude. The "all" option is also
+	available, and in this case all datasets are used (useful for
+	comparisons). The "all" option here is incompatible with the
+	"all" option in the "datasets" entry.
+
+
+Energy [eV] grid: the abscissas values for the calculations. Two
+		options are available:
+		a) Standard
+		b) User-defined, with the parameters described below.
+		c) Single-value, with the energy to be entered in
+		   "Starting Energy [eV]" box.
+
+Stating Energy [eV]: the initial energy value (only available if either
+		b) or c) is chosen in the "Energy [eV] grid" entry.
+
+To: the last energy value (only available if b) is chosen in the
+		"Energy [eV] grid" entry.
+
+Number of points: the number of energy points (only available if b) is
+		chosen in the "sin_theta/lambda grid" entry.
+
+Grazing angle: the surface grazing angle (only available when
+		"reflectivity" calculations are set in "Calculate" entry.
+		Two options are available:
+		a) Single-value, for calculations of Reflectivity versus
+		   energy.
+		b) User-defined, for calculations of Reflectivity versus
+		   angle, or reflectivity versus both angle and energy
+		   (2D plot).
+
+Roughness rms [A]: The surface RMS roughness (only available when
+		"reflectivity" calculations are set in "Calculate" entry.
+
+Stating Graz angle [mrad]: the grazing angle (when single-value is set) or
+		the initial grazing angle value (only available for
+		reflectivity calculations).
+
+To: the last grazing angle value (only available if both b) is chosen in the
+		"Grazing angle" entry and for reflectivity calculations).
+
+Number of angular points: the number of angle points (only available if both
+		b) is chosen in the "Grazing angle" entry and for reflectivity
+		calculations).
+

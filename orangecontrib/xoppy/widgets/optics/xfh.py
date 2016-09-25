@@ -15,7 +15,7 @@ from xraylib import Crystal_GetCrystalsList
 class OWxfh(XoppyWidget):
     name = "Fh"
     id = "orange.widgets.dataxfh"
-    description = "xoppy application to compute XFH"
+    description = "Crystal Structure Factors"
     icon = "icons/xoppy_xfh.png"
     priority = 5
     category = ""
@@ -148,7 +148,7 @@ class OWxfh(XoppyWidget):
 
 
     def get_help_name(self):
-        return 'xfh'
+        return 'fh'
 
     def check_fields(self):
         self.HMILLER = congruence.checkNumber(self.HMILLER, "h miller index")

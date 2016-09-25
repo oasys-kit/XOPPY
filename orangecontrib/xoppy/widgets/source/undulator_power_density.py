@@ -13,7 +13,7 @@ from orangecontrib.xoppy.util import srundplug
 class OWundulator_power_density(XoppyWidget):
     name = "Undulator Power Density"
     id = "orange.widgets.dataundulator_power_density"
-    description = "xoppy application to compute UNDULATOR POWER DENSITY"
+    description = "Undulator Power Density"
     icon = "icons/xoppy_undulator_power_density.png"
     priority = 3
     category = ""
