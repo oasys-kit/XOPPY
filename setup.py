@@ -5,7 +5,7 @@ import os
 from setuptools import find_packages, setup
 
 NAME = 'OASYS-XOPPY'
-VERSION = '1.0.9'
+VERSION = '1.0.10'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
@@ -41,7 +41,7 @@ INSTALL_REQUIRES = (
     'numpy',
     'scipy',
     'matplotlib==1.4.3',
-    'srxraylib>=1.0.7',
+    'srxraylib>=1.0.8',
     'orange-widget-core>=0.0.2',
     'oasys>=0.1.23',
     'pySRU',
