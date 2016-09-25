@@ -4,7 +4,7 @@ import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from oasys.widgets import gui as oasysgui, congruence
 
 from orangecontrib.xoppy.util.xoppy_util import locations
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc
@@ -56,181 +56,186 @@ class OWxcrystal(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "CRYSTAL_MATERIAL",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=Crystal_GetCrystalsList(),
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "MILLER_INDEX_H",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "MILLER_INDEX_H",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "MILLER_INDEX_K",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "MILLER_INDEX_K",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "MILLER_INDEX_L",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "MILLER_INDEX_L",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
         
         #widget index 8 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "TEMPER",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "TEMPER",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "MOSAIC",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Perfect crystal', 'Mosaic', 'Bent Crystal ML', 'Bent Crystal PP'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "GEOMETRY",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['BRAGG: diffr beam', 'LAUE: diffr beam', 'BRAGG: transm beam', 'LAUE: transm beam'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "SCAN",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Theta (absolute)', 'Th - Th Bragg (corrected)', 'Th - Th Bragg', 'Energy [eV]', 'y (Zachariasen)'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 12 
         idx += 1 
         box1 = gui.widgetBox(box) 
         self.unit_combo = gui.comboBox(box1, self, "UNIT",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Radians', 'micro rads', 'Degrees', 'ArcSec'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 13 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "SCANFROM",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "SCANFROM",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 14 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "SCANTO",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "SCANTO",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 15 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "SCANPOINTS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "SCANPOINTS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 16 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "ENERGY",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ENERGY",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 17 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "ASYMMETRY_ANGLE",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ASYMMETRY_ANGLE",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 18 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "THICKNESS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "THICKNESS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 19 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "MOSAIC_FWHM",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "MOSAIC_FWHM",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 20 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "RSAG",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "RSAG",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 21 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "RMER",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "RMER",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 22 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "ANISOTROPY",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['None (isotropic)', 'Default cut', 'Cut directions', 'From file'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 23 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "POISSON",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "POISSON",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 24 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "CUT",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "CUT",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 25 
         idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "FILECOMPLIANCE",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
+        box1 = gui.widgetBox(box)
+
+        file_box = oasysgui.widgetBox(box1, "", addSpace=False, orientation="horizontal", height=25)
+
+        self.le_file_compliance = oasysgui.lineEdit(file_box, self, "FILECOMPLIANCE",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
+        gui.button(file_box, self, "...", callback=self.selectFile)
 
     def unitLabels(self):
          return ['Crystal:','h Miller index','k Miller index','l Miller index','Temperature factor [see help]:', # 0-5
@@ -250,8 +255,50 @@ class OWxcrystal(XoppyWidget):
     def get_help_name(self):
         return 'xcrystal'
 
+    def selectFile(self):
+        self.le_file_compliance.setText(oasysgui.selectFileFromDialog(self, self.FILECOMPLIANCE, "Open File (compliance tensor)", file_extension_filter="*.dat *.txt"))
+
+
     def check_fields(self):
-        pass
+        self.MILLER_INDEX_H = congruence.checkNumber(self.MILLER_INDEX_H, "Miller index H")
+        self.MILLER_INDEX_K = congruence.checkNumber(self.MILLER_INDEX_K, "Miller index K")
+        self.MILLER_INDEX_L = congruence.checkNumber(self.MILLER_INDEX_L, "Miller index L")
+        self.TEMPER = congruence.checkNumber(self.TEMPER, "Temperature factor")
+
+        if self.SCAN == 0 or self.SCAN == 3:
+            self.SCANFROM = congruence.checkPositiveNumber(self.SCANFROM, "Min Scan value")
+            self.SCANTO = congruence.checkStrictlyPositiveNumber(self.SCANTO, "Max Scan value")
+        else:
+            self.SCANFROM = congruence.checkNumber(self.SCANFROM, "Min Scan value")
+            self.SCANTO = congruence.checkNumber(self.SCANTO, "Max Scan value")
+
+        congruence.checkLessThan(self.SCANFROM, self.SCANTO, "Min Scan value", "Max Scan value")
+        self.SCANPOINTS = congruence.checkStrictlyPositiveNumber(self.SCANPOINTS, "Scan points")
+
+        if self.SCAN < 4:
+            self.ENERGY = congruence.checkStrictlyPositiveNumber(self.ENERGY , "Fix value")
+        else:
+            self.ENERGY = congruence.checkNumber(self.ENERGY , "Fix value")
+
+        if self.MOSAIC == 0: #perfect
+            self.ASYMMETRY_ANGLE = congruence.checkNumber(self.ASYMMETRY_ANGLE, "Asymmetry angle")
+            self.THICKNESS = congruence.checkStrictlyPositiveNumber(self.THICKNESS, "Crystal thickness")
+        elif self.MOSAIC == 1: #mosaic
+            self.THICKNESS = congruence.checkStrictlyPositiveNumber(self.THICKNESS, "Crystal thickness")
+            self.MOSAIC_FWHM = congruence.checkNumber(self.MOSAIC_FWHM, "Mosaicity")
+        elif self.MOSAIC == 2 or self.MOSAIC == 3: #bent ML/PP
+            self.ASYMMETRY_ANGLE = congruence.checkNumber(self.ASYMMETRY_ANGLE, "Asymmetry angle")
+            self.THICKNESS = congruence.checkStrictlyPositiveNumber(self.THICKNESS, "Crystal thickness")
+            self.RSAG = congruence.checkStrictlyPositiveNumber(self.RSAG, "R Sagittal")
+            self.RMER = congruence.checkStrictlyPositiveNumber(self.RMER, "R meridional")
+
+            if self.ANISOTROPY == 0:
+                self.POISSON = congruence.checkStrictlyPositiveNumber(self.POISSON, "Poisson Ratio")
+            elif self.ANISOTROPY == 2:
+                congruence.checkEmptyString(self.CUT, "Valong; Vnorm; Vperp")
+            elif self.ANISOTROPY == 3:
+                congruence.checkFile(self.FILECOMPLIANCE)
+
 
     def do_xoppy_calculation(self):
         return self.xoppy_calc_xcrystal()
@@ -266,11 +313,25 @@ class OWxcrystal(XoppyWidget):
         return ["Phase_p","Phase_s","Circ. Polariz.","p-polarized reflectivity","s-polarized reflectivity"]
 
     def getXTitles(self):
-        return ["Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
-                "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
-                "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
-                "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
-                "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]"]
+        if self.SCAN < 4:
+            return ["Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
+                    "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
+                    "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
+                    "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
+                    "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]"]
+        elif self.SCAN ==4:
+            return ["Energy [eV]",
+                    "Energy [eV]",
+                    "Energy [eV]",
+                    "Energy [eV]",
+                    "Energy [eV]"]
+        else:
+            return ["y (Zachariasen)",
+                    "y (Zachariasen)",
+                    "y (Zachariasen)",
+                    "y (Zachariasen)",
+                    "y (Zachariasen)"]
+
 
     def getYTitles(self):
         return ["phase_p [rad]","phase_s [rad]","Circ. Polariz.","p-polarized reflectivity","s-polarized reflectivity"]

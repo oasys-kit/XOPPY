@@ -1,6 +1,8 @@
 import sys,os
 import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
+from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
+
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
@@ -39,7 +41,10 @@ class OWxtc(XoppyWidget):
     METHOD = Setting(1)
     NEKS = Setting(100)
 
+
     def build_gui(self):
+
+        self.IMAGE_WIDTH = 850
 
         box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
@@ -241,12 +246,75 @@ class OWxtc(XoppyWidget):
     def extract_data_from_xoppy_output(self, calculation_output):
         return calculation_output
 
-    def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False):
+    def plot_results(self, calculated_data, progressBarValue=80):
+        if not self.view_type == 0:
+            if not calculated_data is None:
+                self.view_type_combo.setEnabled(False)
 
 
-        super().plot_histo(x, y,progressBarValue, tabs_canvas_index, plot_canvas_index, title, xtitle, ytitle, log_x, log_y)
+                xoppy_data_harmonics = calculated_data.get_content("xoppy_data_harmonics")
 
-        self.plot_canvas[plot_canvas_index].setDefaultPlotLines(False)
+                titles = self.getTitles()
+                xtitles = self.getXTitles()
+                ytitles = self.getYTitles()
+
+                progress_bar_step = (100-progressBarValue)/len(titles)
+
+                for index in range(0, len(titles)):
+                    x_index, y_index = self.getVariablesToPlot()[index]
+                    log_x, log_y = self.getLogPlot()[index]
+
+                    if not self.plot_canvas[index] is None:
+                        self.plot_canvas[index].clear()
+
+                    try:
+                        for h_index in range(0, len(xoppy_data_harmonics)):
+
+                            self.plot_histo(xoppy_data_harmonics[h_index][1][:, x_index],
+                                            xoppy_data_harmonics[h_index][1][:, y_index],
+                                            progressBarValue + ((index+1)*progress_bar_step),
+                                            tabs_canvas_index=index,
+                                            plot_canvas_index=index,
+                                            title=titles[index],
+                                            xtitle=xtitles[index],
+                                            ytitle=ytitles[index],
+                                            log_x=log_x,
+                                            log_y=log_y,
+                                            harmonic=xoppy_data_harmonics[h_index][0])
+
+                        self.plot_canvas[index].addCurve(numpy.zeros(1),
+                                                         numpy.array([max(xoppy_data_harmonics[h_index][1][:, y_index])]),
+                                                         "Click on curve to highlight it",
+                                                         xlabel=xtitles[index], ylabel=ytitles[index],
+                                                         symbol='', color='white')
+                        self.plot_canvas[index].setActiveCurve("Click on curve to highlight it")
+                        self.plot_canvas[index].showLegends()
+
+                        self.tabs.setCurrentIndex(index)
+                    except Exception as e:
+                        self.view_type_combo.setEnabled(True)
+
+                        raise Exception("Data not plottable: bad content\n" + str(e))
+
+
+                self.view_type_combo.setEnabled(True)
+            else:
+                raise Exception("Empty Data")
+
+    def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False, harmonic=1, color='blue'):
+        h_title = "Harmonic " + str(harmonic)
+
+        hex_r = hex(min(255, 128 + harmonic*10))[2:].upper()
+        hex_g = hex(min(255, 20 + harmonic*15))[2:].upper()
+        hex_b = hex(min(255, harmonic*10))[2:].upper()
+        if len(hex_r) == 1: hex_r = "0" + hex_r
+        if len(hex_g) == 1: hex_g = "0" + hex_g
+        if len(hex_b) == 1: hex_b = "0" + hex_b
+
+        super().plot_histo(x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, h_title, xtitle, ytitle, log_x, log_y, color="#" + hex_r + hex_g + hex_b, replace=False)
+
+        self.plot_canvas[plot_canvas_index].setGraphTitle(title)
+        self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
         self.plot_canvas[plot_canvas_index].setDefaultPlotPoints(True)
 
     def get_data_exchange_widget_name(self):
@@ -265,7 +333,7 @@ class OWxtc(XoppyWidget):
         return [(1, 2), (1, 3), (1, 4), (1, 5)]
 
     def getLogPlot(self):
-        return[(False, False), (False, False), (False, False), (False, False)]
+        return[(False, True), (False, False), (False, False), (False, False)]
 
     def xoppy_calc_xtc(self):
 
@@ -307,24 +375,46 @@ class OWxtc(XoppyWidget):
 
         # remove returns
         lines = [line[:-1] for line in lines]
+        harmonics_data = []
 
         # separate numerical data from text
         floatlist = []
+        harmoniclist = []
         txtlist = []
         for line in lines:
             try:
+                tmp = line.strip()
+
+                if tmp.startswith("Harmonic"):
+                    harmonic_number = int(tmp.split("Harmonic")[1].strip())
+
+                    if harmonic_number != self.HARMONIC_FROM:
+                        harmonics_data[-1][1] = harmoniclist
+                        harmoniclist = []
+
+                    harmonics_data.append([harmonic_number, None])
+
                 tmp = float(line.strip()[0])
+
                 floatlist.append(line)
+                harmoniclist.append(line)
             except:
                 txtlist.append(line)
 
-        data = numpy.loadtxt(floatlist).T
+        harmonics_data[-1][1] = harmoniclist
+
+        data = numpy.loadtxt(floatlist)
+
+        for index in range(0, len(harmonics_data)):
+            print (harmonics_data[index][0], harmonics_data[index][1])
+            harmonics_data[index][1] = numpy.loadtxt(harmonics_data[index][1])
 
         #send exchange
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         try:
-            calculated_data.add_content("xoppy_data", data.T)
+            calculated_data.add_content("xoppy_data", data)
+            calculated_data.add_content("xoppy_data_harmonics", harmonics_data)
             calculated_data.add_content("plot_x_col", 1)
             calculated_data.add_content("plot_y_col", 2)
         except:
