@@ -129,10 +129,10 @@ class XoppyGui:
 class XoppyPlot:
 
     @classmethod
-    def plot_histo(cls, plot_window, x, y, title, xtitle, ytitle):
+    def plot_histo(cls, plot_window, x, y, title, xtitle, ytitle, color='blue', replace=True):
         matplotlib.rcParams['axes.formatter.useoffset']='False'
 
-        plot_window.addCurve(x, y, title, symbol='', color='blue', xlabel=xtitle, ylabel=ytitle, replace=True) #'+', '^', ','
+        plot_window.addCurve(x, y, title, symbol='', color=color, xlabel=xtitle, ylabel=ytitle, replace=replace) #'+', '^', ','
         if title  is not None: plot_window.setGraphTitle(title)
         plot_window.setDrawModeEnabled(True, 'rectangle')
         plot_window.setZoomModeEnabled(True)
