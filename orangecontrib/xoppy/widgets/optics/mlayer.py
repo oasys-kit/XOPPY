@@ -3,7 +3,7 @@ import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.util.xoppy_util import locations
@@ -39,7 +39,6 @@ class OWmlayer(XoppyWidget):
     NLAYERS = Setting(50)
     FILE = Setting("layers.dat")
 
-
     def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
@@ -50,112 +49,116 @@ class OWmlayer(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "MODE",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Periodic Layers', 'Individual Layers'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "SCAN",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Grazing Angle', 'Photon Energy'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "F12_FLAG",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Create on the fly', 'Use existing file: mlayers.f12'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=150)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "SUBSTRATE",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "SUBSTRATE",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "ODD_MATERIAL",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ODD_MATERIAL",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EVEN_MATERIAL",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EVEN_MATERIAL",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "ENERGY",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ENERGY",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "THETA",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "THETA",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "SCAN_STEP",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "SCAN_STEP",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "NPOINTS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "NPOINTS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "ODD_THICKNESS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ODD_THICKNESS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EVEN_THICKNESS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EVEN_THICKNESS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 12 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "NLAYERS",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "NLAYERS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 13 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "FILE",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
+        file_box = oasysgui.widgetBox(box1, "", addSpace=False, orientation="horizontal", height=25)
+
+        self.le_file = oasysgui.lineEdit(file_box, self, "FILE",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
+        gui.button(file_box, self, "...", callback=self.selectFile)
 
         gui.rubber(self.controlArea)
 
@@ -164,13 +167,34 @@ class OWmlayer(XoppyWidget):
 
 
     def unitFlags(self):
-         return ['True','True','True','self.F12_FLAG  ==  0','self.F12_FLAG  ==  0','self.F12_FLAG  ==  0','True','True','True','True','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  1']
+         return ['True','True','True','self.F12_FLAG  ==  0','self.F12_FLAG  ==  0','self.F12_FLAG  ==  0','self.SCAN == 0','self.SCAN == 1','True','True','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  1']
 
     def get_help_name(self):
         return 'mlayer'
 
+    def selectFile(self):
+        self.le_file.setText(oasysgui.selectFileFromDialog(self, self.FILE, "Open File with layer thicknesses", file_extension_filter="*.dat *.txt"))
+
     def check_fields(self):
-        pass
+        if self.F12_FLAG == 1:
+            congruence.checkEmptyString(self.SUBSTRATE, "Substrate")
+            congruence.checkEmptyString(self.ODD_MATERIAL, "Odd layer material")
+            congruence.checkEmptyString(self.EVEN_MATERIAL, "Even layer material")
+
+        if self.SCAN == 0: # ga
+            self.ENERGY = congruence.checkStrictlyPositiveNumber(self.ENERGY, "Photon energy")
+        else:
+            self.THETA = congruence.checkStrictlyPositiveNumber(self.THETA, "Grazing angle")
+
+        self.SCAN_STEP = congruence.checkStrictlyPositiveNumber(self.SCAN_STEP, "Scanning variable step")
+        self.NPOINTS = congruence.checkStrictlyPositiveNumber(self.NPOINTS, "Number of scanning points")
+
+        if self.MODE == 0: # periodic layers
+            self.ODD_THICKNESS = congruence.checkStrictlyPositiveNumber(self.ODD_THICKNESS, "Thickness for odd material")
+            self.EVEN_THICKNESS = congruence.checkStrictlyPositiveNumber(self.EVEN_THICKNESS, "Thickness for even material")
+            self.NLAYERS = congruence.checkStrictlyPositiveNumber(self.NLAYERS, "Number of layer pairs")
+        else:
+            congruence.checkFile(self.FILE)
 
     def do_xoppy_calculation(self):
         return self.xoppy_calc_mlayer()

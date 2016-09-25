@@ -1,11 +1,11 @@
 import sys
 import numpy
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QMessageBox, QSizePolicy
 
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
-
+from oasys.widgets import gui as oasysgui, congruence
+from oasys.widgets.exchange import DataExchangeObject
 from orangecontrib.xoppy.util.xoppy_xraylib_util import xpower_calc
 
 from oasys.widgets.exchange import DataExchangeObject
@@ -19,6 +19,8 @@ class OWxpower(XoppyWidget):
     priority = 4
     category = ""
     keywords = ["xoppy", "xpower"]
+
+    inputs = [("ExchangeData", DataExchangeObject, "acceptExchangeData")]
 
     SOURCE = Setting(0)
     ENER_MIN = Setting(1000.0)
@@ -59,6 +61,11 @@ class OWxpower(XoppyWidget):
     FILE_DUMP = 0
 
     def build_gui(self):
+
+        self.leftWidgetPart.setSizePolicy(QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding))
+        self.leftWidgetPart.setMaximumWidth(self.CONTROL_AREA_WIDTH + 20)
+        self.leftWidgetPart.updateGeometry()
+
         box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-10)
 
         idx = -1 
@@ -67,63 +74,68 @@ class OWxpower(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "SOURCE",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Normalized to 1 (Standard E grid)  ', 'Normalized to 1 (E from keyboard)  ', 'From external file.                '],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
         
         #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "ENER_MIN",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ENER_MIN",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "ENER_MAX",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ENER_MAX",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "ENER_N",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "ENER_N",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "SOURCE_FILE",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 10 
+
+        file_box = oasysgui.widgetBox(box1, "", addSpace=False, orientation="horizontal", height=25)
+
+        self.le_file = oasysgui.lineEdit(file_box, self, "SOURCE_FILE",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 10
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "NELEMENTS",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['1', '2', '3', '4', '5'],
                     valueType=int, orientation="horizontal", callback=self.set_NELEMENTS)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 11 
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 11
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL1_FOR",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        gui.separator(box1, height=7)
+
+        oasysgui.lineEdit(box1, self, "EL1_FOR",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 12 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "EL1_FLAG",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Filter', 'Mirror'],
                     valueType=int, orientation="horizontal", callback=self.set_EL_FLAG)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -131,46 +143,48 @@ class OWxpower(XoppyWidget):
         #widget index 13 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL1_THI",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL1_THI",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 14 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL1_ANG",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL1_ANG",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 15 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL1_ROU",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL1_ROU",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 16 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL1_DEN",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 17 
+        oasysgui.lineEdit(box1, self, "EL1_DEN",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 17
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL2_FOR",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        gui.separator(box1, height=7)
+
+        oasysgui.lineEdit(box1, self, "EL2_FOR",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 18 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "EL2_FLAG",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Filter', 'Mirror'],
                     valueType=int, orientation="horizontal", callback=self.set_EL_FLAG)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -178,46 +192,48 @@ class OWxpower(XoppyWidget):
         #widget index 19 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL2_THI",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL2_THI",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 20 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL2_ANG",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL2_ANG",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 21 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL2_ROU",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL2_ROU",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 22 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL2_DEN",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL2_DEN",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 23 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL3_FOR",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        gui.separator(box1, height=7)
+
+        oasysgui.lineEdit(box1, self, "EL3_FOR",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 24 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "EL3_FLAG",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Filter', 'Mirror'],
                     valueType=int, orientation="horizontal", callback=self.set_EL_FLAG)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -225,46 +241,48 @@ class OWxpower(XoppyWidget):
         #widget index 25 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL3_THI",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL3_THI",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 26 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL3_ANG",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL3_ANG",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 27 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL3_ROU",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL3_ROU",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 28 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL3_DEN",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL3_DEN",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 29 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL4_FOR",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        gui.separator(box1, height=7)
+
+        oasysgui.lineEdit(box1, self, "EL4_FOR",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 30 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "EL4_FLAG",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Filter', 'Mirror'],
                     valueType=int, orientation="horizontal", callback=self.set_EL_FLAG)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -272,46 +290,48 @@ class OWxpower(XoppyWidget):
         #widget index 31 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL4_THI",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL4_THI",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 32 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL4_ANG",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL4_ANG",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 33 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL4_ROU",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL4_ROU",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 34 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL4_DEN",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL4_DEN",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 35 
         idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL5_FOR",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        box1 = gui.widgetBox(box)
+        gui.separator(box1, height=7)
+
+        oasysgui.lineEdit(box1, self, "EL5_FOR",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 36 
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "EL5_FLAG",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['Filter', 'Mirror'],
                     valueType=int, orientation="horizontal", callback=self.set_EL_FLAG)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -319,41 +339,43 @@ class OWxpower(XoppyWidget):
         #widget index 37 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL5_THI",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL5_THI",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 38 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL5_ANG",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL5_ANG",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 39 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL5_ROU",
-                     label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL5_ROU",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 40 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "EL5_DEN",
-                     label=self.unitLabels()[idx], addSpace=True, orientation="horizontal")
+        oasysgui.lineEdit(box1, self, "EL5_DEN",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 41
         idx += 1
         box1 = gui.widgetBox(box)
+        gui.separator(box1, height=7)
+
         gui.comboBox(box1, self, "FILE_DUMP",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx], addSpace=False,
                     items=['No', 'Yes (xpower.spec)'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
     def set_NELEMENTS(self):
@@ -394,8 +416,138 @@ class OWxpower(XoppyWidget):
     def get_help_name(self):
         return 'xpower'
 
+    def selectFile(self):
+        self.le_source_file.setText(oasysgui.selectFileFromDialog(self, self.SOURCE_FILE, "Open Source File", file_extension_filter="*.*"))
+
+    def acceptExchangeData(self, exchangeData):
+        try:
+            if not exchangeData is None:
+                if exchangeData.get_program_name() == "XOPPY":
+                    no_bandwidth = False
+                    if exchangeData.get_widget_name() =="UNDULATOR_FLUX" :
+                        self.SOURCE_FILE = "xoppy_undulator_flux"
+                        index_flux = 2
+                    elif exchangeData.get_widget_name() == "BM" :
+                        if exchangeData.get_content("is_log_plot") == 1:
+                            raise Exception("Logaritmic X scale of Xoppy Energy distribution not supported")
+                        if exchangeData.get_content("calculation_type") == 0 and exchangeData.get_content("psi") == 0:
+                            self.SOURCE_FILE = "xoppy_bm_flux"
+                            index_flux = 5
+                        else:
+                            raise Exception("Xoppy result is not an Flux vs Energy distribution integrated in Psi")
+                    elif exchangeData.get_widget_name() =="XWIGGLER" :
+                        if exchangeData.get_content("is_log_plot") == 1:
+                            raise Exception("Logaritmic X scale of Xoppy Energy distribution not supported")
+                        self.SOURCE_FILE = "xoppy_xwiggler_flux"
+                        index_flux = 1
+                    elif exchangeData.get_widget_name() =="XTUBES" :
+                        self.SOURCE_FILE = "xoppy_xtubes_flux"
+                        index_flux = 1
+                        no_bandwidth = True
+                    elif exchangeData.get_widget_name() =="XTUBE_W" :
+                        self.SOURCE_FILE = "xoppy_xtube_w_flux"
+                        index_flux = 1
+                        no_bandwidth = True
+                    elif exchangeData.get_widget_name() =="BLACK_BODY" :
+                        self.SOURCE_FILE = "xoppy_black_body_flux"
+                        index_flux = 2
+                    else:
+                        raise Exception("Xoppy Source not recognized")
+
+                    self.SOURCE_FILE += "_" + str(id(self)) + ".dat"
+                    self.SOURCE = 2
+
+                    spectrum = exchangeData.get_content("xoppy_data")
+
+                    if not no_bandwidth:
+                        spectrum[:,index_flux] /= 0.001*spectrum[:,0]
+
+                    file = open(self.SOURCE_FILE, "w")
+                    for index in range(0, spectrum.shape[0]):
+                        file.write(str(spectrum[index, 0]) + " " + str(spectrum[index, index_flux]) + "\n")
+
+                    file.close()
+
+                    self.process_showers()
+
+        except Exception as exception:
+            QMessageBox.critical(self, "Error",
+                                       str(exception),
+                QMessageBox.Ok)
+
+            #raise exception
+
+
     def check_fields(self):
-        pass
+
+        if self.SOURCE == 1:
+            self.ENER_MIN = congruence.checkPositiveNumber(self.ENER_MIN, "Energy from")
+            self.ENER_MAX = congruence.checkStrictlyPositiveNumber(self.ENER_MAX, "Energy to")
+            congruence.checkLessThan(self.ENER_MIN, self.ENER_MAX, "Energy from", "Energy to")
+            self.NPOINTS = congruence.checkStrictlyPositiveNumber(self.ENER_N, "Energy Points")
+        elif self.SOURCE == 2:
+            congruence.checkFile(self.SOURCE_FILE)
+
+        if self.NELEMENTS >= 1:
+            self.EL1_FOR = congruence.checkEmptyString(self.EL1_FOR, "1st oe formula")
+
+            if self.EL1_FLAG == 0: # filter
+                self.EL1_THI = congruence.checkStrictlyPositiveNumber(self.EL1_THI, "1st oe filter thickness")
+            elif self.EL1_FLAG == 1: # mirror
+                self.EL1_ANG = congruence.checkStrictlyPositiveNumber(self.EL1_ANG, "1st oe mirror angle")
+                self.EL1_ROU = congruence.checkPositiveNumber(self.EL1_ROU, "1st oe mirror roughness")
+
+            if not self.EL1_DEN.strip() == "?":
+                self.EL1_DEN = str(congruence.checkStrictlyPositiveNumber(float(congruence.checkNumber(self.EL1_DEN, "1st oe density")), "1st oe density"))
+
+        if self.NELEMENTS >= 2:
+            self.EL2_FOR = congruence.checkEmptyString(self.EL2_FOR, "2nd oe formula")
+
+            if self.EL2_FLAG == 0: # filter
+                self.EL2_THI = congruence.checkStrictlyPositiveNumber(self.EL2_THI, "2nd oe filter thickness")
+            elif self.EL2_FLAG == 1: # mirror
+                self.EL2_ANG = congruence.checkStrictlyPositiveNumber(self.EL2_ANG, "2nd oe mirror angle")
+                self.EL2_ROU = congruence.checkPositiveNumber(self.EL2_ROU, "2nd oe mirror roughness")
+
+            if not self.EL2_DEN.strip() == "?":
+                self.EL2_DEN = str(congruence.checkStrictlyPositiveNumber(float(congruence.checkNumber(self.EL2_DEN, "2nd oe density")), "2nd oe density"))
+
+        if self.NELEMENTS >= 3:
+            self.EL3_FOR = congruence.checkEmptyString(self.EL3_FOR, "3rd oe formula")
+
+            if self.EL3_FLAG == 0: # filter
+                self.EL3_THI = congruence.checkStrictlyPositiveNumber(self.EL3_THI, "3rd oe filter thickness")
+            elif self.EL3_FLAG == 1: # mirror
+                self.EL3_ANG = congruence.checkStrictlyPositiveNumber(self.EL3_ANG, "3rd oe mirror angle")
+                self.EL3_ROU = congruence.checkPositiveNumber(self.EL3_ROU, "3rd oe mirror roughness")
+
+            if not self.EL3_DEN.strip() == "?":
+                self.EL3_DEN = str(congruence.checkStrictlyPositiveNumber(float(congruence.checkNumber(self.EL3_DEN, "3rd oe density")), "3rd oe density"))
+
+        if self.NELEMENTS >= 4:
+            self.EL4_FOR = congruence.checkEmptyString(self.EL4_FOR, "4th oe formula")
+
+            if self.EL4_FLAG == 0: # filter
+                self.EL4_THI = congruence.checkStrictlyPositiveNumber(self.EL4_THI, "4th oe filter thickness")
+            elif self.EL4_FLAG == 1: # mirror
+                self.EL4_ANG = congruence.checkStrictlyPositiveNumber(self.EL4_ANG, "4th oe mirror angle")
+                self.EL4_ROU = congruence.checkPositiveNumber(self.EL4_ROU, "4th oe mirror roughness")
+
+            if not self.EL4_DEN.strip() == "?":
+
+                self.EL4_DEN = str(congruence.checkStrictlyPositiveNumber(float(congruence.checkNumber(self.EL4_DEN, "4th oe density")), "4th oe density"))
+
+        if self.NELEMENTS >= 5:
+            self.EL5_FOR = congruence.checkEmptyString(self.EL5_FOR, "5th oe formula")
+
+            if self.EL5_FLAG == 0: # filter
+                self.EL5_THI = congruence.checkStrictlyPositiveNumber(self.EL5_THI, "5th oe filter thickness")
+            elif self.EL5_FLAG == 1: # mirror
+                self.EL5_ANG = congruence.checkStrictlyPositiveNumber(self.EL5_ANG, "5th oe mirror angle")
+                self.EL5_ROU = congruence.checkPositiveNumber(self.EL5_ROU, "5th oe mirror roughness")
+
+            if not self.EL5_DEN.strip() == "?":
+                self.EL5_DEN = str(congruence.checkStrictlyPositiveNumber(float(congruence.checkNumber(self.EL5_DEN, "5th oe density")), "5th oe density"))
 
     def do_xoppy_calculation(self):
         return self.xoppy_calc_xpower()
@@ -524,18 +676,18 @@ class OWxpower(XoppyWidget):
             kind = self.getKind(oe_n)
 
             if kind == 0: # FILTER
+                logplot.append((False, True))
+                logplot.append((False, True))
                 logplot.append((False, False))
                 logplot.append((False, False))
-                logplot.append((False, False))
-                logplot.append((False, False))
-                logplot.append((False, False))
+                logplot.append((False, True))
             else: # MIRROR
+                logplot.append((False, True))
+                logplot.append((False, True))
                 logplot.append((False, False))
                 logplot.append((False, False))
                 logplot.append((False, False))
-                logplot.append((False, False))
-                logplot.append((False, False))
-                logplot.append((False, False))
+                logplot.append((False, True))
 
         return logplot
 
