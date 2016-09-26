@@ -14,7 +14,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 class OWxpower(XoppyWidget):
     name = "POWER"
     id = "orange.widgets.dataxpower"
-    description = "xoppy application to compute XPOWER"
+    description = "Power Absorbed and Transmitted by Optical Elements"
     icon = "icons/xoppy_xpower.png"
     priority = 4
     category = ""
@@ -414,7 +414,7 @@ class OWxpower(XoppyWidget):
                  'True']
 
     def get_help_name(self):
-        return 'xpower'
+        return 'power'
 
     def selectFile(self):
         self.le_source_file.setText(oasysgui.selectFileFromDialog(self, self.SOURCE_FILE, "Open Source File", file_extension_filter="*.*"))

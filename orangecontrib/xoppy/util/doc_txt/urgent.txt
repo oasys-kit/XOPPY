@@ -1,3 +1,10 @@
+==============================  urgent   =====================================
+
+ urgent calculates spectra of undulator insertion devices.
+
+ It interfaces the program URGENT written by R.P.Walker and B.Diviacco
+ URGENT documentation follows.
+
 
 ******************************************************************************
 ******************************************************************************

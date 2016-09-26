@@ -16,7 +16,7 @@ import xraylib
 class OWxf0(XoppyWidget):
     name = "F0"
     id = "orange.widgets.dataxf0"
-    description = "xoppy application to compute XF0"
+    description = "Elastic Scattering Function"
     icon = "icons/xoppy_xf0.png"
     priority = 11
     category = ""
@@ -82,7 +82,7 @@ class OWxf0(XoppyWidget):
          return ['True','self.MAT_FLAG  !=  2','True','True','True']
 
     def get_help_name(self):
-        return 'xf0'
+        return 'f0'
 
     def check_fields(self):
         self.DESCRIPTOR = congruence.checkEmptyString(self.DESCRIPTOR, "formula")

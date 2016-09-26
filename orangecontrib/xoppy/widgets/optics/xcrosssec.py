@@ -17,7 +17,7 @@ import xraylib
 class OWxcrosssec(XoppyWidget):
     name = "CrossSec"
     id = "orange.widgets.dataxcrosssec"
-    description = "xoppy application to compute XCROSSSEC"
+    description = "X-ray Matter Cross Sections"
     icon = "icons/xoppy_xcrosssec.png"
     priority = 2
     category = ""
@@ -138,7 +138,7 @@ class OWxcrosssec(XoppyWidget):
          return ['True','self.MAT_FLAG  ==  2','self.MAT_FLAG  <=  1 ','self.MAT_FLAG  ==  1  &  self.UNIT  ==  3','True','True','self.GRID  !=  0','self.GRID  ==  1','self.GRID  ==  1','True']
 
     def get_help_name(self):
-        return 'xf1f2'
+        return 'crosssec'
 
     def check_fields(self):
         self.DESCRIPTOR = congruence.checkEmptyString(self.DESCRIPTOR, "formula")

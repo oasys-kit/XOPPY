@@ -12,7 +12,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 class OWxinpro(XoppyWidget):
     name = "INPRO"
     id = "orange.widgets.dataxinpro"
-    description = "xoppy application to compute XINPRO"
+    description = "Crystal Reflectivity (perfect)"
     icon = "icons/xoppy_xinpro.png"
     priority = 7
     category = ""
@@ -158,7 +158,7 @@ class OWxinpro(XoppyWidget):
 
 
     def get_help_name(self):
-        return 'xinpro'
+        return 'inpro'
 
     def check_fields(self):
         self.ENERGY = congruence.checkStrictlyPositiveNumber(self.ENERGY, "Energy")

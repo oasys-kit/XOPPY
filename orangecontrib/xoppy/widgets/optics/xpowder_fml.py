@@ -14,7 +14,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 class OWxpowder_fml(XoppyWidget):
     name = "POWDER_FML"
     id = "orange.widgets.dataxpowder_fml"
-    description = "xoppy application to compute XPOWDER_FML"
+    description = "X-ray Powder Diffraction Pattern"
     icon = "icons/xoppy_xpowder_fml.png"
     priority = 9
     category = ""
@@ -150,7 +150,7 @@ class OWxpowder_fml(XoppyWidget):
         self.le_file.setText(oasysgui.selectFileFromDialog(self, self.FILE, "Open CIF File", file_extension_filter="*.cif"))
 
     def get_help_name(self):
-        return 'xpowder_fml'
+        return 'powder_fml'
 
     def check_fields(self):
         congruence.checkFile(self.FILE)

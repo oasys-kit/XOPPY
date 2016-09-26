@@ -10,7 +10,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 class OWxtubes(XoppyWidget):
     name = "Tubes"
     id = "orange.widgets.dataxtubes"
-    description = "xoppy application to compute XTUBES"
+    description = "X-ray tube Spectrum (Mo,Rh,W)"
     icon = "icons/xoppy_xtubes.png"
     priority = 9
     category = ""

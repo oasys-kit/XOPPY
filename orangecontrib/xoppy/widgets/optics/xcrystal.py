@@ -17,7 +17,7 @@ from xraylib import Crystal_GetCrystalsList
 class OWxcrystal(XoppyWidget):
     name = "CRYSTAL"
     id = "orange.widgets.dataxcrystal"
-    description = "xoppy application to compute XCRYSTAL"
+    description = "Crystal Reflectivity (perfect, bent, mosaic)"
     icon = "icons/xoppy_xcrystal.png"
     priority = 6
     category = ""
@@ -253,7 +253,7 @@ class OWxcrystal(XoppyWidget):
                  'self.MOSAIC  >  1','self.MOSAIC  >  1','self.MOSAIC  >  1','self.MOSAIC  >  1  and  self.ANISOTROPY  ==  0','self.MOSAIC  >  1  and  self.ANISOTROPY  ==  2','self.MOSAIC  >  1  and  self.ANISOTROPY  ==  3']
 
     def get_help_name(self):
-        return 'xcrystal'
+        return 'crystal'
 
     def selectFile(self):
         self.le_file_compliance.setText(oasysgui.selectFileFromDialog(self, self.FILECOMPLIANCE, "Open File (compliance tensor)", file_extension_filter="*.dat *.txt"))

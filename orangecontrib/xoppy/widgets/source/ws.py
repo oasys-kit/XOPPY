@@ -13,7 +13,7 @@ import scipy.constants as codata
 class OWws(XoppyWidget):
     name = "WS"
     id = "orange.widgets.dataws"
-    description = "Wiggler spectrum on a screen"
+    description = "Wiggler Spectrum on a Screen"
     icon = "icons/xoppy_ws.png"
     priority = 5
     category = ""

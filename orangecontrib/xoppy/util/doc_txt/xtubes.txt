@@ -1,51 +1,32 @@
 
-================================   xtubes   ====================================
+================================    tubes   ====================================
 
 
  xtubes is an widget based graphical interface to calculate the spectum 
  of an X-ray tube with Mo, Rh or W target in the energy range 18-40 keV.
 
  It uses the method descibed in the manuscript:
+
  "Molybdenum, rhodium, and tungsten anode spectral models using interpolating
  polynomials with application to mammography"
  J.M. Boone T.H. Fewell and R. J. Jennings 
  Medical Physics 24(12) pp. 1863-1874, 1997. 
 
- The program interfaced by XTubeW has been downloaded from:
+ http://dx.doi.org/10.1118/1.598100
+
+ The program interfaced here has been downloaded from:
  ftp://ftp.aip.org/epaps/medical-phys/E-MPHYA-24-1863
 
- DESCRIPTION OF THE CONTROLS IN THE MAIN WINDOW:
 
-  File:
-    xtubes input parameters: This option allows to save the current
-		parameters to a file for later loading. It also allows
-		to save the current parameters as defaults for being
-		used when the application is initialized. In the last
-		case, the file is named "application".xop (where 
-		"application " is the name of the current XOP
-		application) and is written in the directory pointed
-		by the XOP_DEFAULTS_DIR environment variable (which
-		must be set). The parameter file is ASCII and can be
-		read and edited with care.
-    Write Files for XOP/Optics: Saves the current undulator
-		spectrum in the SRCOMPE (flux) and SRCOMPW (Power) files
-		to be used for the other XOP application from Optics
-		menu.
-  Quit: to exit from the program
 
- Set_Parameters:
-  Set Parameters: to define the parameters for the calculation.
-		The same result is obtained pressing the "Set Parameters"
-		button in the main xtubes window. 
-               Please refer to the information under the HELP
-		button for a complete description of the parameters. After 
-		pressing the ACCEPT button, xtubes starts running.
-  Set Defaults: Sets the default parameters.
+               Description of the input parameters for TUBES:
+               ==============================================
 
-  Show: Display results
-    Plot Results: Plots the xtubes results (see note on units).
 
-  Help:   Shows the xtubes help (this text).
+TARGET ELEMENT:     Select one: Mo, Rh or W
+VOLTAGE: Anode voltage in kiloVolts in the 18-42 interval.
+
+
 
  NOTE ON RESULT UNITS:
      The units of the fluence in the results are not very clear 
@@ -122,26 +103,3 @@
       
       I have no explanation for this discrepancy. 
       
- COPYRIGHT:
-	XTUBES belongs to XOP package and it is distributed within XOP.
-	PLEASE REFER TO THE XOP COPYRIGHT NOTICE
-
- REFERENCE:
-	Published calculations made with XOP should refer:
-
-	M. Sanchez del Rio and R. J. Dejus 
-        "Status of XOP: an x-ray optics software toolkit"
-        SPIE Proceedings Vol. 5536 (2004) pp.171-174
-
-        http://dx.doi.org/10.1117/12.560903
-
-	In addition, published calculations using the xtubes aplication 
-	should also cite:
-
-	J.M. Boone T.H. Fewell and R. J. Jennings "Molybdenum, rhodium, and 
-	tungsten anode spectral models using interpolating polynomials with 
-	application to mammography"
-	Medical Physics 24(12) pp. 1863-1874, 1997. 
-
-
- LAST MODIFICATION: srio@esrf.eu 2008-01-28

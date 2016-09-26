@@ -1,5 +1,11 @@
-This program is built using CrysFml:
-    http://forge.ill.fr/projects/show/crysfml
+
+
+==============================  powder_fml  ======================================
+
+ powder_fml calculates x-ray diffraction patterns of crystal structures defined
+ in a CIF file.
+
+ This program is built using CrysFml: http://forge.ill.fr/projects/show/crysfml
     
 
 

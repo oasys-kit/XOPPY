@@ -1,0 +1,31 @@
+
+
+==================================   fh      ==================================
+
+ XFH calculates structure factor of crystals.
+
+ The data are taken from the XRAYLIB data base.
+
+
+This is a description of the input parameters for fh
+====================================================
+
+
+CRYSTAL: Select a crystal from this list of crystals.
+
+h MILLER INDEX: obvious
+k MILLER INDEX: obvious
+l MILLER INDEX: obvious
+
+TEMPERATURE FACTOR: Three possibilites:
+       Enter the exp(-M) value (a positive value between 0 and 1)
+
+
+FROM ENERGY [eV]: the starting photon energy for the calculation.
+
+TO ENERGY [eV]: the starting photon energy for the calculation.
+
+NUMBER OF POINTS: the number of points for the energy grid.
+	If set to 1, only the minimum energy point is calculated.
+
+

@@ -1,3 +1,14 @@
+
+
+==============================   inpro   ======================================
+
+ Inpro calculates perfect crystal reflectivity profiles.
+
+ It interfaced the inpro (INtrinsic PROfiles) code, developed at the ESRF
+ Optics Group in the late 80's and 90's. Inpro calculates the
+ diffracted and transmitted profiles in reflection (Bragg) and transmission 
+ (Laue) geometries for plane perfect crystals. 
+
 Input parameters for xinpro:
 ============================
 
@@ -14,7 +25,7 @@ Miller index l: obvious
 Asymmetry angle: in degrees. For Laue, the asymmetry angle is defined as
   the angle between the crystal normal and the bragg plases. For Bragg,
   this is the angle between the crystal surface and the bragg planes. In
-  other works, for Bragg-symmetrical alpha=0 a,d for Laue symmetrical
+  other works, for Bragg-symmetrical alpha=0 and for Laue symmetrical
   alpha=0.
 
 Crystal thickness [microns]

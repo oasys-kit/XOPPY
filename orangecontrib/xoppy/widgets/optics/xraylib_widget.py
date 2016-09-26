@@ -14,7 +14,7 @@ from orangecontrib.xoppy.util import xoppy_util
 class OWxraylib_widget(widget.OWWidget):
     name = "Xraylib"
     id = "orange.widgets.dataxraylib_widget"
-    description = "xoppy application to call XRAYLIB on the fly"
+    description = "XRAYLIB data"
     icon = "icons/xraylib.png"
     author = "Manuel Sanchez del Rio, Luca Rebuffi "
     maintainer_email = "srio@esrf.eu"

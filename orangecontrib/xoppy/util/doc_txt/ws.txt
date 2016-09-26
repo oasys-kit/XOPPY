@@ -1,44 +1,21 @@
-
-   ===========================  Xws   =========================
-
-   Xws is an widget based graphical interface to calculate 
-   spectral properties of a wiggler insertion device.
-
-   The main window contains four buttons:
-
-	QUIT: 	Exits from the program
-
-	DATA:   Defines the parameters for the calculation
-
-	SHOW:	Plots, Prints or Views the results
-
-	HELP:	Shows the Xws help text or the WS help text
-
- -----------------------------------------------------------------------
-	Author: Roger J. Dejus (dejus@anlaps.aps.anl.gov), APS, May, 1994.
-	Modification history:
-       96/01/19 MSR changes labels Xtransmit -> XOP/Optics
-       97/01/23 MSR changes for Windows95, cosmetics (xhelp, widget_message...)
-       97/02/05 MSR adds help button in parameters window.
-       97/10/02 MSR uses sdep(), xop_wd and other cosmetics.
-       00/07/17 MSR introduces ws 1.5 in the interface.
-
-
 C+
-C PROGRAM DESCRIPTION:	
+C Last modification date of this file: Tue Nov 25 16:19:19 CST 2014
+C Roger J. Dejus (dejus@aps.anl.gov)
+C
+C PROGRAM DESCRIPTION:
 C  Program to calculate wiggler and bending magnet spectra using the
 C  Bessel function approximation. The program may be executed from the xop
 C  interface.
-C 
-C AUTHORS: 
+C
+C AUTHORS:
 C  Roger J. Dejus
 C  The Advanced Photon Source
 C  Experimental Facilities Division
 C  Argonne National Laboratory
-C 
-C CREATION DATE: 
+C
+C CREATION DATE:
 C  17-FEB-1994
-C 
+C
 C INPUT PARAMETERS:
 C  The input parameters are divided into sections related to the storage ring,
 C  the wiggler device, and the quantity to be calculated.
@@ -55,7 +32,7 @@ C       strength of the magnetic field (in Tesla) for the bending magnet.  The
 C       calculated power density (pd) is correct, but the total power (ptot)
 C       is irrelevant. Typically make the extend of the pinhole small in the
 C	horizontal direction (theta << Ky/gamma) as the intensity should
-C	not depend on the horizontal offset. Check value of B0 (and critcal
+C	not depend on the horizontal offset. Check value of B0 (and critical
 C	energy EC0) in the plot file.
 C  Deflection parameter (hor.  field) Kx (= 0.0 only; for elliptical wiggler
 C  not yet implemented)
@@ -74,8 +51,8 @@ C  Y-size of pinhole (full width)	(mm) or (mrad)
 C    (for angular units (d=0.0) values are entered in mrad)
 C    (X is for horizontal direction)
 C    (Y is for the vertical direction)
-C  Number of subdivisions of pinhole in X (max 50)
-C  Number of subdivisions of pinhole in Y (max 50)
+C  Number of subdivisions of pinhole in X (max 200)
+C  Number of subdivisions of pinhole in Y (max 200)
 C
 C Mode:
 C  Depending on the mode selected, some of the pinhole parameters may be
@@ -105,7 +82,7 @@ C    -  Integrated over all energies, thus the energy parameters have no
 C       significance here.
 C
 C Polarization:
-C  The normalized Stokes parameters are calculated including the 
+C  The normalized Stokes parameters are calculated including the
 C  unpolarized component.
 C
 C DESIGN ISSUES:
@@ -119,49 +96,98 @@ C  Reference: Handbook of Mathematical Functions, Eds. Milton Abramowitz and
 C  Irene A. Stegun, Ninth Printing, Dover Publications, New York (1970).
 C  NOTE: THE POLARIZATION PARAMETERS ARE PROVIDED ALTHOUGH NOT THOROUGHLY
 C  TESTED - USE WITH CAUTION.
-C  
+C
 C COPYRIGHT:
-C  Unless part of the XOP software package, this routine must only be used 
-C  at The Advanced Photon Source and must not be tranferred or used at any 
-C  other location without the written consent of the author.
-C  
+C  This routine must only be used at The Advanced Photon Source and must not
+C  be tranferred or used at any other location without the written consent
+C  of the author.
+C
 C FILES USED:
-C  Input file - ws.dat  File in the user's current directory containing the
-C                       input parameters.
-C  Output file - ws.plt File in the user's current directory containing the 
-C                       results of the calculation.  The header contains
+C  Input file - ws.dat (tc.inp for XOP)  File in the user's current directory
+C                       containing the input parameters.
+C  Output file - ws.plt (tc.out for XOP) File in the user's current directory
+C                       containing the results of the calculation. The header contains
 C                       all input parameters and the calculated on-axis first
-C			harmonic energy (e1), corresponding wavelength (l1), 
+C			harmonic energy (e1), corresponding wavelength (l1),
 C			total power (ptot), and the on-axis power density (pd).
 C			See note above when using N=0.5 for bending magnet.
 C KEYWORDS:
 C  Wiggler Spectrum, Modified Bessel Function of Second kind.
-C  
+C
 C LINK/LIBRARY ISSUES:
 C  The gamma function is needed.  Currently uses no library routines. The values
 C  for gamma(2/3) and gamma(1/3) are stored as constants. May be substituted by
 C  calls to the NAG library routine S14AAF.
-C  
+C
 C PORTABILITY ISSUES:
-C  Runs on DEC 3000/400 AXP alpha (Tru64Unix v5.0), SUN (Solaris: SunOS
+C  Runs on DEC 3000/400 AXP alpha (Tru64Unix v5.0)
 C  Release v5.6), and Windows 95/98/NT (Pentium and higher).
-C  
+C  SUN: f90: Sun Fortran 95 8.3 SunOS_sparc 2007/05/03 (Tested November 24, 2008)
+C  Updated October 8, 2013 (Argonne National Laboratory), tested on:
+C  *** Linux Red Hat Enterprise Linux Workstation release 6.3 (Santiago) ***
+C  Red Hat Enterprise Linux (RHEL) 64-bit with the Intel(R) Fortran
+C  Intel(R) 64 Compiler XE for applications running on Intel(R) 64,
+C  Version 13.1.1.163 Build 2013031, and with GFORTRAN, gcc version 4.4.6 20120305
+C  (Red Hat 4.4.6-4) (GCC).
+C  *** Sun Solaris SunOS 5.10 Generic_147440-27 sun4u sparc SUNW,Sun-Blade-2500 ***
+C  Sun Fortran 90/95 8.4 SunOS_sparc Patch 128231-02 2009/10/20 with the -f77 switch.
+C  and with GFORTRAN, gcc version 4.5.1 (GCC).
+C  Windows 7/8 64-bit and MacOS X 10.6 (and newer) are also supported.
+C  The GFORTRAN compiler (GCC) v4.8.1 was used for compilations on Windows and (GCC) v4.6.1 on MacOS.
+C
 C TIMING:
 C  Execution time is typically very fast but depends on the quantity being
 C  calculated. Typically seconds to at the most minutes.
 C
+C EXAMPLES:
+C Ex. 1 using the input file ~/test/ws.txt (output file becomes ws.plt in the current working directory)
+C % ws ~/test/ws.txt
+C Ex. 2 using the default input file ws.dat in the current working directory (the output file becomes ws.plt).
+C % ws
+C Ex. 3 using the input abc in the current working directory (the output file becomes abc.plt).
+C % ws abc
+C
 C VERSION:
-C  1.5
-C  
+C  1.62
+C
 C MODIFICATION HISTORY:
-C 
+C
 C	 Date     | Name  | Description
 C ----------------+-------+-----------------------------------------------------
 C 17-JUL-2000     | RJD   | Adopted from v1.4 which was never released to the
 C                 |       | public. Turned off circular polarization for the
-C                 |       | wiggler (which is only valid for EMW). 
+C                 |       | wiggler (which is only valid for EMW).
 C                 |       | Current version is v1.5.
+C ----------------+-------+-----------------------------------------------------
+C 24-NOV-2008     | RJD   | Modified format statements 263 and 264 in main program
+C                 |       | to print additional digits. Modified format statements
+C                 |       | 210 and 220 in the print_out routine to print three
+C                 |       | digits in the exponent to allow for very small (and
+C                 |       | large) values. With the newest Sun Compiler, floating
+C                 |       | point underflow is being flagged (but not trapped)
+C                 |       | on the standard output. Nothing "extra" is written
+C                 |       | to the output file "ws.plt."
+C                 |       | The smallest value (double precision): 2.2250739e-308
+C                 |       | The largest value (double precision): 1.7976931e+308
+C                 |       | The floating underflow comes from the variables
+C                 |       | asigma and api which are less than sqrt(smallest value).
+C                 |       | Values are simply put to zero and no harm is done.
+C                 |       | Changed format statement 254 to print one more decimal.
+C                 |       | Increased the number of subdivisions of the pinhole
+C                 |       | from 50 to 200 (P_SZ=201).
+C                 |       | Current version is v1.6.
+C ----------------+-------+-----------------------------------------------------
+C 02-NOV-2013     | RJD   | Updated calls to date and time routines.
+C                 |       | Current version is v1.61.
+C ----------------+-------+-----------------------------------------------------
+C 10-JUN-2014     | RJD   | Updated so that an arbitrary input file can be used on the command line.
+C                 |       | If no input file is given on the command line then the file 'ws.dat'
+C                 |       | is assumed ('ws.inp' for the XOP version). The output filename is created
+C                 |       | from the rootname, which is derived from the input filename using the string after
+C                 |       | the last directory separator (/) without its trailing file extension (if it exists).
+C                 |       | The output filename is the rootname with the extension (.plt) appended (.out for the
+C                 |       | XOP version). Search "standalone" for changing defaults.
+C                 |       | Current version is v1.62.
 C ----------------+-------+-----------------------------------------------------
 C [change_entry]
 C-
-

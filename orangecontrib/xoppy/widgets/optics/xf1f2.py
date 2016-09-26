@@ -17,7 +17,7 @@ import xraylib
 class OWxf1f2(XoppyWidget):
     name = "F1F2"
     id = "orange.widgets.dataxf1f2"
-    description = "xoppy application to compute XF1F2"
+    description = "X-ray Matter Scattering Functions and Reflectivity"
     icon = "icons/xoppy_xf1f2.png"
     priority = 1
     category = ""
@@ -187,7 +187,7 @@ class OWxf1f2(XoppyWidget):
                  '(self.CALCULATE  == 7 or  self.CALCULATE == 8 or self.CALCULATE  == 9)  &  self.THETAGRID  ==  1']
 
     def get_help_name(self):
-        return 'xf1f2'
+        return 'f1f2'
 
     def check_fields(self):
         self.DESCRIPTOR = congruence.checkEmptyString(self.DESCRIPTOR, "formula")

@@ -10,7 +10,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 class OWxxcom(XoppyWidget):
     name = "XCOM"
     id = "orange.widgets.dataxxcom"
-    description = "xoppy application to compute XXCOM"
+    description = "X-ray Matter Cross Sections"
     icon = "icons/xoppy_xxcom.png"
     priority = 3
     category = ""
@@ -111,7 +111,7 @@ class OWxxcom(XoppyWidget):
          return ['True','True','True','self.SUBSTANCE  ==  3','True','self.GRID  !=  0','(self.GRID  !=  0)','self.SUBSTANCE  <=  1']
     
     def get_help_name(self):
-        return 'xxcom'
+        return 'xcom'
 
     def check_fields(self):
         self.DESCRIPTION = congruence.checkEmptyString(self.DESCRIPTION, "Description")

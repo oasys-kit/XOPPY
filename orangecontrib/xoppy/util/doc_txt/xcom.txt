@@ -1,5 +1,64 @@
 
+==============================  xcom   =======================================
+
+xcom calculates and display photon cross sections.
+
+
+XCOM is a code developed at NIST for calculating X-ray-Matter cross sections.
+
+
+You can get documentation and web-access from here:
+http://physics.nist.gov/PhysRefData/Xcom/Text/intro.html
+
+and a web interface here:
+http://physics.nist.gov/PhysRefData/Xcom/html/xcom1-t.html
+
+
+The XCOM program has been written by M.J. Berger and J.H. Hubbell at NIST
+
+In XOPPY, we interfaced an old standalone program running in PC under DOS. It that was
+adapted to run in Unix systems. For information of the models used and origin of the
+tabulated data please refer to XCOM documentation.
+
+Description of xcom input parameters:
+=====================================
+
+NAME: A title.
+SUBSTANCE: Element, compound or mixture.
+
+DESCRIPTION: Give the description formula for your substance. In the case
+  SUBSTANCE=Element (Atomic Number) enter a integer with the atomic number.
+  For SUBSTANCE= Element (Symbol) just enter the chemical symbol. For
+  Compounds enter the formula (i.e H2O for water) and for a mixture enter the
+  formulas of its components separated by ":".
+
+FRACTION: Only available when SUBSTANCE=Mixture. Enter here the fraction of
+  the total weight of each different constituents separated by ":"
+
+GRID:
+  Standard (Log scale in the interval 1keV 100GeV)
+  Standard+points: standard + user defined points.
+  Points only: Only user-defined points
+
+GRID POINTS: If GRID=Standard+points or Points only then the input energy
+  values [in MeV] can either be entered from a file or from the keyboard.
+
+GRID POINTS/FILE: If GRID POINTS=From keyboard, the energy values separated
+  by ":", else the file name.
+  THE FILE NAME SHOULD CONTAIN IN THE FIRST LINE THE NUMBER OF POINTS,
+  THEN THE LIST OF POINTS, LIKE:
+    322
+    0.0010178123
+    0.0010377131
+    ...
+OUTPUT QUANTITIES: If SUBSTANCE=Element, it is possible to choose between
+  different options for the output magnitudes and units.
+
+
+The documentation of the code interfaced here follows:
+
 XCOM Documentation
+==================
 
 M. J. Berger and J. H. Hubbell
 
