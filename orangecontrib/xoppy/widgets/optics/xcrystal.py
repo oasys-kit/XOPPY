@@ -348,6 +348,25 @@ class OWxcrystal(XoppyWidget):
         # ALLOW FIT BUTTON HERE
         self.plot_canvas[plot_canvas_index].fitAction.setVisible(True)
 
+        # overwrite FWHM and peak values
+        if title == "s-polarized reflectivity" or title == "p-polarized reflectivity":
+            t = numpy.where(y>=max(y)*0.5)
+            x_left,x_right =  x[t[0][0]], x[t[0][-1]]
+
+
+            self.plot_canvas[plot_canvas_index].addMarker(x_left, 0.5, legend="G1", text="FWHM=%5.2f"%(x_right-x_left),
+                                                          color="pink",selectable=False, draggable=False,
+                                                          symbol="+", constraint=None)
+            self.plot_canvas[plot_canvas_index].addMarker(x_right, 0.5, legend="G2", text=None, color="pink",
+                                                          selectable=False, draggable=False, symbol="+", constraint=None)
+
+            index_ymax = numpy.argmax(y)
+            self.plot_canvas[plot_canvas_index].addMarker(x[index_ymax], y[index_ymax], legend="G3",
+                                                          text=None, color="pink",
+                                                          selectable=False, draggable=False, symbol="+", constraint=None)
+            self.plot_canvas[plot_canvas_index].addMarker(x[index_ymax], y[index_ymax]-0.05, legend="G4",
+                                                          text="Peak=%5.2f"%(y[index_ymax]), color="pink",
+                                                          selectable=False, draggable=False, symbol=None, constraint=None)
 
     def xoppy_calc_xcrystal(self):
         CRYSTAL_MATERIAL = self.CRYSTAL_MATERIAL
