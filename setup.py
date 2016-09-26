@@ -115,5 +115,10 @@ if __name__ == '__main__':
                     shutil.copyfile("libraries/" + str(sys.platform) + "/srwlpy.so", site_packages_dir + "/srwlpy.so")
                 elif sys.platform == 'linux':
                     pass
+
+                # TODO: to be removed
+                #if sys.platform == 'linux':
+                #    os.remove(site_packages_dir + "/orangecontrib/xoppy/widgets/optics/xpower.py")
+
     except Exception as exception:
         print(str(exception))
