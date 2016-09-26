@@ -8,7 +8,7 @@ from oasys.widgets.exchange import DataExchangeObject
 from orangecontrib.xoppy.util.xoppy_xraylib_util import mare_calc
 from xraylib import Crystal_GetCrystalsList
 
-from orangecontrib.shadow.util.script.python_script import PythonConsole
+from orangecontrib.xoppy.util.script.python_script import PythonConsole
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 
