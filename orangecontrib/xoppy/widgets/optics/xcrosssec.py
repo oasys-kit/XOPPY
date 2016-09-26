@@ -126,7 +126,7 @@ class OWxcrosssec(XoppyWidget):
         gui.comboBox(box1, self, "UNIT",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=['barn/atom [Cross Section] *see help*', 'cm^2 [Cross Section] *see help*', 'cm^2/g [Mass abs coef]', 'cm^-1 [Linear abs coef]'],
-                    valueType=int, orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=130)
         self.show_at(self.unitFlags()[idx], box1) 
 
         gui.rubber(self.controlArea)

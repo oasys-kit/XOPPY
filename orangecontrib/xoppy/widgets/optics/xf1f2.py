@@ -78,7 +78,7 @@ class OWxf1f2(XoppyWidget):
         gui.comboBox(box1, self, "CALCULATE",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=['f1', 'f2', 'delta', 'beta *see help*', 'mu [cm^-1] *see help*', 'mu [cm^2/g] *see help*', 'Cross Section[barn] *see help*', 'reflectivity-s', 'reflectivity-p', 'reflectivity-unpol', 'delta/beta **see help**'],
-                    valueType=int, orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=150)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 

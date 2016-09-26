@@ -77,7 +77,7 @@ class OWxfh(XoppyWidget):
         gui.comboBox(box1, self, "plot_variable",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=self.plotOptionList()[2:],
-                    valueType=int, orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=150)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
