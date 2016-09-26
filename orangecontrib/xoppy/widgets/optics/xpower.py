@@ -76,7 +76,7 @@ class OWxpower(XoppyWidget):
         gui.comboBox(box1, self, "SOURCE",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=['Normalized to 1 (Standard E grid)  ', 'Normalized to 1 (E from keyboard)  ', 'From external file.                '],
-                    valueType=int, orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=150)
         self.show_at(self.unitFlags()[idx], box1)
         
         #widget index 6 
@@ -119,7 +119,7 @@ class OWxpower(XoppyWidget):
         gui.comboBox(box1, self, "NELEMENTS",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=['1', '2', '3', '4', '5'],
-                    valueType=int, orientation="horizontal", callback=self.set_NELEMENTS)
+                    valueType=int, orientation="horizontal", callback=self.set_NELEMENTS, labelWidth=330)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 11
@@ -137,7 +137,7 @@ class OWxpower(XoppyWidget):
         gui.comboBox(box1, self, "EL1_FLAG",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=['Filter', 'Mirror'],
-                    valueType=int, orientation="horizontal", callback=self.set_EL_FLAG)
+                    valueType=int, orientation="horizontal", callback=self.set_EL_FLAG, labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 13 
@@ -186,7 +186,7 @@ class OWxpower(XoppyWidget):
         gui.comboBox(box1, self, "EL2_FLAG",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=['Filter', 'Mirror'],
-                    valueType=int, orientation="horizontal", callback=self.set_EL_FLAG)
+                    valueType=int, orientation="horizontal", callback=self.set_EL_FLAG, labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 19 
@@ -235,7 +235,7 @@ class OWxpower(XoppyWidget):
         gui.comboBox(box1, self, "EL3_FLAG",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=['Filter', 'Mirror'],
-                    valueType=int, orientation="horizontal", callback=self.set_EL_FLAG)
+                    valueType=int, orientation="horizontal", callback=self.set_EL_FLAG, labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 25 
@@ -284,7 +284,7 @@ class OWxpower(XoppyWidget):
         gui.comboBox(box1, self, "EL4_FLAG",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=['Filter', 'Mirror'],
-                    valueType=int, orientation="horizontal", callback=self.set_EL_FLAG)
+                    valueType=int, orientation="horizontal", callback=self.set_EL_FLAG, labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 31 
@@ -333,7 +333,7 @@ class OWxpower(XoppyWidget):
         gui.comboBox(box1, self, "EL5_FLAG",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=['Filter', 'Mirror'],
-                    valueType=int, orientation="horizontal", callback=self.set_EL_FLAG)
+                    valueType=int, orientation="horizontal", callback=self.set_EL_FLAG, labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 37 
