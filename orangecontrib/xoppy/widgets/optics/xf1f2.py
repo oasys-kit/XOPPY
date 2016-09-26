@@ -1,13 +1,13 @@
 import sys
 import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QMessageBox
-from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
+# from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
-from orangecontrib.xoppy.util.xoppy_util import XoppyPlot
+# from orangecontrib.xoppy.util.xoppy_util import XoppyPlot
 from orangecontrib.xoppy.util.xoppy_xraylib_util import f1f2_calc,f1f2_calc_mix
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
@@ -272,24 +272,25 @@ class OWxf1f2(XoppyWidget):
                     pass
 
 
-    def plot_info(self, info, progressBarValue, tabs_canvas_index, plot_canvas_index):
-        self.tab[0].layout().removeItem(self.tab[0].layout().itemAt(0))
-
-        self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
-        self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
-        self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
-        self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(False)
-        self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(False)
-
-        self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
-
-        self.plot_canvas[plot_canvas_index].setGraphTitle(info)
-        self.plot_canvas[plot_canvas_index].setGraphXLabel("")
-        self.plot_canvas[plot_canvas_index].setGraphYLabel("")
-        self.plot_canvas[plot_canvas_index].resetZoom()
-        self.plot_canvas[plot_canvas_index].replot()
-
-        self.progressBarSet(progressBarValue)
+    # todo: srio commented: I think this part is useless??
+    # def plot_info(self, info, progressBarValue, tabs_canvas_index, plot_canvas_index):
+    #     self.tab[0].layout().removeItem(self.tab[0].layout().itemAt(0))
+    #
+    #     self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+    #     self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
+    #     self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
+    #     self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(False)
+    #     self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(False)
+    #
+    #     self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+    #
+    #     self.plot_canvas[plot_canvas_index].setGraphTitle(info)
+    #     self.plot_canvas[plot_canvas_index].setGraphXLabel("")
+    #     self.plot_canvas[plot_canvas_index].setGraphYLabel("")
+    #     self.plot_canvas[plot_canvas_index].resetZoom()
+    #     self.plot_canvas[plot_canvas_index].replot()
+    #
+    #     self.progressBarSet(progressBarValue)
 
     def get_data_exchange_widget_name(self):
         return "XF1F2"
@@ -313,7 +314,7 @@ class OWxf1f2(XoppyWidget):
         return [(0, 1)]
 
     def getLogPlot(self):
-        return[(False, False)]
+        return[(True, True)]
 
     def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False):
         super().plot_histo(x, y,progressBarValue, tabs_canvas_index, plot_canvas_index, title, xtitle, ytitle, log_x, log_y)

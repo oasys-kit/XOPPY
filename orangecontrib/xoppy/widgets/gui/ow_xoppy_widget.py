@@ -1,17 +1,15 @@
 import sys
 import numpy
 
-from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
-#TODO: migrate from PyMca to silx
-# from silx.gui.plot import PlotWindow
-
-from PyMca5.PyMcaIO import specfilewrapper as specfile
+from silx.gui.plot import PlotWindow, Plot2D
+from silx.io.specfile import SpecFile
 
 from PyQt4 import QtGui
 from PyQt4.QtCore import QRect
 from PyQt4.QtGui import QApplication
 
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+
 from srxraylib.plot import gol
 
 from orangewidget import gui
@@ -204,18 +202,21 @@ class XoppyWidget(widget.OWWidget):
 
     def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False, color='blue', replace=True):
         if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+            # self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
 
             # TODO: this is for silx
-            # self.plot_canvas[plot_canvas_index] = PlotWindow(parent=None, backend=None,
-            #                          resetzoom=True, autoScale=True,
-            #                          logScale=True, grid=True,
-            #                          curveStyle=True, colormap=False,
-            #                          aspectRatio=False, yInverted=False,
-            #                          copy=True, save=True, print_=True,
-            #                          control=True, position=True,
-            #                          roi=True, mask=False, fit=True)
+            self.plot_canvas[plot_canvas_index] = PlotWindow(parent=None, backend=None,
+                                     resetzoom=True, autoScale=False,
+                                     logScale=True, grid=True,
+                                     curveStyle=True, colormap=False,
+                                     aspectRatio=False, yInverted=False,
+                                     copy=True, save=True, print_=True,
+                                     control=False, position=True,
+                                     roi=False, mask=False, fit=False)
+
+            # self.plot_canvas[plot_canvas_index].fitAction.setVisible(True)
             # self.plot_canvas[plot_canvas_index].enableActiveCurveHandling(True)
+
 
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
             self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
@@ -253,54 +254,52 @@ class XoppyWidget(widget.OWWidget):
             origin = (xmin, ymin)
             scale = (abs((xmax-xmin)/len(dataX)), abs((ymax-ymin)/len(dataY)))
 
-            # PyMCA inverts axis!!!! histogram must be calculated reversed
-            data_to_plot = []
-            for y_index in range(0, len(dataY)):
-                x_values = []
-                for x_index in range(0, len(dataX)):
-                    x_values.append(data2D[x_index][y_index])
+            data_to_plot = data2D.T
 
-                data_to_plot.append(x_values)
+            colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
+
 
             if mode == 1:
-                self.plot_canvas[plot_canvas_index] = XoppyPlot.XoppyImageView()
-                colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
-
-                self.plot_canvas[plot_canvas_index]._imagePlot.setDefaultColormap(colormap)
-                self.plot_canvas[plot_canvas_index].setImage(numpy.array(data_to_plot), origin=origin, scale=scale)
+                #TODO: delete: srio commented this part as it is never used
+                raise Exception("Cannot use XoppyPlot.XoppyImageView()")
+                # self.plot_canvas[plot_canvas_index] = XoppyPlot.XoppyImageView()
+                # colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
+                #
+                # self.plot_canvas[plot_canvas_index]._imagePlot.setDefaultColormap(colormap)
+                # self.plot_canvas[plot_canvas_index].setImage(numpy.array(data_to_plot), origin=origin, scale=scale)
             elif mode == 2:
-                self.plot_canvas[plot_canvas_index] = PlotWindow(colormap=False,
-                                                                 flip=False,
-                                                                 grid=False,
-                                                                 togglePoints=False,
-                                                                 logx=False,
-                                                                 logy=False,
-                                                                 copy=False,
-                                                                 save=True,
-                                                                 aspect=True,
-                                                                 roi=False,
-                                                                 control=False,
-                                                                 position=False,
-                                                                 plugins=False)
 
-                colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
+                self.plot_canvas[plot_canvas_index] = Plot2D()
 
-                self.plot_canvas[plot_canvas_index].setDefaultColormap(colormap)
+                self.plot_canvas[plot_canvas_index].resetZoom()
+                self.plot_canvas[plot_canvas_index].setXAxisAutoScale(True)
+                self.plot_canvas[plot_canvas_index].setYAxisAutoScale(True)
+                self.plot_canvas[plot_canvas_index].setGraphGrid(False)
+                self.plot_canvas[plot_canvas_index].setKeepDataAspectRatio(True)
+                self.plot_canvas[plot_canvas_index].yAxisInvertedAction.setVisible(False)
+
+                self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(False)
+                self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(False)
+                self.plot_canvas[plot_canvas_index].maskAction.setVisible(False)
+                self.plot_canvas[plot_canvas_index].roiAction.setVisible(False)
+                self.plot_canvas[plot_canvas_index].colormapAction.setVisible(False)
+                self.plot_canvas[plot_canvas_index].setKeepDataAspectRatio(False)
+
 
                 self.plot_canvas[plot_canvas_index].addImage(numpy.array(data_to_plot),
                                                              legend="zio billy",
-                                                             xScale=(origin[0], scale[0]),
-                                                             yScale=(origin[1], scale[1]),
+                                                             scale=scale,
+                                                             origin=origin,
                                                              colormap=colormap,
-                                                             replace=True,
-                                                             replot=True)
+                                                             replace=True)
+
                 self.plot_canvas[plot_canvas_index].setActiveImage("zio billy")
 
                 from matplotlib.image import AxesImage
-                image = AxesImage(self.plot_canvas[plot_canvas_index]._plot.ax)
+                image = AxesImage(self.plot_canvas[plot_canvas_index]._backend.ax)
                 image.set_data(numpy.array(data_to_plot))
 
-                self.plot_canvas[plot_canvas_index]._plot.graph.fig.colorbar(image, ax=self.plot_canvas[plot_canvas_index]._plot.ax)
+                self.plot_canvas[plot_canvas_index]._backend.fig.colorbar(image, ax=self.plot_canvas[plot_canvas_index]._backend.ax)
 
             self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
             self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
@@ -370,7 +369,7 @@ class XoppyWidget(widget.OWWidget):
     def extract_data_from_xoppy_output(self, calculation_output):
         spec_file_name = calculation_output
 
-        sf = specfile.Specfile(spec_file_name)
+        sf = SpecFile(spec_file_name)
 
         if sf.scanno() == 1:
             #load spec file with one scan, # is comment

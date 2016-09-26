@@ -6,8 +6,6 @@ import numpy
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 
-from PyMca5.PyMcaIO import specfilewrapper as specfile
-
 from oasys.widgets.exchange import DataExchangeObject
 
 class OWPlotSimpleExchange(widget.OWWidget):

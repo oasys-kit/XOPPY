@@ -342,6 +342,12 @@ class OWxcrystal(XoppyWidget):
     def getLogPlot(self):
         return[(False, False), (False, False), (False, False), (False, False), (False, False)]
 
+    def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False):
+        super().plot_histo(x, y,progressBarValue, tabs_canvas_index, plot_canvas_index, title, xtitle, ytitle, log_x, log_y)
+
+        # ALLOW FIT BUTTON HERE
+        self.plot_canvas[plot_canvas_index].fitAction.setVisible(True)
+
 
     def xoppy_calc_xcrystal(self):
         CRYSTAL_MATERIAL = self.CRYSTAL_MATERIAL

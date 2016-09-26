@@ -1,7 +1,7 @@
 import sys
 import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QMessageBox
-from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
+# from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -209,23 +209,23 @@ class OWxcrosssec(XoppyWidget):
         except:
             self.plot_info(calculated_data.get_content("info") + "\n", progressBarValue, 0, 0)
 
-    def plot_info(self, info, progressBarValue, tabs_canvas_index, plot_canvas_index):
-        if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
-            self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
-            self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
-            self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(False)
-            self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(False)
-
-            self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
-
-        self.plot_canvas[plot_canvas_index].setGraphTitle(info)
-        self.plot_canvas[plot_canvas_index].setGraphXLabel("")
-        self.plot_canvas[plot_canvas_index].setGraphYLabel("")
-        self.plot_canvas[plot_canvas_index].resetZoom()
-        self.plot_canvas[plot_canvas_index].replot()
-
-        self.progressBarSet(progressBarValue)
+    # def plot_info(self, info, progressBarValue, tabs_canvas_index, plot_canvas_index):
+    #     if self.plot_canvas[plot_canvas_index] is None:
+    #         self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+    #         self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
+    #         self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
+    #         self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(False)
+    #         self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(False)
+    #
+    #         self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+    #
+    #     self.plot_canvas[plot_canvas_index].setGraphTitle(info)
+    #     self.plot_canvas[plot_canvas_index].setGraphXLabel("")
+    #     self.plot_canvas[plot_canvas_index].setGraphYLabel("")
+    #     self.plot_canvas[plot_canvas_index].resetZoom()
+    #     self.plot_canvas[plot_canvas_index].replot()
+    #
+    #     self.progressBarSet(progressBarValue)
 
     def get_data_exchange_widget_name(self):
         return "XCROSSSEC"

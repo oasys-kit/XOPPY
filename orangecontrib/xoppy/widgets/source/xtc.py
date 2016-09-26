@@ -1,7 +1,6 @@
 import sys,os
 import numpy
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
-from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
 
 from orangewidget import gui
 from orangewidget.settings import Setting
