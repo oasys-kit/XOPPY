@@ -204,7 +204,7 @@ class XoppyWidget(widget.OWWidget):
 
     def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False, color='blue', replace=True):
         if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True, plugins=False)
 
             # TODO: this is for silx
             # self.plot_canvas[plot_canvas_index] = PlotWindow(parent=None, backend=None,
@@ -280,7 +280,7 @@ class XoppyWidget(widget.OWWidget):
                                                                  aspect=True,
                                                                  roi=False,
                                                                  control=False,
-                                                                 position=False,
+                                                                 position=True,
                                                                  plugins=False)
 
                 colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
