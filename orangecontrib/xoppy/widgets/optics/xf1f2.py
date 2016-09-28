@@ -275,7 +275,7 @@ class OWxf1f2(XoppyWidget):
     def plot_info(self, info, progressBarValue, tabs_canvas_index, plot_canvas_index):
         self.tab[0].layout().removeItem(self.tab[0].layout().itemAt(0))
 
-        self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+        self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True, plugins=False)
         self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
         self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
         self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(False)
