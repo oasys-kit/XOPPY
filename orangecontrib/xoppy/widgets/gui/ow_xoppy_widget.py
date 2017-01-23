@@ -280,9 +280,10 @@ class XoppyWidget(widget.OWWidget):
 
                 self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(False)
                 self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(False)
-                self.plot_canvas[plot_canvas_index].maskAction.setVisible(False)
-                self.plot_canvas[plot_canvas_index].roiAction.setVisible(False)
-                self.plot_canvas[plot_canvas_index].colormapAction.setVisible(False)
+                #silx 0.4.0
+                self.plot_canvas[plot_canvas_index].getMaskAction().setVisible(False)
+                self.plot_canvas[plot_canvas_index].getRoiAction().setVisible(False)
+                self.plot_canvas[plot_canvas_index].getColormapAction().setVisible(False)
                 self.plot_canvas[plot_canvas_index].setKeepDataAspectRatio(False)
 
 
@@ -306,6 +307,40 @@ class XoppyWidget(widget.OWWidget):
             self.plot_canvas[plot_canvas_index].setGraphTitle(title)
 
         self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+
+
+
+    def plot_data3D(self, data3D, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle=""):
+
+        self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
+
+
+        from silx.gui.plot.StackView import StackViewMainWindow
+        xmin = numpy.min(dataX)
+        xmax = numpy.max(dataX)
+        ymin = numpy.min(dataY)
+        ymax = numpy.max(dataY)
+
+        origin = (xmin, ymin)
+        scale = (abs((xmax-xmin)/len(dataX)), abs((ymax-ymin)/len(dataY)))
+
+        print(">>>>>><><><>",data3D.shape)
+        data_to_plot = numpy.swapaxes(data3D,1,2)
+
+        colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
+
+        self.plot_canvas[plot_canvas_index] = StackViewMainWindow()
+
+        self.plot_canvas[plot_canvas_index].setGraphTitle(title)
+        self.plot_canvas[plot_canvas_index].setLabels(["Photon Energy [eV]",ytitle,xtitle])
+        self.plot_canvas[plot_canvas_index].setColormap(colormap=colormap)
+
+        self.plot_canvas[plot_canvas_index].setStack(numpy.array(data_to_plot), origin=origin, scale=scale,  )
+        self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+
+
+
+
 
     def compute(self):
         self.setStatusMessage("Running XOPPY")

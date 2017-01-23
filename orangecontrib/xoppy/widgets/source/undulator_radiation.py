@@ -1,4 +1,5 @@
 import sys
+import numpy
 
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
 from orangewidget import gui
@@ -21,6 +22,7 @@ class OWundulator_radiation(XoppyWidget):
     category = ""
     keywords = ["xoppy", "undulator_radiation"]
 
+    USEEMITTANCES=Setting(1)
     ELECTRONENERGY = Setting(6.04)
     ELECTRONENERGYSPREAD = Setting(0.001)
     ELECTRONCURRENT = Setting(0.2)
@@ -28,6 +30,9 @@ class OWundulator_radiation(XoppyWidget):
     ELECTRONBEAMSIZEV = Setting(9.9e-06)
     ELECTRONBEAMDIVERGENCEH = Setting(1.05e-05)
     ELECTRONBEAMDIVERGENCEV = Setting(3.9e-06)
+    PHOTONENERGYMIN = Setting(-10.0)
+    PHOTONENERGYMAX = Setting(10.0)
+    PHOTONENERGYPOINTS = Setting(20)
     PERIODID = Setting(0.018)
     NPERIODS = Setting(222)
     KV = Setting(1.68)
@@ -43,7 +48,20 @@ class OWundulator_radiation(XoppyWidget):
         box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1 
-        
+
+        #
+        #
+        #
+
+
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "USEEMITTANCES",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    items=['No', 'Yes'],
+                    valueType=int, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
         #widget index 0 
         idx += 1 
         box1 = gui.widgetBox(box) 
@@ -115,7 +133,35 @@ class OWundulator_radiation(XoppyWidget):
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
-        
+
+
+        #widget index <><>
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "PHOTONENERGYMIN",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index <><>
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "PHOTONENERGYMAX",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index <><>
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "PHOTONENERGYPOINTS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+
+
+
         #widget index 9 
         idx += 1 
         box1 = gui.widgetBox(box) 
@@ -174,10 +220,12 @@ class OWundulator_radiation(XoppyWidget):
         self.show_at(self.unitFlags()[idx], box1) 
 
     def unitLabels(self):
-         return ["Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]", "Electron Beam Size H [m]", "Electron Beam Size V [m]", "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", "Period ID [m]", "Number of periods", "Kv [undulator K value vertical field]", "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "Number of slit mesh points in H", "Number of slit mesh points in V", "calculation code"]
+        return ["Use emittances","Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]", "Electron Beam Size H [m]", "Electron Beam Size V [m]", "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", "Period ID [m]", "Number of periods",
+                 "Photon Energy Min [eV]","Photon Energy Max [eV]","Number of Photon Energy Points",
+                 "Kv [undulator K value vertical field]", "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "Number of slit mesh points in H", "Number of slit mesh points in V", "calculation code"]
 
     def unitFlags(self):
-         return ["True", "self.METHOD != 1", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True"]
+        return ["True", "True", "self.USEEMITTANCES == 1 and self.METHOD != 1", "True", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True"]
 
     def get_help_name(self):
         return 'undulator_radiation'
@@ -188,8 +236,13 @@ class OWundulator_radiation(XoppyWidget):
         self.ELECTRONCURRENT = congruence.checkStrictlyPositiveNumber(self.ELECTRONCURRENT, "Electron Current")
         self.ELECTRONBEAMSIZEH = congruence.checkPositiveNumber(self.ELECTRONBEAMSIZEH, "Electron Beam Size H")
         self.ELECTRONBEAMSIZEV = congruence.checkPositiveNumber(self.ELECTRONBEAMSIZEV, "Electron Beam Size V")
-        self.ELECTRONBEAMDIVERGENCEH = congruence.checkPositiveNumber(self.ELECTRONBEAMDIVERGENCEH, "Electron Beam Divergence H")
-        self.ELECTRONBEAMDIVERGENCEV = congruence.checkPositiveNumber(self.ELECTRONBEAMDIVERGENCEV, "Electron Beam Divergence V")
+        self.ELECTRONBEAMDIVERGENCEH = congruence.checkNumber(self.ELECTRONBEAMDIVERGENCEH, "Electron Beam Divergence H")
+        self.ELECTRONBEAMDIVERGENCEV = congruence.checkNumber(self.ELECTRONBEAMDIVERGENCEV, "Electron Beam Divergence V")
+
+        self.PHOTONENERGYMIN = congruence.checkNumber(self.PHOTONENERGYMIN, "Photon Energy Min")
+        self.PHOTONENERGYMAX = congruence.checkNumber(self.PHOTONENERGYMAX, "Photon Energy Max")
+        self.PHOTONENERGYPOINTS = congruence.checkStrictlyPositiveNumber(self.PHOTONENERGYPOINTS, "Number of Photon Energy Points")
+
         self.PERIODID = congruence.checkStrictlyPositiveNumber(self.PERIODID, "Period ID")
         self.NPERIODS = congruence.checkStrictlyPositiveNumber(self.NPERIODS, "Number of Periods")
         self.KV = congruence.checkPositiveNumber(self.KV, "Kv")
@@ -211,14 +264,13 @@ class OWundulator_radiation(XoppyWidget):
                 data = calculated_data.get_content("xoppy_data")
                 code = calculated_data.get_content("xoppy_code")
 
-                h = data[0]
-                v = data[1]
-                p = data[2]
+                e = data[0]
+                h = data[1]
+                v = data[2]
+                p = data[3]
 
                 try:
-                    print(">>>>> Result shapes",h.shape,v.shape,p[0].shape )
-
-                    self.plot_data2D(p[0], h, v, 0, 0,
+                    self.plot_data3D(p, h, v, 0, 0,
                                      xtitle='H [mm]',
                                      ytitle='V [mm]',
                                      title='Code '+code+'; Flux [photons/s/0.1%bw/mm^2]')
@@ -233,15 +285,35 @@ class OWundulator_radiation(XoppyWidget):
             else:
                 raise Exception("Empty Data")
 
+
     def do_xoppy_calculation(self):
-        return xoppy_calc_undulator_radiation(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,HSLITPOINTS=self.HSLITPOINTS,VSLITPOINTS=self.VSLITPOINTS,METHOD=self.METHOD)
+        return xoppy_calc_undulator_radiation(ELECTRONENERGY=self.ELECTRONENERGY,
+                    ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,
+                    ELECTRONCURRENT=self.ELECTRONCURRENT,
+                    ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,
+                    ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,
+                    ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,
+                    ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,
+                    PERIODID=self.PERIODID,
+                    NPERIODS=self.NPERIODS,
+                    KV=self.KV,
+                    DISTANCE=self.DISTANCE,
+                    GAPH=self.GAPH,
+                    GAPV=self.GAPV,
+                    HSLITPOINTS=self.HSLITPOINTS,
+                    VSLITPOINTS=self.VSLITPOINTS,
+                    METHOD=self.METHOD,
+                    PHOTONENERGYMIN=self.PHOTONENERGYMIN,
+                    PHOTONENERGYMAX=self.PHOTONENERGYMAX,
+                    PHOTONENERGYPOINTS=self.PHOTONENERGYPOINTS,
+                    USEEMITTANCES=self.USEEMITTANCES)
 
     def extract_data_from_xoppy_output(self, calculation_output):
         e, h, v, p, code = calculation_output
 
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
-        calculated_data.add_content("xoppy_data", [h, v, p])
+        calculated_data.add_content("xoppy_data", [e, h, v, p])
         calculated_data.add_content("xoppy_code", code)
 
         return calculated_data
@@ -260,7 +332,9 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
                                        ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
                                        ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
                                        PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.003,GAPV=0.003,\
-                                       HSLITPOINTS=41,VSLITPOINTS=41,METHOD=0):
+                                       HSLITPOINTS=41,VSLITPOINTS=41,METHOD=0,
+                                       PHOTONENERGYMIN=-0.00000001,PHOTONENERGYMAX=1.0,PHOTONENERGYPOINTS=1,
+                                       USEEMITTANCES=1):
     print("Inside xoppy_calc_undulator_radiation. ")
 
     bl = OrderedDict()
@@ -278,6 +352,10 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
     bl['gapH'] = GAPH
     bl['gapV'] = GAPV
 
+    if USEEMITTANCES:
+        zero_emittance = False
+    else:
+        zero_emittance = True
 
     gamma = ELECTRONENERGY / (codata_mee * 1e-3)
     print ("Gamma: %f \n"%(gamma))
@@ -289,9 +367,20 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
     print ("Resonance wavelength [A]: %g \n"%(1e10*resonance_wavelength))
     print ("Resonance energy [eV]: %g \n"%(resonance_energy))
 
-    energy = None
-    if energy == None:
-        energy = resonance_energy
+    # energy = None
+    # if energy == None:
+    #     energy = resonance_energy
+
+    if PHOTONENERGYMIN < 0.0:
+        # referred to resonance
+        photonEnergyMin = resonance_energy - numpy.abs(PHOTONENERGYMIN)
+        photonEnergyMax = resonance_energy + numpy.abs(PHOTONENERGYMAX)
+        photonEnergyPoints = PHOTONENERGYPOINTS
+    else:
+        # absolute
+        photonEnergyMin = PHOTONENERGYMIN
+        photonEnergyMax = PHOTONENERGYMAX
+        photonEnergyPoints = PHOTONENERGYPOINTS
 
     #TODO SPEC file can be removed
     outFile = "undulator_radiation.spec"
@@ -305,26 +394,34 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
         code = "US"
         print("Undulator radiation calculation using US. Please wait...")
         e,h,v,p = srundplug.calc3d_us(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
-                                    photonEnergyMin=energy,photonEnergyMax=13000,photonEnergyPoints=1,zero_emittance=False)
+                                    photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,
+                                    photonEnergyPoints=photonEnergyPoints,zero_emittance=zero_emittance)
         print("Done")
     if METHOD == 1:
         code = "URGENT"
         print("Undulator radiation calculation using URGENT. Please wait...")
         e,h,v,p = srundplug.calc3d_urgent(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
-                                    photonEnergyMin=energy,photonEnergyMax=13000,photonEnergyPoints=1,zero_emittance=False)
+                                    photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,
+                                    photonEnergyPoints=photonEnergyPoints,zero_emittance=zero_emittance)
         print("Done")
     if METHOD == 2:
         code = "SRW"
         print("Undulator radiation calculation using SRW. Please wait...")
         e,h,v,p = srundplug.calc3d_srw(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
-                                    photonEnergyMin=energy,photonEnergyMax=13000,photonEnergyPoints=1,zero_emittance=False)
+                                    photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,
+                                    photonEnergyPoints=photonEnergyPoints,zero_emittance=False)
         print("Done")
     if METHOD == 3:
         code = "pySRU"
         print("Undulator radiation calculation using SRW. Please wait...")
         e,h,v,p = srundplug.calc3d_pysru(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
-                                    photonEnergyMin=energy,photonEnergyMax=13000,photonEnergyPoints=1,zero_emittance=False)
+                                    photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,
+                                    photonEnergyPoints=photonEnergyPoints,zero_emittance=False)
         print("Done")
+
+    print("Calculated %d phonon energy points from %f to %f."%(photonEnergyPoints,photonEnergyMin,photonEnergyMax))
+    if zero_emittance:
+        print("No emittance.")
 
     return e, h, v, p, code
 

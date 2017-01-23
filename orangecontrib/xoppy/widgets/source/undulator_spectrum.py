@@ -21,6 +21,7 @@ class OWundulator_spectrum(XoppyWidget):
     category = ""
     keywords = ["xoppy", "undulator_spectrum"]
 
+    USEEMITTANCES=Setting(1)
     ELECTRONENERGY = Setting(6.04)
     ELECTRONENERGYSPREAD = Setting(0.001)
     ELECTRONCURRENT = Setting(0.2)
@@ -44,6 +45,24 @@ class OWundulator_spectrum(XoppyWidget):
         box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
         idx = -1
+
+
+
+        #
+        #
+        #
+
+
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "USEEMITTANCES",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    items=['No', 'Yes'],
+                    valueType=int, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+
+
 
         #widget index 0
         idx += 1
@@ -183,10 +202,10 @@ class OWundulator_spectrum(XoppyWidget):
         self.show_at(self.unitFlags()[idx], box1)
 
     def unitLabels(self):
-         return ["Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]", "Electron Beam Size H [m]", "Electron Beam Size V [m]", "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", "Period ID [m]", "Number of periods", "Kv [undulator K value vertical field]", "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "photon Energy Min [eV]", "photon Energy Max [eV]", "photon Energy Points", "calculation code"]
+         return ["Use emittances","Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]", "Electron Beam Size H [m]", "Electron Beam Size V [m]", "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", "Period ID [m]", "Number of periods", "Kv [undulator K value vertical field]", "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "photon Energy Min [eV]", "photon Energy Max [eV]", "photon Energy Points", "calculation code"]
 
     def unitFlags(self):
-         return ["True", "self.METHOD != 1", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True"]
+         return ["True", "True", "self.USEEMITTANCES == 1 and self.METHOD != 1", "True", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True"]
 
     def get_help_name(self):
         return 'undulator_spectrum'
@@ -210,11 +229,28 @@ class OWundulator_spectrum(XoppyWidget):
         congruence.checkLessThan(self.PHOTONENERGYMIN, self.PHOTONENERGYMAX, "photon Energy Min", "photon Energy Max")
         self.PHOTONENERGYPOINTS = congruence.checkStrictlyPositiveNumber(self.PHOTONENERGYPOINTS, "photon Energy Points")
 
-        if sys.platform == 'linux' and self.METHOD == 2:
-            raise Exception("SRW calculation code not supported under Linux")
+        # if sys.platform == 'linux' and self.METHOD == 2:
+        #     raise Exception("SRW calculation code not supported under Linux")
 
     def do_xoppy_calculation(self):
-        return xoppy_calc_undulator_spectrum(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,PHOTONENERGYMIN=self.PHOTONENERGYMIN,PHOTONENERGYMAX=self.PHOTONENERGYMAX,PHOTONENERGYPOINTS=self.PHOTONENERGYPOINTS,METHOD=self.METHOD)
+        return xoppy_calc_undulator_spectrum(ELECTRONENERGY=self.ELECTRONENERGY,
+                                             ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,
+                                             ELECTRONCURRENT=self.ELECTRONCURRENT,
+                                             ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,
+                                             ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,
+                                             ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,
+                                             ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,
+                                             PERIODID=self.PERIODID,
+                                             NPERIODS=self.NPERIODS,
+                                             KV=self.KV,
+                                             DISTANCE=self.DISTANCE,
+                                             GAPH=self.GAPH,
+                                             GAPV=self.GAPV,
+                                             PHOTONENERGYMIN=self.PHOTONENERGYMIN,
+                                             PHOTONENERGYMAX=self.PHOTONENERGYMAX,
+                                             PHOTONENERGYPOINTS=self.PHOTONENERGYPOINTS,
+                                             METHOD=self.METHOD,
+                                             USEEMITTANCES=self.USEEMITTANCES)
 
     def extract_data_from_xoppy_output(self, calculation_output):
         e, f, sp = calculation_output
@@ -253,7 +289,8 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
                               ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
                               ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
                               PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
-                              PHOTONENERGYMIN=3000.0,PHOTONENERGYMAX=55000.0,PHOTONENERGYPOINTS=500,METHOD=0):
+                              PHOTONENERGYMIN=3000.0,PHOTONENERGYMAX=55000.0,PHOTONENERGYPOINTS=500,METHOD=0,
+                              USEEMITTANCES=1):
     print("Inside xoppy_calc_undulator_spectrum. ")
 
     bl = OrderedDict()
@@ -271,25 +308,32 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
     bl['gapH'] = GAPH
     bl['gapV'] = GAPV
 
+    if USEEMITTANCES:
+        zero_emittance = False
+    else:
+        zero_emittance = True
+
     #TODO remove file and export e,f arrays
     outFile = "undulator_spectrum.spec"
 
     if METHOD == 0:
         print("Undulator flux calculation using US. Please wait...")
         e, f = srundplug.calc1d_us(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
-              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
+              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False,zero_emittance=zero_emittance)
         print("Done")
     if METHOD == 1:
         print("Undulator flux calculation using URGENT. Please wait...")
         e, f = srundplug.calc1d_urgent(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
-              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
+              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False,zero_emittance=zero_emittance)
         print("Done")
     if METHOD == 2:
         print("Undulator flux calculation using SRW. Please wait...")
         e, f = srundplug.calc1d_srw(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
-              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False)
+              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False,zero_emittance=zero_emittance)
         print("Done")
 
+    if zero_emittance:
+        print("No emittance calculation")
     return e, f, f*srfunc.codata_ec * 1e3
 
 

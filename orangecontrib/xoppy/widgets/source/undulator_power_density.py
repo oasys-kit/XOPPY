@@ -19,6 +19,7 @@ class OWundulator_power_density(XoppyWidget):
     category = ""
     keywords = ["xoppy", "undulator_power_density"]
 
+    USEEMITTANCES=Setting(1)
     ELECTRONENERGY = Setting(6.04)
     ELECTRONENERGYSPREAD = Setting(0.001)
     ELECTRONCURRENT = Setting(0.2)
@@ -41,7 +42,20 @@ class OWundulator_power_density(XoppyWidget):
         box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1 
-        
+        #
+        #
+        #
+
+
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "USEEMITTANCES",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    items=['No', 'Yes'],
+                    valueType=int, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+
         #widget index 0 
         idx += 1 
         box1 = gui.widgetBox(box) 
@@ -172,10 +186,10 @@ class OWundulator_power_density(XoppyWidget):
         self.show_at(self.unitFlags()[idx], box1) 
 
     def unitLabels(self):
-         return ["Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]", "Electron Beam Size H [m]", "Electron Beam Size V [m]", "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", "Period ID [m]", "Number of periods", "Kv [undulator K value vertical field]", "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "Number of slit mesh points in H", "Number of slit mesh points in V", "calculation code"]
+         return ["Use emittances","Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]", "Electron Beam Size H [m]", "Electron Beam Size V [m]", "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", "Period ID [m]", "Number of periods", "Kv [undulator K value vertical field]", "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "Number of slit mesh points in H", "Number of slit mesh points in V", "calculation code"]
 
     def unitFlags(self):
-         return ["True", "self.METHOD != 1", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True"]
+         return ["True","True", "self.USEEMITTANCES == 1 and self.METHOD != 1", "True", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "True", "True", "True", "True", "True", "True", "True", "True", "True"]
 
     def get_help_name(self):
         return 'undulator_power_density'
@@ -232,7 +246,23 @@ class OWundulator_power_density(XoppyWidget):
                 raise Exception("Empty Data")
 
     def do_xoppy_calculation(self):
-        return  xoppy_calc_undulator_power_density(ELECTRONENERGY=self.ELECTRONENERGY,ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,ELECTRONCURRENT=self.ELECTRONCURRENT,ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,PERIODID=self.PERIODID,NPERIODS=self.NPERIODS,KV=self.KV,DISTANCE=self.DISTANCE,GAPH=self.GAPH,GAPV=self.GAPV,HSLITPOINTS=self.HSLITPOINTS,VSLITPOINTS=self.VSLITPOINTS,METHOD=self.METHOD)
+        return  xoppy_calc_undulator_power_density(ELECTRONENERGY=self.ELECTRONENERGY,
+                                                   ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,
+                                                   ELECTRONCURRENT=self.ELECTRONCURRENT,
+                                                   ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,
+                                                   ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,
+                                                   ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,
+                                                   ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,
+                                                   PERIODID=self.PERIODID,
+                                                   NPERIODS=self.NPERIODS,
+                                                   KV=self.KV,
+                                                   DISTANCE=self.DISTANCE,
+                                                   GAPH=self.GAPH,
+                                                   GAPV=self.GAPV,
+                                                   HSLITPOINTS=self.HSLITPOINTS,
+                                                   VSLITPOINTS=self.VSLITPOINTS,
+                                                   METHOD=self.METHOD,
+                                                   USEEMITTANCES=self.USEEMITTANCES)
 
     def extract_data_from_xoppy_output(self, calculation_output):
         h, v, p, code = calculation_output
@@ -257,7 +287,7 @@ def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=
                                        ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
                                        ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
                                        PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
-                                       HSLITPOINTS=101,VSLITPOINTS=51,METHOD=0):
+                                       HSLITPOINTS=101,VSLITPOINTS=51,METHOD=0,USEEMITTANCES=1):
     print("Inside xoppy_calc_undulator_power_density. ")
 
     bl = OrderedDict()
@@ -275,24 +305,35 @@ def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=
     bl['gapH'] = GAPH
     bl['gapV'] = GAPV
 
+    if USEEMITTANCES:
+        zero_emittance = False
+    else:
+        zero_emittance = True
+
     #TODO remove SPEC file
     outFile = "undulator_power_density.spec"
 
     if METHOD == 0:
         code = "US"
         print("Undulator power_density calculation using US. Please wait...")
-        h,v,p = srundplug.calc2d_us(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS)
+        h,v,p = srundplug.calc2d_us(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
+                                    zero_emittance=zero_emittance)
         print("Done")
     if METHOD == 1:
         code = "URGENT"
         print("Undulator power_density calculation using URGENT. Please wait...")
-        h,v,p = srundplug.calc2d_urgent(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS)
+        h,v,p = srundplug.calc2d_urgent(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
+                                        zero_emittance=zero_emittance)
         print("Done")
     if METHOD == 2:
         code = "SRW"
         print("Undulator power_density calculation using SRW. Please wait...")
-        h,v,p = srundplug.calc2d_srw(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS)
+        h,v,p = srundplug.calc2d_srw(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
+                                     zero_emittance=zero_emittance)
         print("Done")
+
+    if zero_emittance:
+        print("No emittance calculation")
 
     return h, v, p, code
 
