@@ -324,7 +324,6 @@ class XoppyWidget(widget.OWWidget):
         origin = (xmin, ymin)
         scale = (abs((xmax-xmin)/len(dataX)), abs((ymax-ymin)/len(dataY)))
 
-        print(">>>>>><><><>",data3D.shape)
         data_to_plot = numpy.swapaxes(data3D,1,2)
 
         colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
