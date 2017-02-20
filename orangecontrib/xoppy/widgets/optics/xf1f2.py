@@ -78,7 +78,7 @@ class OWxf1f2(XoppyWidget):
         gui.comboBox(box1, self, "CALCULATE",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=['f1', 'f2', 'delta', 'beta *see help*', 'mu [cm^-1] *see help*', 'mu [cm^2/g] *see help*', 'Cross Section[barn] *see help*', 'reflectivity-s', 'reflectivity-p', 'reflectivity-unpol', 'delta/beta **see help**'],
-                    valueType=int, orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=150)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
@@ -271,26 +271,6 @@ class OWxf1f2(XoppyWidget):
                 except:
                     pass
 
-
-    # todo: srio commented: I think this part is useless??
-    # def plot_info(self, info, progressBarValue, tabs_canvas_index, plot_canvas_index):
-    #     self.tab[0].layout().removeItem(self.tab[0].layout().itemAt(0))
-    #
-    #     self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
-    #     self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
-    #     self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
-    #     self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(False)
-    #     self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(False)
-    #
-    #     self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
-    #
-    #     self.plot_canvas[plot_canvas_index].setGraphTitle(info)
-    #     self.plot_canvas[plot_canvas_index].setGraphXLabel("")
-    #     self.plot_canvas[plot_canvas_index].setGraphYLabel("")
-    #     self.plot_canvas[plot_canvas_index].resetZoom()
-    #     self.plot_canvas[plot_canvas_index].replot()
-    #
-    #     self.progressBarSet(progressBarValue)
 
     def get_data_exchange_widget_name(self):
         return "XF1F2"

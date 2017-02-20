@@ -126,7 +126,7 @@ class OWxcrosssec(XoppyWidget):
         gui.comboBox(box1, self, "UNIT",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=['barn/atom [Cross Section] *see help*', 'cm^2 [Cross Section] *see help*', 'cm^2/g [Mass abs coef]', 'cm^-1 [Linear abs coef]'],
-                    valueType=int, orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=130)
         self.show_at(self.unitFlags()[idx], box1) 
 
         gui.rubber(self.controlArea)
@@ -209,23 +209,6 @@ class OWxcrosssec(XoppyWidget):
         except:
             self.plot_info(calculated_data.get_content("info") + "\n", progressBarValue, 0, 0)
 
-    # def plot_info(self, info, progressBarValue, tabs_canvas_index, plot_canvas_index):
-    #     if self.plot_canvas[plot_canvas_index] is None:
-    #         self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
-    #         self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
-    #         self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
-    #         self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(False)
-    #         self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(False)
-    #
-    #         self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
-    #
-    #     self.plot_canvas[plot_canvas_index].setGraphTitle(info)
-    #     self.plot_canvas[plot_canvas_index].setGraphXLabel("")
-    #     self.plot_canvas[plot_canvas_index].setGraphYLabel("")
-    #     self.plot_canvas[plot_canvas_index].resetZoom()
-    #     self.plot_canvas[plot_canvas_index].replot()
-    #
-    #     self.progressBarSet(progressBarValue)
 
     def get_data_exchange_widget_name(self):
         return "XCROSSSEC"

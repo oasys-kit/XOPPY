@@ -31,7 +31,7 @@ class OWxtubes(XoppyWidget):
         gui.comboBox(box1, self, "ITUBE",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=['Mo', 'Rh', 'W'],
-                    valueType=int, orientation="horizontal")
+                    valueType=int, orientation="horizontal", labelWidth=330)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 

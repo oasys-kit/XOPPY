@@ -451,7 +451,9 @@ class OWxcrystal(XoppyWidget):
                 f.write("%g\n"%RMER)
                 f.write("0\n")
 
-                if CRYSTAL_MATERIAL >=  5: # not Si,Ge,Diamond
+                if ( (descriptor == "Si") or (descriptor == "Si2") or (descriptor == "Si_NIST") or (descriptor == "Ge") or descriptor == "Diamond"):
+                    pass
+                else:  # not Si,Ge,Diamond
                     if ((ANISOTROPY == 1) or (ANISOTROPY == 2)):
                         raise Exception("Anisotropy data not available for this crystal. Either use isotropic or use external compliance file. Please change and run again'")
 

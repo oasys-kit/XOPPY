@@ -202,7 +202,7 @@ class XoppyWidget(widget.OWWidget):
 
     def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False, color='blue', replace=True):
         if self.plot_canvas[plot_canvas_index] is None:
-            # self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+
 
             # TODO: this is for silx
             self.plot_canvas[plot_canvas_index] = PlotWindow(parent=None, backend=None,
@@ -269,6 +269,7 @@ class XoppyWidget(widget.OWWidget):
                 # self.plot_canvas[plot_canvas_index].setImage(numpy.array(data_to_plot), origin=origin, scale=scale)
             elif mode == 2:
 
+
                 self.plot_canvas[plot_canvas_index] = Plot2D()
 
                 self.plot_canvas[plot_canvas_index].resetZoom()
@@ -285,6 +286,7 @@ class XoppyWidget(widget.OWWidget):
                 self.plot_canvas[plot_canvas_index].getRoiAction().setVisible(False)
                 self.plot_canvas[plot_canvas_index].getColormapAction().setVisible(False)
                 self.plot_canvas[plot_canvas_index].setKeepDataAspectRatio(False)
+
 
 
                 self.plot_canvas[plot_canvas_index].addImage(numpy.array(data_to_plot),
