@@ -45,8 +45,10 @@ import shutil # to copy files
 #SRW
 try:
     import srwlib
-except ImportError:
-    print("Failed to import srwlib. Do not try to use it!")
+    SRWLIB_AVAILABLE = True
+except:
+    SRWLIB_AVAILABLE = False
+    print("SRW is not available")
 
 #catch standard optput
 try:
@@ -2076,9 +2078,10 @@ def compare_flux(beamline,emin=3000.0,emax=50000.0,npoints=200,include_pysru=Tru
     print("Calculating %d spectrum points in [%f,%f] eV"%(npoints,emin,emax))
 
 
-    e_s,f_s = calc1d_srw(beamline,photonEnergyMin=emin,photonEnergyMax=emax,
-          photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True,
-                         srw_max_harmonic_number=srw_max_harmonic_number)
+    if SRWLIB_AVAILABLE:
+        e_s,f_s = calc1d_srw(beamline,photonEnergyMin=emin,photonEnergyMax=emax,
+              photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True,
+                             srw_max_harmonic_number=srw_max_harmonic_number)
 
     e_ur,f_ur = calc1d_urgent(beamline,photonEnergyMin=emin,photonEnergyMax=emax,
           photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
@@ -2092,15 +2095,22 @@ def compare_flux(beamline,emin=3000.0,emax=50000.0,npoints=200,include_pysru=Tru
 
 
     if iplot:
-        if include_pysru:
+        if include_pysru and SRWLIB_AVAILABLE:
             plot(e_s,f_s,e_ur,f_ur,e_us,f_us,e_py,f_py,title=beamline['name'],show=0,legend=["SRW","URGENT","US",'pySRU'],ylog=True)
             plot(e_s,f_s,e_ur,f_ur,e_us,f_us,e_py,f_py,title=beamline['name'],show=0,legend=["SRW","URGENT","US",'pySRU'],ylog=False)
 
-            plot(e_s,f_s,e_py,f_py,title=beamline['name'],show=0,legend=["SRW",'pySRU'],ylog=True)
-            plot(e_s,f_s,e_py,f_py,title=beamline['name'],show=0,legend=["SRW",'pySRU'],ylog=False)
+            # plot(e_s,f_s,e_py,f_py,title=beamline['name'],show=0,legend=["SRW",'pySRU'],ylog=True)
+            # plot(e_s,f_s,e_py,f_py,title=beamline['name'],show=0,legend=["SRW",'pySRU'],ylog=False)
         else:
-            plot(e_s,f_s,e_ur,f_ur,e_us,f_us,title=beamline['name'],show=0,legend=["SRW","URGENT","US"],ylog=True)
-            plot(e_s,f_s,e_ur,f_ur,e_us,f_us,title=beamline['name'],show=0,legend=["SRW","URGENT","US"],ylog=False)
+            if SRWLIB_AVAILABLE:
+                plot(e_s,f_s,e_ur,f_ur,e_us,f_us,title=beamline['name'],show=0,legend=["SRW","URGENT","US"],ylog=True)
+                plot(e_s,f_s,e_ur,f_ur,e_us,f_us,title=beamline['name'],show=0,legend=["SRW","URGENT","US"],ylog=False)
+            elif include_pysru:
+                plot(e_ur,f_ur,e_us,f_us,e_py,f_py,title=beamline['name'],show=0,legend=["URGENT","US",'pySRU'],ylog=True)
+                plot(e_ur,f_ur,e_us,f_us,e_py,f_py,title=beamline['name'],show=0,legend=["URGENT","US",'pySRU'],ylog=False)
+            else:
+                plot(e_ur,f_ur,e_us,f_us,title=beamline['name'],show=0,legend=["URGENT","US"],ylog=True)
+                plot(e_ur,f_ur,e_us,f_us,title=beamline['name'],show=0,legend=["URGENT","US"],ylog=False)
 
         if show:
             plot_show()
@@ -2129,8 +2139,9 @@ def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,include_py
     if include_pysru:
         r_pysru = calc_from_3d("pySRU",  beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
                              npoints_grid=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-    r_srw = calc_from_3d("SRW",      beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
-                             npoints_grid=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+    if SRWLIB_AVAILABLE:
+        r_srw = calc_from_3d("SRW",      beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
+                                 npoints_grid=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
     r_us = calc_from_3d("US",        beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
                              npoints_grid=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
     r_urgent = calc_from_3d("URGENT",beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
@@ -2139,7 +2150,7 @@ def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,include_py
 
 
     if iplot:
-        if include_pysru:
+        if include_pysru and SRWLIB_AVAILABLE:
             plot(r_pysru["e"],r_pysru["spectrum"],
                  r_srw["e"],r_srw["spectrum"],
                  r_us["e"],r_us["spectrum"],
@@ -2151,14 +2162,31 @@ def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,include_py
                  r_urgent["e"],r_urgent["spectrum"],
                  title=beamline,show=0,legend=["pySRU","SRW","US","URGENT"],ylog=False)
         else:
-            plot(r_srw["e"],r_srw["spectrum"],
-                 r_us["e"],r_us["spectrum"],
-                 r_urgent["e"],r_urgent["spectrum"],
-                 title=beamline,show=0,legend=["SRW","US","URGENT"],ylog=True)
-            plot(r_srw["e"],r_srw["spectrum"],
-                 r_us["e"],r_us["spectrum"],
-                 r_urgent["e"],r_urgent["spectrum"],
-                 title=beamline,show=0,legend=["SRW","US","URGENT"],ylog=False)
+            if include_pysru:
+                plot(r_pysru["e"],r_pysru["spectrum"],
+                     r_us["e"],r_us["spectrum"],
+                     r_urgent["e"],r_urgent["spectrum"],
+                     title=beamline,show=0,legend=["pySRU","US","URGENT"],ylog=True)
+                plot(r_pysru["e"],r_pysru["spectrum"],
+                     r_us["e"],r_us["spectrum"],
+                     r_urgent["e"],r_urgent["spectrum"],
+                     title=beamline,show=0,legend=["pySRU","US","URGENT"],ylog=False)
+            elif SRWLIB_AVAILABLE:
+                plot(r_srw["e"],r_srw["spectrum"],
+                     r_us["e"],r_us["spectrum"],
+                     r_urgent["e"],r_urgent["spectrum"],
+                     title=beamline,show=0,legend=["SRW","US","URGENT"],ylog=True)
+                plot(r_srw["e"],r_srw["spectrum"],
+                     r_us["e"],r_us["spectrum"],
+                     r_urgent["e"],r_urgent["spectrum"],
+                     title=beamline,show=0,legend=["SRW","US","URGENT"],ylog=False)
+            else:
+                plot(r_us["e"],r_us["spectrum"],
+                     r_urgent["e"],r_urgent["spectrum"],
+                     title=beamline,show=0,legend=["US","URGENT"],ylog=True)
+                plot(r_us["e"],r_us["spectrum"],
+                     r_urgent["e"],r_urgent["spectrum"],
+                     title=beamline,show=0,legend=["US","URGENT"],ylog=False)
 
 
         if show:
@@ -2169,21 +2197,23 @@ def compare_power_density(beamline,npoints_grid=21,include_pysru=True,
                           zero_emittance=False,fileName=None,iplot=False,show=True):
 
 
-    h_s,v_s,p_s =       calc2d_srw(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
     h_ur,v_ur,p_ur = calc2d_urgent(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
     h_us,v_us,p_us =     calc2d_us(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
 
+    if SRWLIB_AVAILABLE:
+        h_s,v_s,p_s = calc2d_srw(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+
     if include_pysru:
-        h_py,v_py,p_py =  calc2d_pysru(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        h_py,v_py,p_py = calc2d_pysru(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
 
     if iplot:
+        cmax = numpy.max([p_ur.max(),p_us.max()])
         if include_pysru:
-            contour_levels = numpy.linspace(0,numpy.max([p_s.max(),p_ur.max(),p_us.max(),p_py.max()]),100)
-        else:
-            contour_levels = numpy.linspace(0,numpy.max([p_s.max(),p_ur.max(),p_us.max()]),100)
+            cmax = numpy.max([cmax,p_py.max()])
+        if SRWLIB_AVAILABLE:
+            cmax = numpy.max([cmax,p_s.max()])
 
-        plot_contour(p_s,h_s,v_s,title="%s SRW"%beamline['name'],xtitle="H [mm]",ytitle="V [mm]",plot_points=0,
-                     contour_levels=contour_levels,cmap=None,cbar=1,cbar_title="Power density [$W/mm^2$]",show=0)
+        contour_levels = numpy.linspace(0,cmax,100)
 
         plot_contour(p_ur,h_ur,v_ur,title="%s URGENT"%beamline['name'],xtitle="H [mm]",ytitle="V [mm]",plot_points=0,
                      contour_levels=contour_levels,cmap=None,cbar=1,cbar_title="Power density [$W/mm^2$]",show=0)
@@ -2191,13 +2221,19 @@ def compare_power_density(beamline,npoints_grid=21,include_pysru=True,
         plot_contour(p_us,h_us,v_us,title="%s US"%beamline['name'],xtitle="H [mm]",ytitle="V [mm]",plot_points=0,
                      contour_levels=contour_levels,cmap=None,cbar=1,cbar_title="Power density [$W/mm^2$]",show=0)
 
+        if SRWLIB_AVAILABLE:
+            plot_contour(p_s,h_s,v_s,title="%s SRW"%beamline['name'],xtitle="H [mm]",ytitle="V [mm]",plot_points=0,
+                         contour_levels=contour_levels,cmap=None,cbar=1,cbar_title="Power density [$W/mm^2$]",show=0)
+
         if include_pysru:
             plot_contour(p_py,h_py,v_py,title="%s pySRU"%beamline['name'],xtitle="H [mm]",ytitle="V [mm]",plot_points=0,
                      contour_levels=contour_levels,cmap=None,cbar=1,cbar_title="Power density [$W/mm^2$]",show=0)
 
-        plot_surface(p_s ,h_s,v_s,  title="SRW;    ",xtitle="H [mm]",ytitle="V [mm]",show=0)
+
         plot_surface(p_ur,h_ur,v_ur,title="URGENT; ",xtitle="H [mm]",ytitle="V [mm]",show=0)
         plot_surface(p_us,h_us,v_us,title="US;     ",xtitle="H [mm]",ytitle="V [mm]",show=0)
+        if SRWLIB_AVAILABLE:
+            plot_surface(p_s ,h_s,v_s,  title="SRW;    ",xtitle="H [mm]",ytitle="V [mm]",show=0)
         if include_pysru:
             plot_surface(p_py,h_py,v_py,title="pySRU;  ",xtitle="H [mm]",ytitle="V [mm]",show=0)
 
@@ -2222,40 +2258,39 @@ def compare_radiation(beamline,energy=None,npoints_grid=51,
         energy = resonance_energy
 
 
-    e_s,h_s,v_s,f_s = calc3d_srw(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
-                        hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
-                        zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-
+    if SRWLIB_AVAILABLE:
+        e_s,h_s,v_s,f_s = calc3d_srw(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+                            hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
+                            zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        print("Shapes for SRW:",e_s.shape,h_s.shape,v_s.shape,f_s.shape)
 
     e_py,h_py,v_py,f_py = calc3d_pysru(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
                         hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
                         zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-
-    print("Shapes for SRW:",e_s.shape,h_s.shape,v_s.shape,f_s.shape)
-    # print("Shapes for URGENT:",e_u.shape,h_u.shape,v_u.shape,f_u.shape)
-    # print("Shapes for US:",e_us.shape,h_us.shape,v_us.shape,f_us.shape,"MAX: ",f_us.max())
     print("Shapes for pySRU:",e_py.shape,h_py.shape,v_py.shape,f_py.shape,"MAX: ",f_py.max())
 
 
     print("Integrals for:")
-    print("         SRW   :",f_s.sum()*(h_s[1]-h_s[0])*(v_s[1]-v_s[0]) )
-    # print("         URGENT:",f_u.sum()*(h_u[1]-h_u[0])*(v_u[1]-v_u[0]) )
-    # print("         US    :",f_us.sum()*(h_us[1]-h_us[0])*(v_us[1]-v_us[0]) )
+    if SRWLIB_AVAILABLE: print("         SRW   :",f_s.sum()*(h_s[1]-h_s[0])*(v_s[1]-v_s[0]) )
     print("         pySRU :",f_py.sum()*(h_py[1]-h_py[0])*(v_py[1]-v_py[0]) )
 
     #
     if iplot:
 
-        contour_levels = numpy.linspace(0,numpy.max([f_s.max(),f_py.max()]),20)
+        if SRWLIB_AVAILABLE:
+            contour_levels = numpy.linspace(0,numpy.max([f_s.max(),f_py.max()]),20)
+        else:
+            contour_levels = numpy.linspace(0,f_py.max(),20)
 
-        plot_contour(f_s[e_s.size/2],h_s,v_s,title="%s SRW; E=%g eV"%(beamline['name'],e_s[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,cmap=None,
-                     cbar=1,cbar_title="Flux ",show=False)
+        if SRWLIB_AVAILABLE:
+            plot_contour(f_s[e_s.size/2],h_s,v_s,title="%s SRW; E=%g eV"%(beamline['name'],e_s[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,cmap=None,
+                         cbar=1,cbar_title="Flux ",show=False)
 
         plot_contour(f_py[e_py.size/2],h_py,v_py,title="%s pySRU; E=%g eV"%(beamline['name'],e_py[e_py.size/2]),xtitle="H [mm]",ytitle="V [mm]",
                  plot_points=0,contour_levels=contour_levels,cmap=None,
                  cbar=1,cbar_title="Flux ",show=False)
 
-        plot_surface(f_s[e_s.size/2],h_s,v_s,title="%s SRW; E=%g eV"%(beamline['name'],e_s[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=False)
+        if SRWLIB_AVAILABLE: plot_surface(f_s[e_s.size/2],h_s,v_s,title="%s SRW; E=%g eV"%(beamline['name'],e_s[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=False)
         plot_surface(f_py[e_py.size/2],h_py,v_py,title="%s pySRU; E=%g eV"%(beamline['name'],e_py[e_py.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=False)
 
         if show:
@@ -2315,4 +2350,4 @@ def main(radiance=True,flux=True,flux_from_3d=True,power_density=True):
         compare_power_density(beamline,npoints_grid=51,include_pysru=False,zero_emittance=zero_emittance,iplot=True)
 
 if __name__ == '__main__':
-    main(radiance=True,flux=True,flux_from_3d=False,power_density=True)
+    main(radiance=True,flux=False,flux_from_3d=False,power_density=False)
