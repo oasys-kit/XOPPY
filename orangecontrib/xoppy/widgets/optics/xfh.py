@@ -17,7 +17,7 @@ class OWxfh(XoppyWidget):
     id = "orange.widgets.dataxfh"
     description = "Crystal Structure Factors"
     icon = "icons/xoppy_xfh.png"
-    priority = 5
+    priority = 17
     category = ""
     keywords = ["xoppy", "xfh"]
 

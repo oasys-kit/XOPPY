@@ -19,7 +19,7 @@ class OWxcrosssec(XoppyWidget):
     id = "orange.widgets.dataxcrosssec"
     description = "X-ray Matter Cross Sections"
     icon = "icons/xoppy_xcrosssec.png"
-    priority = 2
+    priority = 19
     category = ""
     keywords = ["xoppy", "xcrosssec"]
 

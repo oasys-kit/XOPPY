@@ -16,7 +16,7 @@ class OWxtc(XoppyWidget):
     id = "orange.widgets.dataxtc"
     description = "Undulator Tuning Curves"
     icon = "icons/xoppy_xtc.png"
-    priority = 2
+    priority = 7
     category = ""
     keywords = ["xoppy", "xtc"]
 
@@ -286,8 +286,8 @@ class OWxtc(XoppyWidget):
                                                          "Click on curve to highlight it",
                                                          xlabel=xtitles[index], ylabel=ytitles[index],
                                                          symbol='', color='white')
-                        self.plot_canvas[index].setActiveCurve("Click on curve to highlight it")
-                        self.plot_canvas[index].showLegends()
+                        # self.plot_canvas[index].setActiveCurve("Click on curve to highlight it")
+                        # self.plot_canvas[index].showLegends()
 
                         self.tabs.setCurrentIndex(index)
                     except Exception as e:
@@ -368,8 +368,8 @@ class OWxtc(XoppyWidget):
             lines = f.readlines()
 
         # print output file
-        for line in lines:
-            print(line, end="")
+        # for line in lines:
+        #     print(line, end="")
 
 
         # remove returns
@@ -405,7 +405,7 @@ class OWxtc(XoppyWidget):
         data = numpy.loadtxt(floatlist)
 
         for index in range(0, len(harmonics_data)):
-            print (harmonics_data[index][0], harmonics_data[index][1])
+            # print (harmonics_data[index][0], harmonics_data[index][1])
             harmonics_data[index][1] = numpy.loadtxt(harmonics_data[index][1])
 
         #send exchange

@@ -14,7 +14,7 @@ class OWxwiggler(XoppyWidget):
     id = "orange.widgets.dataxwiggler"
     description = "Wiggler Spectrum (Full Emission)"
     icon = "icons/xoppy_xwiggler.png"
-    priority = 6
+    priority = 9
     category = ""
     keywords = ["xoppy", "xwiggler"]
 

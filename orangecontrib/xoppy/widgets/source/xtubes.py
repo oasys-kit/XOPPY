@@ -12,7 +12,7 @@ class OWxtubes(XoppyWidget):
     id = "orange.widgets.dataxtubes"
     description = "X-ray tube Spectrum (Mo,Rh,W)"
     icon = "icons/xoppy_xtubes.png"
-    priority = 9
+    priority = 15
     category = ""
     keywords = ["xoppy", "xtubes"]
 

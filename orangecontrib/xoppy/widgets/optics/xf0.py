@@ -18,7 +18,7 @@ class OWxf0(XoppyWidget):
     id = "orange.widgets.dataxf0"
     description = "Elastic Scattering Function"
     icon = "icons/xoppy_xf0.png"
-    priority = 11
+    priority = 13
     category = ""
     keywords = ["xoppy", "xf0"]
 

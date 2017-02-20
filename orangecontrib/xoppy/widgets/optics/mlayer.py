@@ -20,7 +20,7 @@ class OWmlayer(XoppyWidget):
     id = "orange.widgets.datamlayer"
     description = "Multilayer Reflectivity"
     icon = "icons/xoppy_mlayer.png"
-    priority = 10
+    priority = 11
     category = ""
     keywords = ["xoppy", "mlayer"]
 

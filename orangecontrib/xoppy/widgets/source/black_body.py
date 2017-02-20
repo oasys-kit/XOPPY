@@ -13,7 +13,7 @@ class OWblack_body(XoppyWidget):
     id = "orange.widgets.datablack_body"
     description = "Black Body Spectrum"
     icon = "icons/xoppy_black_body.png"
-    priority = 10
+    priority = 19
     category = ""
     keywords = ["xoppy", "black_body"]
 

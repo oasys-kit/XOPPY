@@ -16,7 +16,7 @@ class OWxpowder_fml(XoppyWidget):
     id = "orange.widgets.dataxpowder_fml"
     description = "X-ray Powder Diffraction Pattern"
     icon = "icons/xoppy_xpowder_fml.png"
-    priority = 9
+    priority = 23
     category = ""
     keywords = ["xoppy", "xpowder_fml"]
 

@@ -18,7 +18,7 @@ class OWxraylib_widget(widget.OWWidget):
     icon = "icons/xraylib.png"
     author = "Manuel Sanchez del Rio, Luca Rebuffi "
     maintainer_email = "srio@esrf.eu"
-    priority = 12
+    priority = 25
     category = ""
     keywords = ["xoppy", "xraylib_widget"]
 

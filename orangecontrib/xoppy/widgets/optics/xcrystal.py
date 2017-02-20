@@ -19,7 +19,7 @@ class OWxcrystal(XoppyWidget):
     id = "orange.widgets.dataxcrystal"
     description = "Crystal Reflectivity (perfect, bent, mosaic)"
     icon = "icons/xoppy_xcrystal.png"
-    priority = 6
+    priority = 5
     category = ""
     keywords = ["xoppy", "xcrystal"]
  

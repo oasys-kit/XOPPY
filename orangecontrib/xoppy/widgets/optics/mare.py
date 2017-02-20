@@ -17,7 +17,7 @@ class OWmare(XoppyWidget):
     id = "orange.widgets.datamare"
     description = "Crystal Multiple Diffraction"
     icon = "icons/xoppy_mare.png"
-    priority = 8
+    priority = 9
     category = ""
     keywords = ["xoppy", "mare"]
 

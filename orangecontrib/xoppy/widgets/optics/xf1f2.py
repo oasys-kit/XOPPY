@@ -19,7 +19,7 @@ class OWxf1f2(XoppyWidget):
     id = "orange.widgets.dataxf1f2"
     description = "X-ray Matter Scattering Functions and Reflectivity"
     icon = "icons/xoppy_xf1f2.png"
-    priority = 1
+    priority = 15
     category = ""
     keywords = ["xoppy", "xf1f2"]
 

@@ -18,7 +18,7 @@ class OWundulator_radiation(XoppyWidget):
     id = "orange.widgets.dataundulator_radiation"
     description = "Undulator Radiation"
     icon = "icons/xoppy_undulator_radiation.png"
-    priority = 4
+    priority = 5
     category = ""
     keywords = ["xoppy", "undulator_radiation"]
 

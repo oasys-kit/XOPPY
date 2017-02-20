@@ -4,6 +4,8 @@ import numpy
 from silx.gui.plot import PlotWindow, Plot2D
 from silx.io.specfile import SpecFile
 
+from silx.gui.plot.StackView import StackViewMainWindow
+
 from PyQt4 import QtGui
 from PyQt4.QtCore import QRect
 from PyQt4.QtGui import QApplication
@@ -200,19 +202,30 @@ class XoppyWidget(widget.OWWidget):
         self.xoppy_output.setTextCursor(cursor)
         self.xoppy_output.ensureCursorVisible()
 
-    def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False, color='blue', replace=True):
+    def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
+                   log_x=False, log_y=False, color='blue', replace=True):
         if self.plot_canvas[plot_canvas_index] is None:
 
 
             # TODO: this is for silx
-            self.plot_canvas[plot_canvas_index] = PlotWindow(parent=None, backend=None,
-                                     resetzoom=True, autoScale=False,
-                                     logScale=True, grid=True,
-                                     curveStyle=True, colormap=False,
-                                     aspectRatio=False, yInverted=False,
-                                     copy=True, save=True, print_=True,
-                                     control=False, position=True,
-                                     roi=False, mask=False, fit=False)
+            self.plot_canvas[plot_canvas_index] = PlotWindow(parent=None,
+                                                             backend=None,
+                                                             resetzoom=True,
+                                                             autoScale=False,
+                                                             logScale=True,
+                                                             grid=True,
+                                                             curveStyle=True,
+                                                             colormap=False,
+                                                             aspectRatio=False,
+                                                             yInverted=False,
+                                                             copy=True,
+                                                             save=True,
+                                                             print_=True,
+                                                             control=False,
+                                                             position=True,
+                                                             roi=False,
+                                                             mask=False,
+                                                             fit=False)
 
             # self.plot_canvas[plot_canvas_index].fitAction.setVisible(True)
             # self.plot_canvas[plot_canvas_index].enableActiveCurveHandling(True)
@@ -222,6 +235,8 @@ class XoppyWidget(widget.OWWidget):
             self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
             self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(log_x)
             self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(log_y)
+            self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
+            self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
 
             self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
@@ -317,7 +332,6 @@ class XoppyWidget(widget.OWWidget):
         self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
 
 
-        from silx.gui.plot.StackView import StackViewMainWindow
         xmin = numpy.min(dataX)
         xmax = numpy.max(dataX)
         ymin = numpy.min(dataY)

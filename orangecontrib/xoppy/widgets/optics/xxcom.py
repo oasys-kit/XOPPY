@@ -12,7 +12,7 @@ class OWxxcom(XoppyWidget):
     id = "orange.widgets.dataxxcom"
     description = "X-ray Matter Cross Sections"
     icon = "icons/xoppy_xxcom.png"
-    priority = 3
+    priority = 21
     category = ""
     keywords = ["xoppy", "xxcom"]
 

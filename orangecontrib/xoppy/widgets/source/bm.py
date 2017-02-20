@@ -9,12 +9,14 @@ from srxraylib.sources import srfunc
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 from oasys.widgets.exchange import DataExchangeObject
 
+# TODO show flux(psi) and 2D plot
+
 class OWbm(XoppyWidget):
     name = "BM"
     id = "orange.widgets.databm"
     description = "Bending Magnet Spectrum"
     icon = "icons/xoppy_bm.png"
-    priority = 7
+    priority = 13
     category = ""
     keywords = ["xoppy", "bm"]
 
@@ -24,7 +26,7 @@ class OWbm(XoppyWidget):
     MACHINE_R_M = Setting(25.0)
     BFIELD_T = Setting(0.8)
     BEAM_ENERGY_GEV = Setting(6.0)
-    CURRENT_A = Setting(0.1)
+    CURRENT_A = Setting(0.2)
     HOR_DIV_MRAD = Setting(1.0)
     VER_DIV = Setting(0)
     PHOT_ENERGY_MIN = Setting(100.0)

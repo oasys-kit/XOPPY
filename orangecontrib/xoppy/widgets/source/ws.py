@@ -15,7 +15,7 @@ class OWws(XoppyWidget):
     id = "orange.widgets.dataws"
     description = "Wiggler Spectrum on a Screen"
     icon = "icons/xoppy_ws.png"
-    priority = 5
+    priority = 11
     category = ""
     keywords = ["xoppy", "ws"]
 
