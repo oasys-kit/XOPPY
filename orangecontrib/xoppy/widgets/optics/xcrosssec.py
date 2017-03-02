@@ -33,7 +33,8 @@ class OWxcrosssec(XoppyWidget):
     GRIDEND = Setting(10000.0)
     GRIDN = Setting(200)
     UNIT = Setting(0)
-
+    DUMP_TO_FILE = Setting(0)  # No
+    FILE_NAME = Setting("CrossSec.dat")
 
     xtitle = None
     ytitle = None
@@ -129,13 +130,36 @@ class OWxcrosssec(XoppyWidget):
                     valueType=int, orientation="horizontal", labelWidth=130)
         self.show_at(self.unitFlags()[idx], box1) 
 
+        # widget index 11
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "DUMP_TO_FILE",
+                     label=self.unitLabels()[idx], addSpace=True,
+                     items=["No", "Yes"],
+                     orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
+        # widget index 12
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.lineEdit(box1, self, "FILE_NAME",
+                     label=self.unitLabels()[idx], addSpace=True)
+        self.show_at(self.unitFlags()[idx], box1)
+
+
+
+
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['material','table','formula','density','Cross section','Energy [eV] grid:','Starting Energy [eV]: ','To: ','Number of points','Units']
+         return ['material','table','formula','density','Cross section','Energy [eV] grid:',
+                 'Starting Energy [eV]: ','To: ','Number of points','Units',
+                 'Dump to file','File name']
 
     def unitFlags(self):
-         return ['True','self.MAT_FLAG  ==  2','self.MAT_FLAG  <=  1 ','self.MAT_FLAG  ==  1  &  self.UNIT  ==  3','True','True','self.GRID  !=  0','self.GRID  ==  1','self.GRID  ==  1','True']
+         return ['True','self.MAT_FLAG  ==  2','self.MAT_FLAG  <=  1 ','self.MAT_FLAG  ==  1  &  self.UNIT  ==  3',
+                 'True','True','self.GRID  !=  0','self.GRID  ==  1','self.GRID  ==  1','True',
+                 'True','self.DUMP_TO_FILE == 1']
 
     def get_help_name(self):
         return 'crosssec'
@@ -295,6 +319,25 @@ class OWxcrosssec(XoppyWidget):
             txt = "xoppy_calc_xcrosssec: Calculated %s cross section: %g %s"%(calculate_items[CALCULATE],out[UNIT+1,0],unit_items[UNIT])
             print(txt)
             to_return  = {"application":"xoppy","name":"xcrosssec","info":txt}
+
+        if self.DUMP_TO_FILE:
+            with open(self.FILE_NAME, "w") as file:
+                try:
+                    file.write("#F %s\n"%self.FILE_NAME)
+                    file.write("\n#S 1 xoppy CrossSec results\n")
+                    file.write("#N 5\n")
+                    tmp = "#L  Photon energy [eV]"
+                    for unit_item in unit_items:
+                        tmp += "  %s [%s]"%(calculate_items[CALCULATE],unit_item)
+                    tmp += "\n"
+                    file.write(tmp)
+                    for j in range(out.shape[1]):
+                        # file.write("%19.12e  "%energy[j])
+                        file.write(("%19.12e  "*out.shape[0]+"\n")%tuple(out[i,j] for i in range(out.shape[0])))
+                    file.close()
+                    print("File written to disk: %s \n"%self.FILE_NAME)
+                except:
+                    raise Exception("CrossSec: The data could not be dumped onto the specified file!\n")
 
         return to_return
 

@@ -37,6 +37,8 @@ class OWxf1f2(XoppyWidget):
     THETA1 = Setting(2.0)
     THETA2 = Setting(5.0)
     THETAN = Setting(50)
+    DUMP_TO_FILE = Setting(0)  # No
+    FILE_NAME = Setting("f1f2.dat")
 
     xtitle = None
     ytitle = None
@@ -155,6 +157,29 @@ class OWxf1f2(XoppyWidget):
                     valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
+
+        # widget index 15
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "DUMP_TO_FILE",
+                     label=self.unitLabels()[idx], addSpace=True,
+                     items=["No", "Yes"],
+                     orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
+        # widget index 16
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.lineEdit(box1, self, "FILE_NAME",
+                     label=self.unitLabels()[idx], addSpace=True)
+        self.show_at(self.unitFlags()[idx], box1)
+
+
+
+        gui.rubber(self.controlArea)
+
+
+
     def unitLabels(self):
          return ['material',                        #   True',
                  'formula',                         #   self.MAT_FLAG  <=  1',
@@ -168,7 +193,9 @@ class OWxf1f2(XoppyWidget):
                  'Roughness rms [A]',               #   self.CALCULATE  ==  0 or (s
                  'Starting Graz angle [mrad]',      #   self.CALCULATE  ==  0 or (s
                  'To [mrad]',                       #   (self.CALCULATE  ==  0 or (
-                 'Number of angular points']        #   (self.CALCULATE  ==  0 or (
+                 'Number of angular points',        #   (self.CALCULATE  ==  0 or (
+                 'Dump to file',
+                 'File name']
 
 
     def unitFlags(self):
@@ -184,7 +211,9 @@ class OWxf1f2(XoppyWidget):
                  'self.CALCULATE  == 7 or  self.CALCULATE == 8 or self.CALCULATE  == 9',
                  'self.CALCULATE  == 7 or  self.CALCULATE == 8 or self.CALCULATE  == 9',
                  '(self.CALCULATE  == 7 or  self.CALCULATE == 8 or self.CALCULATE  == 9)  &  self.THETAGRID  ==  1',
-                 '(self.CALCULATE  == 7 or  self.CALCULATE == 8 or self.CALCULATE  == 9)  &  self.THETAGRID  ==  1']
+                 '(self.CALCULATE  == 7 or  self.CALCULATE == 8 or self.CALCULATE  == 9)  &  self.THETAGRID  ==  1',
+                 'True',
+                 'self.DUMP_TO_FILE == 1']
 
     def get_help_name(self):
         return 'f1f2'
@@ -406,6 +435,28 @@ class OWxf1f2(XoppyWidget):
             calculated_data.add_content("dataY", out_dict["dataY"])
         except:
             pass
+
+
+        if self.DUMP_TO_FILE:
+            with open(self.FILE_NAME, "w") as file:
+                try:
+                    file.write("#F %s\n"%self.FILE_NAME)
+                    file.write("\n#S 1 xoppy f1f2 results\n")
+
+                    print("data shape",out_dict["data"].shape)
+                    print("labels: ",out_dict["labels"])
+                    file.write("#N 2\n")
+                    file.write("#L  %s  %s\n"%(out_dict["labels"][0],out_dict["labels"][1]))
+                    out = out_dict["data"]
+                    for j in range(out.shape[1]):
+                        file.write(("%19.12e  "*out.shape[0]+"\n")%tuple(out[i,j] for i in range(out.shape[0])))
+                    file.close()
+                    print("File written to disk: %s \n"%self.FILE_NAME)
+                except:
+                    raise Exception("CrossSec: The data could not be dumped onto the specified file!\n")
+
+
+
 
         return calculated_data
 

@@ -27,6 +27,8 @@ class OWxf0(XoppyWidget):
     GRIDSTART = Setting(0.0)
     GRIDEND = Setting(8.0)
     GRIDN = Setting(100)
+    DUMP_TO_FILE = Setting(0)  # No
+    FILE_NAME = Setting("f0.dat")
 
     def build_gui(self):
 
@@ -74,12 +76,31 @@ class OWxf0(XoppyWidget):
                     valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
+        # widget index 8
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "DUMP_TO_FILE",
+                     label=self.unitLabels()[idx], addSpace=True,
+                     items=["No", "Yes"],
+                     orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
+        # widget index 9
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.lineEdit(box1, self, "FILE_NAME",
+                     label=self.unitLabels()[idx], addSpace=True)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['material','formula','From q [sin(theta)/lambda]: ','To q [sin(theta)/lambda]: ','Number of q points']
+         return ['material','formula','From q [sin(theta)/lambda]: ','To q [sin(theta)/lambda]: ','Number of q points',
+                 'Dump to file','File name']
 
     def unitFlags(self):
-         return ['True','self.MAT_FLAG  !=  2','True','True','True']
+         return ['True','self.MAT_FLAG  !=  2','True','True','True',
+                 'True','self.DUMP_TO_FILE == 1']
 
     def get_help_name(self):
         return 'f0'
@@ -156,10 +177,26 @@ class OWxf0(XoppyWidget):
         elif MAT_FLAG == 2:
             raise Exception("Not implemented")
 
+        if self.DUMP_TO_FILE:
+            with open(self.FILE_NAME, "w") as file:
+                try:
+                    file.write("#F %s\n"%self.FILE_NAME)
+                    file.write("\n#S 1 xoppy f0 results\n")
+                    file.write("#N 2\n")
+                    file.write("#L  q=sin(theta)/lambda [A^-1]  f0 [electron units]\n")
+                    for j in range(qscale.size):
+                        # file.write("%19.12e  "%energy[j])
+                        file.write("%19.12e  %19.12e\n"%(qscale[j],f0[j]))
+                    file.close()
+                    print("File written to disk: %s \n"%self.FILE_NAME)
+                except:
+                    raise Exception("f0: The data could not be dumped onto the specified file!\n")
+
+
         #
         # return
         #
-        return {"application":"xoppy","name":"xf0","data":numpy.vstack((qscale,f0)),"labels":["q=sin(theta)/lambda [A^-1]","f0 [electron units]"]}
+        return {"application":"xoppy","name":"f0","data":numpy.vstack((qscale,f0)),"labels":["q=sin(theta)/lambda [A^-1]","f0 [electron units]"]}
 
 
 if __name__ == "__main__":
