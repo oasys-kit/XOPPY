@@ -554,7 +554,7 @@ def xpower_calc(energies=numpy.linspace(1000.0,50000.0,100),source=numpy.ones(10
     outColTitles.append("Source")
 
     txt = ""
-    txt += "*************************** Xpower Results ******************\n"
+    txt += "*************************** power results ******************\n"
     if energies[0] != energies[-1]:
         txt += "  Source energy: start=%f keV, end=%f keV, points=%d \n"%(energies[0],energies[-1],energies.size)
     else:
@@ -668,7 +668,7 @@ def xpower_calc(energies=numpy.linspace(1000.0,50000.0,100),source=numpy.ones(10
         f = open(output_file,"w")
         f.write("#F "+output_file+"\n")
         f.write("\n")
-        f.write("#S 1 xpower: properties of optical elements\n")
+        f.write("#S 1 power: properties of optical elements\n")
 
         txt2 = txt.splitlines()
         for i in range(len(txt2)):

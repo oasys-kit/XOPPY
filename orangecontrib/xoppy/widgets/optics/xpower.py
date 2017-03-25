@@ -58,6 +58,7 @@ class OWxpower(XoppyWidget):
     EL5_ANG = Setting(3.0)
     EL5_ROU = Setting(0.0)
     EL5_DEN = Setting("?")
+    PLOT_SETS = Setting(2)
     FILE_DUMP = 0
 
     def build_gui(self):
@@ -372,9 +373,20 @@ class OWxpower(XoppyWidget):
         box1 = gui.widgetBox(box)
         gui.separator(box1, height=7)
 
+        gui.comboBox(box1, self, "PLOT_SETS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    items=['Local properties', 'Cumulated intensities', 'All'],
+                    valueType=int, orientation="horizontal", labelWidth=250, callback=self.set_NELEMENTS)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 42
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.separator(box1, height=7)
+
         gui.comboBox(box1, self, "FILE_DUMP",
                      label=self.unitLabels()[idx], addSpace=False,
-                    items=['No', 'Yes (xpower.spec)'],
+                    items=['No', 'Yes (power.spec)'],
                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
@@ -396,7 +408,7 @@ class OWxpower(XoppyWidget):
                  '3rd oe formula','kind:','Filter thick[mm]','Mirror angle[mrad]','Roughness[A]','Density [g/cm^3]',
                  '4th oe formula','kind:','Filter thick[mm]','Mirror angle[mrad]','Roughness[A]','Density [g/cm^3]',
                  '5th oe formula','kind:','Filter thick[mm]','Mirror angle[mrad]','Roughness[A]','Density [g/cm^3]',
-                 "Dump file"]
+                 "Plot","Dump file"]
 
 
     def unitFlags(self):
@@ -411,7 +423,7 @@ class OWxpower(XoppyWidget):
                  'self.NELEMENTS  >=  2',' self.NELEMENTS  >=  2','self.EL3_FLAG  ==  0  and  self.NELEMENTS  >=  2','self.EL3_FLAG  !=  0  and  self.NELEMENTS  >=  2','self.EL3_FLAG  !=  0  and  self.NELEMENTS  >=  2',' self.NELEMENTS  >=  2',
                  'self.NELEMENTS  >=  3',' self.NELEMENTS  >=  3','self.EL4_FLAG  ==  0  and  self.NELEMENTS  >=  3','self.EL4_FLAG  !=  0  and  self.NELEMENTS  >=  3','self.EL4_FLAG  !=  0  and  self.NELEMENTS  >=  3',' self.NELEMENTS  >=  3',
                  'self.NELEMENTS  >=  4',' self.NELEMENTS  >=  4','self.EL5_FLAG  ==  0  and  self.NELEMENTS  >=  4','self.EL5_FLAG  !=  0  and  self.NELEMENTS  >=  4','self.EL5_FLAG  !=  0  and  self.NELEMENTS  >=  4',' self.NELEMENTS  >=  4',
-                 'True']
+                 'True','True']
 
     def get_help_name(self):
         return 'power'
@@ -571,74 +583,96 @@ class OWxpower(XoppyWidget):
         elif oe_n == 5:
             return self.EL5_FLAG
 
+    def do_plot_local(self):
+        out = False
+        if self.PLOT_SETS == 0: out = True
+        if self.PLOT_SETS == 2: out = True
+        return out
+
+    def do_plot_intensity(self):
+        out = False
+        if self.PLOT_SETS == 1: out = True
+        if self.PLOT_SETS == 2: out = True
+        return out
+
+
     def getTitles(self):
         titles = []
+
+        if self.do_plot_intensity(): titles.append("Source")
 
         for oe_n in range(1, self.NELEMENTS+2):
             kind = self.getKind(oe_n)
 
             if kind == 0: # FILTER
-                titles.append("[oe " + str(oe_n) + "] Total CS")
-                titles.append("[oe " + str(oe_n) + "] Mu")
-                titles.append("[oe " + str(oe_n) + "] Transmitivity")
-                titles.append("[oe " + str(oe_n) + "] Absorption")
-                titles.append("Intensity after oe " + str(oe_n))
+                if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Total CS")
+                if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Mu")
+                if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Transmitivity")
+                if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Absorption")
+                if self.do_plot_intensity(): titles.append("Intensity after oe " + str(oe_n))
             else: # MIRROR
-                titles.append("[oe " + str(oe_n) + "] 1-Re[n]=delta")
-                titles.append("[oe " + str(oe_n) + "] Im[n]=beta")
-                titles.append("[oe " + str(oe_n) + "] delta/beta")
-                titles.append("[oe " + str(oe_n) + "] Reflectivity-s")
-                titles.append("[oe " + str(oe_n) + "] Transmitivity")
-                titles.append("Intensity after oe " + str(oe_n))
+                if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] 1-Re[n]=delta")
+                if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Im[n]=beta")
+                if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] delta/beta")
+                if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Reflectivity-s")
+                if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Transmitivity")
+                if self.do_plot_intensity(): titles.append("Intensity after oe " + str(oe_n))
 
         return titles
 
     def getXTitles(self):
+
         xtitles = []
+
+        if self.do_plot_intensity(): xtitles.append("Photon Energy [eV]")
 
         for oe_n in range(1, self.NELEMENTS+2):
             kind = self.getKind(oe_n)
 
             if kind == 0: # FILTER
-                xtitles.append("Photon Energy [eV]")
-                xtitles.append("Photon Energy [eV]")
-                xtitles.append("Photon Energy [eV]")
-                xtitles.append("Photon Energy [eV]")
-                xtitles.append("Photon Energy [eV]")
+                if self.do_plot_local(): xtitles.append("Photon Energy [eV]")
+                if self.do_plot_local(): xtitles.append("Photon Energy [eV]")
+                if self.do_plot_local(): xtitles.append("Photon Energy [eV]")
+                if self.do_plot_local(): xtitles.append("Photon Energy [eV]")
+                if self.do_plot_intensity(): xtitles.append("Photon Energy [eV]")
             else: # MIRROR
-                xtitles.append("Photon Energy [eV]")
-                xtitles.append("Photon Energy [eV]")
-                xtitles.append("Photon Energy [eV]")
-                xtitles.append("Photon Energy [eV]")
-                xtitles.append("Photon Energy [eV]")
-                xtitles.append("Photon Energy [eV]")
+                if self.do_plot_local(): xtitles.append("Photon Energy [eV]")
+                if self.do_plot_local(): xtitles.append("Photon Energy [eV]")
+                if self.do_plot_local(): xtitles.append("Photon Energy [eV]")
+                if self.do_plot_local(): xtitles.append("Photon Energy [eV]")
+                if self.do_plot_local(): xtitles.append("Photon Energy [eV]")
+                if self.do_plot_intensity(): xtitles.append("Photon Energy [eV]")
 
         return xtitles
 
     def getYTitles(self):
         ytitles = []
 
+        if self.do_plot_intensity(): ytitles.append("Source")
+
         for oe_n in range(1, self.NELEMENTS+2):
             kind = self.getKind(oe_n)
 
             if kind == 0: # FILTER
-                ytitles.append("[oe " + str(oe_n) + "] Total CS cm2/g")
-                ytitles.append("[oe " + str(oe_n) + "] Mu cm^-1")
-                ytitles.append("[oe " + str(oe_n) + "] Transmitivity")
-                ytitles.append("[oe " + str(oe_n) + "] Absorption")
-                ytitles.append("Intensity after oe " + str(oe_n))
+                if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Total CS cm2/g")
+                if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Mu cm^-1")
+                if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Transmitivity")
+                if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Absorption")
+                if self.do_plot_intensity(): ytitles.append("Intensity after oe " + str(oe_n))
             else: # MIRROR
-                ytitles.append("[oe " + str(oe_n) + "] 1-Re[n]=delta")
-                ytitles.append("[oe " + str(oe_n) + "] Im[n]=beta")
-                ytitles.append("[oe " + str(oe_n) + "] delta/beta")
-                ytitles.append("[oe " + str(oe_n) + "] Reflectivity-s")
-                ytitles.append("[oe " + str(oe_n) + "] Transmitivity")
-                ytitles.append("Intensity after oe " + str(oe_n))
+                if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] 1-Re[n]=delta")
+                if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Im[n]=beta")
+                if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] delta/beta")
+                if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Reflectivity-s")
+                if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Transmitivity")
+                if self.do_plot_intensity(): ytitles.append("Intensity after oe " + str(oe_n))
 
         return ytitles
 
     def getVariablesToPlot(self):
         variables = []
+
+        if self.do_plot_intensity(): variables.append((0, 1)) # start plotting the source
         shift = 0
 
         for oe_n in range(1, self.NELEMENTS+2):
@@ -655,40 +689,44 @@ class OWxpower(XoppyWidget):
                     shift += 6
 
             if kind == 0: # FILTER
-                variables.append((0, 2+shift))
-                variables.append((0, 3+shift))
-                variables.append((0, 4+shift))
-                variables.append((0, 5+shift))
-                variables.append((0, 6+shift))
+                if self.do_plot_local(): variables.append((0, 2+shift))
+                if self.do_plot_local(): variables.append((0, 3+shift))
+                if self.do_plot_local(): variables.append((0, 4+shift))
+                if self.do_plot_local(): variables.append((0, 5+shift))
+                if self.do_plot_intensity(): variables.append((0, 6+shift))
             else:
-                variables.append((0, 2+shift))
-                variables.append((0, 3+shift))
-                variables.append((0, 4+shift))
-                variables.append((0, 5+shift))
-                variables.append((0, 6+shift))
-                variables.append((0, 7+shift))
+                if self.do_plot_local(): variables.append((0, 2+shift))
+                if self.do_plot_local(): variables.append((0, 3+shift))
+                if self.do_plot_local(): variables.append((0, 4+shift))
+                if self.do_plot_local(): variables.append((0, 5+shift))
+                if self.do_plot_local(): variables.append((0, 6+shift))
+                if self.do_plot_intensity(): variables.append((0, 7+shift))
 
         return variables
 
     def getLogPlot(self):
+
+
         logplot = []
+
+        if self.do_plot_intensity(): logplot.append((False,False))
 
         for oe_n in range(1, self.NELEMENTS+2):
             kind = self.getKind(oe_n)
 
             if kind == 0: # FILTER
-                logplot.append((False, True))
-                logplot.append((False, True))
-                logplot.append((False, False))
-                logplot.append((False, False))
-                logplot.append((False, True))
+                if self.do_plot_local(): logplot.append((False, True))
+                if self.do_plot_local(): logplot.append((False, True))
+                if self.do_plot_local(): logplot.append((False, False))
+                if self.do_plot_local(): logplot.append((False, False))
+                if self.do_plot_intensity(): logplot.append((False, False))
             else: # MIRROR
-                logplot.append((False, True))
-                logplot.append((False, True))
-                logplot.append((False, False))
-                logplot.append((False, False))
-                logplot.append((False, False))
-                logplot.append((False, True))
+                if self.do_plot_local(): logplot.append((False, True))
+                if self.do_plot_local(): logplot.append((False, True))
+                if self.do_plot_local(): logplot.append((False, False))
+                if self.do_plot_local(): logplot.append((False, False))
+                if self.do_plot_local(): logplot.append((False, False))
+                if self.do_plot_intensity(): logplot.append((False, False))
 
         return logplot
 
@@ -740,7 +778,7 @@ class OWxpower(XoppyWidget):
         if self.FILE_DUMP == 0:
             output_file = None
         else:
-            output_file = "xpower.spec"
+            output_file = "power.spec"
         out_dictionary = xpower_calc(energies=energies,source=source,substance=substance,
                                      flags=flags,dens=dens,thick=thick,angle=angle,roughness=roughness,output_file=output_file)
 
@@ -759,8 +797,7 @@ class OWxpower(XoppyWidget):
         except:
             pass
         try:
-            print(out_dictionary["labels"])
-
+            # print(out_dictionary["labels"])
             calculated_data.add_content("labels", out_dictionary["labels"])
         except:
             pass
