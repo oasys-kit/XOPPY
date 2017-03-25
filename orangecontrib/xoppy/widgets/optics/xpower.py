@@ -426,6 +426,7 @@ class OWxpower(XoppyWidget):
                     no_bandwidth = False
                     if exchangeData.get_widget_name() =="UNDULATOR_FLUX" :
                         self.SOURCE_FILE = "xoppy_undulator_flux"
+                        no_bandwidth = True
                         index_flux = 2
                     elif exchangeData.get_widget_name() == "BM" :
                         if exchangeData.get_content("is_log_plot") == 1:

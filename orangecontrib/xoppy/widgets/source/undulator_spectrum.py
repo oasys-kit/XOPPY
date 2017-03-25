@@ -8,7 +8,8 @@ from oasys.widgets.exchange import DataExchangeObject
 
 from collections import OrderedDict
 from orangecontrib.xoppy.util import srundplug
-from srxraylib.sources import srfunc
+import scipy.constants as codata
+import os
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
@@ -316,25 +317,46 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
     #TODO remove file and export e,f arrays
     outFile = "undulator_spectrum.spec"
 
+    codata_mee = codata.m_e * codata.c**2 / codata.e # electron mass in eV
+    gamma = bl['ElectronEnergy'] * 1e9 / codata_mee
+
+    m2ev = codata.c * codata.h / codata.e      # lambda(m)  = m2eV / energy(eV)
+    resonance_wavelength = (1 + bl['Kv']**2 / 2.0) / 2 / gamma**2 * bl["PeriodID"]
+    resonance_energy = m2ev / resonance_wavelength
+    print ("Gamma: %f \n"%(gamma))
+    print ("Resonance wavelength [A]: %g \n"%(1e10*resonance_wavelength))
+    print ("Resonance energy [eV]: %g \n"%(resonance_energy))
+
+
     if METHOD == 0:
         print("Undulator flux calculation using US. Please wait...")
         e, f = srundplug.calc1d_us(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
               photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False,zero_emittance=zero_emittance)
         print("Done")
+        print("\nCheck calculation output at: %s"%(os.path.join(os.getcwd(),"us.out")))
     if METHOD == 1:
         print("Undulator flux calculation using URGENT. Please wait...")
         e, f = srundplug.calc1d_urgent(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
               photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False,zero_emittance=zero_emittance)
         print("Done")
+        print("\nCheck calculation output at: %s"%(os.path.join(os.getcwd(),"urgent.out")))
     if METHOD == 2:
+        # get the maximum harmonic number
+        h_max = int(1.1*PHOTONENERGYMAX/resonance_energy)
+
+        print ("Number of harmonics considered: %d \n"%(h_max))
         print("Undulator flux calculation using SRW. Please wait...")
         e, f = srundplug.calc1d_srw(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
-              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False,zero_emittance=zero_emittance)
+              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False,zero_emittance=zero_emittance,
+              srw_max_harmonic_number=h_max)
         print("Done")
 
     if zero_emittance:
-        print("No emittance calculation")
-    return e, f, f*srfunc.codata_ec * 1e3
+        print("\nNo emittance calculation")
+
+    print("\nPower from integral of spectrum: %8.3f W"%(f.sum()*1e3*codata.e*(e[1]-e[0])))
+
+    return e, f, f*codata.e * 1e3
 
 
 

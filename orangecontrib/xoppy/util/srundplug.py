@@ -43,12 +43,22 @@ import shutil # to copy files
 
 
 #SRW
-try:
-    import srwlib
-    SRWLIB_AVAILABLE = True
-except:
-    SRWLIB_AVAILABLE = False
-    print("SRW is not available")
+
+USE_URGENT= True
+USE_US = True
+USE_SRWLIB = True
+USE_PYSRU = False
+
+if USE_SRWLIB:
+    try:
+        import srwlib
+    except:
+        try:
+            import wpg.srwlib as srwlib
+        except:
+            USE_SRWLIB = False
+            print("SRW is not available")
+
 
 #catch standard optput
 try:
@@ -99,7 +109,7 @@ except:
 
 #check
 if os.path.isfile(home_bin + 'us') == False:
-    print("srundplug: File not found: "+home_bin+'us')
+    raise FileNotFoundError("srundplug: File not found: "+home_bin+'us')
 if os.path.isfile(home_bin + 'urgent') == False:
     raise FileNotFoundError("srundplug: File not found: " + home_bin + 'urgent')
 
@@ -223,9 +233,9 @@ def calc1d_pysru(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
         f.close()
 
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     return (eArray,intensArray)
 
@@ -330,7 +340,7 @@ def calc1d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
 
     srwlib.srwl.CalcStokesUR(stkF, eBeam, und, arPrecF)
 
-    print('Done calc1dSrw calculation in sec '+str(time.time()-t0))
+    print('Done calc1dSrw calculation in %10.3f s'%(time.time()-t0))
     #**********************Saving results
 
     if fileName is not None:
@@ -372,9 +382,9 @@ def calc1d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
         f.close()
 
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
 
     return (eArray,intensArray) 
@@ -442,13 +452,8 @@ def calc1d_urgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnerg
 
     command = os.path.join(home_bin,'urgent < urgent.inp')
     print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
-    print("\n--------------------------------------------------------\n")
     os.system(command)
-    print("Done.")
-    print("\n--------------------------------------------------------\n")
-
-    print('Done calc1dUrgent calculation in sec '+str(time.time()-t0))
-
+    print('Done calc1dUrgent calculation in %10.3f s'%(time.time()-t0))
     # write spec file
     txt = open("urgent.out").readlines()
     if fileName is not None:
@@ -486,9 +491,9 @@ def calc1d_urgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnerg
         f.close()
 
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     # stores results in numpy arrays for return
     eArray = numpy.zeros(nArray)
@@ -552,12 +557,9 @@ def calc1d_us(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoi
 
     command = os.path.join(home_bin,'us')
     print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
-    print("\n--------------------------------------------------------\n")
     os.system(command)
-    print("Done.")
-    print("\n--------------------------------------------------------\n")
+    print('Done calc1dUs calculation in %10.3f s'%(time.time()-t0))
 
-    print('Done calc1dUs calculation in sec '+str(time.time()-t0))
     txt = open("us.out").readlines()
     # write spec file
     if fileName is not None:
@@ -596,9 +598,9 @@ def calc1d_us(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoi
     if fileName is not None:
         f.close()
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     # stores results in numpy arrays for return
     eArray = numpy.zeros(nArray)
@@ -825,9 +827,9 @@ def calc2d_srw(bl,zero_emittance=False,hSlitPoints=101,vSlitPoints=51,srw_max_ha
         f.close()
 
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     print( "Total power SRW [W]: "+repr(totPower))
 
@@ -983,12 +985,10 @@ def calc2d_us(bl,zero_emittance=False,hSlitPoints=51,vSlitPoints=51,fileName=Non
         f.close()
 
 
-
-        #os.chdir(pwd)
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     print( "Total power US [W]: "+repr(totPower))
     return (hhh, vvv, int_mesh2)
@@ -1156,13 +1156,10 @@ def calc2d_urgent(bl,zero_emittance=False,fileName=None,fileAppend=False,hSlitPo
 
         f.close()
 
-
-
-        #os.chdir(pwd)
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     print( "Total power URGENT [W]: "+repr(totPower))
     print("\n--------------------------------------------------------\n\n")
@@ -1369,9 +1366,9 @@ def calc3d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
 
         fout.close()
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     # grid in mm
     return (eArray, 1e3*hArray, 1e3*vArray, intensArray)
@@ -1582,9 +1579,9 @@ def calc3d_urgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergy
         fout.close()
 
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     print("\n--------------------------------------------------------\n\n")
     # append direct calculation for comparison
@@ -1785,9 +1782,9 @@ def calc3d_us(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
         fout.close()
 
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     # append direct calculation for comparison
     tmp = calc1d_us(bl,photonEnergyMin=photonEnergyMin,
@@ -1932,9 +1929,9 @@ def calc3d_pysru(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
         fout.close()
 
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     # append direct calculation for comparison
     # tmp = calc1d_us(bl,photonEnergyMin=photonEnergyMin,
@@ -2057,8 +2054,8 @@ def _srw_drift_electron_beam(eBeam, und ):
 # Comparison scripts
 #
 ########################################################################################################################
-def compare_flux(beamline,emin=3000.0,emax=50000.0,npoints=200,include_pysru=True,
-                 zero_emittance=False,fileName=None,iplot=False,show=True,
+def compare_flux(beamline,emin=3000.0,emax=50000.0,npoints=200,
+                 zero_emittance=False,fileName=None,
                  srw_max_harmonic_number=21):
 
 
@@ -2077,46 +2074,57 @@ def compare_flux(beamline,emin=3000.0,emax=50000.0,npoints=200,include_pysru=Tru
 
     print("Calculating %d spectrum points in [%f,%f] eV"%(npoints,emin,emax))
 
+    data = []
+    legend = []
 
-    if SRWLIB_AVAILABLE:
+    if USE_SRWLIB:
         e_s,f_s = calc1d_srw(beamline,photonEnergyMin=emin,photonEnergyMax=emax,
               photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True,
                              srw_max_harmonic_number=srw_max_harmonic_number)
+        print("Power from integral of SRW spectrum: %f W"%(f_s.sum()*1e3*codata.e*(e_s[1]-e_s[0])))
+        beamline["calc1d_srw"] = {"energy":e_s,"flux":f_s}
 
-    e_ur,f_ur = calc1d_urgent(beamline,photonEnergyMin=emin,photonEnergyMax=emax,
-          photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
 
-    e_us,f_us = calc1d_us(beamline,photonEnergyMin=emin,photonEnergyMax=emax,
-          photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+    if USE_URGENT:
+        e_ur,f_ur = calc1d_urgent(beamline,photonEnergyMin=emin,photonEnergyMax=emax,
+              photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        print("Power from integral of URGENT spectrum: %f W"%(f_ur.sum()*1e3*codata.e*(e_ur[1]-e_ur[0])))
+        beamline["calc1d_urgent"] = {"energy":e_ur,"flux":f_ur}
 
-    if include_pysru:
+
+    if USE_US:
+        e_us,f_us = calc1d_us(beamline,photonEnergyMin=emin,photonEnergyMax=emax,
+              photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        print("Power from integral of US spectrum: %f W"%(f_us.sum()*1e3*codata.e*(e_us[1]-e_us[0])))
+        beamline["calc1d_us"] = {"energy":e_us,"flux":f_us}
+
+
+    if USE_PYSRU:
         e_py,f_py = calc1d_pysru(beamline,photonEnergyMin=emin,photonEnergyMax=emax,
               photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        print("Power from integral of pySRU spectrum: %f W"%(f_py.sum()*1e3*codata.e*(e_py[1]-e_py[0])))
+        beamline["calc1d_pysru"] = {"energy":e_py,"flux":f_py}
 
 
-    if iplot:
-        if include_pysru and SRWLIB_AVAILABLE:
-            plot(e_s,f_s,e_ur,f_ur,e_us,f_us,e_py,f_py,title=beamline['name'],show=0,legend=["SRW","URGENT","US",'pySRU'],ylog=True)
-            plot(e_s,f_s,e_ur,f_ur,e_us,f_us,e_py,f_py,title=beamline['name'],show=0,legend=["SRW","URGENT","US",'pySRU'],ylog=False)
+    return beamline
 
-            # plot(e_s,f_s,e_py,f_py,title=beamline['name'],show=0,legend=["SRW",'pySRU'],ylog=True)
-            # plot(e_s,f_s,e_py,f_py,title=beamline['name'],show=0,legend=["SRW",'pySRU'],ylog=False)
-        else:
-            if SRWLIB_AVAILABLE:
-                plot(e_s,f_s,e_ur,f_ur,e_us,f_us,title=beamline['name'],show=0,legend=["SRW","URGENT","US"],ylog=True)
-                plot(e_s,f_s,e_ur,f_ur,e_us,f_us,title=beamline['name'],show=0,legend=["SRW","URGENT","US"],ylog=False)
-            elif include_pysru:
-                plot(e_ur,f_ur,e_us,f_us,e_py,f_py,title=beamline['name'],show=0,legend=["URGENT","US",'pySRU'],ylog=True)
-                plot(e_ur,f_ur,e_us,f_us,e_py,f_py,title=beamline['name'],show=0,legend=["URGENT","US",'pySRU'],ylog=False)
-            else:
-                plot(e_ur,f_ur,e_us,f_us,title=beamline['name'],show=0,legend=["URGENT","US"],ylog=True)
-                plot(e_ur,f_ur,e_us,f_us,title=beamline['name'],show=0,legend=["URGENT","US"],ylog=False)
+def compare_flux_plot(beamline_dict,show=True):
+    data = []
+    legend = []
+    for key in ["calc1d_us","calc1d_urgent","calc1d_pysru","calc1d_srw"]:
+        if key in beamline_dict.keys():
+            data.append(beamline_dict[key]["energy"])
+            data.append(beamline_dict[key]["flux"])
+            legend.append(key)
 
-        if show:
-            plot_show()
+    plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=True)
+    plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=False)
+
+    if show:
+        plot_show()
 
 
-def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,include_pysru=True,
+def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,
                  zero_emittance=False,fileName=None,iplot=False,show=True):
 
     gamma = beamline['ElectronEnergy'] / (codata_mee * 1e-3)
@@ -2136,10 +2144,10 @@ def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,include_py
 
     npoints_grid = 51
 
-    if include_pysru:
+    if USE_PYSRU:
         r_pysru = calc_from_3d("pySRU",  beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
                              npoints_grid=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-    if SRWLIB_AVAILABLE:
+    if USE_SRWLIB:
         r_srw = calc_from_3d("SRW",      beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
                                  npoints_grid=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
     r_us = calc_from_3d("US",        beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
@@ -2150,7 +2158,7 @@ def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,include_py
 
 
     if iplot:
-        if include_pysru and SRWLIB_AVAILABLE:
+        if USE_PYSRU and USE_SRWLIB:
             plot(r_pysru["e"],r_pysru["spectrum"],
                  r_srw["e"],r_srw["spectrum"],
                  r_us["e"],r_us["spectrum"],
@@ -2162,7 +2170,7 @@ def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,include_py
                  r_urgent["e"],r_urgent["spectrum"],
                  title=beamline,show=0,legend=["pySRU","SRW","US","URGENT"],ylog=False)
         else:
-            if include_pysru:
+            if USE_PYSRU:
                 plot(r_pysru["e"],r_pysru["spectrum"],
                      r_us["e"],r_us["spectrum"],
                      r_urgent["e"],r_urgent["spectrum"],
@@ -2171,7 +2179,7 @@ def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,include_py
                      r_us["e"],r_us["spectrum"],
                      r_urgent["e"],r_urgent["spectrum"],
                      title=beamline,show=0,legend=["pySRU","US","URGENT"],ylog=False)
-            elif SRWLIB_AVAILABLE:
+            elif USE_SRWLIB:
                 plot(r_srw["e"],r_srw["spectrum"],
                      r_us["e"],r_us["spectrum"],
                      r_urgent["e"],r_urgent["spectrum"],
@@ -2193,52 +2201,58 @@ def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,include_py
             plot_show()
 
 
-def compare_power_density(beamline,npoints_grid=21,include_pysru=True,
-                          zero_emittance=False,fileName=None,iplot=False,show=True):
+def compare_power_density(beamline,npoints_grid=40,zero_emittance=False,fileName=None):
 
 
-    h_ur,v_ur,p_ur = calc2d_urgent(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-    h_us,v_us,p_us =     calc2d_us(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
 
-    if SRWLIB_AVAILABLE:
+    if USE_US:
+        h_us,v_us,p_us =     calc2d_us(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        print("Total power US: ",p_us.sum()*(h_us[1]-h_us[0])*(v_us[1]-v_us[0]))
+        beamline["calc2d_us"] = {"h":h_us,"v":v_us,"p":p_us}
+
+    if USE_URGENT:
+        h_ur,v_ur,p_ur = calc2d_urgent(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        print("Total power URGENT: ",p_ur.sum()*(h_ur[1]-h_ur[0])*(v_ur[1]-v_ur[0]))
+        beamline["calc2d_urgent"] = {"h":h_ur,"v":v_ur,"p":p_ur}
+
+    if USE_SRWLIB:
         h_s,v_s,p_s = calc2d_srw(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        print("Total power SRW: ",p_s.sum()*(h_s[1]-h_s[0])*(v_s[1]-v_s[0]))
+        beamline["calc2d_srw"] = {"h":h_s,"v":v_s,"p":p_s}
 
-    if include_pysru:
+    if USE_PYSRU:
         h_py,v_py,p_py = calc2d_pysru(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        print("Total power pySRU: ",p_py.sum()*(h_py[1]-h_py[0])*(v_py[1]-v_py[0]))
+        beamline["calc2d_pysru"] = {"h":h_py,"v":v_py,"p":p_py}
 
-    if iplot:
-        cmax = numpy.max([p_ur.max(),p_us.max()])
-        if include_pysru:
-            cmax = numpy.max([cmax,p_py.max()])
-        if SRWLIB_AVAILABLE:
-            cmax = numpy.max([cmax,p_s.max()])
+    return beamline
 
-        contour_levels = numpy.linspace(0,cmax,100)
+def compare_power_density_plot(beamline_dict,show=True):
 
-        plot_contour(p_ur,h_ur,v_ur,title="%s URGENT"%beamline['name'],xtitle="H [mm]",ytitle="V [mm]",plot_points=0,
-                     contour_levels=contour_levels,cmap=None,cbar=1,cbar_title="Power density [$W/mm^2$]",show=0)
 
-        plot_contour(p_us,h_us,v_us,title="%s US"%beamline['name'],xtitle="H [mm]",ytitle="V [mm]",plot_points=0,
-                     contour_levels=contour_levels,cmap=None,cbar=1,cbar_title="Power density [$W/mm^2$]",show=0)
+    cmax = -100000.0
+    for key in ["calc2d_us","calc2d_urgent","calc2d_pysru","calc2d_srw"]:
+        if key in beamline_dict.keys():
+            h = beamline_dict[key]["h"]
+            v = beamline_dict[key]["v"]
+            p = beamline_dict[key]["p"]
+            cmax = numpy.max([cmax,p.max()])
 
-        if SRWLIB_AVAILABLE:
-            plot_contour(p_s,h_s,v_s,title="%s SRW"%beamline['name'],xtitle="H [mm]",ytitle="V [mm]",plot_points=0,
+    contour_levels = numpy.linspace(0,cmax,100)
+
+    for key in ["calc2d_us","calc2d_urgent","calc2d_pysru","calc2d_srw"]:
+        if key in beamline_dict.keys():
+            h = beamline_dict[key]["h"]
+            v = beamline_dict[key]["v"]
+            p = beamline_dict[key]["p"]
+
+            plot_contour(p,h,v,title="%s %s"%(beamline_dict['name'],key),
+                         xtitle="H [mm]",ytitle="V [mm]",plot_points=0,
                          contour_levels=contour_levels,cmap=None,cbar=1,cbar_title="Power density [$W/mm^2$]",show=0)
+            plot_surface(p,h,v,title="%s %s"%(beamline_dict['name'],key),xtitle="H [mm]",ytitle="V [mm]",show=0)
 
-        if include_pysru:
-            plot_contour(p_py,h_py,v_py,title="%s pySRU"%beamline['name'],xtitle="H [mm]",ytitle="V [mm]",plot_points=0,
-                     contour_levels=contour_levels,cmap=None,cbar=1,cbar_title="Power density [$W/mm^2$]",show=0)
-
-
-        plot_surface(p_ur,h_ur,v_ur,title="URGENT; ",xtitle="H [mm]",ytitle="V [mm]",show=0)
-        plot_surface(p_us,h_us,v_us,title="US;     ",xtitle="H [mm]",ytitle="V [mm]",show=0)
-        if SRWLIB_AVAILABLE:
-            plot_surface(p_s ,h_s,v_s,  title="SRW;    ",xtitle="H [mm]",ytitle="V [mm]",show=0)
-        if include_pysru:
-            plot_surface(p_py,h_py,v_py,title="pySRU;  ",xtitle="H [mm]",ytitle="V [mm]",show=0)
-
-        if show:
-            plot_show()
+    if show:
+        plot_show()
 
 def compare_radiation(beamline,energy=None,npoints_grid=51,
                       zero_emittance=False,fileName=None,iplot=False,show=True):
@@ -2258,43 +2272,85 @@ def compare_radiation(beamline,energy=None,npoints_grid=51,
         energy = resonance_energy
 
 
-    if SRWLIB_AVAILABLE:
-        e_s,h_s,v_s,f_s = calc3d_srw(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+    if USE_SRWLIB:
+        e,h,v,f = calc3d_srw(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
                             hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
                             zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-        print("Shapes for SRW:",e_s.shape,h_s.shape,v_s.shape,f_s.shape)
+        beamline["calc3d_srw"] = {"e":e,"h":h,"v":v,"f":f}
+        print("Shapes for SRW:",e.shape,h.shape,v.shape,f.shape)
+        print("Integral for SRW   :",f.sum()*(h[1]-h[0])*(v[1]-v[0]) )
 
-    e_py,h_py,v_py,f_py = calc3d_pysru(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
-                        hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
-                        zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-    print("Shapes for pySRU:",e_py.shape,h_py.shape,v_py.shape,f_py.shape,"MAX: ",f_py.max())
+    if USE_PYSRU:
+        e,h,v,f = calc3d_pysru(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+                            hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
+                            zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        beamline["calc3d_pysru"] = {"e":e,"h":h,"v":v,"f":f}
+        print("Shapes for pySRU:",e.shape,h.shape,v.shape,f.shape,"MAX: ",f.max())
+        print("Integral for pySRU :",f.sum()*(h[1]-h[0])*(v[1]-v[0]) )
+
+    if USE_URGENT:
+        e,h,v,f = calc3d_urgent(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+                            hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
+                            zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        beamline["calc3d_urgent"] = {"e":e,"h":h,"v":v,"f":f}
+        print("Shapes for URGENT:",e.shape,h.shape,v.shape,f.shape,"MAX: ",f.max())
+        print("Integral for URGENT :",f.sum()*(h[1]-h[0])*(v[1]-v[0]) )
+
+    if USE_US:
+        e,h,v,f = calc3d_us(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+                            hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
+                            zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        beamline["calc3d_us"] = {"e":e,"h":h,"v":v,"f":f}
+        print("Shapes for US:",e.shape,h.shape,v.shape,f.shape,"MAX: ",f.max())
+        print("Integral for US :",f.sum()*(h[1]-h[0])*(v[1]-v[0]) )
 
 
-    print("Integrals for:")
-    if SRWLIB_AVAILABLE: print("         SRW   :",f_s.sum()*(h_s[1]-h_s[0])*(v_s[1]-v_s[0]) )
-    print("         pySRU :",f_py.sum()*(h_py[1]-h_py[0])*(v_py[1]-v_py[0]) )
 
+    return beamline
+
+def compare_radiation_plot(beamline_dict,show=True):
+
+    cmax = -100000.0
+    for key in ["calc3d_us","calc3d_urgent","calc3d_pysru","calc3d_srw"]:
+        if key in beamline_dict.keys():
+            f = beamline_dict[key]["f"]
+            cmax = numpy.max([cmax,f.max()])
+
+    contour_levels = numpy.linspace(0,cmax,20)
+
+    for key in ["calc3d_us","calc3d_urgent","calc3d_pysru","calc3d_srw"]:
+        if key in beamline_dict.keys():
+            h = beamline_dict[key]["h"]
+            v = beamline_dict[key]["v"]
+            e = beamline_dict[key]["e"]
+            f = beamline_dict[key]["f"]
+
+            plot_contour(f[e.size/2],h,v,title="%s %s; E=%g eV"%(beamline_dict['name'],key,e[e.size/2]),
+                         xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,
+                         cmap=None,cbar=1,cbar_title="Flux ",show=False)
+
+            plot_surface(f[e.size/2],h,v,title="%s %s; E=%g eV"%(beamline_dict['name'],key,e[e.size/2]),
+                         xtitle="H [mm]",ytitle="V [mm]",show=False)
+
+    # if USE_SRWLIB:
     #
-    if iplot:
+    # else:
+    #     contour_levels = numpy.linspace(0,f_py.max(),20)
+    #
+    # if USE_SRWLIB:
+    #     plot_contour(f_s[e_s.size/2],h_s,v_s,title="%s SRW; E=%g eV"%(beamline['name'],e_s[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,cmap=None,
+    #                  cbar=1,cbar_title="Flux ",show=False)
+    #
+    # plot_contour(f_py[e_py.size/2],h_py,v_py,title="%s pySRU; E=%g eV"%(beamline['name'],e_py[e_py.size/2]),xtitle="H [mm]",ytitle="V [mm]",
+    #          plot_points=0,contour_levels=contour_levels,cmap=None,
+    #          cbar=1,cbar_title="Flux ",show=False)
+    #
+    # if USE_SRWLIB: plot_surface(f_s[e_s.size/2],h_s,v_s,title="%s SRW; E=%g eV"%(beamline['name'],e_s[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=False)
+    # plot_surface(f_py[e_py.size/2],h_py,v_py,title="%s pySRU; E=%g eV"%(beamline['name'],e_py[e_py.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=False)
 
-        if SRWLIB_AVAILABLE:
-            contour_levels = numpy.linspace(0,numpy.max([f_s.max(),f_py.max()]),20)
-        else:
-            contour_levels = numpy.linspace(0,f_py.max(),20)
+    if show:
+        plot_show()
 
-        if SRWLIB_AVAILABLE:
-            plot_contour(f_s[e_s.size/2],h_s,v_s,title="%s SRW; E=%g eV"%(beamline['name'],e_s[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,cmap=None,
-                         cbar=1,cbar_title="Flux ",show=False)
-
-        plot_contour(f_py[e_py.size/2],h_py,v_py,title="%s pySRU; E=%g eV"%(beamline['name'],e_py[e_py.size/2]),xtitle="H [mm]",ytitle="V [mm]",
-                 plot_points=0,contour_levels=contour_levels,cmap=None,
-                 cbar=1,cbar_title="Flux ",show=False)
-
-        if SRWLIB_AVAILABLE: plot_surface(f_s[e_s.size/2],h_s,v_s,title="%s SRW; E=%g eV"%(beamline['name'],e_s[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=False)
-        plot_surface(f_py[e_py.size/2],h_py,v_py,title="%s pySRU; E=%g eV"%(beamline['name'],e_py[e_py.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=False)
-
-        if show:
-            plot_show()
 
 
 def main(radiance=True,flux=True,flux_from_3d=True,power_density=True):
@@ -2338,16 +2394,16 @@ def main(radiance=True,flux=True,flux_from_3d=True,power_density=True):
     #
 
     if flux:
-        compare_flux(beamline,emin=100,emax=900,npoints=200,include_pysru=False,zero_emittance=zero_emittance,iplot=True)
+        compare_flux(beamline,emin=100,emax=900,npoints=200, zero_emittance=zero_emittance,iplot=True)
     if flux_from_3d:
-        compare_flux_from_3d(beamline,emin=100,emax=900,npoints=10,include_pysru=False,zero_emittance=zero_emittance,iplot=True)
+        compare_flux_from_3d(beamline,emin=100,emax=900,npoints=10,zero_emittance=zero_emittance,iplot=True)
 
     #
     # Power density
     #
 
     if power_density:
-        compare_power_density(beamline,npoints_grid=51,include_pysru=False,zero_emittance=zero_emittance,iplot=True)
+        compare_power_density(beamline,npoints_grid=51,zero_emittance=zero_emittance,iplot=True)
 
 if __name__ == '__main__':
     main(radiance=True,flux=False,flux_from_3d=False,power_density=False)
