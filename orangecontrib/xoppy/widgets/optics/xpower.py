@@ -445,14 +445,14 @@ class OWxpower(XoppyWidget):
                             raise Exception("Logaritmic X scale of Xoppy Energy distribution not supported")
                         if exchangeData.get_content("calculation_type") == 0 and exchangeData.get_content("psi") == 0:
                             self.SOURCE_FILE = "xoppy_bm_flux"
-                            index_flux = 5
+                            no_bandwidth = True
+                            index_flux = 6
                         else:
                             raise Exception("Xoppy result is not an Flux vs Energy distribution integrated in Psi")
                     elif exchangeData.get_widget_name() =="XWIGGLER" :
-                        if exchangeData.get_content("is_log_plot") == 1:
-                            raise Exception("Logaritmic X scale of Xoppy Energy distribution not supported")
                         self.SOURCE_FILE = "xoppy_xwiggler_flux"
-                        index_flux = 1
+                        no_bandwidth = True
+                        index_flux = 2
                     elif exchangeData.get_widget_name() =="XTUBES" :
                         self.SOURCE_FILE = "xoppy_xtubes_flux"
                         index_flux = 1
@@ -463,6 +463,7 @@ class OWxpower(XoppyWidget):
                         no_bandwidth = True
                     elif exchangeData.get_widget_name() =="BLACK_BODY" :
                         self.SOURCE_FILE = "xoppy_black_body_flux"
+                        no_bandwidth = True
                         index_flux = 2
                     else:
                         raise Exception("Xoppy Source not recognized")
@@ -471,7 +472,7 @@ class OWxpower(XoppyWidget):
                     self.SOURCE = 2
 
                     spectrum = exchangeData.get_content("xoppy_data")
-
+                    print(">>>>>>>>>>>>>>>",spectrum.shape)
                     if not no_bandwidth:
                         spectrum[:,index_flux] /= 0.001*spectrum[:,0]
 

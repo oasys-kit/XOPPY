@@ -512,6 +512,10 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
         f.close()
         print("File written to disk: " + outFile)
 
+    if TYPE_CALC == 0:
+        if LOG_CHOICE == 0:
+            print("\nPower from integral of spectrum: %15.3f W"%(a5.sum() * 1e3*srfunc.codata_ec * (energy_ev[1]-energy_ev[0])))
+
     return a6.T, fm, a, energy_ev
 
 

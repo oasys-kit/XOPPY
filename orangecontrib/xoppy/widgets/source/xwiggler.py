@@ -6,6 +6,7 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 from srxraylib.sources import srfunc
+import scipy.constants as codata
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
@@ -26,7 +27,6 @@ class OWxwiggler(XoppyWidget):
     PHOT_ENERGY_MIN = Setting(100.0)
     PHOT_ENERGY_MAX = Setting(100100.0)
     NPOINTS = Setting(100)
-    LOGPLOT = Setting(1)
     NTRAJPOINTS = Setting(101)
     CURRENT = Setting(200.0)
     FILE = Setting("?")
@@ -101,15 +101,7 @@ class OWxwiggler(XoppyWidget):
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 8 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "LOGPLOT",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    items=['Lin', 'Log'],
-                    valueType=int, orientation="horizontal", labelWidth=350)
-        self.show_at(self.unitFlags()[idx], box1) 
+
         
         #widget index 9 
         idx += 1 
@@ -141,10 +133,14 @@ class OWxwiggler(XoppyWidget):
         gui.button(file_box, self, "...", callback=self.selectFile)
 
     def unitLabels(self):
-         return ['Magnetic field: ','Number of periods','Wiggler period [m]','K value','Beam energy [GeV]','Min Photon Energy [eV]','Max Photon Energy [eV]','Number of energy points','Energy points spacing','Number of traj points per period','Electron Beam Current [mA]','File with Magnetic Field']
+         return ['Magnetic field: ','Number of periods','Wiggler period [m]','K value','Beam energy [GeV]',
+                 'Min Photon Energy [eV]','Max Photon Energy [eV]','Number of energy points',
+                 'Number of traj points per period','Electron Beam Current [mA]','File with Magnetic Field']
 
     def unitFlags(self):
-         return ['True','True','self.FIELD  !=  1','self.FIELD  ==  0','True','True','True','True','True','self.FIELD  !=  1','True','self.FIELD  !=  0']
+         return ['True','True','self.FIELD  !=  1','self.FIELD  ==  0','True',
+                 'True','True','True',
+                 'self.FIELD  !=  1','True','self.FIELD  !=  0']
 
     def selectFile(self):
         self.le_file.setText(oasysgui.selectFileFromDialog(self, self.FILE, "Open B File"))
@@ -173,7 +169,9 @@ class OWxwiggler(XoppyWidget):
             congruence.checkFile(self.FILE)
 
     def do_xoppy_calculation(self):
-        return xoppy_calc_xwiggler(FIELD=self.FIELD,NPERIODS=self.NPERIODS,ULAMBDA=self.ULAMBDA,K=self.K,ENERGY=self.ENERGY,PHOT_ENERGY_MIN=self.PHOT_ENERGY_MIN,PHOT_ENERGY_MAX=self.PHOT_ENERGY_MAX,NPOINTS=self.NPOINTS,LOGPLOT=self.LOGPLOT,NTRAJPOINTS=self.NTRAJPOINTS,CURRENT=self.CURRENT,FILE=self.FILE)
+        return xoppy_calc_xwiggler(FIELD=self.FIELD,NPERIODS=self.NPERIODS,ULAMBDA=self.ULAMBDA,K=self.K,ENERGY=self.ENERGY,
+                                   PHOT_ENERGY_MIN=self.PHOT_ENERGY_MIN,PHOT_ENERGY_MAX=self.PHOT_ENERGY_MAX,
+                                   NPOINTS=self.NPOINTS,NTRAJPOINTS=self.NTRAJPOINTS,CURRENT=self.CURRENT,FILE=self.FILE)
 
     def extract_data_from_xoppy_output(self, calculation_output):
         e, f, sp = calculation_output
@@ -188,8 +186,6 @@ class OWxwiggler(XoppyWidget):
 
         return calculated_data
 
-    def add_specific_content_to_calculated_data(self, calculated_data):
-        calculated_data.add_content("is_log_plot", self.LOGPLOT)
 
     def get_data_exchange_widget_name(self):
         return "XWIGGLER"
@@ -213,7 +209,7 @@ class OWxwiggler(XoppyWidget):
 # --------------------------------------------------------------------------------------------
 
 def xoppy_calc_xwiggler(FIELD=0,NPERIODS=12,ULAMBDA=0.125,K=14.0,ENERGY=6.04,PHOT_ENERGY_MIN=100.0,\
-                        PHOT_ENERGY_MAX=100100.0,NPOINTS=100,LOGPLOT=1,NTRAJPOINTS=101,CURRENT=200.0,FILE="?"):
+                        PHOT_ENERGY_MAX=100100.0,NPOINTS=100,NTRAJPOINTS=101,CURRENT=200.0,FILE="?"):
 
     print("Inside xoppy_calc_xwiggler. ")
 
@@ -239,6 +235,8 @@ def xoppy_calc_xwiggler(FIELD=0,NPERIODS=12,ULAMBDA=0.125,K=14.0,ENERGY=6.04,PHO
     #
     e, f0, p0 = srfunc.wiggler_spectrum(t0, enerMin=PHOT_ENERGY_MIN, enerMax=PHOT_ENERGY_MAX, nPoints=NPOINTS, \
                                     electronCurrent=CURRENT*1e-3, outFile=outFile, elliptical=False)
+
+    print("\nPower from integral of spectrum: %8.3f W"%(f0.sum()*1e3*codata.e*(e[1]-e[0])))
     return e, f0, p0
 
 
