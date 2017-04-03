@@ -240,9 +240,7 @@ def xoppy_calc_ws(ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.0,KX=0.0,KY=8.73999977111
         command = os.path.join(locations.home_bin(),'ws')
         print("Running command '%s' in directory: %s \n"%(command, locations.home_bin_run()))
         # TODO try to capture the text output of the external code
-        print("\n--------------------------------------------------------\n")
         os.system(command)
-        print("\n--------------------------------------------------------\n")
 
         # write spec file
         txt = open("ws.out").readlines()
@@ -265,8 +263,9 @@ def xoppy_calc_ws(ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.0,KX=0.0,KY=8.73999977111
         print("File written to disk: ws.spec")
 
         # print output file
-        for line in txt:
-            print(line, end="")
+        # for line in txt:
+        #     print(line, end="")
+        print("Results written to file: %s"%os.path.join(locations.home_bin_run(),'ws.out'))
 
         return outFile
     except Exception as e:

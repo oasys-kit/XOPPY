@@ -421,22 +421,21 @@ class XoppyWidget(widget.OWWidget):
 
         sf = SpecFile(spec_file_name)
 
-        if sf.scanno() == 1:
+        if len(sf) == 1:
             #load spec file with one scan, # is comment
             print("Loading file:  ", spec_file_name)
-
             out = numpy.loadtxt(spec_file_name)
-
-
             if len(out) == 0 : raise Exception("Calculation gave no results (empty data)")
 
             #get labels
             txt = open(spec_file_name).readlines()
             tmp = [ line.find("#L") for line in txt]
             itmp = numpy.where(numpy.array(tmp) != (-1))
-            labels = txt[itmp[0]].replace("#L ","").split("  ")
+
+            labels = txt[int(itmp[0])].replace("#L ","").split("  ")
             print("data labels: ", labels)
 
+            print("???",out.shape)
             calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
             calculated_data.add_content("xoppy_specfile", spec_file_name)
@@ -444,7 +443,8 @@ class XoppyWidget(widget.OWWidget):
 
             return calculated_data
         else:
-            raise Exception("File %s contains %d scans. Cannot send it as xoppy_table" % (spec_file_name, sf.scanno()))
+          raise Exception("File %s contains %d scans. Cannot send it as xoppy_table" % (spec_file_name, len(sf)))
+
 
     def get_data_exchange_widget_name(self):
         raise Exception("This method should be reimplementd in subclasses!")
