@@ -16,7 +16,7 @@ from orangecontrib.xoppy.util import srundplug
 import scipy.constants as codata
 
 class OWtc_slit(XoppyWidget):
-    name = "Undulator tuning curves on a slit. "
+    name = "TC-SLIT"
     id = "orange.widgets.data_tc_slit"
     description = "Undulator Tuning Curves (Flux on a slit)"
     icon = "icons/xoppy_xtc.png"
@@ -55,6 +55,7 @@ class OWtc_slit(XoppyWidget):
     KMIN = Setting(0.01)
     KMAX = Setting(2.56)
     KPOINTS = Setting(10)
+    HMAX = Setting(1)
     METHOD = Setting(2)
 
 
@@ -205,11 +206,22 @@ class OWtc_slit(XoppyWidget):
         #widget index 15
         idx += 1
         box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "HMAX",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 16
+        idx += 1
+        box1 = gui.widgetBox(box)
         gui.comboBox(box1, self, "METHOD",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=['US', 'URGENT', 'SRW'],
                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
+
+
+
 
     def unitLabels(self):
          return ["Use emittances","Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]",
@@ -217,7 +229,7 @@ class OWtc_slit(XoppyWidget):
                  "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]",
                  "Period ID [m]", "Number of periods",
                  "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]",
-                 "K Min", "K Max", "Number of K Points", "calculation code"]
+                 "K Min", "K Max", "Number of K Points", "higher harmonic", "calculation code"]
 
     def unitFlags(self):
          return ["True", "True", "self.USEEMITTANCES == 1 and self.METHOD != 1", "True",
@@ -225,7 +237,7 @@ class OWtc_slit(XoppyWidget):
                  "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1",
                  "True", "True",
                  "True", "True", "True",
-                 "True", "True", "True", "True"]
+                 "True", "True", "True", "True", "True"]
 
 
     def get_help_name(self):
@@ -248,6 +260,7 @@ class OWtc_slit(XoppyWidget):
         self.KMAX = congruence.checkStrictlyPositiveNumber(self.KMAX, "K Max")
         congruence.checkLessThan(self.KMIN, self.KMAX, "K Min", "K Max")
         self.KPOINTS = congruence.checkStrictlyPositiveNumber(self.KPOINTS, "Number of K Points")
+        self.HMAX = congruence.checkStrictlyPositiveNumber(self.HMAX, "Higher harmonic")
 
     def do_xoppy_calculation(self):
         return self.xoppy_calc_tc_slit()
@@ -256,17 +269,18 @@ class OWtc_slit(XoppyWidget):
     def extract_data_from_xoppy_output(self, calculation_output):
 
 
-        K_scan,harmonics,energy_values_at_flux_peak,flux_values = calculation_output
+        K_scan,harmonics,P_scan,energy_values_at_flux_peak,flux_values = calculation_output
 
         harmonics_data = []
 
         for ih,harmonic_number in enumerate(harmonics):
             harmonics_data.append([harmonic_number,None])
 
-            data = numpy.zeros((K_scan.size, 3))
+            data = numpy.zeros((K_scan.size, 4))
             data[:, 0] = numpy.array(energy_values_at_flux_peak[:,ih])
             data[:, 1] = numpy.array(flux_values[:,ih])
             data[:, 2] = numpy.array(K_scan)
+            data[:, 3] = numpy.array(P_scan)
 
             harmonics_data[ih][1] = data
 
@@ -312,14 +326,15 @@ class OWtc_slit(XoppyWidget):
         except:
             pass
         try:
-            calculated_data.add_content("labels",["Photon energy [eV]","Flux [photons/s/0.1%bw]","Ky"])
+            calculated_data.add_content("labels",["Photon energy [eV]","Flux [photons/s/0.1%bw]","Ky","Power [W]"])
         except:
             pass
 
 
         return calculated_data
 
-    def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False, harmonic=1, color='blue'):
+    def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
+                   log_x=False, log_y=False, harmonic=1, color='blue',control=True):
         h_title = "Harmonic " + str(harmonic)
 
         hex_r = hex(min(255, 128 + harmonic*10))[2:].upper()
@@ -329,7 +344,8 @@ class OWtc_slit(XoppyWidget):
         if len(hex_g) == 1: hex_g = "0" + hex_g
         if len(hex_b) == 1: hex_b = "0" + hex_b
 
-        super().plot_histo(x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, h_title, xtitle, ytitle, log_x, log_y, color="#" + hex_r + hex_g + hex_b, replace=False)
+        super().plot_histo(x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, h_title, xtitle, ytitle,
+                           log_x, log_y, color="#" + hex_r + hex_g + hex_b, replace=False, control=control)
 
         self.plot_canvas[plot_canvas_index].setGraphTitle(title)
         self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
@@ -370,7 +386,8 @@ class OWtc_slit(XoppyWidget):
                                             ytitle=ytitles[index],
                                             log_x=log_x,
                                             log_y=log_y,
-                                            harmonic=xoppy_data_harmonics[h_index][0])
+                                            harmonic=xoppy_data_harmonics[h_index][0],
+                                            control=True)
 
                         self.plot_canvas[index].addCurve(numpy.zeros(1),
                                                          numpy.array([max(xoppy_data_harmonics[h_index][1][:, y_index])]),
@@ -391,7 +408,8 @@ class OWtc_slit(XoppyWidget):
             else:
                 raise Exception("Empty Data")
 
-    def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False, harmonic=1, color='blue'):
+    def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
+                   log_x=False, log_y=False, harmonic=1, color='blue', control=True):
         h_title = "Harmonic " + str(harmonic)
 
         hex_r = hex(min(255, 128 + harmonic*10))[2:].upper()
@@ -401,7 +419,8 @@ class OWtc_slit(XoppyWidget):
         if len(hex_g) == 1: hex_g = "0" + hex_g
         if len(hex_b) == 1: hex_b = "0" + hex_b
 
-        super().plot_histo(x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, h_title, xtitle, ytitle, log_x, log_y, color="#" + hex_r + hex_g + hex_b, replace=False)
+        super().plot_histo(x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, h_title, xtitle, ytitle,
+                           log_x, log_y, color="#" + hex_r + hex_g + hex_b, replace=False, control=control)
 
         self.plot_canvas[plot_canvas_index].setGraphTitle(title)
         self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
@@ -411,19 +430,19 @@ class OWtc_slit(XoppyWidget):
         return "TC_SLIT"
 
     def getTitles(self):
-        return ["Flux on slit","Ky"]
+        return ["Flux on slit","Ky","Power"]
 
     def getXTitles(self):
-        return ["Energy (eV)","Energy (eV)"]
+        return ["Energy (eV)","Energy (eV)","Kv"]
 
     def getYTitles(self):
-        return ["Flux (photons/s/0.1%bw)","Ky"]
+        return ["Flux (photons/s/0.1%bw)","Ky","Power (W)"]
 
     def getVariablesToPlot(self):
-        return [(0, 1), (0, 2)]
+        return [(0, 1), (0, 2), (2, 3)]
 
     def getLogPlot(self):
-        return[(False, False), (False, False)]
+        return[(False, False), (False, False), (False, False)]
 
     def xoppy_calc_tc_slit(self):
 
@@ -456,32 +475,22 @@ class OWtc_slit(XoppyWidget):
         if self.METHOD == 2:
             code = "srw"
 
-        K_scan,harmonics,energy_values_at_flux_peak,flux_values = srundplug.tuning_curves_on_slit(bl,
-                    Kmin=self.KMIN,Kmax=self.KMAX,Kpoints=self.KPOINTS,harmonics=[1],
+        harmonics = []
+        for i in range(self.HMAX+1):
+            if i % 2 != 0: harmonics.append(i)
+
+        K_scan,harmonics,power_array, energy_values_at_flux_peak,flux_values = srundplug.tuning_curves_on_slit(bl,
+                    Kmin=self.KMIN,Kmax=self.KMAX,Kpoints=self.KPOINTS,harmonics=harmonics,
                     zero_emittance=zero_emittance,do_plot_peaks=False,code=code)
-
-        print("Done")
-
-        # # temporary plot
-        # from srxraylib.plot.gol import plot
-        # tmp = []
-        # tmpK = []
-        #
-        # for ih in range(len(harmonics)):
-        #     tmp.append(energy_values_at_flux_peak[:,ih])
-        #     tmp.append(flux_values[:,ih])
-        #     tmpK.append(energy_values_at_flux_peak[:,ih])
-        #     tmpK.append(K_scan)
-        #
-        # plot(tmp,title="K-scan, flux on slit",xtitle="Photon energy [eV]",ytitle="Photons/s/0.1%bw",show=False)
-        # plot(tmpK,title="K-scan",xtitle="Photon energy [eV]",ytitle="K",show=True)
 
 
 
         if zero_emittance:
             print("\nNo emittance calculation")
 
-        return K_scan,harmonics,energy_values_at_flux_peak,flux_values # e, f, f*codata.e * 1e3
+        print("Done")
+
+        return K_scan,harmonics,power_array,energy_values_at_flux_peak,flux_values
 
 
 if __name__ == "__main__":

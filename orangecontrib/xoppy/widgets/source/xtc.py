@@ -279,7 +279,8 @@ class OWxtc(XoppyWidget):
                                             ytitle=ytitles[index],
                                             log_x=log_x,
                                             log_y=log_y,
-                                            harmonic=xoppy_data_harmonics[h_index][0])
+                                            harmonic=xoppy_data_harmonics[h_index][0],
+                                            control=True)
 
                         self.plot_canvas[index].addCurve(numpy.zeros(1),
                                                          numpy.array([max(xoppy_data_harmonics[h_index][1][:, y_index])]),
@@ -300,7 +301,8 @@ class OWxtc(XoppyWidget):
             else:
                 raise Exception("Empty Data")
 
-    def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False, harmonic=1, color='blue'):
+    def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
+                   log_x=False, log_y=False, harmonic=1, color='blue', control=True):
         h_title = "Harmonic " + str(harmonic)
 
         hex_r = hex(min(255, 128 + harmonic*10))[2:].upper()
@@ -310,7 +312,8 @@ class OWxtc(XoppyWidget):
         if len(hex_g) == 1: hex_g = "0" + hex_g
         if len(hex_b) == 1: hex_b = "0" + hex_b
 
-        super().plot_histo(x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, h_title, xtitle, ytitle, log_x, log_y, color="#" + hex_r + hex_g + hex_b, replace=False)
+        super().plot_histo(x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, h_title, xtitle, ytitle,
+                           log_x, log_y, color="#" + hex_r + hex_g + hex_b, replace=False, control=control)
 
         self.plot_canvas[plot_canvas_index].setGraphTitle(title)
         self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)

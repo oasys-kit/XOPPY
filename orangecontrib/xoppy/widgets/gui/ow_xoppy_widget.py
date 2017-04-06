@@ -203,11 +203,10 @@ class XoppyWidget(widget.OWWidget):
         self.xoppy_output.ensureCursorVisible()
 
     def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
-                   log_x=False, log_y=False, color='blue', replace=True):
+                   log_x=False, log_y=False, color='blue', replace=True, control=False):
+
+
         if self.plot_canvas[plot_canvas_index] is None:
-
-
-            # TODO: this is for silx
             self.plot_canvas[plot_canvas_index] = PlotWindow(parent=None,
                                                              backend=None,
                                                              resetzoom=True,
@@ -221,7 +220,7 @@ class XoppyWidget(widget.OWWidget):
                                                              copy=True,
                                                              save=True,
                                                              print_=True,
-                                                             control=False,
+                                                             control=control,
                                                              position=True,
                                                              roi=False,
                                                              mask=False,
@@ -306,8 +305,8 @@ class XoppyWidget(widget.OWWidget):
 
                 self.plot_canvas[plot_canvas_index].addImage(numpy.array(data_to_plot),
                                                              legend="zio billy",
-                                                             scale=scale,
-                                                             origin=origin,
+                                                             # scale=scale,
+                                                             # origin=origin,
                                                              colormap=colormap,
                                                              replace=True)
 
@@ -350,7 +349,7 @@ class XoppyWidget(widget.OWWidget):
         self.plot_canvas[plot_canvas_index].setLabels(["Photon Energy [eV]",ytitle,xtitle])
         self.plot_canvas[plot_canvas_index].setColormap(colormap=colormap)
 
-        self.plot_canvas[plot_canvas_index].setStack(numpy.array(data_to_plot), origin=origin, scale=scale,  )
+        self.plot_canvas[plot_canvas_index].setStack(numpy.array(data_to_plot)) # , origin=origin, scale=scale,  )
         self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
 
