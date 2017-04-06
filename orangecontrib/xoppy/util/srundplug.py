@@ -242,7 +242,7 @@ def calc1d_pysru(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
 
 
 def calc1d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoints=500,zero_emittance=False,
-              srw_max_harmonic_number=21,fileName=None,fileAppend=False):
+              srw_max_harmonic_number=None,fileName=None,fileAppend=False):
 
     r"""
         run SRW for calculating flux
@@ -255,9 +255,7 @@ def calc1d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
 
     t0 = time.time()
     print("Inside calc1d_srw")
-    #Maximum number of harmonics considered. This is critical for speed. 
-    #TODO: set it automatically to a reasonable value (see how is done by Urgent).
-    Nmax = srw_max_harmonic_number # 21,61
+
     #derived
     #TODO calculate the numerical factor using codata
     #B0 = bl['Kv']/0.934/(bl['PeriodID']*1e2)
@@ -265,7 +263,19 @@ def calc1d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
     cte = codata.e/(2*numpy.pi*codata.electron_mass*codata.c)
     B0 = bl['Kv']/bl['PeriodID']/cte
 
-    
+
+    if srw_max_harmonic_number == None:
+        gamma = bl['ElectronEnergy'] / (codata_mee * 1e-3)
+
+        resonance_wavelength = (1 + bl['Kv']**2 / 2.0) / 2 / gamma**2 * bl["PeriodID"]
+        resonance_energy = m2ev / resonance_wavelength
+
+        srw_max_harmonic_number = int(photonEnergyMax / resonance_energy * 1.1)
+        print ("Max harmonic considered:%d ; Resonance energy: %g eV\n"%(srw_max_harmonic_number,resonance_energy))
+
+
+    Nmax = srw_max_harmonic_number # 21,61
+
     print('Running SRW (SRWLIB Python)')
     
     #***********Undulator
@@ -1982,6 +1992,79 @@ def calc_from_3d(code,bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEn
 
 ########################################################################################################################
 #
+# Tuning curves on a slit
+#
+########################################################################################################################
+
+def tuning_curves_on_slit(bl,Kmin=0.2,Kmax=2.2,Kpoints=10,harmonics=[1],zero_emittance=False,do_plot_peaks=False,code='srw'):
+
+    if do_plot_peaks:
+        from srxraylib.plot.gol import plot
+    #
+
+    #
+    # calculations
+    #
+
+    gamma = bl["ElectronEnergy"]* 1e9 / (codata.m_e *  codata.c**2 / codata.e)
+    Kvalues = numpy.linspace(Kmin,Kmax,Kpoints)
+
+    # B0 = 93.6 * bl['PeriodID'] / kvalues
+    lambda1 = bl['PeriodID'] * (1+0.5*Kvalues**2) / 2 / gamma**2
+    lambda1shifted = lambda1 + 0.5 * bl['PeriodID'] * (bl["gapV"] / bl["distance"])**2
+    energy1 = codata.h * codata.c / codata.e / lambda1
+    energy1shifted = codata.h * codata.c / codata.e / lambda1shifted
+    energy1delta = energy1 - energy1shifted
+
+    flux_values = numpy.zeros((Kpoints,len(harmonics)))
+    evalues = numpy.zeros((Kpoints,len(harmonics)))
+    evalues_at_flux_peak = numpy.zeros((Kpoints,len(harmonics)))
+    #
+    #
+    for ik,k in enumerate(Kvalues):
+        bl['Kv'] = k
+        print("\n-------- tuning_curves_on_slit: calculating Kv: %f4.3"%k)
+        for ih,harmonic in enumerate(harmonics):
+
+            if code == "srw":
+                e_s,f_s = calc1d_srw(bl,
+                                photonEnergyMin=(harmonic*energy1[ik]-(1.0/harmonic)*energy1delta[ik]),
+                                photonEnergyMax=harmonic*energy1[ik],
+                                photonEnergyPoints=100,zero_emittance=zero_emittance,fileName=None,fileAppend=False)
+            elif code == "us":
+                e_s,f_s = calc1d_us(bl,
+                                photonEnergyMin=(harmonic*energy1[ik]-(1.0/harmonic)*energy1delta[ik]),
+                                photonEnergyMax=harmonic*energy1[ik],
+                                photonEnergyPoints=100,zero_emittance=zero_emittance,fileName=None,fileAppend=False)
+            elif code == "urgent":
+                e_s,f_s = calc1d_urgent(bl,
+                                photonEnergyMin=(harmonic*energy1[ik]-(1.0/harmonic)*energy1delta[ik]),
+                                photonEnergyMax=harmonic*energy1[ik],
+                                photonEnergyPoints=100,zero_emittance=zero_emittance,fileName=None,fileAppend=False)
+            else:
+                raise Exception("Not implemented code %s"%code)
+
+
+            max_at = numpy.argmax(f_s)
+            flux_values[ik,ih] = f_s[max_at]
+            evalues[ik,ih] = harmonic*energy1[ik]
+            evalues_at_flux_peak[ik,ih] = e_s[max_at]
+
+            if do_plot_peaks:
+                plot(e_s,f_s,ylog=False,title="K=%4.2f, n=%d"%(k,harmonic))
+
+
+
+    print("\n\n%25s%25s%25s%25s"%("Harmonic:","Kv:","Resonance energy","Energy at flux peak"))
+    for ih in range(len(harmonics)):
+        for i in range(Kvalues.size):
+            print("%40d%20.3f%17.3f eV%17.3f eV"%
+                  (harmonics[ih],Kvalues[i],evalues[i,ih],evalues_at_flux_peak[i,ih]))
+
+    return Kvalues,harmonics,evalues_at_flux_peak,flux_values,
+
+########################################################################################################################
+#
 # Tools
 #
 ########################################################################################################################
@@ -2055,8 +2138,7 @@ def _srw_drift_electron_beam(eBeam, und ):
 #
 ########################################################################################################################
 def compare_flux(beamline,emin=3000.0,emax=50000.0,npoints=200,
-                 zero_emittance=False,fileName=None,
-                 srw_max_harmonic_number=21):
+                 zero_emittance=False,fileName=None,):
 
 
     gamma = beamline['ElectronEnergy'] / (codata_mee * 1e-3)
@@ -2080,7 +2162,7 @@ def compare_flux(beamline,emin=3000.0,emax=50000.0,npoints=200,
     if USE_SRWLIB:
         e_s,f_s = calc1d_srw(beamline,photonEnergyMin=emin,photonEnergyMax=emax,
               photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True,
-                             srw_max_harmonic_number=srw_max_harmonic_number)
+                             srw_max_harmonic_number=None)
         print("Power from integral of SRW spectrum: %f W"%(f_s.sum()*1e3*codata.e*(e_s[1]-e_s[0])))
         beamline["calc1d_srw"] = {"energy":e_s,"flux":f_s}
 
@@ -2108,7 +2190,7 @@ def compare_flux(beamline,emin=3000.0,emax=50000.0,npoints=200,
 
     return beamline
 
-def compare_flux_plot(beamline_dict,show=True):
+def plot_flux(beamline_dict,plot_lin=True,plot_log=True,show=True):
     data = []
     legend = []
     for key in ["calc1d_us","calc1d_urgent","calc1d_pysru","calc1d_srw"]:
@@ -2117,11 +2199,9 @@ def compare_flux_plot(beamline_dict,show=True):
             data.append(beamline_dict[key]["flux"])
             legend.append(key)
 
-    plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=True)
-    plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=False)
-
-    if show:
-        plot_show()
+    if plot_lin: plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=True)
+    if plot_log: plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=False)
+    if show: plot_show()
 
 
 def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,
@@ -2201,33 +2281,83 @@ def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,
             plot_show()
 
 
-def compare_power_density(beamline,npoints_grid=40,zero_emittance=False,fileName=None):
+def compare_power_density(beamline,npoints_grid=40,zero_emittance=False,fileName=None,post_convolution=False):
+
+    if post_convolution:
+        zero_emittance = True
+        from scipy.ndimage.filters import convolve as convolve
+        from scipy.ndimage.filters import gaussian_filter1d as gaussian_filter1d
+        SigmaH = numpy.sqrt( beamline['ElectronBeamSizeH']**2 + (beamline['distance']*beamline['ElectronBeamDivergenceH'])**2 )
+        SigmaV = numpy.sqrt( beamline['ElectronBeamSizeV']**2 + (beamline['distance']*beamline['ElectronBeamDivergenceV'])**2 )
+
+        # H = numpy.outer(h,numpy.ones_like(v))
+        # V = numpy.outer(numpy.ones_like(h),v)
+        # tmp1 = numpy.exp(-H*H/2/SigmaH/SigmaH) * numpy.exp(-V*V/2/SigmaV/SigmaV)
+        # p = convolve(p,tmp1)/tmp1.sum()
+
 
 
 
     if USE_US:
-        h_us,v_us,p_us =     calc2d_us(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-        print("Total power US: ",p_us.sum()*(h_us[1]-h_us[0])*(v_us[1]-v_us[0]))
-        beamline["calc2d_us"] = {"h":h_us,"v":v_us,"p":p_us}
+        h, v, p =     calc2d_us(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        if post_convolution:
+            p1 = gaussian_filter1d(p ,SigmaH/(h[1]-h[0]),axis=0)
+            p  = gaussian_filter1d(p1,SigmaV/(v[1]-v[0]),axis=1)
+
+            # H = numpy.outer(h,numpy.ones_like(v))
+            # V = numpy.outer(numpy.ones_like(h),v)
+            # tmp1 = numpy.exp(-H*H/2/SigmaH/SigmaH) * numpy.exp(-V*V/2/SigmaV/SigmaV)
+            # p = convolve(p,tmp1)/tmp1.sum()
+
+        print("Total power US: ",p.sum()*(h[1]-h[0])*(v[1]-v[0]))
+        beamline["calc2d_us"] = {"h":h,"v":v,"p":p}
 
     if USE_URGENT:
-        h_ur,v_ur,p_ur = calc2d_urgent(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-        print("Total power URGENT: ",p_ur.sum()*(h_ur[1]-h_ur[0])*(v_ur[1]-v_ur[0]))
-        beamline["calc2d_urgent"] = {"h":h_ur,"v":v_ur,"p":p_ur}
+        h, v, p = calc2d_urgent(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        if post_convolution:
+            p1 = gaussian_filter1d(p ,SigmaH/(h[1]-h[0]),axis=0,mode='mirror')
+            p  = gaussian_filter1d(p1,SigmaV/(v[1]-v[0]),axis=1,mode='mirror')
+
+            # H = numpy.outer(h,numpy.ones_like(v))
+            # V = numpy.outer(numpy.ones_like(h),v)
+            # tmp1 = numpy.exp(-H*H/2/SigmaH/SigmaH) * numpy.exp(-V*V/2/SigmaV/SigmaV)
+            # p = convolve(p,tmp1)/tmp1.sum()
+        print("Total power URGENT: ",p.sum()*(h[1]-h[0])*(v[1]-v[0]))
+        beamline["calc2d_urgent"] = {"h":h,"v":v,"p":p}
 
     if USE_SRWLIB:
-        h_s,v_s,p_s = calc2d_srw(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-        print("Total power SRW: ",p_s.sum()*(h_s[1]-h_s[0])*(v_s[1]-v_s[0]))
-        beamline["calc2d_srw"] = {"h":h_s,"v":v_s,"p":p_s}
+        h, v, p = calc2d_srw(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        if post_convolution:
+            p1 = gaussian_filter1d(p ,SigmaH/(h[1]-h[0]),axis=0)
+            p  = gaussian_filter1d(p1,SigmaV/(v[1]-v[0]),axis=1)
+
+
+            # H = numpy.outer(h,numpy.ones_like(v))
+            # V = numpy.outer(numpy.ones_like(h),v)
+            # tmp1 = numpy.exp(-H*H/2/SigmaH/SigmaH) * numpy.exp(-V*V/2/SigmaV/SigmaV)
+            # p = convolve(p,tmp1)/tmp1.sum()
+        print("Total power SRW: ",p.sum()*(h[1]-h[0])*(v[1]-v[0]))
+        beamline["calc2d_srw"] = {"h":h,"v":v,"p":p}
 
     if USE_PYSRU:
-        h_py,v_py,p_py = calc2d_pysru(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-        print("Total power pySRU: ",p_py.sum()*(h_py[1]-h_py[0])*(v_py[1]-v_py[0]))
-        beamline["calc2d_pysru"] = {"h":h_py,"v":v_py,"p":p_py}
+        h, v, p = calc2d_pysru(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        if post_convolution:
+            p1 = gaussian_filter1d(p ,SigmaH/(h[1]-h[0]),axis=0)
+            p  = gaussian_filter1d(p1,SigmaV/(v[1]-v[0]),axis=1)
 
+            # H = numpy.outer(h,numpy.ones_like(v))
+            # V = numpy.outer(numpy.ones_like(h),v)
+            # tmp1 = numpy.exp(-H*H/2/SigmaH/SigmaH) * numpy.exp(-V*V/2/SigmaV/SigmaV)
+            # p = convolve(p,tmp1)/tmp1.sum()
+
+        print("Total power pySRU: ",p.sum()*(h[1]-h[0])*(v[1]-v[0]))
+        beamline["calc2d_pysru"] = {"h":h,"v":v,"p":p}
+
+    if post_convolution:
+        print("Post-convolution with sigmaH: %f mm, sigmaV: %f mm"%(1e3*SigmaH,1e3*SigmaV))
     return beamline
 
-def compare_power_density_plot(beamline_dict,show=True):
+def plot_power_density(beamline_dict,show=True,contour=True,surface=True):
 
 
     cmax = -100000.0
@@ -2246,16 +2376,18 @@ def compare_power_density_plot(beamline_dict,show=True):
             v = beamline_dict[key]["v"]
             p = beamline_dict[key]["p"]
 
-            plot_contour(p,h,v,title="%s %s"%(beamline_dict['name'],key),
+            if contour: plot_contour(p,h,v,title="%s %s"%(beamline_dict['name'],key),
                          xtitle="H [mm]",ytitle="V [mm]",plot_points=0,
                          contour_levels=contour_levels,cmap=None,cbar=1,cbar_title="Power density [$W/mm^2$]",show=0)
-            plot_surface(p,h,v,title="%s %s"%(beamline_dict['name'],key),xtitle="H [mm]",ytitle="V [mm]",show=0)
+            if surface: plot_surface(p,h,v,title="%s %s"%(beamline_dict['name'],key),xtitle="H [mm]",ytitle="V [mm]",show=0)
 
     if show:
         plot_show()
 
-def compare_radiation(beamline,energy=None,npoints_grid=51,
-                      zero_emittance=False,fileName=None,iplot=False,show=True):
+def compare_radiation(beamline,
+                      photonEnergyMin=None,photonEnergyMax=100000.0,photonEnergyPoints=1,
+                      npoints_grid=51,
+                      zero_emittance=False,fileName=None):
 
 
 
@@ -2268,12 +2400,16 @@ def compare_radiation(beamline,energy=None,npoints_grid=51,
     print ("Resonance wavelength [A]: %g \n"%(1e10*resonance_wavelength))
     print ("Resonance energy [eV]: %g \n"%(resonance_energy))
 
-    if energy == None:
-        energy = resonance_energy
+    if photonEnergyMin == None:
+        photonEnergyMin = resonance_energy
+        photonEnergyMax = resonance_energy
+        photonEnergyPoints = 1
+
 
 
     if USE_SRWLIB:
-        e,h,v,f = calc3d_srw(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+        e,h,v,f = calc3d_srw(beamline,
+                            photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
                             hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
                             zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
         beamline["calc3d_srw"] = {"e":e,"h":h,"v":v,"f":f}
@@ -2281,7 +2417,8 @@ def compare_radiation(beamline,energy=None,npoints_grid=51,
         print("Integral for SRW   :",f.sum()*(h[1]-h[0])*(v[1]-v[0]) )
 
     if USE_PYSRU:
-        e,h,v,f = calc3d_pysru(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+        e,h,v,f = calc3d_pysru(beamline,
+                            photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
                             hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
                             zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
         beamline["calc3d_pysru"] = {"e":e,"h":h,"v":v,"f":f}
@@ -2289,7 +2426,8 @@ def compare_radiation(beamline,energy=None,npoints_grid=51,
         print("Integral for pySRU :",f.sum()*(h[1]-h[0])*(v[1]-v[0]) )
 
     if USE_URGENT:
-        e,h,v,f = calc3d_urgent(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+        e,h,v,f = calc3d_urgent(beamline,
+                            photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
                             hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
                             zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
         beamline["calc3d_urgent"] = {"e":e,"h":h,"v":v,"f":f}
@@ -2297,7 +2435,8 @@ def compare_radiation(beamline,energy=None,npoints_grid=51,
         print("Integral for URGENT :",f.sum()*(h[1]-h[0])*(v[1]-v[0]) )
 
     if USE_US:
-        e,h,v,f = calc3d_us(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+        e,h,v,f = calc3d_us(beamline,
+                            photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
                             hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
                             zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
         beamline["calc3d_us"] = {"e":e,"h":h,"v":v,"f":f}
@@ -2308,16 +2447,27 @@ def compare_radiation(beamline,energy=None,npoints_grid=51,
 
     return beamline
 
-def compare_radiation_plot(beamline_dict,show=True):
+def plot_radiation(beamline_dict,stack=True,show=True):
 
     cmax = -100000.0
+    data_found = False
     for key in ["calc3d_us","calc3d_urgent","calc3d_pysru","calc3d_srw"]:
         if key in beamline_dict.keys():
             f = beamline_dict[key]["f"]
             cmax = numpy.max([cmax,f.max()])
+            data_found = True
+
+    if not data_found: return
 
     contour_levels = numpy.linspace(0,cmax,20)
 
+    # silx stackView
+    if stack == True:
+        from silx.gui import qt
+        from silx.gui.plot.StackView import StackViewMainWindow
+        app = qt.QApplication(sys.argv[1:])
+
+        SV = []
     for key in ["calc3d_us","calc3d_urgent","calc3d_pysru","calc3d_srw"]:
         if key in beamline_dict.keys():
             h = beamline_dict[key]["h"]
@@ -2325,31 +2475,58 @@ def compare_radiation_plot(beamline_dict,show=True):
             e = beamline_dict[key]["e"]
             f = beamline_dict[key]["f"]
 
-            plot_contour(f[e.size/2],h,v,title="%s %s; E=%g eV"%(beamline_dict['name'],key,e[e.size/2]),
-                         xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,
-                         cmap=None,cbar=1,cbar_title="Flux ",show=False)
+            if stack:
+                sv = StackViewMainWindow()
+                SV.append(sv)
+                sv.setColormap("jet", autoscale=True)
+                sv.setStack(f)
+                sv.setGraphTitle(key)
+                sv.setKeepDataAspectRatio(True)
+                sv.setLabels(["E: %10.3f to %10.3f eV (%d points)"%(e.min(),e.max(),e.size),
+                              "H: %5.1f to %5.1f mm (%d points)"%(h.min(),h.max(),h.size),
+                              "V: %5.1f to %5.1f mm (%d points)"%(v.min(),v.max(),v.size)])
+                sv.show()
+            else:
+                plot_contour(f[int(e.size/2),:,:],h,v,title="%s %s; E=%g eV"%(beamline_dict['name'],key,e[int(e.size/2)]),
+                             xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,
+                             cmap=None,cbar=1,cbar_title="Flux ",show=False)
 
-            plot_surface(f[e.size/2],h,v,title="%s %s; E=%g eV"%(beamline_dict['name'],key,e[e.size/2]),
-                         xtitle="H [mm]",ytitle="V [mm]",show=False)
+                plot_surface(f[int(e.size/2),:,:],h,v,title="%s %s; E=%g eV"%(beamline_dict['name'],key,e[int(e.size/2)]),
+                             xtitle="H [mm]",ytitle="V [mm]",show=False)
 
-    # if USE_SRWLIB:
-    #
-    # else:
-    #     contour_levels = numpy.linspace(0,f_py.max(),20)
-    #
-    # if USE_SRWLIB:
-    #     plot_contour(f_s[e_s.size/2],h_s,v_s,title="%s SRW; E=%g eV"%(beamline['name'],e_s[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,cmap=None,
-    #                  cbar=1,cbar_title="Flux ",show=False)
-    #
-    # plot_contour(f_py[e_py.size/2],h_py,v_py,title="%s pySRU; E=%g eV"%(beamline['name'],e_py[e_py.size/2]),xtitle="H [mm]",ytitle="V [mm]",
-    #          plot_points=0,contour_levels=contour_levels,cmap=None,
-    #          cbar=1,cbar_title="Flux ",show=False)
-    #
-    # if USE_SRWLIB: plot_surface(f_s[e_s.size/2],h_s,v_s,title="%s SRW; E=%g eV"%(beamline['name'],e_s[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=False)
-    # plot_surface(f_py[e_py.size/2],h_py,v_py,title="%s pySRU; E=%g eV"%(beamline['name'],e_py[e_py.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=False)
+    if stack: app.exec_()
 
-    if show:
-        plot_show()
+    if show: plot_show()
+
+
+def calculate_power(bl):
+    for key in ["calc1d_us","calc1d_urgent","calc1d_pysru","calc1d_srw"]:
+        if key in bl.keys():
+            e = bl[key]["energy"]
+            f = bl[key]["flux"]
+            print(">>>>    Power from integral of spectrum (%s): %f W"%(key,f.sum()*1e3*codata.e*(e[1]-e[0])))
+
+    for key in ["calc2d_us","calc2d_urgent","calc2d_pysru","calc2d_srw"]:
+        if key in bl.keys():
+            h = bl[key]["h"]
+            v = bl[key]["v"]
+            p = bl[key]["p"]
+            print(">>>>    Power from power density calculations (%s): %f W"%(key,p.sum()*(h[1]-h[0])*(v[1]-v[0])))
+
+    for key in ["calc3d_us","calc3d_urgent","calc3d_pysru","calc3d_srw"]:
+        if key in bl.keys():
+            h = bl[key]["h"]
+            v = bl[key]["v"]
+            e = bl[key]["e"]
+            f = bl[key]["f"]
+            if e.size == 1:
+                e_step = 1.0
+                txt = "/eV"
+            else:
+                e_step = e[1] - e[0]
+                txt = ""
+            print(">>>>    Power from integral of 3D-volume (energy,h,v) (%s): %f W%s"%
+                  (key,f.sum()*1e3*codata.e*e_step*(h[1]-h[0])*(v[1]-v[0]),txt))
 
 
 
@@ -2385,7 +2562,8 @@ def main(radiance=True,flux=True,flux_from_3d=True,power_density=True):
     #
 
     if radiance:
-        compare_radiation(beamline,zero_emittance=zero_emittance,npoints_grid=101,energy=None,iplot=True)
+        out = compare_radiation(beamline,zero_emittance=zero_emittance,npoints_grid=101,energy=None)
+        plot_radiation(out)
 
 
 
@@ -2394,16 +2572,19 @@ def main(radiance=True,flux=True,flux_from_3d=True,power_density=True):
     #
 
     if flux:
-        compare_flux(beamline,emin=100,emax=900,npoints=200, zero_emittance=zero_emittance,iplot=True)
+        out = compare_flux(beamline,emin=100,emax=900,npoints=200, zero_emittance=zero_emittance)
+        plot_flux(out)
     if flux_from_3d:
-        compare_flux_from_3d(beamline,emin=100,emax=900,npoints=10,zero_emittance=zero_emittance,iplot=True)
+        out = compare_flux_from_3d(beamline,emin=100,emax=900,npoints=10,zero_emittance=zero_emittance)
+        plot_flux(out)
 
     #
     # Power density
     #
 
     if power_density:
-        compare_power_density(beamline,npoints_grid=51,zero_emittance=zero_emittance,iplot=True)
+        out = compare_power_density(beamline,npoints_grid=51,zero_emittance=zero_emittance)
+        plot_power_density(out)
 
 if __name__ == '__main__':
     main(radiance=True,flux=False,flux_from_3d=False,power_density=False)

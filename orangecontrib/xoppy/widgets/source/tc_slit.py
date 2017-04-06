@@ -1,0 +1,492 @@
+import sys,os
+import numpy
+from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
+
+from orangewidget import gui
+from orangewidget.settings import Setting
+from oasys.widgets import gui as oasysgui, congruence
+
+from orangecontrib.xoppy.util.xoppy_util import locations
+from oasys.widgets.exchange import DataExchangeObject
+
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+
+from collections import OrderedDict
+from orangecontrib.xoppy.util import srundplug
+import scipy.constants as codata
+
+class OWtc_slit(XoppyWidget):
+    name = "Undulator tuning curves on a slit. "
+    id = "orange.widgets.data_tc_slit"
+    description = "Undulator Tuning Curves (Flux on a slit)"
+    icon = "icons/xoppy_xtc.png"
+    priority = 8
+    category = ""
+    keywords = ["xoppy", "tc_slit"]
+
+
+        # ebeam['ElectronBeamDivergenceH'] = 0.000107
+        # ebeam['ElectronBeamDivergenceV'] = 1.16e-06
+        # ebeam['ElectronBeamSizeH'] = 4.99e-05
+        # ebeam['ElectronBeamSizeV'] = 3.45e-06
+        # ebeam['ElectronEnergySpread'] = 0.001
+        # ebeam['ElectronCurrent'] = 0.2
+        # ebeam['ElectronEnergy'] = 6.037
+        # idv['Kv'] = 2.14
+        # idv['PeriodID'] = 0.042
+        # idv['NPeriods'] = int(1.6 / idv['PeriodID']) #37
+        # drift['distance'] = 26.0
+        # slit['gapH'] = 0.00258
+        # slit['gapV'] = 0.00195
+
+    USEEMITTANCES=Setting(1)
+    ELECTRONENERGY = Setting(6.037)
+    ELECTRONENERGYSPREAD = Setting(0.001)
+    ELECTRONCURRENT = Setting(0.2)
+    ELECTRONBEAMSIZEH = Setting(4.99e-05)
+    ELECTRONBEAMSIZEV = Setting(3.45e-06)
+    ELECTRONBEAMDIVERGENCEH = Setting(0.000107)
+    ELECTRONBEAMDIVERGENCEV = Setting(1.16e-06)
+    PERIODID = Setting(0.042)
+    NPERIODS = Setting(38)
+    DISTANCE = Setting(26.0)
+    GAPH = Setting(0.00258)
+    GAPV = Setting(0.00195)
+    KMIN = Setting(0.01)
+    KMAX = Setting(2.56)
+    KPOINTS = Setting(10)
+    METHOD = Setting(2)
+
+
+    def build_gui(self):
+
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+
+        idx = -1
+
+
+
+        #
+        #
+        #
+
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "USEEMITTANCES",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    items=['No', 'Yes'],
+                    valueType=int, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+
+
+
+        #widget index 0
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "ELECTRONENERGY",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 1
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "ELECTRONENERGYSPREAD",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 2
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "ELECTRONCURRENT",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 3
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "ELECTRONBEAMSIZEH",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 4
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "ELECTRONBEAMSIZEV",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 5
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEH",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 6
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEV",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 7
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "PERIODID",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 8
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "NPERIODS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+
+        #widget index 9
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "DISTANCE",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 10
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "GAPH",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 11
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "GAPV",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 12
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "KMIN",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 13
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "KMAX",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 14
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "KPOINTS",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 15
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "METHOD",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    items=['US', 'URGENT', 'SRW'],
+                    valueType=int, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+    def unitLabels(self):
+         return ["Use emittances","Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]",
+                 "Electron Beam Size H [m]", "Electron Beam Size V [m]",
+                 "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]",
+                 "Period ID [m]", "Number of periods",
+                 "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]",
+                 "K Min", "K Max", "Number of K Points", "calculation code"]
+
+    def unitFlags(self):
+         return ["True", "True", "self.USEEMITTANCES == 1 and self.METHOD != 1", "True",
+                 "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1",
+                 "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1",
+                 "True", "True",
+                 "True", "True", "True",
+                 "True", "True", "True", "True"]
+
+
+    def get_help_name(self):
+        return 'tc_slit'
+
+    def check_fields(self):
+        self.ELECTRONENERGY = congruence.checkStrictlyPositiveNumber(self.ELECTRONENERGY, "Electron Energy")
+        if not self.METHOD == 1: self.ELECTRONENERGYSPREAD = congruence.checkPositiveNumber(self.ELECTRONENERGYSPREAD, "Electron Energy Spread")
+        self.ELECTRONCURRENT = congruence.checkStrictlyPositiveNumber(self.ELECTRONCURRENT, "Electron Current")
+        self.ELECTRONBEAMSIZEH = congruence.checkPositiveNumber(self.ELECTRONBEAMSIZEH, "Electron Beam Size H")
+        self.ELECTRONBEAMSIZEV = congruence.checkPositiveNumber(self.ELECTRONBEAMSIZEV, "Electron Beam Size V")
+        self.ELECTRONBEAMDIVERGENCEH = congruence.checkPositiveNumber(self.ELECTRONBEAMDIVERGENCEH, "Electron Beam Divergence H")
+        self.ELECTRONBEAMDIVERGENCEV = congruence.checkPositiveNumber(self.ELECTRONBEAMDIVERGENCEV, "Electron Beam Divergence V")
+        self.PERIODID = congruence.checkStrictlyPositiveNumber(self.PERIODID, "Period ID")
+        self.NPERIODS = congruence.checkStrictlyPositiveNumber(self.NPERIODS, "Number of Periods")
+        self.DISTANCE = congruence.checkPositiveNumber(self.DISTANCE, "Distance to slit")
+        self.GAPH = congruence.checkPositiveNumber(self.GAPH, "Slit gap H")
+        self.GAPV = congruence.checkPositiveNumber(self.GAPV, "Slit gap V")
+        self.KMIN = congruence.checkPositiveNumber(self.KMIN, "K Min")
+        self.KMAX = congruence.checkStrictlyPositiveNumber(self.KMAX, "K Max")
+        congruence.checkLessThan(self.KMIN, self.KMAX, "K Min", "K Max")
+        self.KPOINTS = congruence.checkStrictlyPositiveNumber(self.KPOINTS, "Number of K Points")
+
+    def do_xoppy_calculation(self):
+        return self.xoppy_calc_tc_slit()
+
+
+    def extract_data_from_xoppy_output(self, calculation_output):
+
+
+        K_scan,harmonics,energy_values_at_flux_peak,flux_values = calculation_output
+
+        harmonics_data = []
+
+        for ih,harmonic_number in enumerate(harmonics):
+            harmonics_data.append([harmonic_number,None])
+
+            data = numpy.zeros((K_scan.size, 3))
+            data[:, 0] = numpy.array(energy_values_at_flux_peak[:,ih])
+            data[:, 1] = numpy.array(flux_values[:,ih])
+            data[:, 2] = numpy.array(K_scan)
+
+            harmonics_data[ih][1] = data
+
+        # harmonics_data = []
+        #
+        # # separate numerical data from text
+        # floatlist = []
+        # harmoniclist = []
+        # txtlist = []
+        # for line in lines:
+        #     try:
+        #         tmp = line.strip()
+        #
+        #         if tmp.startswith("Harmonic"):
+        #             harmonic_number = int(tmp.split("Harmonic")[1].strip())
+        #
+        #             if harmonic_number != self.HARMONIC_FROM:
+        #                 harmonics_data[-1][1] = harmoniclist
+        #                 harmoniclist = []
+        #
+        #             harmonics_data.append([harmonic_number, None])
+        #
+        #         tmp = float(line.strip()[0])
+        #
+        #         floatlist.append(line)
+        #         harmoniclist.append(line)
+        #     except:
+        #         txtlist.append(line)
+        #
+        # harmonics_data[-1][1] = harmoniclist
+        #
+        # data = numpy.loadtxt(floatlist)
+
+
+
+        #send exchange
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+
+        try:
+            calculated_data.add_content("xoppy_data_harmonics", harmonics_data)
+            calculated_data.add_content("plot_x_col", 1)
+            calculated_data.add_content("plot_y_col", 2)
+        except:
+            pass
+        try:
+            calculated_data.add_content("labels",["Photon energy [eV]","Flux [photons/s/0.1%bw]","Ky"])
+        except:
+            pass
+
+
+        return calculated_data
+
+    def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False, harmonic=1, color='blue'):
+        h_title = "Harmonic " + str(harmonic)
+
+        hex_r = hex(min(255, 128 + harmonic*10))[2:].upper()
+        hex_g = hex(min(255, 20 + harmonic*15))[2:].upper()
+        hex_b = hex(min(255, harmonic*10))[2:].upper()
+        if len(hex_r) == 1: hex_r = "0" + hex_r
+        if len(hex_g) == 1: hex_g = "0" + hex_g
+        if len(hex_b) == 1: hex_b = "0" + hex_b
+
+        super().plot_histo(x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, h_title, xtitle, ytitle, log_x, log_y, color="#" + hex_r + hex_g + hex_b, replace=False)
+
+        self.plot_canvas[plot_canvas_index].setGraphTitle(title)
+        self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
+        self.plot_canvas[plot_canvas_index].setDefaultPlotPoints(True)
+
+
+    def plot_results(self, calculated_data, progressBarValue=80):
+        if not self.view_type == 0:
+            if not calculated_data is None:
+                self.view_type_combo.setEnabled(False)
+
+
+                xoppy_data_harmonics = calculated_data.get_content("xoppy_data_harmonics")
+
+                titles = self.getTitles()
+                xtitles = self.getXTitles()
+                ytitles = self.getYTitles()
+
+                progress_bar_step = (100-progressBarValue)/len(titles)
+
+                for index in range(0, len(titles)):
+                    x_index, y_index = self.getVariablesToPlot()[index]
+                    log_x, log_y = self.getLogPlot()[index]
+
+                    if not self.plot_canvas[index] is None:
+                        self.plot_canvas[index].clear()
+
+                    try:
+                        for h_index in range(0, len(xoppy_data_harmonics)):
+
+                            self.plot_histo(xoppy_data_harmonics[h_index][1][:, x_index],
+                                            xoppy_data_harmonics[h_index][1][:, y_index],
+                                            progressBarValue + ((index+1)*progress_bar_step),
+                                            tabs_canvas_index=index,
+                                            plot_canvas_index=index,
+                                            title=titles[index],
+                                            xtitle=xtitles[index],
+                                            ytitle=ytitles[index],
+                                            log_x=log_x,
+                                            log_y=log_y,
+                                            harmonic=xoppy_data_harmonics[h_index][0])
+
+                        self.plot_canvas[index].addCurve(numpy.zeros(1),
+                                                         numpy.array([max(xoppy_data_harmonics[h_index][1][:, y_index])]),
+                                                         "Click on curve to highlight it",
+                                                         xlabel=xtitles[index], ylabel=ytitles[index],
+                                                         symbol='', color='white')
+                        # self.plot_canvas[index].setActiveCurve("Click on curve to highlight it")
+                        # self.plot_canvas[index].showLegends()
+
+                        self.tabs.setCurrentIndex(index)
+                    except Exception as e:
+                        self.view_type_combo.setEnabled(True)
+
+                        raise Exception("Data not plottable: bad content\n" + str(e))
+
+
+                self.view_type_combo.setEnabled(True)
+            else:
+                raise Exception("Empty Data")
+
+    def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False, harmonic=1, color='blue'):
+        h_title = "Harmonic " + str(harmonic)
+
+        hex_r = hex(min(255, 128 + harmonic*10))[2:].upper()
+        hex_g = hex(min(255, 20 + harmonic*15))[2:].upper()
+        hex_b = hex(min(255, harmonic*10))[2:].upper()
+        if len(hex_r) == 1: hex_r = "0" + hex_r
+        if len(hex_g) == 1: hex_g = "0" + hex_g
+        if len(hex_b) == 1: hex_b = "0" + hex_b
+
+        super().plot_histo(x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, h_title, xtitle, ytitle, log_x, log_y, color="#" + hex_r + hex_g + hex_b, replace=False)
+
+        self.plot_canvas[plot_canvas_index].setGraphTitle(title)
+        self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
+        self.plot_canvas[plot_canvas_index].setDefaultPlotPoints(True)
+
+    def get_data_exchange_widget_name(self):
+        return "TC_SLIT"
+
+    def getTitles(self):
+        return ["Flux on slit","Ky"]
+
+    def getXTitles(self):
+        return ["Energy (eV)","Energy (eV)"]
+
+    def getYTitles(self):
+        return ["Flux (photons/s/0.1%bw)","Ky"]
+
+    def getVariablesToPlot(self):
+        return [(0, 1), (0, 2)]
+
+    def getLogPlot(self):
+        return[(False, False), (False, False)]
+
+    def xoppy_calc_tc_slit(self):
+
+
+        print("Inside xoppy_calc_undulator_spectrum. ")
+
+        bl = OrderedDict()
+        bl['ElectronBeamDivergenceH'] = self.ELECTRONBEAMDIVERGENCEH
+        bl['ElectronBeamDivergenceV'] = self.ELECTRONBEAMDIVERGENCEV
+        bl['ElectronBeamSizeH']       = self.ELECTRONBEAMSIZEH
+        bl['ElectronBeamSizeV']       = self.ELECTRONBEAMSIZEV
+        bl['ElectronCurrent']         = self.ELECTRONCURRENT
+        bl['ElectronEnergy']          = self.ELECTRONENERGY
+        bl['ElectronEnergySpread']    = self.ELECTRONENERGYSPREAD
+        bl['NPeriods']                = self.NPERIODS
+        bl['PeriodID']                = self.PERIODID
+        bl['distance']                = self.DISTANCE
+        bl['gapH']                    = self.GAPH
+        bl['gapV']                    = self.GAPV
+
+        if self.USEEMITTANCES:
+            zero_emittance = False
+        else:
+            zero_emittance = True
+
+        if self.METHOD == 0:
+            code = "us"
+        if self.METHOD == 1:
+            code = "urgent"
+        if self.METHOD == 2:
+            code = "srw"
+
+        K_scan,harmonics,energy_values_at_flux_peak,flux_values = srundplug.tuning_curves_on_slit(bl,
+                    Kmin=self.KMIN,Kmax=self.KMAX,Kpoints=self.KPOINTS,harmonics=[1],
+                    zero_emittance=zero_emittance,do_plot_peaks=False,code=code)
+
+        print("Done")
+
+        # # temporary plot
+        # from srxraylib.plot.gol import plot
+        # tmp = []
+        # tmpK = []
+        #
+        # for ih in range(len(harmonics)):
+        #     tmp.append(energy_values_at_flux_peak[:,ih])
+        #     tmp.append(flux_values[:,ih])
+        #     tmpK.append(energy_values_at_flux_peak[:,ih])
+        #     tmpK.append(K_scan)
+        #
+        # plot(tmp,title="K-scan, flux on slit",xtitle="Photon energy [eV]",ytitle="Photons/s/0.1%bw",show=False)
+        # plot(tmpK,title="K-scan",xtitle="Photon energy [eV]",ytitle="K",show=True)
+
+
+
+        if zero_emittance:
+            print("\nNo emittance calculation")
+
+        return K_scan,harmonics,energy_values_at_flux_peak,flux_values # e, f, f*codata.e * 1e3
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    w = OWtc_slit()
+    w.show()
+    app.exec()
+    w.saveSettings()

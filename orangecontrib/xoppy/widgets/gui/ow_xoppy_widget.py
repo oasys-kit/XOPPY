@@ -428,14 +428,12 @@ class XoppyWidget(widget.OWWidget):
             if len(out) == 0 : raise Exception("Calculation gave no results (empty data)")
 
             #get labels
-            txt = open(spec_file_name).readlines()
-            tmp = [ line.find("#L") for line in txt]
-            itmp = numpy.where(numpy.array(tmp) != (-1))
+            # txt = open(spec_file_name).readlines()
+            # tmp = [ line.find("#L") for line in txt]
+            # itmp = numpy.where(numpy.array(tmp) != (-1))
+            # labels = txt[int(itmp[0])].replace("#L ","").split("  ")
+            # print("data labels: ", labels)
 
-            labels = txt[int(itmp[0])].replace("#L ","").split("  ")
-            print("data labels: ", labels)
-
-            print("???",out.shape)
             calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
             calculated_data.add_content("xoppy_specfile", spec_file_name)
