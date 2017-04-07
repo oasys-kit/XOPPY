@@ -282,6 +282,7 @@ class OWundulator_spectrum(XoppyWidget):
         return [(False, False), (False, False)]
 
     def getVariablesToPlot(self):
+    def getVariablesToPlot(self):
         return [(0, 1), (0, 2)]
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------

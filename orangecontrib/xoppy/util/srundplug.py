@@ -2062,7 +2062,7 @@ def tuning_curves_on_slit(bl,Kmin=0.2,Kmax=2.2,Kpoints=10,harmonics=[1],zero_emi
 
     for ik,k in enumerate(Kvalues):
         bl['Kv'] = k
-        print("\n-------- tuning_curves_on_slit: calculating power for Kv: %f4.3"%k)
+        print("\n-------- tuning_curves_on_slit: calculating power for Kv: %4.3f"%k)
 
         if code == "srw":
             h,v,p = calc2d_srw(bl,zero_emittance=zero_emittance,hSlitPoints=51,vSlitPoints=51,
@@ -2082,8 +2082,7 @@ def tuning_curves_on_slit(bl,Kmin=0.2,Kmax=2.2,Kpoints=10,harmonics=[1],zero_emi
         Pvalues[ik] = tot_power
 
 
-    print("\n\n%10s%13s%13s%13s%13s"%("Harmonic:","Kv:","Resonance [eV]",
-                                      "Flux peak [eV]","Total Power on slit [eV]"))
+    print("\n\nHarmonic     Kv     Resonance [eV]    Flux peak [eV]   Total Power on slit [eV]")
     for ih in range(len(harmonics)):
         for i in range(Kvalues.size):
             print("%10d%17.3f%17.3f%17.3f%17.3f"%

@@ -1,0 +1,11 @@
+
+====================================  tc_slit   ==============================
+
+   tc_slit (undulator tuning curves on slit) calculates the flux and power 
+   for an ideal undulator while scannling the K value. 
+
+   The calculation is performed by calculationg the flux and spectral density
+   for each K point using one of the selected codes (US, URGENT or SRW).
+   Therefore, it can be slow for calculations with many points up to higher 
+   harmonics.
+   Only odd harmonics are considered. 

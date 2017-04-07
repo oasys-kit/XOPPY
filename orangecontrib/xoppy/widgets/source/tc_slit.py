@@ -1,19 +1,19 @@
-import sys,os
+import sys
 import numpy
+from collections import OrderedDict
+import scipy.constants as codata
+
 from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
 
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui, congruence
 
-from orangecontrib.xoppy.util.xoppy_util import locations
+from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-
-from collections import OrderedDict
 from orangecontrib.xoppy.util import srundplug
-import scipy.constants as codata
+
 
 class OWtc_slit(XoppyWidget):
     name = "TC-SLIT"
@@ -23,21 +23,6 @@ class OWtc_slit(XoppyWidget):
     priority = 8
     category = ""
     keywords = ["xoppy", "tc_slit"]
-
-
-        # ebeam['ElectronBeamDivergenceH'] = 0.000107
-        # ebeam['ElectronBeamDivergenceV'] = 1.16e-06
-        # ebeam['ElectronBeamSizeH'] = 4.99e-05
-        # ebeam['ElectronBeamSizeV'] = 3.45e-06
-        # ebeam['ElectronEnergySpread'] = 0.001
-        # ebeam['ElectronCurrent'] = 0.2
-        # ebeam['ElectronEnergy'] = 6.037
-        # idv['Kv'] = 2.14
-        # idv['PeriodID'] = 0.042
-        # idv['NPeriods'] = int(1.6 / idv['PeriodID']) #37
-        # drift['distance'] = 26.0
-        # slit['gapH'] = 0.00258
-        # slit['gapV'] = 0.00195
 
     USEEMITTANCES=Setting(1)
     ELECTRONENERGY = Setting(6.037)
@@ -64,9 +49,6 @@ class OWtc_slit(XoppyWidget):
         box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
         idx = -1
-
-
-
         #
         #
         #
@@ -276,45 +258,14 @@ class OWtc_slit(XoppyWidget):
         for ih,harmonic_number in enumerate(harmonics):
             harmonics_data.append([harmonic_number,None])
 
-            data = numpy.zeros((K_scan.size, 4))
+            data = numpy.zeros((K_scan.size, 5))
             data[:, 0] = numpy.array(energy_values_at_flux_peak[:,ih])
             data[:, 1] = numpy.array(flux_values[:,ih])
-            data[:, 2] = numpy.array(K_scan)
-            data[:, 3] = numpy.array(P_scan)
+            data[:, 2] = numpy.array(flux_values[:,ih])*codata.e*1e3
+            data[:, 3] = numpy.array(K_scan)
+            data[:, 4] = numpy.array(P_scan)
 
             harmonics_data[ih][1] = data
-
-        # harmonics_data = []
-        #
-        # # separate numerical data from text
-        # floatlist = []
-        # harmoniclist = []
-        # txtlist = []
-        # for line in lines:
-        #     try:
-        #         tmp = line.strip()
-        #
-        #         if tmp.startswith("Harmonic"):
-        #             harmonic_number = int(tmp.split("Harmonic")[1].strip())
-        #
-        #             if harmonic_number != self.HARMONIC_FROM:
-        #                 harmonics_data[-1][1] = harmoniclist
-        #                 harmoniclist = []
-        #
-        #             harmonics_data.append([harmonic_number, None])
-        #
-        #         tmp = float(line.strip()[0])
-        #
-        #         floatlist.append(line)
-        #         harmoniclist.append(line)
-        #     except:
-        #         txtlist.append(line)
-        #
-        # harmonics_data[-1][1] = harmoniclist
-        #
-        # data = numpy.loadtxt(floatlist)
-
-
 
         #send exchange
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
@@ -430,19 +381,19 @@ class OWtc_slit(XoppyWidget):
         return "TC_SLIT"
 
     def getTitles(self):
-        return ["Flux on slit","Ky","Power"]
+        return ["Flux on slit","Spectral power on slit","Ky","Total power on slit"]
 
     def getXTitles(self):
-        return ["Energy (eV)","Energy (eV)","Kv"]
+        return ["Energy (eV)","Energy (eV)","Energy (eV)","Kv"]
 
     def getYTitles(self):
-        return ["Flux (photons/s/0.1%bw)","Ky","Power (W)"]
+        return ["Flux (photons/s/0.1%bw)","Spectral power (W/eV)","Ky","Total power (W)"]
 
     def getVariablesToPlot(self):
-        return [(0, 1), (0, 2), (2, 3)]
+        return [(0, 1), (0, 2), (0, 3), (2, 3)]
 
     def getLogPlot(self):
-        return[(False, False), (False, False), (False, False)]
+        return[(False, False), (False, False), (False, False), (False, False)]
 
     def xoppy_calc_tc_slit(self):
 
@@ -482,8 +433,6 @@ class OWtc_slit(XoppyWidget):
         K_scan,harmonics,power_array, energy_values_at_flux_peak,flux_values = srundplug.tuning_curves_on_slit(bl,
                     Kmin=self.KMIN,Kmax=self.KMAX,Kpoints=self.KPOINTS,harmonics=harmonics,
                     zero_emittance=zero_emittance,do_plot_peaks=False,code=code)
-
-
 
         if zero_emittance:
             print("\nNo emittance calculation")
