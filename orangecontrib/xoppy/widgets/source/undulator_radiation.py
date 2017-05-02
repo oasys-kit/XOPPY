@@ -10,6 +10,11 @@ from collections import OrderedDict
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 from orangecontrib.xoppy.util import srundplug
 
+from syned.widget.widget_decorator import WidgetDecorator
+import syned.beamline.beamline as synedb
+import syned.storage_ring.magnetic_structures.insertion_device as synedid
+
+
 import scipy.constants as codata
 codata_mee = codata.codata.physical_constants["electron mass energy equivalent in MeV"][0]
 
@@ -51,6 +56,9 @@ class OWundulator_radiation(XoppyWidget):
 
     METHOD = Setting(2)
 
+    inputs = [WidgetDecorator.syned_input_data()]
+
+
     def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
@@ -73,7 +81,7 @@ class OWundulator_radiation(XoppyWidget):
         #widget index 0 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "ELECTRONENERGY",
+        self.id_ELECTRONENERGY = oasysgui.lineEdit(box1, self, "ELECTRONENERGY",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -81,7 +89,7 @@ class OWundulator_radiation(XoppyWidget):
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "ELECTRONENERGYSPREAD",
+        self.id_ELECTRONENERGYSPREAD = oasysgui.lineEdit(box1, self, "ELECTRONENERGYSPREAD",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -89,7 +97,7 @@ class OWundulator_radiation(XoppyWidget):
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "ELECTRONCURRENT",
+        self.id_ELECTRONCURRENT = oasysgui.lineEdit(box1, self, "ELECTRONCURRENT",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -97,7 +105,7 @@ class OWundulator_radiation(XoppyWidget):
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "ELECTRONBEAMSIZEH",
+        self.id_ELECTRONBEAMSIZEH = oasysgui.lineEdit(box1, self, "ELECTRONBEAMSIZEH",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -105,7 +113,7 @@ class OWundulator_radiation(XoppyWidget):
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "ELECTRONBEAMSIZEV",
+        self.id_ELECTRONBEAMSIZEV = oasysgui.lineEdit(box1, self, "ELECTRONBEAMSIZEV",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -113,7 +121,7 @@ class OWundulator_radiation(XoppyWidget):
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEH",
+        self.id_ELECTRONBEAMDIVERGENCEH = oasysgui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEH",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -121,7 +129,7 @@ class OWundulator_radiation(XoppyWidget):
         #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEV",
+        self.id_ELECTRONBEAMDIVERGENCEV = oasysgui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEV",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -129,7 +137,7 @@ class OWundulator_radiation(XoppyWidget):
         #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "PERIODID",
+        self.id_PERIODID = oasysgui.lineEdit(box1, self, "PERIODID",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -137,7 +145,7 @@ class OWundulator_radiation(XoppyWidget):
         #widget index 8 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "NPERIODS",
+        self.id_NPERIODS = oasysgui.lineEdit(box1, self, "NPERIODS",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -146,7 +154,7 @@ class OWundulator_radiation(XoppyWidget):
         #widget index 9
         idx += 1
         box1 = gui.widgetBox(box)
-        oasysgui.lineEdit(box1, self, "KV",
+        self.id_KV = oasysgui.lineEdit(box1, self, "KV",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
@@ -404,6 +412,64 @@ class OWundulator_radiation(XoppyWidget):
     def getTitles(self):
         return ['Undulator Flux','Undulator Power Density','Undulator Spectrum']
 
+
+    def receive_syned_data(self, data):
+
+        if isinstance(data, synedb.Beamline):
+            if not data._light_source is None and isinstance(data._light_source._magnetic_structure, synedid.InsertionDevice):
+                light_source = data._light_source
+
+                self.ELECTRONENERGY = light_source._electron_beam._energy_in_GeV
+                self.ELECTRONENERGYSPREAD = light_source._electron_beam._energy_spread
+                self.ELECTRONCURRENT = light_source._electron_beam._current
+
+                x, xp, y, yp = light_source._electron_beam.get_sigmas_all()
+
+                self.ELECTRONBEAMSIZEH = x
+                self.ELECTRONBEAMSIZEV = y
+                self.ELECTRONBEAMDIVERGENCEH = xp
+                self.ELECTRONBEAMDIVERGENCEV = yp
+                self.PERIODID = light_source._magnetic_structure._period_length
+                self.NPERIODS = light_source._magnetic_structure._number_of_periods
+                self.KV = light_source._magnetic_structure._K_vertical
+
+                self.set_enabled(False)
+
+            else:
+                self.set_enabled(True)
+                # raise ValueError("Syned data not correct")
+        else:
+            self.set_enabled(True)
+            # raise ValueError("Syned data not correct")
+
+    def set_enabled(self,value):
+        if value == True:
+                self.id_ELECTRONENERGY.setEnabled(True)
+                self.id_ELECTRONENERGYSPREAD.setEnabled(True)
+                self.id_ELECTRONBEAMSIZEH.setEnabled(True)
+                self.id_ELECTRONBEAMSIZEV.setEnabled(True)
+                self.id_ELECTRONBEAMDIVERGENCEH.setEnabled(True)
+                self.id_ELECTRONBEAMDIVERGENCEV.setEnabled(True)
+                self.id_ELECTRONCURRENT.setEnabled(True)
+                self.id_PERIODID.setEnabled(True)
+                self.id_NPERIODS.setEnabled(True)
+                self.id_KV.setEnabled(True)
+        else:
+                self.id_ELECTRONENERGY.setEnabled(False)
+                self.id_ELECTRONENERGYSPREAD.setEnabled(False)
+                self.id_ELECTRONBEAMSIZEH.setEnabled(False)
+                self.id_ELECTRONBEAMSIZEV.setEnabled(False)
+                self.id_ELECTRONBEAMDIVERGENCEH.setEnabled(False)
+                self.id_ELECTRONBEAMDIVERGENCEV.setEnabled(False)
+                self.id_ELECTRONCURRENT.setEnabled(False)
+                self.id_PERIODID.setEnabled(False)
+                self.id_NPERIODS.setEnabled(False)
+                self.id_KV.setEnabled(False)
+
+
+
+
+
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
 
@@ -530,6 +596,7 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
     print("Done")
 
     return e, h, v, p, code
+
 
 
 
