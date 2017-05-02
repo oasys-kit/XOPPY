@@ -44,12 +44,12 @@ class OWundulator_radiation(XoppyWidget):
     HSLITPOINTS = Setting(41)
     VSLITPOINTS = Setting(41)
 
-    PHOTONENERGYMIN = Setting(7990)
-    PHOTONENERGYMAX = Setting(8010)
+    PHOTONENERGYMIN = Setting(6000.0)
+    PHOTONENERGYMAX = Setting(8500.0)
     PHOTONENERGYPOINTS = Setting(20)
 
 
-    METHOD = Setting(0)
+    METHOD = Setting(2)
 
     def build_gui(self):
 
@@ -311,20 +311,56 @@ class OWundulator_radiation(XoppyWidget):
 
 
                 try:
-                    self.plot_data3D(p, h, v, 0, 0,
+                    self.plot_data3D(p, e, h, v, 0, 0,
                                      xtitle='H [mm]',
                                      ytitle='V [mm]',
-                                     title='Code '+code+'; Flux [photons/s/0.1%bw/mm^2]')
+                                     title='Code '+code+'; Flux [photons/s/0.1%bw/mm^2]',)
 
                     self.tabs.setCurrentIndex(0)
                 except Exception as e:
                     self.view_type_combo.setEnabled(True)
+                    raise Exception("Data not plottable: bad content\n" + str(e))
 
+                try:
+                    self.plot_data2D(p.sum(axis=0)*(e[1]-e[0])*codata.e*1e3, h, v, 1, 0,
+                                     xtitle='H [mm]',
+                                     ytitle='V [mm]',
+                                     title='Code '+code+'; Power density [W/mm^2]',)
+
+                    self.tabs.setCurrentIndex(1)
+                except Exception as e:
+                    self.view_type_combo.setEnabled(True)
+                    raise Exception("Data not plottable: bad content\n" + str(e))
+
+                # try:
+                #     self.plot_data1D(p.sum(axis=0)*(e[1]-e[0])*codata.e*1e3, h, v, 2, 0,
+                #                      xtitle='H [mm]',
+                #                      ytitle='V [mm]',
+                #                      title='Code '+code+'; Power density [W/mm^2]',)
+                #
+                #     self.tabs.setCurrentIndex(2)
+                # except Exception as e:
+                #     self.view_type_combo.setEnabled(True)
+                #     raise Exception("Data not plottable: bad content\n" + str(e))
+
+                try:
+                    print(">>>>>>>>>>>>",e.shape,(p.sum(axis=2).sum(axis=1)*(h[1]-h[0])*(v[1]-v[0])).shape)
+                    self.plot_data1D(e,p.sum(axis=2).sum(axis=1)*(h[1]-h[0])*(v[1]-v[0]), 2, 0,
+                                     xtitle='Photon Energy [eV]',
+                                     ytitle= 'Flux [photons/s/0.1%bw/mm^2]',
+                                     title='Code '+code+'; Flux',)
+
+                    self.tabs.setCurrentIndex(2)
+                except Exception as e:
+                    self.view_type_combo.setEnabled(True)
                     raise Exception("Data not plottable: bad content\n" + str(e))
 
                 self.view_type_combo.setEnabled(True)
             else:
                 raise Exception("Empty Data")
+
+
+
 
 
     def do_xoppy_calculation(self):
@@ -366,7 +402,7 @@ class OWundulator_radiation(XoppyWidget):
         return "UNDULATOR_RADIATION"
 
     def getTitles(self):
-        return ['Undulator Flux']
+        return ['Undulator Flux','Undulator Power Density','Undulator Spectrum']
 
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
