@@ -344,7 +344,7 @@ class OWmlayer(XoppyWidget):
         #
         # run external program mlayer
         #
-        command = os.path.join(locations.home_bin(), 'mlayer') + " < mlayer.inp"
+        command = "'" + os.path.join(locations.home_bin(), 'mlayer') + "' < mlayer.inp"
         print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
         print("\n--------------------------------------------------------\n")
         os.system(command)

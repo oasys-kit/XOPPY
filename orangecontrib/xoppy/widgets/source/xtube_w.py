@@ -99,7 +99,7 @@ def xoppy_calc_xtube_w(VOLTAGE=100.0,RIPPLE=0.0,AL_FILTER=0.0):
         with open("xoppy.inp","wt") as f:
             f.write("%f\n%f\n%f\n"%(VOLTAGE,RIPPLE,AL_FILTER))
     
-        command = os.path.join(locations.home_bin(), 'tasmip') + " < xoppy.inp"
+        command = "'" + os.path.join(locations.home_bin(), 'tasmip') + "' < xoppy.inp"
         print("Running command '%s' in directory: %s \n"%(command,locations.home_bin_run()))
         print("\n--------------------------------------------------------\n")
         os.system(command)

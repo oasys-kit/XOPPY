@@ -2,8 +2,6 @@
 
 from silx.io.specfile import SpecFile,Scan
 
-
-
 def xoppy_loadspec(fileName,verbose=1,index=None):
     """
     gets the data block of the last spec scan

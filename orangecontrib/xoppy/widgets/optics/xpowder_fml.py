@@ -205,7 +205,7 @@ class OWxpowder_fml(XoppyWidget):
             f.write("%g\n"%(self.STEP))
             f.write("%s\n"%(self.THMAX))
 
-        command = os.path.join(locations.home_bin(), 'xpowder_fml') + " < xoppy.inp"
+        command = "'" + os.path.join(locations.home_bin(), 'xpowder_fml') + "' < xoppy.inp"
         print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
         print("\n--------------------------------------------------------\n")
         os.system(command)

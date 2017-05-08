@@ -20,8 +20,15 @@ from orangewidget.widget import OWAction
 from oasys.widgets import widget
 from oasys.widgets import gui as oasysgui
 from oasys.widgets.exchange import DataExchangeObject
+from oasys.util.oasys_util import EmittingStream
 
-from orangecontrib.xoppy.util.xoppy_util import xoppy_doc, XoppyPlot, EmittingStream
+from orangecontrib.xoppy.util.xoppy_util import xoppy_doc, XoppyPlot
+
+#TODO: this new file fix a bug of matplotlib 2.0.0
+
+from oasys.widgets.gui import OasysPlotWindow
+
+
 
 class XoppyWidget(widget.OWWidget):
     author = "Manuel Sanchez del Rio, Luca Rebuffi"
@@ -207,7 +214,8 @@ class XoppyWidget(widget.OWWidget):
 
 
         if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = PlotWindow(parent=None,
+            #self.plot_canvas[plot_canvas_index] = PlotWindow(parent=None, #TODO: restore after bug is fixed
+            self.plot_canvas[plot_canvas_index] = OasysPlotWindow(parent=None,
                                                              backend=None,
                                                              resetzoom=True,
                                                              autoScale=False,
@@ -232,14 +240,26 @@ class XoppyWidget(widget.OWWidget):
 
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
             self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
-            self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(log_x)
-            self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(log_y)
             self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
             self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
 
             self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
         XoppyPlot.plot_histo(self.plot_canvas[plot_canvas_index], x, y, title, xtitle, ytitle, color, replace)
+
+        self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(log_x)
+        self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(log_y)
+
+        if min(y) < 0:
+            if log_y:
+                self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y)*1.2, max(y)*1.2)
+            else:
+                self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y)*1.01, max(y)*1.01)
+        else:
+            if log_y:
+                self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y), max(y)*1.2)
+            else:
+                self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y), max(y)*1.01)
 
         self.progressBarSet(progressBarValue)
 

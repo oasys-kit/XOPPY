@@ -4,8 +4,8 @@ import os
 
 from setuptools import find_packages, setup
 
-NAME = 'OASYS-XOPPY'
-VERSION = '1.0.14'
+NAME = 'OASYS1-XOPPY'
+VERSION = '1.0.16'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
@@ -37,13 +37,7 @@ SETUP_REQUIRES = (
 )
 
 INSTALL_REQUIRES = (
-    'setuptools',
-    'numpy',
-    'scipy',
-    'matplotlib==1.4.3',
-    'srxraylib>=1.0.8',
-    'orange-widget-core>=0.0.2',
-    'oasys>=0.1.23',
+    'oasys1>=1.0.0',
     'pySRU',
 )
 
@@ -52,7 +46,6 @@ PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
 PACKAGE_DATA = {
     "orangecontrib.xoppy.widgets.source":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.xoppy.widgets.optics":["icons/*.png", "icons/*.jpg", "misc/*.*"],
-    #"orangecontrib.xoppy.widgets.tools":["icons/*.png", "icons/*.jpg"],
 }
 
 NAMESPACE_PACAKGES = ["orangecontrib", "orangecontrib.xoppy", "orangecontrib.xoppy.widgets"]
@@ -62,7 +55,6 @@ ENTRY_POINTS = {
     'oasys.widgets' : (
         "XOPPY Sources = orangecontrib.xoppy.widgets.source",
         "XOPPY Optics = orangecontrib.xoppy.widgets.optics",
-        #"XOPPY Tools = orangecontrib.xoppy.widgets.tools",
     ),
     #'oasys.menus' : ("xoppymenu = orangecontrib.xoppy.menu",)
 }
@@ -111,7 +103,12 @@ if __name__ == '__main__':
 
             if not site_packages_dir is None:
                 if sys.platform == 'darwin':
+                    shutil.copyfile("libraries/" + str(sys.platform) + "/srwl_bl.py", site_packages_dir + "/srwl_bl.py")
+                    shutil.copyfile("libraries/" + str(sys.platform) + "/srwl_uti_cryst.py", site_packages_dir + "/srwl_uti_cryst.py")
+                    shutil.copyfile("libraries/" + str(sys.platform) + "/srwl_uti_src.py", site_packages_dir + "/srwl_uti_src.py")
+                    shutil.copyfile("libraries/" + str(sys.platform) + "/srwl_util_und.py", site_packages_dir + "/srwl_util_und.py")
                     shutil.copyfile("libraries/" + str(sys.platform) + "/srwlib.py", site_packages_dir + "/srwlib.py")
+                    shutil.copyfile("libraries/" + str(sys.platform) + "/uti_math.py", site_packages_dir + "/uti_math.py")
                     shutil.copyfile("libraries/" + str(sys.platform) + "/srwlpy.so", site_packages_dir + "/srwlpy.so")
                 elif sys.platform == 'linux':
                     pass

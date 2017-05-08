@@ -85,7 +85,7 @@ def xoppy_calc_xtubes(ITUBE=0,VOLTAGE=30.0):
         with open("xoppy.inp","wt") as f:
             f.write("%d\n%f\n"%(ITUBE+1,VOLTAGE))
     
-        command = os.path.join(locations.home_bin(), "xtubes") + " < xoppy.inp"
+        command = "'" + os.path.join(locations.home_bin(), "xtubes") + "' < xoppy.inp"
         print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
         print("\n--------------------------------------------------------\n")
         os.system(command)
