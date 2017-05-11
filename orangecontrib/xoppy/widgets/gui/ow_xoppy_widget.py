@@ -263,6 +263,30 @@ class XoppyWidget(widget.OWWidget):
 
         self.progressBarSet(progressBarValue)
 
+    def plot_data1D(self, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle=""):
+
+        self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
+
+        self.plot_canvas[plot_canvas_index] = PlotWindow()
+
+
+        self.plot_canvas[plot_canvas_index].addCurve(dataX, dataY,)
+
+        self.plot_canvas[plot_canvas_index].resetZoom()
+        self.plot_canvas[plot_canvas_index].setXAxisAutoScale(True)
+        self.plot_canvas[plot_canvas_index].setYAxisAutoScale(True)
+        self.plot_canvas[plot_canvas_index].setGraphGrid(False)
+
+        self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(False)
+        self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(False)
+        self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
+        self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
+        self.plot_canvas[plot_canvas_index].setGraphTitle(title)
+
+        self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+
+
+
     def plot_data2D(self, data2D, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", mode=2):
 
         self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
@@ -280,13 +304,9 @@ class XoppyWidget(widget.OWWidget):
 
             self.plot_canvas[plot_canvas_index] = figure
         else:
-            xmin = numpy.min(dataX)
-            xmax = numpy.max(dataX)
-            ymin = numpy.min(dataY)
-            ymax = numpy.max(dataY)
 
-            origin = (xmin, ymin)
-            scale = (abs((xmax-xmin)/len(dataX)), abs((ymax-ymin)/len(dataY)))
+            origin = (dataX[0],dataY[0])
+            scale = (dataX[1]-dataX[0],dataY[1]-dataY[0])
 
             data_to_plot = data2D.T
 
@@ -325,17 +345,17 @@ class XoppyWidget(widget.OWWidget):
 
                 self.plot_canvas[plot_canvas_index].addImage(numpy.array(data_to_plot),
                                                              legend="zio billy",
-                                                             # scale=scale,
-                                                             # origin=origin,
+                                                             scale=scale,
+                                                             origin=origin,
                                                              colormap=colormap,
                                                              replace=True)
 
                 self.plot_canvas[plot_canvas_index].setActiveImage("zio billy")
 
+                # COLOR TABLE
                 from matplotlib.image import AxesImage
                 image = AxesImage(self.plot_canvas[plot_canvas_index]._backend.ax)
                 image.set_data(numpy.array(data_to_plot))
-
                 self.plot_canvas[plot_canvas_index]._backend.fig.colorbar(image, ax=self.plot_canvas[plot_canvas_index]._backend.ax)
 
             self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
@@ -346,7 +366,7 @@ class XoppyWidget(widget.OWWidget):
 
 
 
-    def plot_data3D(self, data3D, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle=""):
+    def plot_data3D(self, data3D, dataE, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle=""):
 
         self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
 
@@ -359,6 +379,12 @@ class XoppyWidget(widget.OWWidget):
         origin = (xmin, ymin)
         scale = (abs((xmax-xmin)/len(dataX)), abs((ymax-ymin)/len(dataY)))
 
+
+
+        dim0_calib = (dataE[0],dataE[1]-dataE[0])
+        dim1_calib = (ymin, dataY[1]-dataY[0])
+        dim2_calib = (xmin, dataX[1]-dataX[0])
+
         data_to_plot = numpy.swapaxes(data3D,1,2)
 
         colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
@@ -369,7 +395,8 @@ class XoppyWidget(widget.OWWidget):
         self.plot_canvas[plot_canvas_index].setLabels(["Photon Energy [eV]",ytitle,xtitle])
         self.plot_canvas[plot_canvas_index].setColormap(colormap=colormap)
 
-        self.plot_canvas[plot_canvas_index].setStack(numpy.array(data_to_plot)) # , origin=origin, scale=scale,  )
+        self.plot_canvas[plot_canvas_index].setStack(numpy.array(data_to_plot),
+                                                     calibrations=[dim0_calib, dim1_calib, dim2_calib] )
         self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
 

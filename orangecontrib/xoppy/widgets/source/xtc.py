@@ -11,6 +11,10 @@ from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
+from syned.widget.widget_decorator import WidgetDecorator
+import syned.beamline.beamline as synedb
+import syned.storage_ring.magnetic_structures.insertion_device as synedid
+
 class OWxtc(XoppyWidget):
     name = "TC"
     id = "orange.widgets.dataxtc"
@@ -40,6 +44,7 @@ class OWxtc(XoppyWidget):
     METHOD = Setting(1)
     NEKS = Setting(100)
 
+    inputs = [WidgetDecorator.syned_input_data()]
 
     def build_gui(self):
 
@@ -52,7 +57,7 @@ class OWxtc(XoppyWidget):
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "ENERGY",
+        self.id_ENERGY = oasysgui.lineEdit(box1, self, "ENERGY",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -60,7 +65,7 @@ class OWxtc(XoppyWidget):
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "CURRENT",
+        self.id_CURRENT = oasysgui.lineEdit(box1, self, "CURRENT",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -68,7 +73,7 @@ class OWxtc(XoppyWidget):
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "ENERGY_SPREAD",
+        self.id_ENERGY_SPREAD = oasysgui.lineEdit(box1, self, "ENERGY_SPREAD",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -77,7 +82,7 @@ class OWxtc(XoppyWidget):
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "SIGX",
+        self.id_SIGX = oasysgui.lineEdit(box1, self, "SIGX",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -85,7 +90,7 @@ class OWxtc(XoppyWidget):
         #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "SIGY",
+        self.id_SIGY = oasysgui.lineEdit(box1, self, "SIGY",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -93,7 +98,7 @@ class OWxtc(XoppyWidget):
         #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "SIGX1",
+        self.id_SIGX1 = oasysgui.lineEdit(box1, self, "SIGX1",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -101,7 +106,7 @@ class OWxtc(XoppyWidget):
         #widget index 8 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "SIGY1",
+        self.id_SIGY1 = oasysgui.lineEdit(box1, self, "SIGY1",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -110,7 +115,7 @@ class OWxtc(XoppyWidget):
         #widget index 10 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "PERIOD",
+        self.id_PERIOD = oasysgui.lineEdit(box1, self, "PERIOD",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -118,7 +123,7 @@ class OWxtc(XoppyWidget):
         #widget index 11 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "NP",
+        self.id_NP = oasysgui.lineEdit(box1, self, "NP",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -432,6 +437,59 @@ class OWxtc(XoppyWidget):
             pass
 
         return calculated_data
+
+    def receive_syned_data(self, data):
+
+        if isinstance(data, synedb.Beamline):
+            if not data._light_source is None and isinstance(data._light_source._magnetic_structure, synedid.InsertionDevice):
+                light_source = data._light_source
+
+                self.ENERGY = light_source._electron_beam._energy_in_GeV
+                self.ENERGY_SPREAD = light_source._electron_beam._energy_spread
+                self.CURRENT = 1000.0 * light_source._electron_beam._current
+
+                x, xp, y, yp = light_source._electron_beam.get_sigmas_all()
+
+                self.SIGX = 1e3 * x
+                self.SIGY = 1e3 * y
+                self.SIGX1 = 1e3 * xp
+                self.SIGY1 = 1e3 * yp
+                self.PERIOD = 100.0 * light_source._magnetic_structure._period_length
+                self.NP = light_source._magnetic_structure._number_of_periods
+
+                self.set_enabled(False)
+
+            else:
+                self.set_enabled(True)
+                # raise ValueError("Syned data not correct")
+        else:
+            self.set_enabled(True)
+            # raise ValueError("Syned data not correct")
+
+
+
+    def set_enabled(self,value):
+        if value == True:
+                self.id_ENERGY.setEnabled(True)
+                self.id_ENERGY_SPREAD.setEnabled(True)
+                self.id_SIGX.setEnabled(True)
+                self.id_SIGX1.setEnabled(True)
+                self.id_SIGY.setEnabled(True)
+                self.id_SIGY1.setEnabled(True)
+                self.id_CURRENT.setEnabled(True)
+                self.id_PERIOD.setEnabled(True)
+                self.id_NP.setEnabled(True)
+        else:
+                self.id_ENERGY.setEnabled(False)
+                self.id_ENERGY_SPREAD.setEnabled(False)
+                self.id_SIGX.setEnabled(False)
+                self.id_SIGX1.setEnabled(False)
+                self.id_SIGY.setEnabled(False)
+                self.id_SIGY1.setEnabled(False)
+                self.id_CURRENT.setEnabled(False)
+                self.id_PERIOD.setEnabled(False)
+                self.id_NP.setEnabled(False)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
