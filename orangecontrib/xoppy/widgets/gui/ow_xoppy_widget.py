@@ -20,6 +20,7 @@ from orangewidget.widget import OWAction
 from oasys.widgets import widget
 from oasys.widgets import gui as oasysgui
 from oasys.widgets.exchange import DataExchangeObject
+#from oasys.util.oasys_util import EmittingStream
 from oasys.util.oasys_util import EmittingStream
 
 from orangecontrib.xoppy.util.xoppy_util import xoppy_doc, XoppyPlot
@@ -158,8 +159,8 @@ class XoppyWidget(widget.OWWidget):
                 self.plot_results(self.calculated_data)
             except Exception as exception:
                 QtGui.QMessageBox.critical(self, "Error",
-                                           str(exception),
-                    QtGui.QMessageBox.Ok)
+                                            str(exception),
+                                            QtGui.QMessageBox.Ok)
 
         self.progressBarFinished()
 
@@ -239,7 +240,7 @@ class XoppyWidget(widget.OWWidget):
 
 
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
-            self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
+            self.plot_canvas[plot_canvas_index].setActiveCurveColor(color="#00008B")
             self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
             self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
 
@@ -269,7 +270,6 @@ class XoppyWidget(widget.OWWidget):
 
         self.plot_canvas[plot_canvas_index] = PlotWindow()
 
-
         self.plot_canvas[plot_canvas_index].addCurve(dataX, dataY,)
 
         self.plot_canvas[plot_canvas_index].resetZoom()
@@ -289,7 +289,8 @@ class XoppyWidget(widget.OWWidget):
 
     def plot_data2D(self, data2D, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", mode=2):
 
-        self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
+        for i in range(1+self.tab[tabs_canvas_index].layout().count()):
+            self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(i))
 
         if mode == 0:
             figure = FigureCanvas(gol.plot_image(data2D,
@@ -322,7 +323,6 @@ class XoppyWidget(widget.OWWidget):
                 # self.plot_canvas[plot_canvas_index]._imagePlot.setDefaultColormap(colormap)
                 # self.plot_canvas[plot_canvas_index].setImage(numpy.array(data_to_plot), origin=origin, scale=scale)
             elif mode == 2:
-
 
                 self.plot_canvas[plot_canvas_index] = Plot2D()
 
@@ -368,7 +368,10 @@ class XoppyWidget(widget.OWWidget):
 
     def plot_data3D(self, data3D, dataE, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle=""):
 
-        self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
+        for i in range(1+self.tab[tabs_canvas_index].layout().count()):
+            self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(i))
+
+        #self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
 
 
         xmin = numpy.min(dataX)

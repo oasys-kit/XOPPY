@@ -237,6 +237,9 @@ class OWundulator_spectrum(XoppyWidget):
         congruence.checkLessThan(self.PHOTONENERGYMIN, self.PHOTONENERGYMAX, "photon Energy Min", "photon Energy Max")
         self.PHOTONENERGYPOINTS = congruence.checkStrictlyPositiveNumber(self.PHOTONENERGYPOINTS, "photon Energy Points")
 
+        if self.METHOD == 1: # URGENT
+            congruence.checkLessThan(self.PHOTONENERGYPOINTS,4701,"Number of energy points","4701")
+
         # if sys.platform == 'linux' and self.METHOD == 2:
         #     raise Exception("SRW calculation code not supported under Linux")
 

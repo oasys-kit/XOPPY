@@ -219,12 +219,20 @@ class OWundulator_power_density(XoppyWidget):
         self.HSLITPOINTS = congruence.checkStrictlyPositiveNumber(self.HSLITPOINTS, "Number of slit mesh points in H")
         self.VSLITPOINTS = congruence.checkStrictlyPositiveNumber(self.VSLITPOINTS, "Number of slit mesh points in V")
 
+        if  self.METHOD == 1: # URGENT
+            self.HSLITPOINTS = congruence.checkLessOrEqualThan(self.HSLITPOINTS, 51, "Number of slit mesh points for URGENT "," 51")
+            self.VSLITPOINTS = congruence.checkLessOrEqualThan(self.VSLITPOINTS, 51, "Number of slit mesh points for URGENT "," 51")
+
+
         # if sys.platform == 'linux' and self.METHOD == 2:
         #     raise Exception("SRW calculation code not supported under Linux")
 
     def plot_results(self, calculated_data, progressBarValue=80):
         if not self.view_type == 0:
             if not calculated_data is None:
+
+                self.initializeTabs() # added by srio to avoid overlapping graphs
+
                 self.view_type_combo.setEnabled(False)
 
                 data = calculated_data.get_content("xoppy_data")
@@ -236,7 +244,7 @@ class OWundulator_power_density(XoppyWidget):
 
                 try:
 
-                    print(">>>>> Result shapes", h.shape, v.shape, p.shape )
+                    print("Result arrays (shapes): ", h.shape, v.shape, p.shape )
 
                     self.plot_data2D(p, h, v, 0, 0,
                                      xtitle='H [mm]',

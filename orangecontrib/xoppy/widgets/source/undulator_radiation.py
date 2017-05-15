@@ -308,10 +308,16 @@ class OWundulator_radiation(XoppyWidget):
         self.HSLITPOINTS = congruence.checkStrictlyPositiveNumber(self.HSLITPOINTS, "Number of slit mesh points in H")
         self.VSLITPOINTS = congruence.checkStrictlyPositiveNumber(self.VSLITPOINTS, "Number of slit mesh points in V")
 
+        if  self.METHOD == 1: # URGENT
+            congruence.checkLessOrEqualThan(self.HSLITPOINTS, 51, "Number of slit mesh points for URGENT "," 51")
+            congruence.checkLessOrEqualThan(self.VSLITPOINTS, 51, "Number of slit mesh points for URGENT "," 51")
 
     def plot_results(self, calculated_data, progressBarValue=80):
         if not self.view_type == 0:
             if not calculated_data is None:
+
+                self.initializeTabs() # added by srio to avoid overlapping graphs
+
                 self.view_type_combo.setEnabled(False)
 
                 p,e,h,v = calculated_data.get_content("xoppy_data")
@@ -335,30 +341,20 @@ class OWundulator_radiation(XoppyWidget):
                                      ytitle='V [mm]',
                                      title='Code '+code+'; Power density [W/mm^2]',)
 
-                    self.tabs.setCurrentIndex(1)
+                    # self.tabs.setCurrentIndex(1)
                 except Exception as e:
                     self.view_type_combo.setEnabled(True)
                     raise Exception("Data not plottable: bad content\n" + str(e))
 
-                # try:
-                #     self.plot_data1D(p.sum(axis=0)*(e[1]-e[0])*codata.e*1e3, h, v, 2, 0,
-                #                      xtitle='H [mm]',
-                #                      ytitle='V [mm]',
-                #                      title='Code '+code+'; Power density [W/mm^2]',)
-                #
-                #     self.tabs.setCurrentIndex(2)
-                # except Exception as e:
-                #     self.view_type_combo.setEnabled(True)
-                #     raise Exception("Data not plottable: bad content\n" + str(e))
 
                 try:
-                    print(">>>>>>>>>>>>",e.shape,(p.sum(axis=2).sum(axis=1)*(h[1]-h[0])*(v[1]-v[0])).shape)
+                    print("Result arrays (shapes): ",e.shape,h.shape,v.shape,p.shape)
                     self.plot_data1D(e,p.sum(axis=2).sum(axis=1)*(h[1]-h[0])*(v[1]-v[0]), 2, 0,
                                      xtitle='Photon Energy [eV]',
                                      ytitle= 'Flux [photons/s/0.1%bw/mm^2]',
                                      title='Code '+code+'; Flux',)
 
-                    self.tabs.setCurrentIndex(2)
+                    # self.tabs.setCurrentIndex(2)
                 except Exception as e:
                     self.view_type_combo.setEnabled(True)
                     raise Exception("Data not plottable: bad content\n" + str(e))
