@@ -18,7 +18,7 @@ import syned.beamline.beamline as synedb
 import syned.storage_ring.magnetic_structures.insertion_device as synedid
 
 
-class OWundulator_spectrum(XoppyWidget):
+class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
     name = "Undulator Spectrum"
     id = "orange.widgets.dataundulator_spectrum"
     description = "Undulator Spectrum"

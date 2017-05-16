@@ -18,7 +18,7 @@ import syned.storage_ring.magnetic_structures.insertion_device as synedid
 import scipy.constants as codata
 codata_mee = codata.codata.physical_constants["electron mass energy equivalent in MeV"][0]
 
-class OWundulator_radiation(XoppyWidget):
+class OWundulator_radiation(XoppyWidget, WidgetDecorator):
     name = "Undulator Radiation"
     id = "orange.widgets.dataundulator_radiation"
     description = "Undulator Radiation"

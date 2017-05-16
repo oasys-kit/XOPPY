@@ -20,7 +20,6 @@ from orangewidget.widget import OWAction
 from oasys.widgets import widget
 from oasys.widgets import gui as oasysgui
 from oasys.widgets.exchange import DataExchangeObject
-#from oasys.util.oasys_util import EmittingStream
 from oasys.util.oasys_util import EmittingStream
 
 from orangecontrib.xoppy.util.xoppy_util import xoppy_doc, XoppyPlot

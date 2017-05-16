@@ -14,7 +14,7 @@ from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
 import syned.storage_ring.magnetic_structures.insertion_device as synedid
 
-class OWundulator_power_density(XoppyWidget):
+class OWundulator_power_density(XoppyWidget, WidgetDecorator):
     name = "Undulator Power Density"
     id = "orange.widgets.dataundulator_power_density"
     description = "Undulator Power Density"
