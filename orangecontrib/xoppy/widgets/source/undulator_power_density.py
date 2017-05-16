@@ -220,8 +220,8 @@ class OWundulator_power_density(XoppyWidget):
         self.VSLITPOINTS = congruence.checkStrictlyPositiveNumber(self.VSLITPOINTS, "Number of slit mesh points in V")
 
         if  self.METHOD == 1: # URGENT
-            self.HSLITPOINTS = congruence.checkLessOrEqualThan(self.HSLITPOINTS, 51, "Number of slit mesh points for URGENT "," 51")
-            self.VSLITPOINTS = congruence.checkLessOrEqualThan(self.VSLITPOINTS, 51, "Number of slit mesh points for URGENT "," 51")
+            congruence.checkLessOrEqualThan(self.HSLITPOINTS, 51, "Number of slit mesh points for URGENT "," 51")
+            congruence.checkLessOrEqualThan(self.VSLITPOINTS, 51, "Number of slit mesh points for URGENT "," 51")
 
 
         # if sys.platform == 'linux' and self.METHOD == 2:
