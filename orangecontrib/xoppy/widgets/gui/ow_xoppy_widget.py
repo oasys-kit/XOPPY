@@ -24,11 +24,7 @@ from oasys.util.oasys_util import EmittingStream
 
 from orangecontrib.xoppy.util.xoppy_util import xoppy_doc, XoppyPlot
 
-#TODO: this new file fix a bug of matplotlib 2.0.0
-
-from oasys.widgets.gui import OasysPlotWindow
-
-
+from silx.gui.plot.PlotWindow import PlotWindow
 
 class XoppyWidget(widget.OWWidget):
     author = "Manuel Sanchez del Rio, Luca Rebuffi"
@@ -214,8 +210,7 @@ class XoppyWidget(widget.OWWidget):
 
 
         if self.plot_canvas[plot_canvas_index] is None:
-            #self.plot_canvas[plot_canvas_index] = PlotWindow(parent=None, #TODO: restore after bug is fixed
-            self.plot_canvas[plot_canvas_index] = OasysPlotWindow(parent=None,
+            self.plot_canvas[plot_canvas_index] = PlotWindow(parent=None,
                                                              backend=None,
                                                              resetzoom=True,
                                                              autoScale=False,
@@ -233,10 +228,6 @@ class XoppyWidget(widget.OWWidget):
                                                              roi=False,
                                                              mask=False,
                                                              fit=False)
-
-            # self.plot_canvas[plot_canvas_index].fitAction.setVisible(True)
-            # self.plot_canvas[plot_canvas_index].enableActiveCurveHandling(True)
-
 
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
             self.plot_canvas[plot_canvas_index].setActiveCurveColor(color="#00008B")
