@@ -1,19 +1,17 @@
 import pickle
 from contextlib import contextmanager
 
-from PyQt4.QtGui import  QItemSelectionModel
-from PyQt4.QtCore import Qt, QAbstractListModel, QModelIndex, QByteArray
-from PyQt4.QtCore import pyqtSignal as Signal
+from PyQt5.QtCore import Qt, QAbstractListModel, QModelIndex, QByteArray, QItemSelectionModel
+from PyQt5.QtCore import pyqtSignal as Signal
 
-from PyQt4.QtGui import (
+from PyQt5.QtWidgets import (
     QWidget, QBoxLayout, QToolButton, QAbstractButton, QAction
 )
 
-from orangecontrib.shadow.util.script.variable import (
+from orangecontrib.xoppy.util.script.variable import (
     Variable, DiscreteVariable, ContinuousVariable, StringVariable
 )
 from orangewidget import gui
-
 
 class _store(dict):
     pass

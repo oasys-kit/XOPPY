@@ -1,6 +1,7 @@
 import sys
 import numpy
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QIntValidator, QDoubleValidator
 
 from orangewidget import gui
 from oasys.widgets import gui as oasysgui, congruence

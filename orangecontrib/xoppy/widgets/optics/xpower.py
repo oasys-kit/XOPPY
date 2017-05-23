@@ -1,6 +1,7 @@
 import sys
 import numpy
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QMessageBox, QSizePolicy
+from PyQt5.QtWidgets import QApplication, QMessageBox, QSizePolicy
+from PyQt5.QtGui import QIntValidator, QDoubleValidator
 
 from orangewidget import gui
 from orangewidget.settings import Setting

@@ -1,6 +1,7 @@
 import sys
-from PyQt4.QtCore import QRect
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QTextEdit, QMessageBox, QTextCursor
+from PyQt5.QtCore import QRect
+from PyQt5.QtWidgets import QApplication, QTextEdit, QMessageBox
+from PyQt5.QtGui import QIntValidator, QDoubleValidator, QTextCursor
 
 from orangewidget import gui
 from orangewidget.settings import Setting

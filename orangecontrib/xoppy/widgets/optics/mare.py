@@ -1,5 +1,8 @@
 import sys
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy, QTextEdit, QFileDialog, QMessageBox, QWidget
+
+from PyQt5.QtWidgets import QApplication, QSizePolicy, QTextEdit, QFileDialog, QMessageBox, QWidget
+from PyQt5.QtGui import QIntValidator, QDoubleValidator
+
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
@@ -10,7 +13,6 @@ from xraylib import Crystal_GetCrystalsList
 
 from orangecontrib.xoppy.util.script.python_script import PythonConsole
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-
 
 class OWmare(XoppyWidget):
     name = "MARE"

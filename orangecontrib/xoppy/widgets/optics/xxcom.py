@@ -1,5 +1,6 @@
 import sys, os
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QSizePolicy
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QIntValidator, QDoubleValidator
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence

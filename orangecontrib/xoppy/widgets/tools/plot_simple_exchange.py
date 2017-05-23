@@ -1,10 +1,10 @@
-from PyQt4 import QtGui
-from PyQt4.QtGui import QDoubleValidator
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtGui import QDoubleValidator
 from orangewidget import widget, gui
 from orangewidget.settings import Setting
 import numpy
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from oasys.widgets.exchange import DataExchangeObject
 
@@ -153,7 +153,7 @@ class OWPlotSimpleExchange(widget.OWWidget):
         self.mainArea.layout().addWidget(self.figure_canvas)
 
 def example_1d():
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     ow = OWPlotSimpleExchange()
     a = DataExchangeObject("TEXT","TEST")
     a.add_content("data",numpy.array([
@@ -168,7 +168,7 @@ def example_1d():
     ow.saveSettings()
 
 def example_2d():
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     ow = OWPlotSimpleExchange()
     a = DataExchangeObject("TEXT","TEST")
 

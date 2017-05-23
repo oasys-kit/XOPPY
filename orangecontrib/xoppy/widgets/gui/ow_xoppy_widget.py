@@ -6,9 +6,9 @@ from silx.io.specfile import SpecFile
 
 from silx.gui.plot.StackView import StackViewMainWindow
 
-from PyQt4 import QtGui
-from PyQt4.QtCore import QRect
-from PyQt4.QtGui import QApplication
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import QRect
+from PyQt5.QtWidgets import QApplication
 
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 
@@ -78,9 +78,9 @@ class XoppyWidget(widget.OWWidget):
 
         gui.rubber(self.controlArea)
 
-        self.main_tabs = gui.tabWidget(self.mainArea)
-        plot_tab = gui.createTabPage(self.main_tabs, "Results")
-        out_tab = gui.createTabPage(self.main_tabs, "Output")
+        self.main_tabs = oasysgui.tabWidget(self.mainArea)
+        plot_tab = oasysgui.createTabPage(self.main_tabs, "Results")
+        out_tab = oasysgui.createTabPage(self.main_tabs, "Output")
 
         view_box = oasysgui.widgetBox(plot_tab, "Results Options", addSpace=False, orientation="horizontal")
         view_box_1 = oasysgui.widgetBox(view_box, "", addSpace=False, orientation="vertical", width=350)
@@ -91,11 +91,11 @@ class XoppyWidget(widget.OWWidget):
                                             callback=self.set_ViewType, sendSelectedValue=False, orientation="horizontal")
 
         self.tab = []
-        self.tabs = gui.tabWidget(plot_tab)
+        self.tabs = oasysgui.tabWidget(plot_tab)
 
         self.initializeTabs()
 
-        self.xoppy_output = QtGui.QTextEdit()
+        self.xoppy_output = QtWidgets.QTextEdit()
         self.xoppy_output.setReadOnly(True)
 
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
@@ -122,7 +122,7 @@ class XoppyWidget(widget.OWWidget):
         self.plot_canvas = []
 
         for index in range(0, len(titles)):
-            self.tab.append(gui.createTabPage(self.tabs, titles[index]))
+            self.tab.append(oasysgui.createTabPage(self.tabs, titles[index]))
             self.plot_canvas.append(None)
 
         for tab in self.tab:
@@ -153,9 +153,9 @@ class XoppyWidget(widget.OWWidget):
 
                 self.plot_results(self.calculated_data)
             except Exception as exception:
-                QtGui.QMessageBox.critical(self, "Error",
+                QtWidgets.QMessageBox.critical(self, "Error",
                                             str(exception),
-                                            QtGui.QMessageBox.Ok)
+                                            QtWidgets.QMessageBox.Ok)
 
         self.progressBarFinished()
 
@@ -430,8 +430,8 @@ class XoppyWidget(widget.OWWidget):
                 self.send("xoppy_data", self.calculated_data)
 
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
-                                       str(exception), QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, "Error",
+                                       str(exception), QtWidgets.QMessageBox.Ok)
 
             self.setStatusMessage("Error!")
 

@@ -2,7 +2,7 @@ __author__ = 'labx'
 
 import sys, os
 import orangecanvas.resources as resources
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore
 
 try:
     import matplotlib

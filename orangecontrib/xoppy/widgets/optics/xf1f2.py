@@ -1,13 +1,12 @@
 import sys
 import numpy
-from PyQt4.QtGui import QIntValidator, QDoubleValidator, QApplication, QMessageBox
-# from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
+from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtGui import QIntValidator, QDoubleValidator
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
-# from orangecontrib.xoppy.util.xoppy_util import XoppyPlot
 from orangecontrib.xoppy.util.xoppy_xraylib_util import f1f2_calc,f1f2_calc_mix
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
