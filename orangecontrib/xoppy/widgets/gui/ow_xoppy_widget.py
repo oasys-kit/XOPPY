@@ -1,7 +1,7 @@
 import sys
 import numpy
 
-from silx.gui.plot import PlotWindow, Plot2D
+from silx.gui.plot import Plot2D
 from silx.io.specfile import SpecFile
 
 from silx.gui.plot.StackView import StackViewMainWindow
@@ -23,8 +23,6 @@ from oasys.widgets.exchange import DataExchangeObject
 from oasys.util.oasys_util import EmittingStream
 
 from orangecontrib.xoppy.util.xoppy_util import xoppy_doc, XoppyPlot
-
-from silx.gui.plot.PlotWindow import PlotWindow
 
 class XoppyWidget(widget.OWWidget):
     author = "Manuel Sanchez del Rio, Luca Rebuffi"
@@ -210,24 +208,24 @@ class XoppyWidget(widget.OWWidget):
 
 
         if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = PlotWindow(parent=None,
-                                                             backend=None,
-                                                             resetzoom=True,
-                                                             autoScale=False,
-                                                             logScale=True,
-                                                             grid=True,
-                                                             curveStyle=True,
-                                                             colormap=False,
-                                                             aspectRatio=False,
-                                                             yInverted=False,
-                                                             copy=True,
-                                                             save=True,
-                                                             print_=True,
-                                                             control=control,
-                                                             position=True,
-                                                             roi=False,
-                                                             mask=False,
-                                                             fit=False)
+            self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow(parent=None,
+                                                                      backend=None,
+                                                                      resetzoom=True,
+                                                                      autoScale=False,
+                                                                      logScale=True,
+                                                                      grid=True,
+                                                                      curveStyle=True,
+                                                                      colormap=False,
+                                                                      aspectRatio=False,
+                                                                      yInverted=False,
+                                                                      copy=True,
+                                                                      save=True,
+                                                                      print_=True,
+                                                                      control=control,
+                                                                      position=True,
+                                                                      roi=False,
+                                                                      mask=False,
+                                                                      fit=False)
 
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
             self.plot_canvas[plot_canvas_index].setActiveCurveColor(color="#00008B")
@@ -258,7 +256,7 @@ class XoppyWidget(widget.OWWidget):
 
         self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
 
-        self.plot_canvas[plot_canvas_index] = PlotWindow()
+        self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow()
 
         self.plot_canvas[plot_canvas_index].addCurve(dataX, dataY,)
 
