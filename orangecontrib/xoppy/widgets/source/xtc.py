@@ -293,8 +293,10 @@ class OWxtc(XoppyWidget):
                                                          "Click on curve to highlight it",
                                                          xlabel=xtitles[index], ylabel=ytitles[index],
                                                          symbol='', color='white')
-                        # self.plot_canvas[index].setActiveCurve("Click on curve to highlight it")
-                        # self.plot_canvas[index].showLegends()
+
+                        self.plot_canvas[index].setActiveCurve("Click on curve to highlight it")
+                        self.plot_canvas[index].getLegendsDockWidget().setFixedHeight(150)
+                        self.plot_canvas[index].getLegendsDockWidget().setVisible(True)
 
                         self.tabs.setCurrentIndex(index)
                     except Exception as e:
