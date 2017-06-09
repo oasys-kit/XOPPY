@@ -111,7 +111,7 @@ class XoppyPlot:
         if not title is None: plot_window.setGraphTitle(title)
 
         plot_window.setDrawModeEnabled(True, 'rectangle')
-        plot_window.setZoomModeEnabled(True)
+        plot_window.setInteractiveMode(True)
         plot_window.resetZoom()
         plot_window.replot()
 
