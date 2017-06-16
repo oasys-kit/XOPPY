@@ -47,7 +47,7 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
     PHOTONENERGYPOINTS = Setting(500)
     METHOD = Setting(0)
 
-    inputs = [WidgetDecorator.syned_input_data()]
+    inputs = WidgetDecorator.syned_input_data()
 
     def build_gui(self):
 

@@ -47,7 +47,7 @@ class OWtc_slit(XoppyWidget):
     HMAX = Setting(1)
     METHOD = Setting(2)
 
-    inputs = [WidgetDecorator.syned_input_data()]
+    inputs = WidgetDecorator.syned_input_data()
 
     def build_gui(self):
 

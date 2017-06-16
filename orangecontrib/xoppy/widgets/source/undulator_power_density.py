@@ -42,7 +42,7 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
     VSLITPOINTS = Setting(41)
     METHOD = Setting(0)
 
-    inputs = [WidgetDecorator.syned_input_data()]
+    inputs = WidgetDecorator.syned_input_data()
 
 
     def build_gui(self):
