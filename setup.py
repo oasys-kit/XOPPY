@@ -8,7 +8,7 @@ except AttributeError:
     from setuptools import find_packages, setup
 
 NAME = 'OASYS1-XOPPY'
-VERSION = '1.0.24'
+VERSION = '1.0.25'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
@@ -66,10 +66,12 @@ import site, shutil, sys
 
 
 if __name__ == '__main__':
+    is_beta = False
+
     try:
         import PyMca5, PyQt4
 
-        raise NotImplementedError("This version of XOPPY doesn't work with Oasys1 beta.\nPlease install OASYS1 final release: http://www.elettra.eu/oasys.html")
+        is_beta = True
     except:
         setup(
               name = NAME,
@@ -95,6 +97,9 @@ if __name__ == '__main__':
               include_package_data = True,
               zip_safe = False,
               )
+
+        if is_beta: raise NotImplementedError("This version of XOPPY doesn't work with Oasys1 beta.\nPlease install OASYS1 final release: http://www.elettra.eu/oasys.html")
+
 
         try:
             is_install = False
