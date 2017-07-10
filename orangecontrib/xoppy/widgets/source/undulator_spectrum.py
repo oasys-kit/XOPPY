@@ -392,6 +392,11 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
     print ("Resonance energy [eV]: %g \n"%(resonance_energy))
 
 
+    ptot = (NPERIODS/6) * codata.value('characteristic impedance of vacuum') * \
+           ELECTRONCURRENT * codata.e * 2 * numpy.pi * codata.c * gamma**2 * KV**2 / PERIODID
+    print ("Total power radiated by the undulator [W]: %g \n"%(ptot))
+
+
     if METHOD == 0:
         print("Undulator flux calculation using US. Please wait...")
         e, f = srundplug.calc1d_us(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
@@ -418,7 +423,10 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
     if zero_emittance:
         print("\nNo emittance calculation")
 
-    print("\nPower from integral of spectrum: %8.3f W"%(f.sum()*1e3*codata.e*(e[1]-e[0])))
+    power_in_spectrum = f.sum()*1e3*codata.e*(e[1]-e[0])
+    print("\nPower from integral of spectrum: %8.3f W"%(power_in_spectrum))
+
+    print("\nRatio Power from integral of spectrum over Total emitted power: %5.4f"%(power_in_spectrum / ptot))
 
     return e, f, f*codata.e * 1e3
 
