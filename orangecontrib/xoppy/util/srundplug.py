@@ -752,10 +752,7 @@ def calc2d_srw(bl,zero_emittance=False,hSlitPoints=101,vSlitPoints=51,srw_max_ha
     t0 = time.time()
 
     try:
-        print(">>>>",stkP,eBeam,magFldCnt,arPrecP)
-        print(">>>> calling srwlib.srwl.CalcPowDenSR")
         srwlib.srwl.CalcPowDenSR(stkP, eBeam, 0, magFldCnt, arPrecP)
-        print(">>>> back srwlib.srwl.CalcPowDenSR")
         print('Done Performing Power Density calculation (from field).')
     except:
         print("Error running SRW")
