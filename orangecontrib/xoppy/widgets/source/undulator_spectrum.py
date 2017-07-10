@@ -210,6 +210,7 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
+
     def unitLabels(self):
          return ["Use emittances","Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]", "Electron Beam Size H [m]", "Electron Beam Size V [m]", "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", "Period ID [m]", "Number of periods", "Kv [undulator K value vertical field]", "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "photon Energy Min [eV]", "photon Energy Max [eV]", "photon Energy Points", "calculation code"]
 
@@ -265,12 +266,13 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
                                              USEEMITTANCES=self.USEEMITTANCES)
 
     def extract_data_from_xoppy_output(self, calculation_output):
-        e, f, sp = calculation_output
+        e, f, sp, csp = calculation_output
 
-        data = numpy.zeros((len(e), 3))
+        data = numpy.zeros((len(e), 4))
         data[:, 0] = numpy.array(e)
         data[:, 1] = numpy.array(f)
         data[:, 2] = numpy.array(sp)
+        data[:, 3] = numpy.array(csp)
 
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
         calculated_data.add_content("xoppy_data", data)
@@ -281,19 +283,22 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
         return "UNDULATOR_FLUX"
 
     def getTitles(self):
-        return ['Undulator Flux', 'Spectral Power']
+        return ['Undulator Flux', 'Spectral Power', 'Cumulated Power']
 
     def getXTitles(self):
-        return ["Energy [eV]", "Energy [eV]"]
+        return ["Energy [eV]", "Energy [eV]", "Energy [eV]"]
 
     def getYTitles(self):
-        return ["Flux [Phot/sec/0.1%bw]", "Spectral Power [W/eV]"]
+        return ["Flux [Phot/sec/0.1%bw]", "Spectral Power [W/eV]", "Cumulated Power [W]"]
 
     def getLogPlot(self):
-        return [(False, False), (False, False)]
+        return [(False, False), (False, False), (False, False)]
 
     def getVariablesToPlot(self):
-        return [(0, 1), (0, 2)]
+        return [(0, 1), (0, 2), (0, 3)]
+
+    def getDefaultPlotTabIndex(self):
+        return 0
 
     def receive_syned_data(self, data):
 
@@ -394,7 +399,7 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
 
     ptot = (NPERIODS/6) * codata.value('characteristic impedance of vacuum') * \
            ELECTRONCURRENT * codata.e * 2 * numpy.pi * codata.c * gamma**2 * KV**2 / PERIODID
-    print ("Total power radiated by the undulator [W]: %g \n"%(ptot))
+    print ("\nTotal power radiated by the undulator with fully opened slits [W]: %g \n"%(ptot))
 
 
     if METHOD == 0:
@@ -428,7 +433,10 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
 
     print("\nRatio Power from integral of spectrum over Total emitted power: %5.4f"%(power_in_spectrum / ptot))
 
-    return e, f, f*codata.e * 1e3
+    spectral_power = f * codata.e * 1e3
+    cumulated_power = spectral_power.cumsum() * numpy.abs(e[0] - e[1])
+    return e, f, spectral_power, cumulated_power
+#    return e, f, f*codata.e * 1e3
 
 
 

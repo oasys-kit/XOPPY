@@ -681,26 +681,30 @@ def calc2d_srw(bl,zero_emittance=False,hSlitPoints=101,vSlitPoints=51,srw_max_ha
     print('Running SRW (SRWLIB Python)')
 
     #***********Undulator
+    harmB = None
     harmB = srwlib.SRWLMagFldH() #magnetic field harmonic
     harmB.n = 1 #harmonic number
     harmB.h_or_v = 'v' #magnetic field plane: horzontal ('h') or vertical ('v')
     harmB.B = B0 #magnetic field amplitude [T]
 
+    und = None
     und = srwlib.SRWLMagFldU([harmB])
     und.per = bl['PeriodID'] #period length [m]
     und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
 
     #Container of all magnetic field elements
+    magFldCnt = None
     magFldCnt = srwlib.SRWLMagFldC([und], array.array('d', [0]), array.array('d', [0]), array.array('d', [0]))
 
     #***********Electron Beam
+    eBeam = None
     eBeam = srwlib.SRWLPartBeam()
     eBeam.Iavg = bl['ElectronCurrent'] #average current [A]
-    eBeam.partStatMom1.x = 0. #initial transverse positions [m]
-    eBeam.partStatMom1.y = 0.
-    eBeam.partStatMom1.z = 0. #initial longitudinal positions (set in the middle of undulator)
-    eBeam.partStatMom1.xp = 0 #initial relative transverse velocities
-    eBeam.partStatMom1.yp = 0
+    eBeam.partStatMom1.x  = 0. #initial transverse positions [m]
+    eBeam.partStatMom1.y  = 0.
+    eBeam.partStatMom1.z  = 0. #initial longitudinal positions (set in the middle of undulator)
+    eBeam.partStatMom1.xp = 0. #initial relative transverse velocities
+    eBeam.partStatMom1.yp = 0.
     eBeam.partStatMom1.gamma = bl['ElectronEnergy']*1e3/codata_mee #relative energy
 
     if zero_emittance:
@@ -718,10 +722,10 @@ def calc2d_srw(bl,zero_emittance=False,hSlitPoints=101,vSlitPoints=51,srw_max_ha
 
     #2nd order stat. moments:
     eBeam.arStatMom2[0] = sigX*sigX #<(x-<x>)^2>
-    eBeam.arStatMom2[1] = 0 #<(x-<x>)(x'-<x'>)>
+    eBeam.arStatMom2[1] = 0.0 #<(x-<x>)(x'-<x'>)>
     eBeam.arStatMom2[2] = sigXp*sigXp #<(x'-<x'>)^2>
     eBeam.arStatMom2[3] = sigY*sigY #<(y-<y>)^2>
-    eBeam.arStatMom2[4] = 0 #<(y-<y>)(y'-<y'>)>
+    eBeam.arStatMom2[4] = 0.0 #<(y-<y>)(y'-<y'>)>
     eBeam.arStatMom2[5] = sigYp*sigYp #<(y'-<y'>)^2>
     eBeam.arStatMom2[10] = sigEperE*sigEperE #<(E-<E>)^2>/<E>^2
 
@@ -729,24 +733,34 @@ def calc2d_srw(bl,zero_emittance=False,hSlitPoints=101,vSlitPoints=51,srw_max_ha
     arPrecP = [0]*5 #for power density
     arPrecP[0] = 1.5 #precision factor
     arPrecP[1] = 1 #power density computation method (1- "near field", 2- "far field")
-    arPrecP[2] = 0 #initial longitudinal position (effective if arPrecP[2] < arPrecP[3])
-    arPrecP[3] = 0 #final longitudinal position (effective if arPrecP[2] < arPrecP[3])
+    arPrecP[2] = 0.0 #initial longitudinal position (effective if arPrecP[2] < arPrecP[3])
+    arPrecP[3] = 0.0 #final longitudinal position (effective if arPrecP[2] < arPrecP[3])
     arPrecP[4] = 20000 #number of points for (intermediate) trajectory calculation
 
     #***********UR Stokes Parameters (mesh) for power densiyu
+    stkP = None
     stkP = srwlib.SRWLStokes() #for power density
     stkP.allocate(1, hSlitPoints, vSlitPoints) #numbers of points vs horizontal and vertical positions (photon energy is not taken into account)
-    stkP.mesh.zStart = bl['distance'] #longitudinal position [m] at which power density has to be calculated
-    stkP.mesh.xStart = -bl['gapH']/2 #initial horizontal position [m]
-    stkP.mesh.xFin =    bl['gapH']/2 #final horizontal position [m]
-    stkP.mesh.yStart = -bl['gapV']/2 #initial vertical position [m]
-    stkP.mesh.yFin =    bl['gapV']/2 #final vertical position [m]
+    stkP.mesh.zStart =  bl['distance'] #longitudinal position [m] at which power density has to be calculated
+    stkP.mesh.xStart = -bl['gapH']/2.0 #initial horizontal position [m]
+    stkP.mesh.xFin =    bl['gapH']/2.0 #final horizontal position [m]
+    stkP.mesh.yStart = -bl['gapV']/2.0 #initial vertical position [m]
+    stkP.mesh.yFin =    bl['gapV']/2.0 #final vertical position [m]
 
     #**********************Calculation (SRWLIB function calls)
     print('Performing Power Density calculation (from field) ... ')
     t0 = time.time()
-    srwlib.srwl.CalcPowDenSR(stkP, eBeam, 0, magFldCnt, arPrecP)
-    print('Done Performing Power Density calculation (from field).')
+
+    try:
+        print(">>>>",stkP,eBeam,magFldCnt,arPrecP)
+        print(">>>> calling srwlib.srwl.CalcPowDenSR")
+        srwlib.srwl.CalcPowDenSR(stkP, eBeam, 0, magFldCnt, arPrecP)
+        print(">>>> back srwlib.srwl.CalcPowDenSR")
+        print('Done Performing Power Density calculation (from field).')
+    except:
+        print("Error running SRW")
+        raise ("Error running SRW")
+
 
     #**********************Saving results
 
@@ -1170,6 +1184,7 @@ def calc2d_urgent(bl,zero_emittance=False,fileName=None,fileAppend=False,hSlitPo
             print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
             print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
+
 
     print( "Total power URGENT [W]: "+repr(totPower))
     print("\n--------------------------------------------------------\n\n")
@@ -1681,70 +1696,82 @@ def calc3d_us(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
         shutil.copy2("us.out","us_energy_index%d.out"%iEner)
         # shutil.copy2("us.log","us%d.log"%iEner)
 
-        # write spec file
+
         txt = open("us.out").readlines()
+        got_error = False
+        for line in txt:
+            if "unsuccessful" in line:
+                got_error = True
 
-
-        if fileName is not None:
-            scanCounter += 1
-            fout.write("\n#S %d Undulator 3d flux density (irradiance) calculation using Us at E=%6.3f eV (a slit quadrant)\n"%(scanCounter,ener))
-            for i,j in bl.items(): # write bl values
-                fout.write ("#UD %s = %s\n" % (i,j) )
-            fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-            fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-            fout.write("#N 7\n")
-            fout.write("#L  H[mm]  V[mm]  Flux[phot/s/0.1%bw/mm^2]  p1  p2  p3  p4\n")
-
+        totIntens = 0.0
         mesh = numpy.zeros((7,(hSlitPoints)*(vSlitPoints)))
         hh = numpy.zeros((hSlitPoints))
         vv = numpy.zeros((vSlitPoints))
         int_mesh = numpy.zeros( ((hSlitPoints),(vSlitPoints)) )
         imesh = -1
-        for i in txt:
-            tmp = i.strip(" ")
-            if tmp[0].isdigit():
-               if fileName is not None:
-                   fout.write(tmp)
-               #tmp = tmp.replace('D','e')
-               tmpf = numpy.array( [float(j) for j in tmp.split()] )
-               imesh = imesh + 1
-               mesh[:,imesh] = tmpf
-            else:
-               if fileName is not None:
-                   fout.write("#UD "+tmp)
 
-        imesh = -1
-        for i in range(hSlitPoints):
-            for j in range(vSlitPoints):
-                imesh = imesh + 1
-                hh[i] = mesh[0,imesh]
-                vv[j] = mesh[1,imesh]
-                int_mesh[i,j] = mesh[2,imesh]
+        if not got_error:
+            # write spec file
+            if fileName is not None:
+                scanCounter += 1
+                fout.write("\n#S %d Undulator 3d flux density (irradiance) calculation using Us at E=%6.3f eV (a slit quadrant)\n"%(scanCounter,ener))
+                for i,j in bl.items(): # write bl values
+                    fout.write ("#UD %s = %s\n" % (i,j) )
+                fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+                fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+                fout.write("#N 7\n")
+                fout.write("#L  H[mm]  V[mm]  Flux[phot/s/0.1%bw/mm^2]  p1  p2  p3  p4\n")
 
-        hArray = numpy.concatenate((-hh[::-1],hh[1:]))
-        vArray = numpy.concatenate((-vv[::-1],vv[1:]))
-        totIntens = 0.0
 
-        tmp = numpy.concatenate( (int_mesh[::-1,:],int_mesh[1:,:]), axis=0)
-        int_mesh2 = numpy.concatenate( (tmp[:,::-1],tmp[:,1:]),axis=1)
+            for i in txt:
+                tmp = i.strip(" ")
+                if tmp[0].isdigit():
+                   if fileName is not None:
+                       fout.write(tmp)
+                   #tmp = tmp.replace('D','e')
+                   tmpf = numpy.array( [float(j) for j in tmp.split()] )
 
-        if fileName is not None:
-            scanCounter += 1
-            fout.write("\n#S %d Undulator 3d flux density (irradiance) calculation using Us at E=%6.3f eV (whole slit )\n"%(scanCounter,ener))
-            for i,j in bl.items(): # write bl values
-                fout.write ("#UD %s = %s\n" % (i,j) )
-            fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
-            fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
-            fout.write("#N 3\n")
-            fout.write("#L  H[mm]  V[mm]  Flux[phot/s/0.1%bw/mm^2]\n")
+                   imesh = imesh + 1
 
-        for i in range(len(hArray)):
-            for j in range(len(vArray)):
-               if fileName is not None:
-                   fout.write("%f  %f  %f\n"%(hArray[i],vArray[j],int_mesh2[i,j]) )
-               int_mesh3[iEner,i,j] = int_mesh2[i,j]
-               int_mesh2integrated[i,j] += int_mesh2[i,j]
-               totIntens += int_mesh2[i,j]
+                   mesh[:,imesh] = tmpf
+
+                else:
+                   if fileName is not None:
+                       fout.write("#UD "+tmp)
+
+            imesh = -1
+            for i in range(hSlitPoints):
+                for j in range(vSlitPoints):
+                    imesh = imesh + 1
+                    hh[i] = mesh[0,imesh]
+                    vv[j] = mesh[1,imesh]
+                    int_mesh[i,j] = mesh[2,imesh]
+
+            hArray = numpy.concatenate((-hh[::-1],hh[1:]))
+            vArray = numpy.concatenate((-vv[::-1],vv[1:]))
+
+
+            tmp = numpy.concatenate( (int_mesh[::-1,:],int_mesh[1:,:]), axis=0)
+            int_mesh2 = numpy.concatenate( (tmp[:,::-1],tmp[:,1:]),axis=1)
+
+            if fileName is not None:
+                scanCounter += 1
+                fout.write("\n#S %d Undulator 3d flux density (irradiance) calculation using Us at E=%6.3f eV (whole slit )\n"%(scanCounter,ener))
+                for i,j in bl.items(): # write bl values
+                    fout.write ("#UD %s = %s\n" % (i,j) )
+                fout.write("#UD hSlitPoints =  %f\n"%(hSlitPoints))
+                fout.write("#UD vSlitPoints =  %f\n"%(vSlitPoints))
+                fout.write("#N 3\n")
+                fout.write("#L  H[mm]  V[mm]  Flux[phot/s/0.1%bw/mm^2]\n")
+
+            for i in range(len(hArray)):
+                for j in range(len(vArray)):
+                   if fileName is not None:
+                       fout.write("%f  %f  %f\n"%(hArray[i],vArray[j],int_mesh2[i,j]) )
+                   if numpy.isfinite(int_mesh2.sum()):
+                       int_mesh3[iEner,i,j] = int_mesh2[i,j]
+                       int_mesh2integrated[i,j] += int_mesh2[i,j]
+                       totIntens += int_mesh2[i,j]
 
         totIntens = totIntens * (hh[1]-hh[0]) * (vv[1]-vv[0])
         intensArray[iEner] = totIntens

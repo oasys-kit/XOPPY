@@ -102,6 +102,8 @@ class XoppyWidget(widget.OWWidget):
         self.xoppy_output.setFixedHeight(600)
         self.xoppy_output.setFixedWidth(600)
 
+        self.current_tab = -1
+
         gui.rubber(self.mainArea)
 
     def build_gui(self):
@@ -126,6 +128,9 @@ class XoppyWidget(widget.OWWidget):
         for tab in self.tab:
             tab.setFixedHeight(self.IMAGE_HEIGHT)
             tab.setFixedWidth(self.IMAGE_WIDTH)
+
+    def getDefaultPlotTabIndex(self):
+        return -1
 
     def getTitles(self):
         return ["Calculation Result"]
@@ -186,13 +191,19 @@ class XoppyWidget(widget.OWWidget):
                                         log_x=log_x,
                                         log_y=log_y)
 
-                        self.tabs.setCurrentIndex(index)
+                        # self.tabs.setCurrentIndex(index)
                     except Exception as e:
                         self.view_type_combo.setEnabled(True)
 
                         raise Exception("Data not plottable: bad content\n" + str(e))
 
                 self.view_type_combo.setEnabled(True)
+
+                if self.getDefaultPlotTabIndex() == -1:
+                    self.tabs.setCurrentIndex(len(titles) - 1)
+                else:
+                    self.tabs.setCurrentIndex(self.getDefaultPlotTabIndex())
+
             else:
                 raise Exception("Empty Data")
 
@@ -205,7 +216,6 @@ class XoppyWidget(widget.OWWidget):
 
     def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
                    log_x=False, log_y=False, color='blue', replace=True, control=False):
-
 
         if self.plot_canvas[plot_canvas_index] is None:
             self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow(parent=None,
@@ -226,14 +236,12 @@ class XoppyWidget(widget.OWWidget):
                                                                       roi=False,
                                                                       mask=False,
                                                                       fit=False)
-
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
             self.plot_canvas[plot_canvas_index].setActiveCurveColor(color="#00008B")
             self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
             self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
 
             self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
-
         XoppyPlot.plot_histo(self.plot_canvas[plot_canvas_index], x, y, title, xtitle, ytitle, color, replace)
 
         self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(log_x)
@@ -367,14 +375,19 @@ class XoppyWidget(widget.OWWidget):
         ymin = numpy.min(dataY)
         ymax = numpy.max(dataY)
 
-        origin = (xmin, ymin)
-        scale = (abs((xmax-xmin)/len(dataX)), abs((ymax-ymin)/len(dataY)))
 
+        stepX = dataX[1]-dataX[0]
+        stepY = dataY[1]-dataY[0]
+        stepE = dataE[1]-dataE[0]
 
+        if stepE == 0.0: stepE = 1.0
+        if stepX == 0.0: stepX = 1.0
+        if stepY == 0.0: stepY = 1.0
 
-        dim0_calib = (dataE[0],dataE[1]-dataE[0])
-        dim1_calib = (ymin, dataY[1]-dataY[0])
-        dim2_calib = (xmin, dataX[1]-dataX[0])
+        dim0_calib = (dataE[0],stepE)
+        dim1_calib = (ymin, stepY)
+        dim2_calib = (xmin, stepX)
+
 
         data_to_plot = numpy.swapaxes(data3D,1,2)
 
