@@ -556,9 +556,9 @@ def xpower_calc(energies=numpy.linspace(1000.0,50000.0,100),source=numpy.ones(10
     txt = ""
     txt += "*************************** power results ******************\n"
     if energies[0] != energies[-1]:
-        txt += "  Source energy: start=%f keV, end=%f keV, points=%d \n"%(energies[0],energies[-1],energies.size)
+        txt += "  Source energy: start=%f eV, end=%f eV, points=%d \n"%(energies[0],energies[-1],energies.size)
     else:
-        txt += "  Source energy: %f keV\n"%(energies[0])
+        txt += "  Source energy: %f eV\n"%(energies[0])
     txt += "  Number of optical elements: %d\n"%(nelem)
 
     if energies[0] != energies[-1]:

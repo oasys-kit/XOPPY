@@ -15,6 +15,9 @@ from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
 import syned.storage_ring.magnetic_structures.insertion_device as synedid
 
+import numpy
+import scipy.constants as codata
+
 class OWundulator_power_density(XoppyWidget, WidgetDecorator):
     name = "Undulator Power Density"
     id = "orange.widgets.dataundulator_power_density"
@@ -404,6 +407,12 @@ def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=
 
     if zero_emittance:
         print("No emittance calculation")
+
+    codata_mee = codata.m_e * codata.c**2 / codata.e # electron mass in eV
+    gamma = ELECTRONENERGY * 1e9 / codata_mee
+    ptot = (NPERIODS/6) * codata.value('characteristic impedance of vacuum') * \
+           ELECTRONCURRENT * codata.e * 2 * numpy.pi * codata.c * gamma**2 * KV**2 / PERIODID
+    print ("\nTotal power radiated by the undulator with fully opened slits [W]: %g \n"%(ptot))
 
     return h, v, p, code
 

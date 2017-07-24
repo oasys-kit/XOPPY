@@ -56,7 +56,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
     PHOTONENERGYPOINTS = Setting(20)
 
 
-    METHOD = Setting(2)
+    METHOD = Setting(1)
 
     inputs = WidgetDecorator.syned_input_data()
 
@@ -350,7 +350,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
 
 
                 try:
-                    print("Result arrays (shapes): ",e.shape,h.shape,v.shape,p.shape)
+                    print("\nResult arrays (shapes): ",e.shape,h.shape,v.shape,p.shape)
                     self.plot_data1D(e,p.sum(axis=2).sum(axis=1)*(h[1]-h[0])*(v[1]-v[0]), 2, 0,
                                      xtitle='Photon Energy [eV]',
                                      ytitle= 'Flux [photons/s/0.1%bw/mm^2]',
@@ -592,6 +592,13 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
         print("No emittance.")
 
     print("Done")
+
+    ptot = (NPERIODS/6) * codata.value('characteristic impedance of vacuum') * \
+           ELECTRONCURRENT * codata.e * 2 * numpy.pi * codata.c * gamma**2 * KV**2 / PERIODID
+    print ("\nTotal power radiated by the undulator with fully opened slits [W]: %f \n"%(ptot))
+
+    pcalc =  p.sum() * codata.e * 1e3 * (h[1]-h[0]) * (v[1]-v[0]) * (e[1]-e[0])
+    print ("\nTotal power from calculated spectrum (h,v,energy) grid [W]: %f \n"%pcalc)
 
     return e, h, v, p, code
 
