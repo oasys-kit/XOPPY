@@ -11,8 +11,11 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 from oasys.widgets.exchange import DataExchangeObject
 
 # TODO show flux(psi) and 2D plot
+from syned.widget.widget_decorator import WidgetDecorator
 
-class OWbm(XoppyWidget):
+from syned.storage_ring.magnetic_structures.bending_magnet import BendingMagnet
+
+class OWbm(XoppyWidget, WidgetDecorator):
     name = "BM"
     id = "orange.widgets.databm"
     description = "Bending Magnet Spectrum"
@@ -20,6 +23,8 @@ class OWbm(XoppyWidget):
     priority = 13
     category = ""
     keywords = ["xoppy", "bm"]
+
+    inputs = WidgetDecorator.syned_input_data()
 
     TYPE_CALC = Setting(0)
     MACHINE_NAME = Setting("ESRF bending magnet")
@@ -370,6 +375,21 @@ class OWbm(XoppyWidget):
             return [(False, False), (False, False), (False, False), (False, False), (False, False), (False, False)]
         elif self.TYPE_CALC == 3:
             return []
+
+    def receive_syned_data(self, data):
+        if not data is None:
+            if not data._light_source is None and isinstance(data._light_source._magnetic_structure, BendingMagnet):
+                light_source = data._light_source
+
+                self.MACHINE_NAME = light_source._name
+                self.BEAM_ENERGY_GEV = light_source._electron_beam._energy_in_GeV
+                self.CURRENT_A = light_source._electron_beam._current
+
+                self.BFIELD_T = light_source._magnetic_structure._magnetic_field
+                self.MACHINE_R_M = light_source._magnetic_structure._radius
+
+            else:
+                raise ValueError("Syned data not correct")
 
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
