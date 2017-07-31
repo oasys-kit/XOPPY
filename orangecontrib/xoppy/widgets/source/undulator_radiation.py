@@ -296,7 +296,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
 
         self.PHOTONENERGYMIN = congruence.checkNumber(self.PHOTONENERGYMIN, "Photon Energy Min")
         self.PHOTONENERGYMAX = congruence.checkNumber(self.PHOTONENERGYMAX, "Photon Energy Max")
-        self.PHOTONENERGYPOINTS = congruence.checkStrictlyPositiveNumber(self.PHOTONENERGYPOINTS, "Number of Photon Energy Points")
+        congruence.checkGreaterOrEqualThan(self.PHOTONENERGYPOINTS, 2, "Number of Photon Energy Points", " 2")
 
         self.PERIODID = congruence.checkStrictlyPositiveNumber(self.PERIODID, "Period ID")
         self.NPERIODS = congruence.checkStrictlyPositiveNumber(self.NPERIODS, "Number of Periods")
