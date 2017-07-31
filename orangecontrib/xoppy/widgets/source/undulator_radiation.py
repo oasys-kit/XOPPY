@@ -294,19 +294,20 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         self.ELECTRONBEAMDIVERGENCEH = congruence.checkNumber(self.ELECTRONBEAMDIVERGENCEH, "Electron Beam Divergence H")
         self.ELECTRONBEAMDIVERGENCEV = congruence.checkNumber(self.ELECTRONBEAMDIVERGENCEV, "Electron Beam Divergence V")
 
-        self.PHOTONENERGYMIN = congruence.checkNumber(self.PHOTONENERGYMIN, "Photon Energy Min")
-        self.PHOTONENERGYMAX = congruence.checkNumber(self.PHOTONENERGYMAX, "Photon Energy Max")
-        congruence.checkGreaterOrEqualThan(self.PHOTONENERGYPOINTS, 2, "Number of Photon Energy Points", " 2")
-
         self.PERIODID = congruence.checkStrictlyPositiveNumber(self.PERIODID, "Period ID")
         self.NPERIODS = congruence.checkStrictlyPositiveNumber(self.NPERIODS, "Number of Periods")
         self.KV = congruence.checkPositiveNumber(self.KV, "Kv")
         self.DISTANCE = congruence.checkStrictlyPositiveNumber(self.DISTANCE, "Distance to slit")
 
-        self.HARMONICNUMBER = congruence.checkStrictlyPositiveNumber(self.HARMONICNUMBER, "Harminic number")
+        if self.SETRESONANCE == 0:
+            self.GAPH = congruence.checkPositiveNumber(self.GAPH, "Slit gap H")
+            self.GAPV = congruence.checkPositiveNumber(self.GAPV, "Slit gap V")
+            self.PHOTONENERGYMIN = congruence.checkNumber(self.PHOTONENERGYMIN, "Photon Energy Min")
+            self.PHOTONENERGYMAX = congruence.checkNumber(self.PHOTONENERGYMAX, "Photon Energy Max")
+            congruence.checkGreaterOrEqualThan(self.PHOTONENERGYPOINTS, 2, "Number of Photon Energy Points", " 2")
+        else:
+            self.HARMONICNUMBER = congruence.checkStrictlyPositiveNumber(self.HARMONICNUMBER, "Harminic number")
 
-        self.GAPH = congruence.checkPositiveNumber(self.GAPH, "Slit gap H")
-        self.GAPV = congruence.checkPositiveNumber(self.GAPV, "Slit gap V")
         self.HSLITPOINTS = congruence.checkStrictlyPositiveNumber(self.HSLITPOINTS, "Number of slit mesh points in H")
         self.VSLITPOINTS = congruence.checkStrictlyPositiveNumber(self.VSLITPOINTS, "Number of slit mesh points in V")
 
