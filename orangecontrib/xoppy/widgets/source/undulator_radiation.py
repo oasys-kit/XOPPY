@@ -339,7 +339,12 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                     raise Exception("Data not plottable: bad content\n" + str(e))
 
                 try:
-                    self.plot_data2D(p.sum(axis=0)*(e[1]-e[0])*codata.e*1e3, h, v, 1, 0,
+                    if len(e) > 1:
+                        energy_step = e[1]-e[0]
+                    else:
+                        energy_step = 1.0
+
+                    self.plot_data2D(p.sum(axis=0)*energy_step*codata.e*1e3, h, v, 1, 0,
                                      xtitle='H [mm]',
                                      ytitle='V [mm]',
                                      title='Code '+code+'; Power density [W/mm^2]',)
@@ -524,7 +529,7 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
     else:
         # referred to resonance
         photonEnergyMin = resonance_energy
-        photonEnergyMax = resonance_energy + 1
+        photonEnergyMax = resonance_energy
         photonEnergyPoints = 1
 
     # autoset slit
@@ -598,11 +603,11 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
            ELECTRONCURRENT * codata.e * 2 * numpy.pi * codata.c * gamma**2 * KV**2 / PERIODID
     print ("\nTotal power radiated by the undulator with fully opened slits [W]: %f \n"%(ptot))
 
-    pcalc =  p.sum() * codata.e * 1e3 * (h[1]-h[0]) * (v[1]-v[0]) * (e[1]-e[0])
-    print ("\nTotal power from calculated spectrum (h,v,energy) grid [W]: %f \n"%pcalc)
+    if SETRESONANCE == 0:
+        pcalc =  p.sum() * codata.e * 1e3 * (h[1]-h[0]) * (v[1]-v[0]) * (e[1]-e[0])
+        print ("\nTotal power from calculated spectrum (h,v,energy) grid [W]: %f \n"%pcalc)
 
     return e, h, v, p, code
-
 
 
 

@@ -378,7 +378,8 @@ class XoppyWidget(widget.OWWidget):
 
         stepX = dataX[1]-dataX[0]
         stepY = dataY[1]-dataY[0]
-        stepE = dataE[1]-dataE[0]
+        if len(dataE) > 1: stepE = dataE[1]-dataE[0]
+        else: stepE = 1.0
 
         if stepE == 0.0: stepE = 1.0
         if stepX == 0.0: stepX = 1.0
@@ -446,7 +447,7 @@ class XoppyWidget(widget.OWWidget):
 
             self.setStatusMessage("Error!")
 
-            #raise exception
+            raise exception
 
         self.progressBarFinished()
 
