@@ -9,7 +9,7 @@ from oasys.widgets.exchange import DataExchangeObject
 from collections import OrderedDict
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-from orangecontrib.xoppy.util import srundplug
+from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_power_density
 
 from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
@@ -248,7 +248,7 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
 
                 try:
 
-                    print("Result arrays (shapes): ", h.shape, v.shape, p.shape )
+                    print("\nResult arrays (shapes): ", h.shape, v.shape, p.shape )
 
                     self.plot_data2D(p, h, v, 0, 0,
                                      xtitle='H [mm]',
@@ -353,71 +353,13 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
                 self.id_KV.setEnabled(False)
 
 
-# --------------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------------
 
-def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
-                                       ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
-                                       ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
-                                       PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
-                                       HSLITPOINTS=101,VSLITPOINTS=51,METHOD=0,USEEMITTANCES=1):
-    print("Inside xoppy_calc_undulator_power_density. ")
-
-    bl = OrderedDict()
-    bl['ElectronBeamDivergenceH'] = ELECTRONBEAMDIVERGENCEH
-    bl['ElectronBeamDivergenceV'] = ELECTRONBEAMDIVERGENCEV
-    bl['ElectronBeamSizeH'] = ELECTRONBEAMSIZEH
-    bl['ElectronBeamSizeV'] = ELECTRONBEAMSIZEV
-    bl['ElectronCurrent'] = ELECTRONCURRENT
-    bl['ElectronEnergy'] = ELECTRONENERGY
-    bl['ElectronEnergySpread'] = ELECTRONENERGYSPREAD
-    bl['Kv'] = KV
-    bl['NPeriods'] = NPERIODS
-    bl['PeriodID'] = PERIODID
-    bl['distance'] = DISTANCE
-    bl['gapH'] = GAPH
-    bl['gapV'] = GAPV
-
-    if USEEMITTANCES:
-        zero_emittance = False
-    else:
-        zero_emittance = True
-
-    #TODO remove SPEC file
-    outFile = "undulator_power_density.spec"
-
-    if METHOD == 0:
-        code = "US"
-        print("Undulator power_density calculation using US. Please wait...")
-        h,v,p = srundplug.calc2d_us(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
-                                    zero_emittance=zero_emittance)
-        print("Done")
-    if METHOD == 1:
-        code = "URGENT"
-        print("Undulator power_density calculation using URGENT. Please wait...")
-        h,v,p = srundplug.calc2d_urgent(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
-                                        zero_emittance=zero_emittance)
-        print("Done")
-    if METHOD == 2:
-        code = "SRW"
-        print("Undulator power_density calculation using SRW. Please wait...")
-        h,v,p = srundplug.calc2d_srw(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
-                                     zero_emittance=zero_emittance)
-        print("Done")
-
-    if zero_emittance:
-        print("No emittance calculation")
-
-    codata_mee = codata.m_e * codata.c**2 / codata.e # electron mass in eV
-    gamma = ELECTRONENERGY * 1e9 / codata_mee
-    ptot = (NPERIODS/6) * codata.value('characteristic impedance of vacuum') * \
-           ELECTRONCURRENT * codata.e * 2 * numpy.pi * codata.c * gamma**2 * KV**2 / PERIODID
-    print ("\nTotal power radiated by the undulator with fully opened slits [W]: %g \n"%(ptot))
-
-    return h, v, p, code
 
 
 if __name__ == "__main__":
+    # from srxraylib.plot.gol import plot_image
+
+
     app = QApplication(sys.argv)
     w = OWundulator_power_density()
     w.show()

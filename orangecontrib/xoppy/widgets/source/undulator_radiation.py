@@ -1,5 +1,4 @@
 import sys
-import numpy
 
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
@@ -8,17 +7,18 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
-from collections import OrderedDict
+
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-from orangecontrib.xoppy.util import srundplug
+from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_radiation
 
 from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
 import syned.storage_ring.magnetic_structures.insertion_device as synedid
 
 
+
 import scipy.constants as codata
-codata_mee = codata.codata.physical_constants["electron mass energy equivalent in MeV"][0]
+
 
 class OWundulator_radiation(XoppyWidget, WidgetDecorator):
     name = "Undulator Radiation"
@@ -306,7 +306,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
             self.PHOTONENERGYMAX = congruence.checkNumber(self.PHOTONENERGYMAX, "Photon Energy Max")
             congruence.checkGreaterOrEqualThan(self.PHOTONENERGYPOINTS, 2, "Number of Photon Energy Points", " 2")
         else:
-            self.HARMONICNUMBER = congruence.checkStrictlyPositiveNumber(self.HARMONICNUMBER, "Harminic number")
+            self.HARMONICNUMBER = congruence.checkStrictlyPositiveNumber(self.HARMONICNUMBER, "Harmonic number")
 
         self.HSLITPOINTS = congruence.checkStrictlyPositiveNumber(self.HSLITPOINTS, "Number of slit mesh points in H")
         self.VSLITPOINTS = congruence.checkStrictlyPositiveNumber(self.VSLITPOINTS, "Number of slit mesh points in V")
@@ -359,13 +359,26 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                     print("\nResult arrays (shapes): ",e.shape,h.shape,v.shape,p.shape)
                     self.plot_data1D(e,p.sum(axis=2).sum(axis=1)*(h[1]-h[0])*(v[1]-v[0]), 2, 0,
                                      xtitle='Photon Energy [eV]',
-                                     ytitle= 'Flux [photons/s/0.1%bw/mm^2]',
+                                     ytitle= 'Flux [photons/s/0.1%bw]',
                                      title='Code '+code+'; Flux',)
 
                     # self.tabs.setCurrentIndex(2)
                 except Exception as e:
                     self.view_type_combo.setEnabled(True)
                     raise Exception("Data not plottable: bad content\n" + str(e))
+
+                try:
+                    print("\nResult arrays (shapes): ",e.shape,h.shape,v.shape,p.shape)
+                    self.plot_data1D(e,p.sum(axis=2).sum(axis=1)*(h[1]-h[0])*(v[1]-v[0])*codata.e*1e3, 3, 0,
+                                     xtitle='Photon Energy [eV]',
+                                     ytitle= 'Spectral power [W/eV]',
+                                     title='Code '+code+'; Spectral power',)
+
+                    # self.tabs.setCurrentIndex(2)
+                except Exception as e:
+                    self.view_type_combo.setEnabled(True)
+                    raise Exception("Data not plottable: bad content\n" + str(e))
+
 
                 self.view_type_combo.setEnabled(True)
             else:
@@ -414,7 +427,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         return "UNDULATOR_RADIATION"
 
     def getTitles(self):
-        return ['Undulator Flux','Undulator Power Density','Undulator Spectrum']
+        return ['Undulator Flux vs E,X,Y','Undulator Power Density vs X,Y','Undulator Flux vs E','Undulator Spectral Power vs E']
 
 
     def receive_syned_data(self, data):
@@ -473,147 +486,32 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
 
 
 
-
-# --------------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------------
-
-def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
-                                       ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
-                                       ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
-                                       PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,
-                                       SETRESONANCE=0,HARMONICNUMBER=1,
-                                       GAPH=0.003,GAPV=0.003,\
-                                       HSLITPOINTS=41,VSLITPOINTS=41,METHOD=0,
-                                       PHOTONENERGYMIN=-0.00000001,PHOTONENERGYMAX=1.0,PHOTONENERGYPOINTS=1,
-                                       USEEMITTANCES=1):
-    print("Inside xoppy_calc_undulator_radiation. ")
-
-    bl = OrderedDict()
-    bl['ElectronBeamDivergenceH'] = ELECTRONBEAMDIVERGENCEH
-    bl['ElectronBeamDivergenceV'] = ELECTRONBEAMDIVERGENCEV
-    bl['ElectronBeamSizeH'] = ELECTRONBEAMSIZEH
-    bl['ElectronBeamSizeV'] = ELECTRONBEAMSIZEV
-    bl['ElectronCurrent'] = ELECTRONCURRENT
-    bl['ElectronEnergy'] = ELECTRONENERGY
-    bl['ElectronEnergySpread'] = ELECTRONENERGYSPREAD
-    bl['Kv'] = KV
-    bl['NPeriods'] = NPERIODS
-    bl['PeriodID'] = PERIODID
-    bl['distance'] = DISTANCE
-    bl['gapH'] = GAPH
-    bl['gapV'] = GAPV
-
-    if USEEMITTANCES:
-        zero_emittance = False
-    else:
-        zero_emittance = True
-
-    gamma = ELECTRONENERGY / (codata_mee * 1e-3)
-
-
-    resonance_wavelength = (1 + bl['Kv']**2 / 2.0) / 2 / gamma**2 * bl["PeriodID"]
-    m2ev = codata.c * codata.h / codata.e      # lambda(m)  = m2eV / energy(eV)
-    resonance_energy = m2ev / resonance_wavelength
-
-    resonance_central_cone = 1.0/gamma*numpy.sqrt( (1+0.5*KV**2)/(2*NPERIODS*HARMONICNUMBER) )
-
-    ring_order = 1
-
-    resonance_ring = 1.0/gamma*numpy.sqrt( ring_order / HARMONICNUMBER * (1+0.5*KV**2) )
-
-    # autoset energy
-    if SETRESONANCE == 0:
-        photonEnergyMin = PHOTONENERGYMIN
-        photonEnergyMax = PHOTONENERGYMAX
-        photonEnergyPoints = PHOTONENERGYPOINTS
-    else:
-        # referred to resonance
-        photonEnergyMin = resonance_energy
-        photonEnergyMax = resonance_energy
-        photonEnergyPoints = 1
-
-    # autoset slit
-
-    if SETRESONANCE == 0:
-        pass
-    elif SETRESONANCE == 1:
-        MAXANGLE = 3 * 0.69 * resonance_central_cone
-        bl['gapH'] = 2 * MAXANGLE * DISTANCE
-        bl['gapV'] = 2 * MAXANGLE * DISTANCE
-    elif SETRESONANCE == 2:
-        MAXANGLE = 2.1 * resonance_ring
-        bl['gapH'] = 2 * MAXANGLE * DISTANCE
-        bl['gapV'] = 2 * MAXANGLE * DISTANCE
-
-
-    #TODO SPEC file can be removed
-    outFile = "undulator_radiation.spec"
-
-    # Memorandum:
-    # e = array with energy in eV
-    # h = array with horizontal positions in mm
-    # v = array with vertical positions in mm
-    # p = array with photon flux in photons/s/0.1%bw/mm^2 with shape (Ne,Nh.Nv)
-    if METHOD == 0:
-        code = "US"
-        print("Undulator radiation calculation using US. Please wait...")
-        e,h,v,p = srundplug.calc3d_us(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
-                                    photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,
-                                    photonEnergyPoints=photonEnergyPoints,zero_emittance=zero_emittance)
-    if METHOD == 1:
-        code = "URGENT"
-        print("Undulator radiation calculation using URGENT. Please wait...")
-        e,h,v,p = srundplug.calc3d_urgent(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
-                                    photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,
-                                    photonEnergyPoints=photonEnergyPoints,zero_emittance=zero_emittance)
-    if METHOD == 2:
-        code = "SRW"
-        print("Undulator radiation calculation using SRW. Please wait...")
-        e,h,v,p = srundplug.calc3d_srw(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
-                                    photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,
-                                    photonEnergyPoints=photonEnergyPoints,zero_emittance=zero_emittance)
-    if METHOD == 3:
-        # todo too slow
-        code = "pySRU"
-        print("Undulator radiation calculation using SRW. Please wait...")
-        e,h,v,p = srundplug.calc3d_pysru(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
-                                    photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,
-                                    photonEnergyPoints=photonEnergyPoints,zero_emittance=zero_emittance)
-
-
-    print ("Gamma: %f \n"%(gamma))
-    print ("Resonance wavelength (1st harmonic): %g A\n"%(1e10*resonance_wavelength))
-    print ("Resonance energy (1st harmonic): %g eV\n"%(resonance_energy))
-    if HARMONICNUMBER != 1:
-        print ("Resonance wavelength (%d harmonic): %g A\n"%(HARMONICNUMBER,1e10*resonance_wavelength/HARMONICNUMBER))
-        print ("Resonance energy (%d harmonic): %g eV\n"%(HARMONICNUMBER,HARMONICNUMBER*resonance_energy))
-    print ("Resonance central cone (%d harmonic): %g urad\n"%(HARMONICNUMBER,1e6*resonance_central_cone))
-
-
-    print ("Resonance first ring (%d harmonic): %g urad\n"%(HARMONICNUMBER,1e6*resonance_ring))
-
-    print("Calculated %d photon energy points from %f to %f."%(photonEnergyPoints,photonEnergyMin,photonEnergyMax))
-
-    if zero_emittance:
-        print("No emittance.")
-
-    print("Done")
-
-    ptot = (NPERIODS/6) * codata.value('characteristic impedance of vacuum') * \
-           ELECTRONCURRENT * codata.e * 2 * numpy.pi * codata.c * gamma**2 * KV**2 / PERIODID
-    print ("\nTotal power radiated by the undulator with fully opened slits [W]: %f \n"%(ptot))
-
-    if SETRESONANCE == 0:
-        pcalc =  p.sum() * codata.e * 1e3 * (h[1]-h[0]) * (v[1]-v[0]) * (e[1]-e[0])
-        print ("\nTotal power from calculated spectrum (h,v,energy) grid [W]: %f \n"%pcalc)
-
-    return e, h, v, p, code
-
-
-
 if __name__ == "__main__":
+
+
+
+    bl = None
+    try:
+        from syned.util.json_tools import load_from_json_file, load_from_json_url
+        from syned.storage_ring.light_source import LightSource
+        from syned.beamline.beamline import Beamline
+
+        remote_file_name = "http://ftp.esrf.eu/pub/scisoft/syned/lightsources/ESRF_ID21_EBS_ppu42_17.json"
+        remote_file_name = "http://ftp.esrf.eu/pub/scisoft/syned/lightsources/ESRF_ID21_LowBeta_ppu42_17.json"
+        tmp = load_from_json_url(remote_file_name)
+        if  isinstance(tmp,LightSource):
+            bl = Beamline(tmp)
+    except:
+        pass
+
+
+
     app = QApplication(sys.argv)
     w = OWundulator_radiation()
+
+    if bl is not None:
+        w.receive_syned_data(bl)
+
     w.show()
     app.exec()
     w.saveSettings()

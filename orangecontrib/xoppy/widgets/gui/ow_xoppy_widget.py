@@ -165,6 +165,8 @@ class XoppyWidget(widget.OWWidget):
     def plot_results(self, calculated_data, progressBarValue=80):
         if not self.view_type == 0:
             if not calculated_data is None:
+                current_index = self.tabs.currentIndex()
+
                 self.view_type_combo.setEnabled(False)
 
                 xoppy_data = calculated_data.get_content("xoppy_data")
@@ -199,10 +201,14 @@ class XoppyWidget(widget.OWWidget):
 
                 self.view_type_combo.setEnabled(True)
 
-                if self.getDefaultPlotTabIndex() == -1:
-                    self.tabs.setCurrentIndex(len(titles) - 1)
-                else:
-                    self.tabs.setCurrentIndex(self.getDefaultPlotTabIndex())
+                try:
+                    self.tabs.setCurrentIndex(current_index)
+                except:
+                    if self.getDefaultPlotTabIndex() == -1:
+                        self.tabs.setCurrentIndex(len(titles) - 1)
+                    else:
+                        self.tabs.setCurrentIndex(self.getDefaultPlotTabIndex())
+
 
             else:
                 raise Exception("Empty Data")
@@ -216,6 +222,7 @@ class XoppyWidget(widget.OWWidget):
 
     def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
                    log_x=False, log_y=False, color='blue', replace=True, control=False):
+
 
         if self.plot_canvas[plot_canvas_index] is None:
             self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow(parent=None,
@@ -258,6 +265,7 @@ class XoppyWidget(widget.OWWidget):
             else:
                 self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y), max(y)*1.01)
 
+
         self.progressBarSet(progressBarValue)
 
     def plot_data1D(self, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle=""):
@@ -280,8 +288,6 @@ class XoppyWidget(widget.OWWidget):
         self.plot_canvas[plot_canvas_index].setGraphTitle(title)
 
         self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
-
-
 
     def plot_data2D(self, data2D, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", mode=2):
 

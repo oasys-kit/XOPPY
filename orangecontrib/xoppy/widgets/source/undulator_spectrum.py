@@ -7,12 +7,10 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
-from collections import OrderedDict
-from orangecontrib.xoppy.util import srundplug
-import scipy.constants as codata
-import os
+
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_spectrum
 
 from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
@@ -352,91 +350,7 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
                 self.id_PERIODID.setEnabled(False)
                 self.id_NPERIODS.setEnabled(False)
                 self.id_KV.setEnabled(False)
-# --------------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------------
 
-def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
-                              ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
-                              ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
-                              PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
-                              PHOTONENERGYMIN=3000.0,PHOTONENERGYMAX=55000.0,PHOTONENERGYPOINTS=500,METHOD=0,
-                              USEEMITTANCES=1):
-    print("Inside xoppy_calc_undulator_spectrum. ")
-
-    bl = OrderedDict()
-    bl['ElectronBeamDivergenceH'] = ELECTRONBEAMDIVERGENCEH
-    bl['ElectronBeamDivergenceV'] = ELECTRONBEAMDIVERGENCEV
-    bl['ElectronBeamSizeH'] = ELECTRONBEAMSIZEH
-    bl['ElectronBeamSizeV'] = ELECTRONBEAMSIZEV
-    bl['ElectronCurrent'] = ELECTRONCURRENT
-    bl['ElectronEnergy'] = ELECTRONENERGY
-    bl['ElectronEnergySpread'] = ELECTRONENERGYSPREAD
-    bl['Kv'] = KV
-    bl['NPeriods'] = NPERIODS
-    bl['PeriodID'] = PERIODID
-    bl['distance'] = DISTANCE
-    bl['gapH'] = GAPH
-    bl['gapV'] = GAPV
-
-    if USEEMITTANCES:
-        zero_emittance = False
-    else:
-        zero_emittance = True
-
-    #TODO remove file and export e,f arrays
-    outFile = "undulator_spectrum.spec"
-
-    codata_mee = codata.m_e * codata.c**2 / codata.e # electron mass in eV
-    gamma = bl['ElectronEnergy'] * 1e9 / codata_mee
-
-    m2ev = codata.c * codata.h / codata.e      # lambda(m)  = m2eV / energy(eV)
-    resonance_wavelength = (1 + bl['Kv']**2 / 2.0) / 2 / gamma**2 * bl["PeriodID"]
-    resonance_energy = m2ev / resonance_wavelength
-    print ("Gamma: %f \n"%(gamma))
-    print ("Resonance wavelength [A]: %g \n"%(1e10*resonance_wavelength))
-    print ("Resonance energy [eV]: %g \n"%(resonance_energy))
-
-
-    ptot = (NPERIODS/6) * codata.value('characteristic impedance of vacuum') * \
-           ELECTRONCURRENT * codata.e * 2 * numpy.pi * codata.c * gamma**2 * KV**2 / PERIODID
-    print ("\nTotal power radiated by the undulator with fully opened slits [W]: %g \n"%(ptot))
-
-
-    if METHOD == 0:
-        print("Undulator flux calculation using US. Please wait...")
-        e, f = srundplug.calc1d_us(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
-              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False,zero_emittance=zero_emittance)
-        print("Done")
-        print("\nCheck calculation output at: %s"%(os.path.join(os.getcwd(),"us.out")))
-    if METHOD == 1:
-        print("Undulator flux calculation using URGENT. Please wait...")
-        e, f = srundplug.calc1d_urgent(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
-              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False,zero_emittance=zero_emittance)
-        print("Done")
-        print("\nCheck calculation output at: %s"%(os.path.join(os.getcwd(),"urgent.out")))
-    if METHOD == 2:
-        # get the maximum harmonic number
-        h_max = int(1.1*PHOTONENERGYMAX/resonance_energy)
-
-        print ("Number of harmonics considered: %d \n"%(h_max))
-        print("Undulator flux calculation using SRW. Please wait...")
-        e, f = srundplug.calc1d_srw(bl,photonEnergyMin=PHOTONENERGYMIN,photonEnergyMax=PHOTONENERGYMAX,
-              photonEnergyPoints=PHOTONENERGYPOINTS,fileName=outFile,fileAppend=False,zero_emittance=zero_emittance,
-              srw_max_harmonic_number=h_max)
-        print("Done")
-
-    if zero_emittance:
-        print("\nNo emittance calculation")
-
-    power_in_spectrum = f.sum()*1e3*codata.e*(e[1]-e[0])
-    print("\nPower from integral of spectrum: %8.3f W"%(power_in_spectrum))
-
-    print("\nRatio Power from integral of spectrum over Total emitted power: %5.4f"%(power_in_spectrum / ptot))
-
-    spectral_power = f * codata.e * 1e3
-    cumulated_power = spectral_power.cumsum() * numpy.abs(e[0] - e[1])
-    return e, f, spectral_power, cumulated_power
-#    return e, f, f*codata.e * 1e3
 
 
 

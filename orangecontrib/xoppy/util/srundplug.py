@@ -852,6 +852,7 @@ def calc2d_srw(bl,zero_emittance=False,hSlitPoints=101,vSlitPoints=51,srw_max_ha
         else:
             print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
+    print( "Power density peak SRW: [W/mm2]: "+repr(powerArray.max()))
     print( "Total power SRW [W]: "+repr(totPower))
 
     return (hArray, vArray, powerArray)
@@ -1011,6 +1012,7 @@ def calc2d_us(bl,zero_emittance=False,hSlitPoints=51,vSlitPoints=51,fileName=Non
         else:
             print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
+    print( "Power density peak US: [W/mm2]: "+repr(int_mesh2.max()))
     print( "Total power US [W]: "+repr(totPower))
     return (hhh, vvv, int_mesh2)
 
@@ -1183,6 +1185,7 @@ def calc2d_urgent(bl,zero_emittance=False,fileName=None,fileAppend=False,hSlitPo
             print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
 
+    print( "Power density peak URGENT: [W/mm2]: "+repr(int_mesh2.max()))
     print( "Total power URGENT [W]: "+repr(totPower))
     print("\n--------------------------------------------------------\n\n")
 
@@ -2106,13 +2109,13 @@ def tuning_curves_on_slit(bl,Kmin=0.2,Kmax=2.2,Kpoints=10,harmonics=[1],zero_emi
         Pvalues[ik] = tot_power
 
 
-    print("\n\nHarmonic     Kv     Resonance [eV]    Flux peak [eV]   Total Power on slit [eV]")
+    print("\n\nHarmonic          Kv     Resonance [eV]    Flux peak at energy [eV]   Spectral density [W/eV]  Power on slit [W]")
     for ih in range(len(harmonics)):
         for i in range(Kvalues.size):
-            print("%10d%17.3f%17.3f%17.3f%17.3f"%
-                  (harmonics[ih],Kvalues[i],evalues[i,ih],evalues_at_flux_peak[i,ih],Pvalues[i]))
+            print("%10d   %17.3f%17.3f%17.3f   %17.3g %17.3f"%
+                  (harmonics[ih],Kvalues[i],evalues[i,ih],evalues_at_flux_peak[i,ih],flux_values[i]*codata.e*1e3,Pvalues[i]))
 
-    return Kvalues,harmonics,Pvalues,evalues_at_flux_peak,flux_values,
+    return Kvalues,harmonics,Pvalues,evalues_at_flux_peak,flux_values
 
 ########################################################################################################################
 #

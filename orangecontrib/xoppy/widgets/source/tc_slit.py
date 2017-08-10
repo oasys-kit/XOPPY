@@ -41,11 +41,11 @@ class OWtc_slit(XoppyWidget):
     DISTANCE = Setting(26.0)
     GAPH = Setting(0.00258)
     GAPV = Setting(0.00195)
-    KMIN = Setting(0.01)
-    KMAX = Setting(2.56)
+    KMIN = Setting(0.001)
+    KMAX = Setting(3.0)
     KPOINTS = Setting(10)
     HMAX = Setting(1)
-    METHOD = Setting(2)
+    METHOD = Setting(0)
 
     inputs = WidgetDecorator.syned_input_data()
 
@@ -386,16 +386,16 @@ class OWtc_slit(XoppyWidget):
         return "TC_SLIT"
 
     def getTitles(self):
-        return ["Flux on slit","Spectral power on slit","Ky","Total power on slit"]
+        return ["Flux on slit","Spectral power on slit","Kv","Total power on slit"]
 
     def getXTitles(self):
         return ["Energy (eV)","Energy (eV)","Energy (eV)","Kv"]
 
     def getYTitles(self):
-        return ["Flux (photons/s/0.1%bw)","Spectral power (W/eV)","Ky","Total power (W)"]
+        return ["Flux (photons/s/0.1%bw)","Spectral power (W/eV)","Kv","Total power (W)"]
 
     def getVariablesToPlot(self):
-        return [(0, 1), (0, 2), (0, 3), (2, 3)]
+        return [(0, 1), (0, 2), (0, 3), (3, 4)]
 
     def getLogPlot(self):
         return[(False, False), (False, False), (False, False), (False, False)]
@@ -498,9 +498,6 @@ class OWtc_slit(XoppyWidget):
                 self.id_PERIODID.setEnabled(False)
                 self.id_NPERIODS.setEnabled(False)
                 self.id_KMAX.setEnabled(False)
-
-
-
 
 
 if __name__ == "__main__":
