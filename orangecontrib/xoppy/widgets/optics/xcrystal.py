@@ -506,7 +506,7 @@ class OWxcrystal(XoppyWidget):
                 wavelength = XoppyPhysics.getWavelengthFromEnergy(self.ENERGY) * 1e-8 #cm
                 dspacing = float(bragg_dictionary["dspacing"])
 
-                calculated_data.add_content("bragg_angle", numpy.degrees(numpy.arcsin(wavelength/(2*dspacing))))
+                calculated_data.add_content("bragg_angle", numpy.degrees(numpy.arcsin(wavelength/(2*dspacing)) + self.ASYMMETRY_ANGLE))
 
             calculated_data.add_content("units_to_degrees", self.get_units_to_degrees())
         except Exception as e:
