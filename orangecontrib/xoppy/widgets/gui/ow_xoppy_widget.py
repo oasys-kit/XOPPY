@@ -453,7 +453,7 @@ class XoppyWidget(widget.OWWidget):
 
             self.setStatusMessage("Error!")
 
-            raise exception
+            #raise exception
 
         self.progressBarFinished()
 

@@ -8,7 +8,7 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 
-from orangecontrib.xoppy.util.xoppy_util import locations
+from orangecontrib.xoppy.util.xoppy_util import locations, XoppyPhysics
 from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc
 
 from oasys.widgets.exchange import DataExchangeObject
@@ -315,13 +315,13 @@ class OWxcrystal(XoppyWidget):
         return ["Phase_p","Phase_s","Circ. Polariz.","p-polarized reflectivity","s-polarized reflectivity"]
 
     def getXTitles(self):
-        if self.SCAN < 4:
+        if self.SCAN < 3:
             return ["Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
                     "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
                     "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
                     "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]",
                     "Th-ThB{in} [" + self.unit_combo.itemText(self.UNIT) + "]"]
-        elif self.SCAN ==4:
+        elif self.SCAN == 3:
             return ["Energy [eV]",
                     "Energy [eV]",
                     "Energy [eV]",
@@ -409,6 +409,7 @@ class OWxcrystal(XoppyWidget):
 
 
         descriptor = Crystal_GetCrystalsList()[CRYSTAL_MATERIAL]
+
         if SCAN == 3: # energy scan
             emin = SCANFROM - 1
             emax = SCANTO + 1
@@ -499,6 +500,15 @@ class OWxcrystal(XoppyWidget):
             calculated_data.add_content("xoppy_data", numpy.loadtxt("diff_pat.dat", skiprows=5))
             calculated_data.add_content("plot_x_col",0)
             calculated_data.add_content("plot_y_col",-1)
+            calculated_data.add_content("scan_type", SCAN)
+
+            if SCAN in (1, 2):
+                wavelength = XoppyPhysics.getWavelengthFromEnergy(self.ENERGY) * 1e-8 #cm
+                dspacing = float(bragg_dictionary["dspacing"])
+
+                calculated_data.add_content("bragg_angle", numpy.degrees(numpy.arcsin(wavelength/(2*dspacing))))
+                calculated_data.add_content("asymmetry_angle", self.ASYMMETRY_ANGLE)
+
             calculated_data.add_content("units_to_degrees", self.get_units_to_degrees())
         except Exception as e:
             raise Exception("Error loading diff_pat.dat :" + str(e))

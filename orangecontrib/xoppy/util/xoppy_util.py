@@ -1,6 +1,6 @@
 __author__ = 'labx'
 
-import sys, os
+import sys, os, numpy
 import orangecanvas.resources as resources
 from PyQt5 import QtGui, QtCore
 
@@ -18,14 +18,6 @@ except ImportError:
 import xraylib
 
 from oasys.widgets import gui
-
-# TODO: delete: srio commented this and it is never used
-# import traceback
-# from PyMca5.PyMcaGui import PyMcaQt as qt
-# from PyMca5.PyMcaCore import PyMcaDirs
-# from PyMca5.PyMcaIO import ArraySave
-# from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
-# from PyMca5.PyMcaGui.plotting.ImageView import ImageView
 
 class EmittingStream(QtCore.QObject):
     textWritten = QtCore.pyqtSignal(str)
@@ -65,6 +57,25 @@ def xoppy_doc(app):
     os.system(command)
 
 class XoppyPhysics:
+
+    ######################################
+    # FROM NIST
+    codata_h = numpy.array(6.62606957e-34)
+    codata_ec = numpy.array(1.602176565e-19)
+    codata_c = numpy.array(299792458.0)
+    ######################################
+
+    A2EV = (codata_h*codata_c/codata_ec)*1e+10
+    K2EV = 2*numpy.pi/(codata_h*codata_c/codata_ec*1e+2)
+
+    @classmethod
+    def getWavelengthFromEnergy(cls, energy): #in eV
+        return cls.A2EV/energy # in Angstrom
+
+    @classmethod
+    def getEnergyFromWavelength(cls, wavelength): # in Angstrom
+        return cls.A2EV/wavelength # in eV
+
     @classmethod
     def getMaterialDensity(cls, material_formula):
         if material_formula is None: return 0.0
@@ -79,6 +90,7 @@ class XoppyPhysics:
                 return 0.0
         except:
             return 0.0
+
 class XoppyGui:
 
     @classmethod
