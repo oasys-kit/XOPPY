@@ -222,7 +222,7 @@ def f1f2_calc(descriptor,energy,theta=3.0e-3,F=0,density=None,rough=0.0):
     elif F == 4: # F=4  returns betaf  [n = 1 -delta -i beta]
         out = numpy.zeros_like(energy)
         for i,ienergy in enumerate(energy):
-            out[i] = (1e0-xraylib.Refractive_Index_Im(symbol,1e-3*ienergy,density))
+            out[i] = xraylib.Refractive_Index_Im(symbol,1e-3*ienergy,density)
     elif F == 5: # F=5  returns Photoelectric linear absorption coefficient
         out = numpy.zeros_like(energy)
         for i,ienergy in enumerate(energy):
