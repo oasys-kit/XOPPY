@@ -354,12 +354,6 @@ class XoppyWidget(widget.OWWidget):
 
                 self.plot_canvas[plot_canvas_index].setActiveImage("zio billy")
 
-                # COLOR TABLE
-                from matplotlib.image import AxesImage
-                image = AxesImage(self.plot_canvas[plot_canvas_index]._backend.ax)
-                image.set_data(numpy.array(data_to_plot))
-                self.plot_canvas[plot_canvas_index]._backend.fig.colorbar(image, ax=self.plot_canvas[plot_canvas_index]._backend.ax)
-
             self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
             self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
             self.plot_canvas[plot_canvas_index].setGraphTitle(title)
