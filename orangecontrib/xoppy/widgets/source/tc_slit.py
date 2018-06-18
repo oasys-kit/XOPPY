@@ -45,7 +45,7 @@ class OWtc_slit(XoppyWidget):
     KMAX = Setting(3.0)
     KPOINTS = Setting(10)
     HMAX = Setting(1)
-    METHOD = Setting(0)
+    METHOD = Setting(2)
 
     inputs = WidgetDecorator.syned_input_data()
 

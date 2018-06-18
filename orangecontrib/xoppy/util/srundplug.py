@@ -2113,7 +2113,7 @@ def tuning_curves_on_slit(bl,Kmin=0.2,Kmax=2.2,Kpoints=10,harmonics=[1],zero_emi
     for ih in range(len(harmonics)):
         for i in range(Kvalues.size):
             print("%10d   %17.3f%17.3f%17.3f   %17.3g %17.3f"%
-                  (harmonics[ih],Kvalues[i],evalues[i,ih],evalues_at_flux_peak[i,ih],flux_values[i]*codata.e*1e3,Pvalues[i]))
+                  (harmonics[ih],Kvalues[i],evalues[i,ih],evalues_at_flux_peak[i,ih],flux_values[i,ih]*codata.e*1e3,Pvalues[i]))
 
     return Kvalues,harmonics,Pvalues,evalues_at_flux_peak,flux_values
 
