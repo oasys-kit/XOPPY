@@ -33,7 +33,7 @@ class OWmlayer(XoppyWidget):
     EVEN_MATERIAL = Setting("W")
     ENERGY = Setting(8050.0)
     THETA = Setting(0.0)
-    SCAN_STEP = Setting(0.009999999776483)
+    SCAN_STEP = Setting(0.01)
     NPOINTS = Setting(600)
     ODD_THICKNESS = Setting(25.0)
     EVEN_THICKNESS = Setting(25.0)
@@ -164,11 +164,19 @@ class OWmlayer(XoppyWidget):
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['Layer periodicity: ','Scanning variable: ','Material parameters:','Substrate: ','Odd layer material (closer to vacuum): ','Even layer material (closer to substrate): ','Photon energy [eV]:','Grazing angle [degrees]:','Scanning variable step: ','Number of scanning points','Thickness [A] for odd material:','Thickness [A] for even material:','Number of layer pairs:','File with layer thicknesses:']
+         return ['Layer periodicity: ','Scanning variable: ','Material parameters:',
+                 'Substrate: ','Odd layer material (closer to vacuum): ','Even layer material (closer to substrate): ',
+                 'Photon energy [eV]:','Grazing angle [degrees]:','Scanning variable step: ',
+                 'Number of scanning points','Thickness [A] for odd material:','Thickness [A] for even material:',
+                 'Number of layer pairs:','File with layer thicknesses:']
 
 
     def unitFlags(self):
-         return ['True','True','True','self.F12_FLAG  ==  0','self.F12_FLAG  ==  0','self.F12_FLAG  ==  0','self.SCAN == 0','self.SCAN == 1','True','True','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  1']
+         return ['True','True','True',
+                 'self.F12_FLAG  ==  0','self.F12_FLAG  ==  0','self.F12_FLAG  ==  0',
+                 'True','True','True',
+                 'True','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  0  &  self.F12_FLAG  ==  0',
+                 'self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  1']
 
     def get_help_name(self):
         return 'mlayer'
@@ -210,19 +218,31 @@ class OWmlayer(XoppyWidget):
         return ["s-reflectivity","p-reflectivity","averaged reflectivity","s-phase shift","p-phase shift","(s-electric field)^2","(p-electric field)^2"]
 
     def getXTitles(self):
-        return ["Grazing angle Theta [deg]",
-                "Grazing angle Theta [deg]",
-                "Grazing angle Theta [deg]",
-                "Grazing angle Theta [deg]",
-                "Grazing angle Theta [deg]",
-                "Grazing angle Theta [deg]",
-                "Grazing angle Theta [deg]"]
+        if self.SCAN == 0:
+            return ["Grazing angle Theta [deg]",
+                    "Grazing angle Theta [deg]",
+                    "Grazing angle Theta [deg]",
+                    "Grazing angle Theta [deg]",
+                    "Grazing angle Theta [deg]",
+                    "Grazing angle Theta [deg]",
+                    "Grazing angle Theta [deg]"]
+        else:
+            return ["Photon energy [eV]",
+                    "Photon energy [eV]",
+                    "Photon energy [eV]",
+                    "Photon energy [eV]",
+                    "Photon energy [eV]",
+                    "Photon energy [eV]",
+                    "Photon energy [eV]"]
 
     def getYTitles(self):
         return self.getTitles()
 
     def getVariablesToPlot(self):
-        return [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7)]
+        if self.SCAN == 0:
+            return [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7)]
+        else:
+            return [(0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (0, 8)]
 
     def getLogPlot(self):
         return[(False, False), (False, False), (False, False), (False, False), (False, False), (False, False), (False, False)]
@@ -258,9 +278,9 @@ class OWmlayer(XoppyWidget):
         f = open('mlayer.inp','w')
 
         if SCAN == 0 and MODE == 0: a0 = 1
-        if SCAN == 1 and MODE == 0: a0 = 5
+        if SCAN == 1 and MODE == 0: a0 = 2
         if SCAN == 0 and MODE == 1: a0 = 3
-        if SCAN == 1 and MODE == 1: a0 = 5
+        if SCAN == 1 and MODE == 1: a0 = 4
 
         f.write("%d \n"%a0)
         f.write("N\n")
@@ -268,6 +288,7 @@ class OWmlayer(XoppyWidget):
         f.write("%g\n"%( codata.h * codata.c / codata.e * 1e10 / ENERGY))
         f.write("%g\n"%THETA)
 
+        #
         if SCAN == 0:
             f.write("%g\n"%SCAN_STEP)
 
@@ -278,6 +299,7 @@ class OWmlayer(XoppyWidget):
         if SCAN != 0:
             f.write("%g\n"%a4)
 
+        #
         f.write("%d\n"%NPOINTS)
 
         if MODE == 0:
@@ -356,15 +378,21 @@ class OWmlayer(XoppyWidget):
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         try:
-            calculated_data.add_content("xoppy_data", numpy.loadtxt("mlayer.dat"))
-            calculated_data.add_content("plot_x_col", 0)
-            calculated_data.add_content("plot_y_col", 3)
-            calculated_data.add_content("units_to_degrees", 1.0)
-        except:
-            pass
-        try:
-            calculated_data.add_content("labels",["Grazing angle Theta [deg]","s-reflectivity","p-reflectivity","averaged reflectivity","s-phase shift","p-phase shift","(s-electric field)^2","(p-electric field)^2"])
+            if SCAN == 0:
+                calculated_data.add_content("xoppy_data", numpy.loadtxt("mlayer.dat"))
+                calculated_data.add_content("plot_x_col", 0)
+                calculated_data.add_content("plot_y_col", 3)
+            elif SCAN == 1: # internal scan is in wavelength. Add a column with energy
+                aa = numpy.loadtxt("mlayer.dat")
+                photon_energy = (codata.h * codata.c / codata.e * 1e10) / aa[:,0]
+                bb = numpy.zeros((aa.shape[0],1+aa.shape[1]))
+                bb[:,0] = photon_energy
+                bb[:,1:] = aa
+                calculated_data.add_content("xoppy_data", bb)
+                calculated_data.add_content("plot_x_col", 0)
+                calculated_data.add_content("plot_y_col", 4)
 
+            calculated_data.add_content("units_to_degrees", 1.0)
         except:
             pass
         try:

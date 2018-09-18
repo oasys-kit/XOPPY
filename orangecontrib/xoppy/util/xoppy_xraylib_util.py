@@ -96,7 +96,7 @@ def reflectivity_fresnel(refraction_index_delta=1e-5,refraction_index_beta=0.0,\
     # ;
     #
     theta1 = grazing_angle_mrad*1e-3     # in rad
-    rough1 = roughness_rms_A*1e-8 # in cm
+    rough1 = roughness_rms_A
 
     # ; epsi = 1 - alpha - i gamma
     # alpha = 2.0D0*k*f1
