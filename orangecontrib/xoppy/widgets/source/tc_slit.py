@@ -313,7 +313,6 @@ class OWtc_slit(XoppyWidget):
             if not calculated_data is None:
                 self.view_type_combo.setEnabled(False)
 
-
                 xoppy_data_harmonics = calculated_data.get_content("xoppy_data_harmonics")
 
                 titles = self.getTitles()
