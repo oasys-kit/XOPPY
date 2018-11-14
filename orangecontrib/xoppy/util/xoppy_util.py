@@ -100,9 +100,9 @@ class XoppyGui:
              control2attributeDict=None, emptyString=None, editable=False, selectedValue = None,
              **misc):
 
-        combo = gui.comboBox(widget, master, value, box=box, label=label, labelWidth=labelWidth, orientation=orientation,
-                             items=items, callback=callback, sendSelectedValue=sendSelectedValue, valueType=valueType,
-                             control2attributeDict=control2attributeDict, emptyString=emptyString,editable=editable, **misc)
+        combo = abstract.comboBox(widget, master, value, box=box, label=label, labelWidth=labelWidth, orientation=orientation,
+                                  items=items, callback=callback, sendSelectedValue=sendSelectedValue, valueType=valueType,
+                                  control2attributeDict=control2attributeDict, emptyString=emptyString, editable=editable, **misc)
         try:
             combo.setCurrentIndex(items.index(selectedValue))
         except:
