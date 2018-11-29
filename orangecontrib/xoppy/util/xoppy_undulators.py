@@ -89,13 +89,15 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
     if zero_emittance:
         print("\nNo emittance calculation")
 
+    if METHOD == 1 and len(e) == 0: raise Exception("Invalid Input Parameters")
+
     power_in_spectrum = f.sum()*1e3*codata.e*(e[1]-e[0])
     print("\nPower from integral of spectrum: %8.3f W"%(power_in_spectrum))
-
     print("\nRatio Power from integral of spectrum over Total emitted power: %5.4f"%(power_in_spectrum / ptot))
 
     spectral_power = f * codata.e * 1e3
-    cumulated_power = spectral_power.cumsum() * numpy.abs(e[0] - e[1])
+    cumulated_power = spectral_power.cumsum() * numpy.abs(e[0] - e[1]) if not METHOD == 1 else 0.0
+
     return e, f, spectral_power, cumulated_power
 
 
