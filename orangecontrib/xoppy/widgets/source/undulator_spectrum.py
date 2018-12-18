@@ -43,7 +43,7 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
     PHOTONENERGYMIN = Setting(3000.0)
     PHOTONENERGYMAX = Setting(55000.0)
     PHOTONENERGYPOINTS = Setting(500)
-    METHOD = Setting(0)
+    METHOD = Setting(2)
 
     inputs = WidgetDecorator.syned_input_data()
 
@@ -315,7 +315,7 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
                 self.ELECTRONBEAMDIVERGENCEH = xp
                 self.ELECTRONBEAMDIVERGENCEV = yp
                 self.PERIODID = light_source._magnetic_structure._period_length
-                self.NPERIODS = light_source._magnetic_structure._number_of_periods
+                self.NPERIODS = int(light_source._magnetic_structure._number_of_periods)
                 self.KV = light_source._magnetic_structure._K_vertical
 
                 self.set_enabled(False)

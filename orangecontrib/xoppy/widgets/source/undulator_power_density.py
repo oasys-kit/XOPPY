@@ -43,8 +43,16 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
     GAPV = Setting(0.003)
     HSLITPOINTS = Setting(41)
     VSLITPOINTS = Setting(41)
-    METHOD = Setting(0)
+    METHOD = Setting(2)
+    MASK_FLAG=Setting(0)
+    MASK_ROT_H_DEG=Setting(0.0)
+    MASK_ROT_V_DEG=Setting(0.0)
+    MASK_H_MIN=Setting(-1000.0)
+    MASK_H_MAX=Setting( 1000.0)
+    MASK_V_MIN=Setting(-1000.0)
+    MASK_V_MAX=Setting( 1000.0)
 
+    H5_FILE_DUMP=Setting(0)
     inputs = WidgetDecorator.syned_input_data()
 
 
@@ -196,11 +204,94 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
+        #
+        # Mask
+        #
+
+        #widget index 16
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "MASK_FLAG",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    items=['No', 'Yes'],
+                    valueType=int, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+
+        #widget index 17
+        idx += 1
+        box1 = gui.widgetBox(box)
+        self.id_ELECTRONENERGY = oasysgui.lineEdit(box1, self, "MASK_ROT_H_DEG",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 18
+        idx += 1
+        box1 = gui.widgetBox(box)
+        self.id_ELECTRONENERGYSPREAD = oasysgui.lineEdit(box1, self, "MASK_ROT_V_DEG",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 19
+        idx += 1
+        box1 = gui.widgetBox(box)
+        self.id_ELECTRONENERGY = oasysgui.lineEdit(box1, self, "MASK_H_MIN",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 20
+        idx += 1
+        box1 = gui.widgetBox(box)
+        self.id_ELECTRONENERGYSPREAD = oasysgui.lineEdit(box1, self, "MASK_H_MAX",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 21
+        idx += 1
+        box1 = gui.widgetBox(box)
+        self.id_ELECTRONENERGY = oasysgui.lineEdit(box1, self, "MASK_V_MIN",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 22
+        idx += 1
+        box1 = gui.widgetBox(box)
+        self.id_ELECTRONENERGYSPREAD = oasysgui.lineEdit(box1, self, "MASK_V_MAX",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 23
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "H5_FILE_DUMP",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    items=['No', 'Yes: undulator_power_density.h5'],
+                    valueType=int, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
     def unitLabels(self):
-         return ["Use emittances","Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]", "Electron Beam Size H [m]", "Electron Beam Size V [m]", "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", "Period ID [m]", "Number of periods", "Kv [undulator K value vertical field]", "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "Number of slit mesh points in H", "Number of slit mesh points in V", "calculation code"]
+         return ["Use emittances","Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]",\
+                 "Electron Beam Size H [m]", "Electron Beam Size V [m]", "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", \
+                 "Period ID [m]", "Number of periods", "Kv [undulator K value vertical field]",\
+                 "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "Number of slit mesh points in H", "Number of slit mesh points in V",\
+                 "calculation code",\
+                 "modify slit","Rotation around H axis [deg]","Rotation around V axis [deg]","Mask H min [mm]","Mask H max [mm]",'Mask H min [mm]',"Mask H max [mm]",\
+                 "Dump hdf5 file"]
 
     def unitFlags(self):
-         return ["True","True", "self.USEEMITTANCES == 1 and self.METHOD != 1", "True", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "True", "True", "True", "True", "True", "True", "True", "True", "True"]
+         return ["True","True", "self.USEEMITTANCES == 1 and self.METHOD != 1", "True",\
+                 "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", \
+                 "True", "True", "True",\
+                 "True", "True", "True", "True", "True",\
+                 "True",\
+                 "True","self.MASK_FLAG == 1","self.MASK_FLAG == 1","self.MASK_FLAG == 1","self.MASK_FLAG == 1","self.MASK_FLAG == 1","self.MASK_FLAG == 1",\
+                 "True"]
 
     def get_help_name(self):
         return 'undulator_power_density'
@@ -265,6 +356,37 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
                 raise Exception("Empty Data")
 
     def do_xoppy_calculation(self):
+        if self.H5_FILE_DUMP == 0:
+            h5_file = ""
+        else:
+            h5_file = "undulator_power_density.h5"
+
+        h5_parameters = {
+            "ELECTRONENERGY":self.ELECTRONENERGY,
+            "ELECTRONENERGYSPREAD":self.ELECTRONENERGYSPREAD,
+            "ELECTRONCURRENT":self.ELECTRONCURRENT,
+            "ELECTRONBEAMSIZEH":self.ELECTRONBEAMSIZEH,
+            "ELECTRONBEAMSIZEV":self.ELECTRONBEAMSIZEV,
+            "ELECTRONBEAMDIVERGENCEH":self.ELECTRONBEAMDIVERGENCEH,
+            "ELECTRONBEAMDIVERGENCEV":self.ELECTRONBEAMDIVERGENCEV,
+            "PERIODID":self.PERIODID,
+            "NPERIODS":self.NPERIODS,
+            "KV":self.KV,
+            "DISTANCE":self.DISTANCE,
+            "GAPH":self.GAPH,
+            "GAPV":self.GAPV,
+            "HSLITPOINTS":self.HSLITPOINTS,
+            "VSLITPOINTS":self.VSLITPOINTS,
+            "METHOD":self.METHOD,
+            "USEEMITTANCES":self.USEEMITTANCES,
+            "MASK_FLAG":self.MASK_FLAG,
+            "MASK_ROT_H_DEG":self.MASK_ROT_H_DEG,
+            "MASK_ROT_V_DEG":self.MASK_ROT_V_DEG,
+            "MASK_H_MIN":self.MASK_H_MIN,
+            "MASK_H_MAX":self.MASK_H_MAX,
+            "MASK_V_MIN":self.MASK_V_MIN,
+            "MASK_V_MAX":self.MASK_V_MAX,
+        }
         return  xoppy_calc_undulator_power_density(ELECTRONENERGY=self.ELECTRONENERGY,
                                                    ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,
                                                    ELECTRONCURRENT=self.ELECTRONCURRENT,
@@ -281,7 +403,19 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
                                                    HSLITPOINTS=self.HSLITPOINTS,
                                                    VSLITPOINTS=self.VSLITPOINTS,
                                                    METHOD=self.METHOD,
-                                                   USEEMITTANCES=self.USEEMITTANCES)
+                                                   USEEMITTANCES=self.USEEMITTANCES,
+                                                   MASK_FLAG=self.MASK_FLAG,
+                                                   MASK_ROT_H_DEG=self.MASK_ROT_H_DEG,
+                                                   MASK_ROT_V_DEG=self.MASK_ROT_V_DEG,
+                                                   MASK_H_MIN=self.MASK_H_MIN,
+                                                   MASK_H_MAX=self.MASK_H_MAX,
+                                                   MASK_V_MIN=self.MASK_V_MIN,
+                                                   MASK_V_MAX=self.MASK_V_MAX,
+                                                   h5_file=h5_file,
+                                                   h5_entry_name="XOPPY_POWERDENSITY",
+                                                   h5_initialize=True,
+                                                   h5_parameters=h5_parameters,
+                                                   )
 
     def extract_data_from_xoppy_output(self, calculation_output):
         h, v, p, code = calculation_output

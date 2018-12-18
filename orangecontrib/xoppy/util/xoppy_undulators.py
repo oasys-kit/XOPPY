@@ -9,6 +9,7 @@ from collections import OrderedDict
 from orangecontrib.xoppy.util import srundplug
 from orangecontrib.xoppy.util.fit_gaussian2d import fit_gaussian2d, info_params, twoD_Gaussian
 
+from srxraylib.util.h5_simple_writer import H5SimpleWriter
 
 import scipy.constants as codata
 codata_mee = codata.codata.physical_constants["electron mass energy equivalent in MeV"][0]
@@ -20,7 +21,7 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
                               ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
                               ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
                               PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
-                              PHOTONENERGYMIN=3000.0,PHOTONENERGYMAX=55000.0,PHOTONENERGYPOINTS=500,METHOD=0,
+                              PHOTONENERGYMIN=3000.0,PHOTONENERGYMAX=55000.0,PHOTONENERGYPOINTS=500,METHOD=2,
                               USEEMITTANCES=1):
     print("Inside xoppy_calc_undulator_spectrum. ")
 
@@ -105,7 +106,13 @@ def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=
                                        ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
                                        ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
                                        PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
-                                       HSLITPOINTS=101,VSLITPOINTS=51,METHOD=0,USEEMITTANCES=1):
+                                       HSLITPOINTS=101,VSLITPOINTS=51,METHOD=2,USEEMITTANCES=1,
+                                       MASK_FLAG=0,
+                                       MASK_ROT_H_DEG=0.0,MASK_ROT_V_DEG=0.0,
+                                       MASK_H_MIN=None,MASK_H_MAX=None,
+                                       MASK_V_MIN=None,MASK_V_MAX=None,
+                                       h5_file="",h5_entry_name="XOPPY_POWERDENSITY",h5_initialize=True,h5_parameters={},
+                                       ):
     print("Inside xoppy_calc_undulator_power_density. ")
 
     bl = OrderedDict()
@@ -150,16 +157,57 @@ def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=
                                      zero_emittance=zero_emittance)
         print("Done")
 
+
     if zero_emittance:
         print("No emittance calculation")
-
     codata_mee = codata.m_e * codata.c**2 / codata.e # electron mass in eV
     gamma = ELECTRONENERGY * 1e9 / codata_mee
     ptot = (NPERIODS/6) * codata.value('characteristic impedance of vacuum') * \
            ELECTRONCURRENT * codata.e * 2 * numpy.pi * codata.c * gamma**2 * KV**2 / PERIODID
     print ("\nTotal power radiated by the undulator with fully opened slits [W]: %g \n"%(ptot))
 
+
+    if MASK_FLAG:
+        #
+        # rotation
+        #
+        v /= numpy.cos(MASK_ROT_H_DEG * numpy.pi / 180)
+        h /= numpy.cos(MASK_ROT_V_DEG * numpy.pi / 180)
+        # also reduce the power density!!
+        p *= numpy.cos(MASK_ROT_H_DEG * numpy.pi / 180)
+        p *= numpy.cos(MASK_ROT_V_DEG * numpy.pi / 180)
+
+        #
+        # mask
+        #
+        if MASK_H_MIN is not None:
+            lower_window_h = numpy.where(h < MASK_H_MIN)
+            if len(lower_window_h) > 0: p[lower_window_h,:] = 0
+
+        if MASK_H_MAX is not None:
+            upper_window_h = numpy.where(h > MASK_H_MAX)
+            if len(upper_window_h) > 0: p[upper_window_h,:] = 0
+
+        if MASK_V_MIN is not None:
+            lower_window_v = numpy.where(v < MASK_V_MIN)
+            if len(lower_window_v) > 0: p[:,lower_window_v] = 0
+
+        if MASK_V_MIN is not None:
+            upper_window_v = numpy.where(v > MASK_V_MAX)
+            if len(upper_window_v) > 0: p[:,upper_window_v] = 0
+
+        txt0 = "============= power density in the modified (masked) screen ==========\n"
+    else:
+        txt0 = "=================== power density  ======================\n"
+
+    text_info = txt0
+    text_info += "  Power density peak: %f W/mm2\n"%p.max()
+    text_info += "  Total power: %f W\n"%(p.sum()*(h[1]-h[0])*(v[1]-v[0]))
+    text_info += "====================================================\n"
+    print(text_info)
+
     # fit
+    fit_ok = False
     try:
         print("============= Fitting power density to a 2D Gaussian. ==============\n")
         print("Please use these results with care: check if the original data looks like a Gaussian.")
@@ -170,9 +218,29 @@ def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=
         print("  Total power in the fitted data [W]: ",data_fitted.sum()*(h[1]-h[0])*(v[1]-v[0]))
         # plot_image(data_fitted.reshape((h.size,v.size)),h, v,title="FIT")
         print("====================================================\n")
-
+        fit_ok = True
     except:
         pass
+
+    if h5_file != "":
+        try:
+            if h5_initialize:
+                h5w = H5SimpleWriter.initialize_file(h5_file,creator="xoppy_undulators.py")
+            else:
+                h5w = H5SimpleWriter(h5_file,None)
+            h5w.create_entry(h5_entry_name,nx_default="PowerDensity")
+            h5w.add_image(p,h,v,image_name="PowerDensity",entry_name=h5_entry_name,title_x="X [mm]",title_y="Y [mm]")
+            h5w.add_key("info",text_info, entry_name=h5_entry_name)
+            h5w.create_entry("parameters",root_entry=h5_entry_name,nx_default=None)
+            for key in h5_parameters.keys():
+                h5w.add_key(key,h5_parameters[key], entry_name=h5_entry_name+"/parameters")
+            if fit_ok:
+                h5w.add_image(data_fitted.reshape(h.size,v.size),h,v,image_name="PowerDensityFit",entry_name=h5_entry_name,title_x="X [mm]",title_y="Y [mm]")
+                h5w.add_key("fit_info",info_params(fit_parameters), entry_name=h5_entry_name+"/PowerDensityFit")
+
+            print("File written to disk: %s"%h5_file)
+        except:
+            print("ERROR initializing h5 file")
 
     return h, v, p, code
 
@@ -184,9 +252,10 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
                                        PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,
                                        SETRESONANCE=0,HARMONICNUMBER=1,
                                        GAPH=0.003,GAPV=0.003,\
-                                       HSLITPOINTS=41,VSLITPOINTS=41,METHOD=0,
+                                       HSLITPOINTS=41,VSLITPOINTS=41,METHOD=2,
                                        PHOTONENERGYMIN=7982.2,PHOTONENERGYMAX=7983.2,PHOTONENERGYPOINTS=2,
-                                       USEEMITTANCES=1):
+                                       USEEMITTANCES=1,
+                                       h5_file="",h5_entry_name="XOPPY_RADIATION",h5_initialize=True,h5_parameters={}):
     print("Inside xoppy_calc_undulator_radiation. ")
 
     bl = OrderedDict()
@@ -309,6 +378,7 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
         pcalc =  p.sum() * codata.e * 1e3 * (h[1]-h[0]) * (v[1]-v[0]) * (e[1]-e[0])
         print ("\nTotal power from calculated spectrum (h,v,energy) grid [W]: %f \n"%pcalc)
 
+
     # fit
     try:
         print("============= Fitting power density to a 2D Gaussian. ==============\n")
@@ -326,15 +396,36 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
     except:
         pass
 
-
+    if h5_file != "":
+        try:
+            if h5_initialize:
+                h5w = H5SimpleWriter.initialize_file(h5_file,creator="xoppy_undulators.py")
+            else:
+                h5w = H5SimpleWriter(h5_file,None)
+            h5w.create_entry(h5_entry_name,nx_default=None)
+            h5w.add_stack(e,h,v,p,stack_name="Radiation",entry_name=h5_entry_name,
+                title_0="Photon energy [eV]",
+                title_1="X gap [mm]",
+                title_2="Y gap [mm]")
+            h5w.create_entry("parameters",root_entry=h5_entry_name,nx_default=None)
+            for key in h5_parameters.keys():
+                h5w.add_key(key,h5_parameters[key], entry_name=h5_entry_name+"/parameters")
+            print("File written to disk: %s"%h5_file)
+        except:
+            print("ERROR initializing h5 file")
 
     return e, h, v, p, code
 
 
 if __name__ == "__main__":
 
+    from srxraylib.plot.gol import plot,plot_image
+
     e, f, spectral_power, cumulated_power = xoppy_calc_undulator_spectrum()
+    plot(e,f)
 
-    h, v, p, code = xoppy_calc_undulator_power_density()
+    h, v, p, code = xoppy_calc_undulator_power_density(h5_file="test.h5",h5_initialize=True)
+    plot_image(p,h,v)
 
-    e, h, v, p, code = xoppy_calc_undulator_radiation()
+    e, h, v, p, code = xoppy_calc_undulator_radiation(ELECTRONENERGY=6.0, h5_file="test.h5",h5_entry_name="first_entry",h5_initialize=True)
+    e, h, v, p, code = xoppy_calc_undulator_radiation(ELECTRONENERGY=7.0, h5_file="test.h5",h5_entry_name="second_entry",h5_initialize=False)

@@ -15,10 +15,15 @@ from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
 import syned.storage_ring.magnetic_structures.insertion_device as synedid
 
-
+try:
+    from silx.gui.dialog.DataFileDialog import DataFileDialog
+except:
+    print("Fail to import silx.gui.dialog.DataFileDialog: need silx >= 0.7")
 
 import scipy.constants as codata
-
+import os
+import h5py
+from oasys.widgets.gui import ConfirmDialog
 
 class OWundulator_radiation(XoppyWidget, WidgetDecorator):
     name = "Undulator Radiation"
@@ -28,6 +33,11 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
     priority = 5
     category = ""
     keywords = ["xoppy", "undulator_radiation"]
+
+    # overwrite from
+    outputs = [{"name": "xoppy_data",
+                "type": DataExchangeObject,
+                "doc": ""}]
 
     USEEMITTANCES=Setting(1)
     ELECTRONENERGY = Setting(6.04)
@@ -55,11 +65,10 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
     PHOTONENERGYMAX = Setting(8500.0)
     PHOTONENERGYPOINTS = Setting(20)
 
-
-    METHOD = Setting(1)
+    METHOD = Setting(2)
+    H5_FILE_DUMP = Setting(0)
 
     inputs = WidgetDecorator.syned_input_data()
-
 
     def build_gui(self):
 
@@ -259,6 +268,123 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
+
+        #widget index 16
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "H5_FILE_DUMP",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    items=['None', 'Write h5 file: undulator_radiation.h5','Read from file...'],
+                    valueType=int, orientation="horizontal", labelWidth=250, callback=self.read_file)
+        self.show_at(self.unitFlags()[idx], box1)
+
+
+    def read_file(self):
+        self.H5_FILE_DUMP = 0
+
+        tmp = ConfirmDialog.confirmed(self,
+                message="Please select in a hdf5 file a data block\n(such as XOPPY_RADIATION)\nthat contains a 'Radiation' entry",
+                title="Confirm Action")
+        if tmp == False: return
+
+        dialog = DataFileDialog(self)
+        dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
+        # dialog.setDirectory("")
+        # Execute the dialog as modal
+        result = dialog.exec_()
+
+        if result:
+            print("Selection:")
+            print(dialog.selectedFile())
+            print(dialog.selectedUrl())
+            print(dialog.selectedDataUrl().data_path())
+
+            calculation_output = self.extract_data_from_h5file(dialog.selectedFile(), dialog.selectedDataUrl().data_path() )
+
+
+            if calculation_output is None:
+                raise Exception("Bad data from file.")
+            else:
+                self.calculated_data = self.extract_data_from_xoppy_output(calculation_output)
+
+                try:
+                    self.set_fields_from_h5file(dialog.selectedFile(), dialog.selectedDataUrl().data_path())
+                except:
+                    pass
+
+                # self.add_specific_content_to_calculated_data(self.calculated_data)
+                #
+                self.setStatusMessage("Plotting Results")
+
+                self.plot_results(self.calculated_data, progressBarValue=60)
+
+                self.setStatusMessage("")
+
+                self.send("xoppy_data", self.calculated_data)
+
+
+            self.set_enabled(True)
+
+    def extract_data_from_h5file(self,file_h5,subtitle):
+
+        hf = h5py.File(file_h5,'r')
+
+        try:
+            p = hf[subtitle+"/Radiation/stack_data"].value
+            e = hf[subtitle+"/Radiation/axis0"].value
+            h = hf[subtitle+"/Radiation/axis1"].value
+            v = hf[subtitle+"/Radiation/axis2"].value
+        except:
+            raise Exception("Data not plottable: bad content\n" + str(e))
+
+        code = "unknown"
+
+        try:
+            if hf[subtitle+"/parameters/METHOD"].value == 0:
+                code = 'US'
+            elif hf[subtitle+"/parameters/METHOD"].value == 1:
+                code = 'URGENT'
+            elif hf[subtitle+"/parameters/METHOD"].value == 2:
+                code = 'SRW'
+            elif hf[subtitle+"/parameters/METHOD"].value == 3:
+                code = 'pySRU'
+        except:
+            pass
+
+        hf.close()
+
+        return e, h, v, p, code
+
+    def set_fields_from_h5file(self,file_h5,subtitle):
+
+        hf = h5py.File(file_h5,'r')
+
+        self.METHOD                  = hf[subtitle+"/parameters/METHOD"].value
+        self.USEEMITTANCES           = hf[subtitle+"/parameters/USEEMITTANCES"].value
+        self.ELECTRONENERGY          = hf[subtitle+"/parameters/ELECTRONENERGY"].value
+        self.ELECTRONENERGYSPREAD    = hf[subtitle+"/parameters/ELECTRONENERGYSPREAD"].value
+        self.ELECTRONCURRENT         = hf[subtitle+"/parameters/ELECTRONCURRENT"].value
+        self.ELECTRONBEAMSIZEH       = hf[subtitle+"/parameters/ELECTRONBEAMSIZEH"].value
+        self.ELECTRONBEAMSIZEV       = hf[subtitle+"/parameters/ELECTRONBEAMSIZEV"].value
+        self.ELECTRONBEAMDIVERGENCEH = hf[subtitle+"/parameters/ELECTRONBEAMDIVERGENCEH"].value
+        self.ELECTRONBEAMDIVERGENCEV = hf[subtitle+"/parameters/ELECTRONBEAMDIVERGENCEV"].value
+        self.PERIODID                = hf[subtitle+"/parameters/PERIODID"].value
+        self.NPERIODS                = hf[subtitle+"/parameters/NPERIODS"].value
+        self.KV                      = hf[subtitle+"/parameters/KV"].value
+        self.DISTANCE                = hf[subtitle+"/parameters/DISTANCE"].value
+        self.SETRESONANCE            = hf[subtitle+"/parameters/SETRESONANCE"].value
+        self.HARMONICNUMBER          = hf[subtitle+"/parameters/HARMONICNUMBER"].value
+        self.GAPH                    = hf[subtitle+"/parameters/GAPH"].value
+        self.GAPV                    = hf[subtitle+"/parameters/GAPV"].value
+        self.HSLITPOINTS             = hf[subtitle+"/parameters/HSLITPOINTS"].value
+        self.VSLITPOINTS             = hf[subtitle+"/parameters/VSLITPOINTS"].value
+        self.PHOTONENERGYMIN         = hf[subtitle+"/parameters/PHOTONENERGYMIN"].value
+        self.PHOTONENERGYMAX         = hf[subtitle+"/parameters/PHOTONENERGYMAX"].value
+        self.PHOTONENERGYPOINTS      = hf[subtitle+"/parameters/PHOTONENERGYPOINTS"].value
+
+        hf.close()
+
+
     def unitLabels(self):
         return ["Use emittances","Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]",
                 "Electron Beam Size H [m]", "Electron Beam Size V [m]","Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]",
@@ -268,7 +394,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                 "Slit gap H [m]", "Slit gap V [m]",
                 "Number of slit mesh points in H", "Number of slit mesh points in V",
                 "Photon Energy Min [eV]","Photon Energy Max [eV]","Number of Photon Energy Points",
-                "calculation code"]
+                "calculation code","hdf5 file"]
 
     # TODO check energy spread flag: set to False (not used at all)!!
     def unitFlags(self):
@@ -280,7 +406,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                 "self.SETRESONANCE == 0", "self.SETRESONANCE == 0",
                 "True", "True",
                 "self.SETRESONANCE == 0", "self.SETRESONANCE == 0","self.SETRESONANCE == 0",
-                "True"]
+                "True","True"]
 
     def get_help_name(self):
         return 'undulator_radiation'
@@ -326,7 +452,6 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                 p,e,h,v = calculated_data.get_content("xoppy_data")
                 code = calculated_data.get_content("xoppy_code")
 
-
                 try:
                     self.plot_data3D(p, e, h, v, 0, 0,
                                      xtitle='H [mm]',
@@ -349,7 +474,6 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                                      ytitle='V [mm]',
                                      title='Code '+code+'; Power density [W/mm^2]',)
 
-                    # self.tabs.setCurrentIndex(1)
                 except Exception as e:
                     self.view_type_combo.setEnabled(True)
                     raise Exception("Data not plottable: bad content\n" + str(e))
@@ -362,7 +486,6 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                                      ytitle= 'Flux [photons/s/0.1%bw]',
                                      title='Code '+code+'; Flux',)
 
-                    # self.tabs.setCurrentIndex(2)
                 except Exception as e:
                     self.view_type_combo.setEnabled(True)
                     raise Exception("Data not plottable: bad content\n" + str(e))
@@ -374,7 +497,6 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                                      ytitle= 'Spectral power [W/eV]',
                                      title='Code '+code+'; Spectral power',)
 
-                    # self.tabs.setCurrentIndex(2)
                 except Exception as e:
                     self.view_type_combo.setEnabled(True)
                     raise Exception("Data not plottable: bad content\n" + str(e))
@@ -385,32 +507,116 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                 raise Exception("Empty Data")
 
 
-
-
-
     def do_xoppy_calculation(self):
-        return xoppy_calc_undulator_radiation(ELECTRONENERGY=self.ELECTRONENERGY,
-                    ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,
-                    ELECTRONCURRENT=self.ELECTRONCURRENT,
-                    ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,
-                    ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,
-                    ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,
-                    ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,
-                    PERIODID=self.PERIODID,
-                    NPERIODS=self.NPERIODS,
-                    KV=self.KV,
-                    DISTANCE=self.DISTANCE,
-                    SETRESONANCE=self.SETRESONANCE,
-                    HARMONICNUMBER=self.HARMONICNUMBER,
-                    GAPH=self.GAPH,
-                    GAPV=self.GAPV,
-                    HSLITPOINTS=self.HSLITPOINTS,
-                    VSLITPOINTS=self.VSLITPOINTS,
-                    METHOD=self.METHOD,
-                    PHOTONENERGYMIN=self.PHOTONENERGYMIN,
-                    PHOTONENERGYMAX=self.PHOTONENERGYMAX,
-                    PHOTONENERGYPOINTS=self.PHOTONENERGYPOINTS,
-                    USEEMITTANCES=self.USEEMITTANCES)
+
+        if self.H5_FILE_DUMP == 0:
+            h5_file = ""
+        else:
+            h5_file = "undulator_radiation.h5"
+
+        dict_parameters = {
+                "ELECTRONENERGY"         : self.ELECTRONENERGY,
+                "ELECTRONENERGYSPREAD"   : self.ELECTRONENERGYSPREAD,
+                "ELECTRONCURRENT"        : self.ELECTRONCURRENT,
+                "ELECTRONBEAMSIZEH"      : self.ELECTRONBEAMSIZEH,
+                "ELECTRONBEAMSIZEV"      : self.ELECTRONBEAMSIZEV,
+                "ELECTRONBEAMDIVERGENCEH": self.ELECTRONBEAMDIVERGENCEH,
+                "ELECTRONBEAMDIVERGENCEV": self.ELECTRONBEAMDIVERGENCEV,
+                "PERIODID"               : self.PERIODID,
+                "NPERIODS"               : self.NPERIODS,
+                "KV"                     : self.KV,
+                "DISTANCE"               : self.DISTANCE,
+                "SETRESONANCE"           : self.SETRESONANCE,
+                "HARMONICNUMBER"         : self.HARMONICNUMBER,
+                "GAPH"                   : self.GAPH,
+                "GAPV"                   : self.GAPV,
+                "HSLITPOINTS"            : self.HSLITPOINTS,
+                "VSLITPOINTS"            : self.VSLITPOINTS,
+                "METHOD"                 : self.METHOD,
+                "PHOTONENERGYMIN"        : self.PHOTONENERGYMIN,
+                "PHOTONENERGYMAX"        : self.PHOTONENERGYMAX,
+                "PHOTONENERGYPOINTS"     : self.PHOTONENERGYPOINTS,
+                "USEEMITTANCES"          : self.USEEMITTANCES,
+                "h5_file"                : h5_file,
+                "h5_entry_name"          : "XOPPY_RADIATION",
+                "h5_initialize"          : True
+        }
+
+
+        # write python script in standard output
+        print(self.script_template().format_map(dict_parameters))
+
+        return xoppy_calc_undulator_radiation(
+                ELECTRONENERGY           = self.ELECTRONENERGY,
+                ELECTRONENERGYSPREAD     = self.ELECTRONENERGYSPREAD,
+                ELECTRONCURRENT          = self.ELECTRONCURRENT,
+                ELECTRONBEAMSIZEH        = self.ELECTRONBEAMSIZEH,
+                ELECTRONBEAMSIZEV        = self.ELECTRONBEAMSIZEV,
+                ELECTRONBEAMDIVERGENCEH  = self.ELECTRONBEAMDIVERGENCEH,
+                ELECTRONBEAMDIVERGENCEV  = self.ELECTRONBEAMDIVERGENCEV,
+                PERIODID                 = self.PERIODID,
+                NPERIODS                 = self.NPERIODS,
+                KV                       = self.KV,
+                DISTANCE                 = self.DISTANCE,
+                SETRESONANCE             = self.SETRESONANCE,
+                HARMONICNUMBER           = self.HARMONICNUMBER,
+                GAPH                     = self.GAPH,
+                GAPV                     = self.GAPV,
+                HSLITPOINTS              = self.HSLITPOINTS,
+                VSLITPOINTS              = self.VSLITPOINTS,
+                METHOD                   = self.METHOD,
+                PHOTONENERGYMIN          = self.PHOTONENERGYMIN,
+                PHOTONENERGYMAX          = self.PHOTONENERGYMAX,
+                PHOTONENERGYPOINTS       = self.PHOTONENERGYPOINTS,
+                USEEMITTANCES            = self.USEEMITTANCES,
+                h5_file                  = h5_file,
+                h5_entry_name            = "XOPPY_RADIATION",
+                h5_initialize            = True,
+                h5_parameters            = dict_parameters,
+        )
+
+
+    def script_template(self):
+        return """
+#
+# script to make the calculations (created by XOPPY:undulator_radiation)
+#
+from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_radiation
+e, h, v, p, code = xoppy_calc_undulator_radiation(
+        ELECTRONENERGY           = {ELECTRONENERGY},
+        ELECTRONENERGYSPREAD     = {ELECTRONENERGYSPREAD},
+        ELECTRONCURRENT          = {ELECTRONCURRENT},
+        ELECTRONBEAMSIZEH        = {ELECTRONBEAMSIZEH},
+        ELECTRONBEAMSIZEV        = {ELECTRONBEAMSIZEV},
+        ELECTRONBEAMDIVERGENCEH  = {ELECTRONBEAMDIVERGENCEH},
+        ELECTRONBEAMDIVERGENCEV  = {ELECTRONBEAMDIVERGENCEV},
+        PERIODID                 = {PERIODID},
+        NPERIODS                 = {NPERIODS},
+        KV                       = {KV},
+        DISTANCE                 = {DISTANCE},
+        SETRESONANCE             = {SETRESONANCE},
+        HARMONICNUMBER           = {HARMONICNUMBER},
+        GAPH                     = {GAPH},
+        GAPV                     = {GAPV},
+        HSLITPOINTS              = {HSLITPOINTS},
+        VSLITPOINTS              = {VSLITPOINTS},
+        METHOD                   = {METHOD},
+        PHOTONENERGYMIN          = {PHOTONENERGYMIN},
+        PHOTONENERGYMAX          = {PHOTONENERGYMAX},
+        PHOTONENERGYPOINTS       = {PHOTONENERGYPOINTS},
+        USEEMITTANCES            = {USEEMITTANCES},
+        h5_file                  = "{h5_file}",
+        h5_entry_name            = "XOPPY_RADIATION",
+        h5_initialize            = True,
+        )
+
+# example plot
+from srxraylib.plot.gol import plot_image
+plot_image(p[0],h,v,title="Flux [photons/s] per 0.1 bw per mm2 at %f eV"%({PHOTONENERGYMIN}),xtitle="H [mm]",ytitle="V [mm]")
+#
+# end script
+#
+"""
 
     def extract_data_from_xoppy_output(self, calculation_output):
         e, h, v, p, code = calculation_output
@@ -421,7 +627,6 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         calculated_data.add_content("xoppy_code", code)
 
         return calculated_data
-
 
     def get_data_exchange_widget_name(self):
         return "UNDULATOR_RADIATION"

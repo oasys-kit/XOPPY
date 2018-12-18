@@ -9,12 +9,14 @@ from oasys.widgets import gui as oasysgui, congruence
 
 
 from oasys.widgets.exchange import DataExchangeObject
+# from orangecontrib.xoppy.util.xoppy_exchange import RadiationDataExchangeObject #as DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 from orangecontrib.xoppy.util.xoppy_xraylib_util import reflectivity_fresnel
 
 import scipy.constants as codata
 import xraylib
+
 
 class OWpower3D(XoppyWidget):
     name = "POWER3D"
@@ -25,7 +27,11 @@ class OWpower3D(XoppyWidget):
     category = ""
     keywords = ["xoppy", "power3D"]
 
-    inputs = [("ExchangeData", DataExchangeObject, "acceptExchangeData")]
+    inputs = [{"name": "ExchangeData",
+               "type": DataExchangeObject,
+               "handler": "acceptExchangeData" } ]
+    # [("ExchangeData", DataExchangeObject, "acceptExchangeData")]
+    # inputs = [("xoppy_data", DataExchangeObject, "acceptExchangeData")]
 
 
     NELEMENTS = Setting(1)
@@ -342,15 +348,15 @@ class OWpower3D(XoppyWidget):
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 42
-        idx += 1
-        box1 = gui.widgetBox(box)
-        gui.separator(box1, height=7)
-
-        gui.comboBox(box1, self, "FILE_DUMP",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    items=['No', 'Yes (power.spec)'],
-                    valueType=int, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1)
+        # idx += 1
+        # box1 = gui.widgetBox(box)
+        # gui.separator(box1, height=7)
+        #
+        # gui.comboBox(box1, self, "FILE_DUMP",
+        #              label=self.unitLabels()[idx], addSpace=False,
+        #             items=['No', 'Yes (power.spec)'],
+        #             valueType=int, orientation="horizontal", labelWidth=250)
+        # self.show_at(self.unitFlags()[idx], box1)
 
     def set_NELEMENTS(self):
         self.initializeTabs()
@@ -391,9 +397,6 @@ class OWpower3D(XoppyWidget):
                     else:
                         raise Exception("Xoppy Input beam not recognized")
 
-                    # [p, e, h, v] = exchangeData.get_content("xoppy_data")
-                    # code = exchangeData.get_content("xoppy_code")
-
                     self.input_beam = exchangeData
                     self.output_beam = None
                     self.process_showers()
@@ -407,7 +410,7 @@ class OWpower3D(XoppyWidget):
                                        str(exception),
                 QMessageBox.Ok)
 
-            #raise exception
+
 
 
     def check_fields(self):
@@ -766,10 +769,11 @@ if __name__ == "__main__":
                                        PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,
                                        SETRESONANCE=0,HARMONICNUMBER=1,
                                        GAPH=0.001,GAPV=0.001,\
-                                       HSLITPOINTS=41,VSLITPOINTS=41,METHOD=0,
+                                       HSLITPOINTS=41,VSLITPOINTS=41,METHOD=2,
                                        PHOTONENERGYMIN=7000,PHOTONENERGYMAX=8100,PHOTONENERGYPOINTS=20,
                                        USEEMITTANCES=1)
-    received_data = DataExchangeObject("XOPPY", "UNDULATOR_RADIATION")
+    # received_data = DataExchangeObject("XOPPY", "UNDULATOR_RADIATION")
+    received_data = DataExchangeObject("XOPPY", "POWER3D")
     received_data.add_content("xoppy_data", [p, e, h, v])
     received_data.add_content("xoppy_code", code)
 

@@ -11,7 +11,11 @@ import scipy.constants as codata
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-class OWxwiggler(XoppyWidget):
+from syned.widget.widget_decorator import WidgetDecorator
+import syned.beamline.beamline as synedb
+import syned.storage_ring.magnetic_structures.insertion_device as synedid
+
+class OWxwiggler(XoppyWidget,WidgetDecorator):
     name = "WIGGLER"
     id = "orange.widgets.dataxwiggler"
     description = "Wiggler Spectrum (Full Emission)"
@@ -32,6 +36,8 @@ class OWxwiggler(XoppyWidget):
     CURRENT = Setting(200.0)
     FILE = Setting("?")
 
+    inputs = WidgetDecorator.syned_input_data()
+
     def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
@@ -41,7 +47,7 @@ class OWxwiggler(XoppyWidget):
         #widget index 0 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "FIELD",
+        self.id_FIELD = gui.comboBox(box1, self, "FIELD",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=['Sinusoidal', 'B from file', 'B from harmonics'],
                     valueType=int, orientation="horizontal", labelWidth=250)
@@ -50,7 +56,7 @@ class OWxwiggler(XoppyWidget):
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "NPERIODS",
+        self.id_NPERIODS = oasysgui.lineEdit(box1, self, "NPERIODS",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -58,7 +64,7 @@ class OWxwiggler(XoppyWidget):
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "ULAMBDA",
+        self.id_ULAMBDA = oasysgui.lineEdit(box1, self, "ULAMBDA",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -66,7 +72,7 @@ class OWxwiggler(XoppyWidget):
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "K",
+        self.id_K = oasysgui.lineEdit(box1, self, "K",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -74,7 +80,7 @@ class OWxwiggler(XoppyWidget):
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "ENERGY",
+        self.id_ENERGY = oasysgui.lineEdit(box1, self, "ENERGY",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -115,7 +121,7 @@ class OWxwiggler(XoppyWidget):
         #widget index 10 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "CURRENT",
+        self.id_CURRENT = oasysgui.lineEdit(box1, self, "CURRENT",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -169,6 +175,7 @@ class OWxwiggler(XoppyWidget):
         elif self.FIELD == 2:
             congruence.checkFile(self.FILE)
 
+
     def do_xoppy_calculation(self):
         return xoppy_calc_xwiggler(FIELD=self.FIELD,NPERIODS=self.NPERIODS,ULAMBDA=self.ULAMBDA,K=self.K,ENERGY=self.ENERGY,
                                    PHOT_ENERGY_MIN=self.PHOT_ENERGY_MIN,PHOT_ENERGY_MAX=self.PHOT_ENERGY_MAX,
@@ -205,6 +212,42 @@ class OWxwiggler(XoppyWidget):
 
     def getVariablesToPlot(self):
         return [(0, 1), (0, 2)]
+
+    def receive_syned_data(self, data):
+
+        if isinstance(data, synedb.Beamline):
+            if not data._light_source is None and isinstance(data._light_source._magnetic_structure, synedid.InsertionDevice):
+                light_source = data._light_source
+
+                self.NPERIODS = int(light_source._magnetic_structure._number_of_periods)
+                self.ENERGY = light_source._electron_beam._energy_in_GeV
+                self.CURRENT = 1e3*light_source._electron_beam._current
+                self.ULAMBDA = light_source._magnetic_structure._period_length
+                self.K = light_source._magnetic_structure._K_vertical
+                self.FIELD = 0
+
+                self.set_enabled(False)
+
+            else:
+                self.set_enabled(True)
+        else:
+            self.set_enabled(True)
+
+    def set_enabled(self,value):
+        if value == True:
+                self.id_NPERIODS.setEnabled(True)
+                self.id_ENERGY.setEnabled(True)
+                self.id_CURRENT.setEnabled(True)
+                self.id_ULAMBDA.setEnabled(True)
+                self.id_K.setEnabled(True)
+                self.id_FIELD.setEnabled(True)
+        else:
+                self.id_NPERIODS.setEnabled(False)
+                self.id_ENERGY.setEnabled(False)
+                self.id_CURRENT.setEnabled(False)
+                self.id_ULAMBDA.setEnabled(False)
+                self.id_K.setEnabled(False)
+                self.id_FIELD.setEnabled(False)
 
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------

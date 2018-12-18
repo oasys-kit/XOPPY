@@ -14,6 +14,7 @@ from oasys.widgets.exchange import DataExchangeObject
 from syned.widget.widget_decorator import WidgetDecorator
 
 from syned.storage_ring.magnetic_structures.bending_magnet import BendingMagnet
+import syned.beamline.beamline as synedb
 
 class OWbm(XoppyWidget, WidgetDecorator):
     name = "BM"
@@ -62,7 +63,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         
         #widget index 1 
         idx += 1 
-        box1 = gui.widgetBox(box) 
+        self.id_MACHINE_NAME = box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "MACHINE_NAME",
                      label=self.unitLabels()[idx], addSpace=False, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
@@ -79,7 +80,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "MACHINE_R_M",
+        self.id_MACHINE_R_M = oasysgui.lineEdit(box1, self, "MACHINE_R_M",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -87,7 +88,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "BFIELD_T",
+        self.id_BFIELD_T = oasysgui.lineEdit(box1, self, "BFIELD_T",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -95,7 +96,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "BEAM_ENERGY_GEV",
+        self.id_BEAM_ENERGY_GEV = oasysgui.lineEdit(box1, self, "BEAM_ENERGY_GEV",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -103,7 +104,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "CURRENT_A",
+        self.id_CURRENT_A = oasysgui.lineEdit(box1, self, "CURRENT_A",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -377,19 +378,39 @@ class OWbm(XoppyWidget, WidgetDecorator):
             return []
 
     def receive_syned_data(self, data):
-        if not data is None:
-            if not data._light_source is None and isinstance(data._light_source._magnetic_structure, BendingMagnet):
-                light_source = data._light_source
 
-                self.MACHINE_NAME = light_source._name
-                self.BEAM_ENERGY_GEV = light_source._electron_beam._energy_in_GeV
-                self.CURRENT_A = light_source._electron_beam._current
+        if isinstance(data, synedb.Beamline):
+            if not data is None:
+                if not data._light_source is None and isinstance(data._light_source._magnetic_structure, BendingMagnet):
+                    light_source = data._light_source
 
-                self.BFIELD_T = light_source._magnetic_structure._magnetic_field
-                self.MACHINE_R_M = light_source._magnetic_structure._radius
+                    self.MACHINE_NAME = light_source._name
+                    self.BEAM_ENERGY_GEV = light_source._electron_beam._energy_in_GeV
+                    self.CURRENT_A = light_source._electron_beam._current
+                    self.BFIELD_T = light_source._magnetic_structure._magnetic_field
+                    self.MACHINE_R_M = light_source._magnetic_structure._radius
 
-            else:
-                raise ValueError("Syned data not correct")
+                    self.set_enabled(False)
+                else:
+                    self.set_enabled(True)
+                    raise ValueError("Syned data not correct")
+        else:
+            self.set_enabled(True)
+
+    def set_enabled(self,value):
+        if value == True:
+                self.id_MACHINE_NAME.setEnabled(True)
+                self.id_BEAM_ENERGY_GEV.setEnabled(True)
+                self.id_CURRENT_A.setEnabled(True)
+                self.id_BFIELD_T.setEnabled(True)
+                self.id_MACHINE_R_M.setEnabled(True)
+        else:
+                self.id_MACHINE_NAME.setEnabled(False)
+                self.id_BEAM_ENERGY_GEV.setEnabled(False)
+                self.id_CURRENT_A.setEnabled(False)
+                self.id_BFIELD_T.setEnabled(False)
+                self.id_MACHINE_R_M.setEnabled(False)
+
 
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------

@@ -11,7 +11,11 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 import numpy
 import scipy.constants as codata
 
-class OWws(XoppyWidget):
+from syned.widget.widget_decorator import WidgetDecorator
+import syned.beamline.beamline as synedb
+import syned.storage_ring.magnetic_structures.insertion_device as synedid
+
+class OWws(XoppyWidget,WidgetDecorator):
     name = "WS"
     id = "orange.widgets.dataws"
     description = "Wiggler Spectrum on a Screen"
@@ -23,7 +27,7 @@ class OWws(XoppyWidget):
     ENERGY = Setting(7.0)
     CUR = Setting(100.0)
     PERIOD = Setting(8.5)
-    N = Setting(28.0)
+    N = Setting(28)
     KX = Setting(0.0)
     KY = Setting(8.74)
     EMIN = Setting(1000.0)
@@ -37,6 +41,8 @@ class OWws(XoppyWidget):
     NXP = Setting(10)
     NYP = Setting(10)
 
+    inputs = WidgetDecorator.syned_input_data()
+
     def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
@@ -47,7 +53,7 @@ class OWws(XoppyWidget):
         #widget index 1
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "ENERGY",
+        self.id_ENERGY = oasysgui.lineEdit(box1, self, "ENERGY",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -55,7 +61,7 @@ class OWws(XoppyWidget):
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "CUR",
+        self.id_CUR = oasysgui.lineEdit(box1, self, "CUR",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -63,7 +69,7 @@ class OWws(XoppyWidget):
         #widget index 3 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "PERIOD",
+        self.id_PERIOD = oasysgui.lineEdit(box1, self, "PERIOD",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -71,23 +77,24 @@ class OWws(XoppyWidget):
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "N",
+        self.id_N = oasysgui.lineEdit(box1, self, "N",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
-        
+
+        # COMMENTED AS IT IS NOT IMPLEMENTED!!
         #widget index 5 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "KX",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
+        # idx += 1
+        # box1 = gui.widgetBox(box)
+        # oasysgui.lineEdit(box1, self, "KX",
+        #              label=self.unitLabels()[idx], addSpace=False,
+        #             valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        # self.show_at(self.unitFlags()[idx], box1)
         
         #widget index 6 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "KY",
+        self.id_KY = oasysgui.lineEdit(box1, self, "KY",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
@@ -173,10 +180,11 @@ class OWws(XoppyWidget):
         self.show_at(self.unitFlags()[idx], box1) 
 
     def unitLabels(self):
-         return ['Beam energy (GeV)','Beam current (mA)','Period (cm)','Number of periods','Kx','Ky','Min energy (eV)','Max energy (eV)','Number of energy steps','Distance (m)','X-pos. (mm)','Y-pos. (mm)','X slit [mm or mrad]','Y slit [mm or mrad]','Integration points X','Integration points Y']
+         # return ['Beam energy (GeV)','Beam current (mA)','Period (cm)','Number of periods','Kx','Ky','Min energy (eV)','Max energy (eV)','Number of energy steps','Distance (m)','X-pos. (mm)','Y-pos. (mm)','X slit [mm or mrad]','Y slit [mm or mrad]','Integration points X','Integration points Y']
+         return ['Beam energy (GeV)','Beam current (mA)','Period (cm)','Number of periods','Ky','Min energy (eV)','Max energy (eV)','Number of energy steps','Distance (m)','X-pos. (mm)','Y-pos. (mm)','X slit [mm or mrad]','Y slit [mm or mrad]','Integration points X','Integration points Y']
 
     def unitFlags(self):
-         return ['True','True','True','True','True','True','True','True','True','True','True','True','True','True','True','True']
+         return ['True','True','True','True','True','True','True','True','True','True','True','True','True','True','True']
 
     def get_help_name(self):
         return 'ws'
@@ -220,6 +228,39 @@ class OWws(XoppyWidget):
 
     def getLogPlot(self):
         return [(True, True),(True, True)]
+
+    def receive_syned_data(self, data):
+
+        if isinstance(data, synedb.Beamline):
+            if not data._light_source is None and isinstance(data._light_source._magnetic_structure, synedid.InsertionDevice):
+                light_source = data._light_source
+
+                self.N = int(light_source._magnetic_structure._number_of_periods)
+                self.ENERGY = light_source._electron_beam._energy_in_GeV
+                self.CUR = 1e3*light_source._electron_beam._current
+                self.PERIOD = 1e2*light_source._magnetic_structure._period_length
+                self.KY = light_source._magnetic_structure._K_vertical
+
+                self.set_enabled(False)
+
+            else:
+                self.set_enabled(True)
+        else:
+            self.set_enabled(True)
+
+    def set_enabled(self,value):
+        if value == True:
+                self.id_N.setEnabled(True)
+                self.id_ENERGY.setEnabled(True)
+                self.id_CUR.setEnabled(True)
+                self.id_PERIOD.setEnabled(True)
+                self.id_KY.setEnabled(True)
+        else:
+                self.id_N.setEnabled(False)
+                self.id_ENERGY.setEnabled(False)
+                self.id_CUR.setEnabled(False)
+                self.id_PERIOD.setEnabled(False)
+                self.id_KY.setEnabled(False)
 
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
