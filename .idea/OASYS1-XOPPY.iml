@@ -5,10 +5,8 @@
     <orderEntry type="jdk" jdkName="Python 3.6" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="OASYS1" />
-    <orderEntry type="module" module-name="Oasys-Widget-Core" />
-    <orderEntry type="module" module-name="Oasys-Canvas-Core" />
     <orderEntry type="module" module-name="wofry" />
     <orderEntry type="module" module-name="syned" />
-    <orderEntry type="module" module-name="SR-xraylib" />
+    <orderEntry type="module" module-name="sr-xraylib" />
   </component>
 </module>

@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3c69803a-b8e5-455d-ab20-e23d42774459" name="Default" comment="" />
+    <list default="true" id="3c69803a-b8e5-455d-ab20-e23d42774459" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,6 +24,15 @@
         </counts>
       </usages-collector>
     </session>
+    <session id="1307604843">
+      <usages-collector id="statistics.lifecycle.project">
+        <counts>
+          <entry key="project.closed" value="2" />
+          <entry key="project.open.time.0" value="2" />
+          <entry key="project.opened" value="2" />
+        </counts>
+      </usages-collector>
+    </session>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -36,8 +48,29 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="ProjectPane" />
       <pane id="Course" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="OASYS1-XOPPY" type="b2602c69:ProjectViewProjectNode" />
+              <item name="OASYS1-XOPPY" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="OASYS1-XOPPY" type="b2602c69:ProjectViewProjectNode" />
+              <item name="OASYS1-XOPPY" type="462c0819:PsiDirectoryNode" />
+              <item name="orangecontrib" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="OASYS1-XOPPY" type="b2602c69:ProjectViewProjectNode" />
+              <item name="OASYS1-XOPPY" type="462c0819:PsiDirectoryNode" />
+              <item name="orangecontrib" type="462c0819:PsiDirectoryNode" />
+              <item name="xoppy" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
     </panes>
   </component>
   <component name="PropertiesComponent">
