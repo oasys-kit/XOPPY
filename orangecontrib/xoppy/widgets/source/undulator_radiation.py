@@ -275,55 +275,65 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         gui.comboBox(box1, self, "H5_FILE_DUMP",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=['None', 'Write h5 file: undulator_radiation.h5','Read from file...'],
-                    valueType=int, orientation="horizontal", labelWidth=250, callback=self.read_file)
+                    valueType=int, orientation="horizontal", labelWidth=250, callback=self.read_or_write_file)
         self.show_at(self.unitFlags()[idx], box1)
 
 
-    def read_file(self):
-        self.H5_FILE_DUMP = 0
+    def read_or_write_file(self):
 
-        tmp = ConfirmDialog.confirmed(self,
-                message="Please select in a hdf5 file a data block\n(such as XOPPY_RADIATION)\nthat contains a 'Radiation' entry",
-                title="Confirm Action")
-        if tmp == False: return
+        value = self.H5_FILE_DUMP
 
-        dialog = DataFileDialog(self)
-        dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
-        # dialog.setDirectory("")
-        # Execute the dialog as modal
-        result = dialog.exec_()
+        if value == 0:
+            return
+        elif value == 1: # write
+            return
+        elif value == 2: # read
 
-        if result:
-            print("Selection:")
-            print(dialog.selectedFile())
-            print(dialog.selectedUrl())
-            print(dialog.selectedDataUrl().data_path())
-
-            calculation_output = self.extract_data_from_h5file(dialog.selectedFile(), dialog.selectedDataUrl().data_path() )
+            self.H5_FILE_DUMP = 0
 
 
-            if calculation_output is None:
-                raise Exception("Bad data from file.")
-            else:
-                self.calculated_data = self.extract_data_from_xoppy_output(calculation_output)
+            tmp = ConfirmDialog.confirmed(self,
+                    message="Please select in a hdf5 file a data block\n(such as XOPPY_RADIATION)\nthat contains a 'Radiation' entry",
+                    title="Confirm Action")
+            if tmp == False: return
 
-                try:
-                    self.set_fields_from_h5file(dialog.selectedFile(), dialog.selectedDataUrl().data_path())
-                except:
-                    pass
+            dialog = DataFileDialog(self)
+            dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
+            # dialog.setDirectory("")
+            # Execute the dialog as modal
+            result = dialog.exec_()
 
-                # self.add_specific_content_to_calculated_data(self.calculated_data)
-                #
-                self.setStatusMessage("Plotting Results")
+            if result:
+                print("Selection:")
+                print(dialog.selectedFile())
+                print(dialog.selectedUrl())
+                print(dialog.selectedDataUrl().data_path())
 
-                self.plot_results(self.calculated_data, progressBarValue=60)
-
-                self.setStatusMessage("")
-
-                self.send("xoppy_data", self.calculated_data)
+                calculation_output = self.extract_data_from_h5file(dialog.selectedFile(), dialog.selectedDataUrl().data_path() )
 
 
-            self.set_enabled(True)
+                if calculation_output is None:
+                    raise Exception("Bad data from file.")
+                else:
+                    self.calculated_data = self.extract_data_from_xoppy_output(calculation_output)
+
+                    try:
+                        self.set_fields_from_h5file(dialog.selectedFile(), dialog.selectedDataUrl().data_path())
+                    except:
+                        pass
+
+                    # self.add_specific_content_to_calculated_data(self.calculated_data)
+                    #
+                    self.setStatusMessage("Plotting Results")
+
+                    self.plot_results(self.calculated_data, progressBarValue=60)
+
+                    self.setStatusMessage("")
+
+                    self.send("xoppy_data", self.calculated_data)
+
+
+                self.set_enabled(True)
 
     def extract_data_from_h5file(self,file_h5,subtitle):
 

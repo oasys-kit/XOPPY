@@ -281,7 +281,7 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
                  "Period ID [m]", "Number of periods", "Kv [undulator K value vertical field]",\
                  "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "Number of slit mesh points in H", "Number of slit mesh points in V",\
                  "calculation code",\
-                 "modify slit","Rotation around H axis [deg]","Rotation around V axis [deg]","Mask H min [mm]","Mask H max [mm]",'Mask H min [mm]',"Mask H max [mm]",\
+                 "modify slit","Rotation around H axis [deg]","Rotation around V axis [deg]","Mask H min [mm]","Mask H max [mm]",'Mask V min [mm]',"Mask V max [mm]",\
                  "Dump hdf5 file"]
 
     def unitFlags(self):
@@ -485,9 +485,6 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
                 self.id_PERIODID.setEnabled(False)
                 self.id_NPERIODS.setEnabled(False)
                 self.id_KV.setEnabled(False)
-
-
-
 
 
 if __name__ == "__main__":
