@@ -44,7 +44,7 @@ class OWtc_slit(XoppyWidget):
     KMIN = Setting(0.001)
     KMAX = Setting(3.0)
     KPOINTS = Setting(10)
-    HMAX = Setting(1)
+    HARMONICS = Setting("1") # sequence of harmonics, separated by ","
     METHOD = Setting(2)
 
     inputs = WidgetDecorator.syned_input_data()
@@ -193,9 +193,10 @@ class OWtc_slit(XoppyWidget):
         #widget index 15
         idx += 1
         box1 = gui.widgetBox(box)
-        oasysgui.lineEdit(box1, self, "HMAX",
+        # TODO: add validator
+        oasysgui.lineEdit(box1, self, "HARMONICS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=str, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 16
@@ -216,7 +217,7 @@ class OWtc_slit(XoppyWidget):
                  "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]",
                  "Period ID [m]", "Number of periods",
                  "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]",
-                 "K Min", "K Max", "Number of K Points", "higher harmonic", "calculation code"]
+                 "K Min", "K Max", "Number of K Points", "harmonics (e.g: 1,3)", "calculation code"]
 
     def unitFlags(self):
          return ["True", "True", "self.USEEMITTANCES == 1 and self.METHOD != 1", "True",
@@ -247,7 +248,7 @@ class OWtc_slit(XoppyWidget):
         self.KMAX = congruence.checkStrictlyPositiveNumber(self.KMAX, "K Max")
         congruence.checkLessThan(self.KMIN, self.KMAX, "K Min", "K Max")
         self.KPOINTS = congruence.checkStrictlyPositiveNumber(self.KPOINTS, "Number of K Points")
-        self.HMAX = congruence.checkStrictlyPositiveNumber(self.HMAX, "Higher harmonic")
+        # self.HARMONICS = congruence.checkStrictlyPositiveNumber(self.HARMONIX, "Higher harmonic")
 
     def do_xoppy_calculation(self):
         return self.xoppy_calc_tc_slit()
@@ -260,7 +261,8 @@ class OWtc_slit(XoppyWidget):
 
         harmonics_data = []
 
-        for ih,harmonic_number in enumerate(harmonics):
+        for ih in range(len(harmonics)):
+            harmonic_number = int(harmonics[ih])
             harmonics_data.append([harmonic_number,None])
 
             data = numpy.zeros((K_scan.size, 5))
@@ -401,9 +403,6 @@ class OWtc_slit(XoppyWidget):
 
     def xoppy_calc_tc_slit(self):
 
-
-        print("Inside xoppy_calc_undulator_spectrum. ")
-
         bl = OrderedDict()
         bl['ElectronBeamDivergenceH'] = self.ELECTRONBEAMDIVERGENCEH
         bl['ElectronBeamDivergenceV'] = self.ELECTRONBEAMDIVERGENCEV
@@ -430,20 +429,91 @@ class OWtc_slit(XoppyWidget):
         if self.METHOD == 2:
             code = "srw"
 
-        harmonics = []
-        for i in range(self.HMAX+1):
-            if i % 2 != 0: harmonics.append(i)
+        harmonics = str(self.HARMONICS).split(",") #[]
+        # for i in range(self.HARMONICS+1):
+        #     if i % 2 != 0: harmonics.append(i)
 
         K_scan,harmonics,power_array, energy_values_at_flux_peak,flux_values = srundplug.tuning_curves_on_slit(bl,
-                    Kmin=self.KMIN,Kmax=self.KMAX,Kpoints=self.KPOINTS,harmonics=harmonics,
-                    zero_emittance=zero_emittance,do_plot_peaks=False,code=code)
+                    Kmin=self.KMIN,
+                    Kmax=self.KMAX,
+                    Kpoints=self.KPOINTS,
+                    harmonics=harmonics,
+                    zero_emittance=zero_emittance,
+                    do_plot_peaks=False,
+                    code=code)
 
         if zero_emittance:
             print("\nNo emittance calculation")
 
         print("Done")
 
+        # write python script in standard output
+        dict_parameters = {
+            'ElectronBeamDivergenceH' : self.ELECTRONBEAMDIVERGENCEH,
+            'ElectronBeamDivergenceV' : self.ELECTRONBEAMDIVERGENCEV,
+            'ElectronBeamSizeH'       : self.ELECTRONBEAMSIZEH,
+            'ElectronBeamSizeV'       : self.ELECTRONBEAMSIZEV,
+            'ElectronCurrent'         : self.ELECTRONCURRENT,
+            'ElectronEnergy'          : self.ELECTRONENERGY,
+            'ElectronEnergySpread'    : self.ELECTRONENERGYSPREAD,
+            'NPeriods'                : self.NPERIODS,
+            'PeriodID'                : self.PERIODID,
+            'distance'                : self.DISTANCE,
+            'gapH'                    : self.GAPH,
+            'gapV'                    : self.GAPV,
+            'HARMONICS'                    : self.HARMONICS,
+            'Kmin'                    : self.KMIN,
+            'Kmax'                    : self.KMAX,
+            'Kpoints'                 : self.KPOINTS,
+            'harmonics'               : harmonics,
+            'zero_emittance'          : zero_emittance,
+            'do_plot_peaks'           : False,
+            'code'                    : code,
+            }
+        print(self.script_template().format_map(dict_parameters))
+
+
         return K_scan,harmonics,power_array,energy_values_at_flux_peak,flux_values
+
+    def script_template(self):
+        return """
+#
+# script to make the calculations (created by XOPPY:tc_slit)
+#
+from collections import OrderedDict
+from orangecontrib.xoppy.util import srundplug
+
+
+bl = OrderedDict()
+bl['ElectronBeamDivergenceH'] = {ElectronBeamDivergenceH}
+bl['ElectronBeamDivergenceV'] = {ElectronBeamDivergenceV}
+bl['ElectronBeamSizeH']       = {ElectronBeamSizeH}
+bl['ElectronBeamSizeV']       = {ElectronBeamSizeV}
+bl['ElectronCurrent']         = {ElectronCurrent}
+bl['ElectronEnergy']          = {ElectronEnergy}
+bl['ElectronEnergySpread']    = {ElectronEnergySpread}
+bl['NPeriods']                = {NPeriods}
+bl['PeriodID']                = {PeriodID}
+bl['distance']                = {distance}
+bl['gapH']                    = {gapH}
+bl['gapV']                    = {gapV}
+
+harmonics = "{HARMONICS}".split(",")
+
+K_scan,harmonics,power_array, energy_values_at_flux_peak,flux_values = srundplug.tuning_curves_on_slit(bl,
+    Kmin={Kmin},
+    Kmax={Kmax},
+    Kpoints={Kpoints},
+    harmonics=harmonics,
+    zero_emittance={zero_emittance},
+    do_plot_peaks={do_plot_peaks},
+    code="{code}")
+                    
+#
+# end script
+#
+"""
+
 
     def receive_syned_data(self, data):
 

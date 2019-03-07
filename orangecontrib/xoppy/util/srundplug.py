@@ -2052,7 +2052,9 @@ def tuning_curves_on_slit(bl,Kmin=0.2,Kmax=2.2,Kpoints=10,harmonics=[1],zero_emi
     for ik,k in enumerate(Kvalues):
         bl['Kv'] = k
         print("\n-------- tuning_curves_on_slit: calculating flux for Kv: %f4.3"%k)
-        for ih,harmonic in enumerate(harmonics):
+
+        for ih in range(len(harmonics)):
+            harmonic = float(harmonics[ih])
 
             if code == "srw":
                 e_s,f_s = calc1d_srw(bl,
@@ -2079,7 +2081,7 @@ def tuning_curves_on_slit(bl,Kmin=0.2,Kmax=2.2,Kpoints=10,harmonics=[1],zero_emi
             evalues_at_flux_peak[ik,ih] = e_s[max_at]
 
             if do_plot_peaks:
-                plot(e_s,f_s,ylog=False,title="K=%4.2f, n=%d"%(k,harmonic))
+                plot(e_s,f_s,ylog=False,title="K=%4.2f, n=%d"%(k,int(harmonic)))
 
 
     #
@@ -2113,7 +2115,7 @@ def tuning_curves_on_slit(bl,Kmin=0.2,Kmax=2.2,Kpoints=10,harmonics=[1],zero_emi
     for ih in range(len(harmonics)):
         for i in range(Kvalues.size):
             print("%10d   %17.3f%17.3f%17.3f   %17.3g %17.3f"%
-                  (harmonics[ih],Kvalues[i],evalues[i,ih],evalues_at_flux_peak[i,ih],flux_values[i,ih]*codata.e*1e3,Pvalues[i]))
+                  (int(harmonics[ih]),Kvalues[i],evalues[i,ih],evalues_at_flux_peak[i,ih],flux_values[i,ih]*codata.e*1e3,Pvalues[i]))
 
     return Kvalues,harmonics,Pvalues,evalues_at_flux_peak,flux_values
 

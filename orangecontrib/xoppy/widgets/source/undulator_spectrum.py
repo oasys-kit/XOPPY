@@ -244,7 +244,7 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
         #     raise Exception("SRW calculation code not supported under Linux")
 
     def do_xoppy_calculation(self):
-        return xoppy_calc_undulator_spectrum(ELECTRONENERGY=self.ELECTRONENERGY,
+        energy, flux, spectral_power, cumulated_power = xoppy_calc_undulator_spectrum(ELECTRONENERGY=self.ELECTRONENERGY,
                                              ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,
                                              ELECTRONCURRENT=self.ELECTRONCURRENT,
                                              ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,
@@ -262,6 +262,71 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
                                              PHOTONENERGYPOINTS=self.PHOTONENERGYPOINTS,
                                              METHOD=self.METHOD,
                                              USEEMITTANCES=self.USEEMITTANCES)
+
+        # write python script in standard output
+        dict_parameters = {
+            "ELECTRONENERGY" : self.ELECTRONENERGY,
+            "ELECTRONENERGYSPREAD" : self.ELECTRONENERGYSPREAD,
+            "ELECTRONCURRENT" : self.ELECTRONCURRENT,
+            "ELECTRONBEAMSIZEH" : self.ELECTRONBEAMSIZEH,
+            "ELECTRONBEAMSIZEV" : self.ELECTRONBEAMSIZEV,
+            "ELECTRONBEAMDIVERGENCEH" : self.ELECTRONBEAMDIVERGENCEH,
+            "ELECTRONBEAMDIVERGENCEV" : self.ELECTRONBEAMDIVERGENCEV,
+            "PERIODID" : self.PERIODID,
+            "NPERIODS" : self.NPERIODS,
+            "KV" : self.KV,
+            "DISTANCE" : self.DISTANCE,
+            "GAPH" : self.GAPH,
+            "GAPV" : self.GAPV,
+            "PHOTONENERGYMIN" : self.PHOTONENERGYMIN,
+            "PHOTONENERGYMAX" : self.PHOTONENERGYMAX,
+            "PHOTONENERGYPOINTS" : self.PHOTONENERGYPOINTS,
+            "METHOD" : self.METHOD,
+            "USEEMITTANCES" : self.USEEMITTANCES,
+        }
+
+
+        print(self.script_template().format_map(dict_parameters))
+
+        return energy, flux, spectral_power, cumulated_power
+
+    def script_template(self):
+        return """
+#
+# script to make the calculations (created by XOPPY:undulator_spectrum)
+#
+from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_spectrum
+energy, flux, spectral_power, cumulated_power = xoppy_calc_undulator_spectrum(
+    ELECTRONENERGY={ELECTRONENERGY},
+    ELECTRONENERGYSPREAD={ELECTRONENERGYSPREAD},
+    ELECTRONCURRENT={ELECTRONCURRENT},
+    ELECTRONBEAMSIZEH={ELECTRONBEAMSIZEH},
+    ELECTRONBEAMSIZEV={ELECTRONBEAMSIZEV},
+    ELECTRONBEAMDIVERGENCEH={ELECTRONBEAMDIVERGENCEH},
+    ELECTRONBEAMDIVERGENCEV={ELECTRONBEAMDIVERGENCEV},
+    PERIODID={PERIODID},
+    NPERIODS={NPERIODS},
+    KV={KV},
+    DISTANCE={DISTANCE},
+    GAPH={GAPH},
+    GAPV={GAPV},
+    PHOTONENERGYMIN={PHOTONENERGYMIN},
+    PHOTONENERGYMAX={PHOTONENERGYMAX},
+    PHOTONENERGYPOINTS={PHOTONENERGYPOINTS},
+    METHOD={METHOD},
+    USEEMITTANCES={USEEMITTANCES})
+# example plot
+from srxraylib.plot.gol import plot
+plot(energy,flux,ytitle="Flux [photons/s/o.1%bw]",xtitle="Poton energy [eV]",title="Undulator Flux",
+    xlog=False,ylog=False,show=False)
+plot(energy,spectral_power,ytitle="Power [W/eV]",xtitle="Poton energy [eV]",title="Undulator Spectral Power",
+    xlog=False,ylog=False,show=False)
+plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [eV]",title="Undulator Cumulated Power",
+    xlog=False,ylog=False,show=True)
+#
+# end script
+#
+"""
 
     def extract_data_from_xoppy_output(self, calculation_output):
         e, f, sp, csp = calculation_output

@@ -97,7 +97,10 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
     print("\nRatio Power from integral of spectrum over Total emitted power: %5.4f"%(power_in_spectrum / ptot))
 
     spectral_power = f * codata.e * 1e3
-    cumulated_power = spectral_power.cumsum() * numpy.abs(e[0] - e[1]) if not METHOD == 1 else 0.0
+    try:
+        cumulated_power = spectral_power.cumsum() * numpy.abs(e[0] - e[1])
+    except:
+        cumulated_power = 0.0
 
     return e, f, spectral_power, cumulated_power
 

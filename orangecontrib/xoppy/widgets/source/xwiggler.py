@@ -6,10 +6,9 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
-from srxraylib.sources import srfunc
-import scipy.constants as codata
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+from orangecontrib.xoppy.util.xoppy_bm_wiggler import xoppy_calc_xwiggler
 
 from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
@@ -177,17 +176,79 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
 
 
     def do_xoppy_calculation(self):
-        return xoppy_calc_xwiggler(FIELD=self.FIELD,NPERIODS=self.NPERIODS,ULAMBDA=self.ULAMBDA,K=self.K,ENERGY=self.ENERGY,
-                                   PHOT_ENERGY_MIN=self.PHOT_ENERGY_MIN,PHOT_ENERGY_MAX=self.PHOT_ENERGY_MAX,
-                                   NPOINTS=self.NPOINTS,NTRAJPOINTS=self.NTRAJPOINTS,CURRENT=self.CURRENT,FILE=self.FILE)
+        e, f0, p0, cumulated_power =  xoppy_calc_xwiggler(
+            FIELD=self.FIELD,
+            NPERIODS=self.NPERIODS,
+            ULAMBDA=self.ULAMBDA,
+            K=self.K,
+            ENERGY=self.ENERGY,
+            PHOT_ENERGY_MIN=self.PHOT_ENERGY_MIN,
+            PHOT_ENERGY_MAX=self.PHOT_ENERGY_MAX,
+            NPOINTS=self.NPOINTS,
+            NTRAJPOINTS=self.NTRAJPOINTS,
+            CURRENT=self.CURRENT,
+            FILE=self.FILE)
+
+        # write python script in standard output
+        dict_parameters = {
+            "FIELD"           : self.FIELD,
+            "NPERIODS"        : self.NPERIODS,
+            "ULAMBDA"         : self.ULAMBDA,
+            "K"               : self.K,
+            "ENERGY"          : self.ENERGY,
+            "PHOT_ENERGY_MIN" : self.PHOT_ENERGY_MIN,
+            "PHOT_ENERGY_MAX" : self.PHOT_ENERGY_MAX,
+            "NPOINTS"         : self.NPOINTS,
+            "NTRAJPOINTS"     : self.NTRAJPOINTS,
+            "CURRENT"         : self.CURRENT,
+            "FILE"            : self.FILE,
+            }
+        print(self.script_template().format_map(dict_parameters))
+
+        return e, f0, p0 , cumulated_power
+
+    def script_template(self):
+        return """
+#
+# script to make the calculations (created by XOPPY:wiggler)
+#
+from orangecontrib.xoppy.util.xoppy_bm_wiggler import xoppy_calc_xwiggler
+energy, flux, spectral_power, cumulated_power =  xoppy_calc_xwiggler(
+    FIELD={FIELD},
+    NPERIODS={NPERIODS},
+    ULAMBDA={ULAMBDA},
+    K={K},
+    ENERGY={ENERGY},
+    PHOT_ENERGY_MIN={PHOT_ENERGY_MIN},
+    PHOT_ENERGY_MAX={PHOT_ENERGY_MAX},
+    NPOINTS={NPOINTS},
+    NTRAJPOINTS={NTRAJPOINTS},
+    CURRENT={CURRENT},
+    FILE="{FILE}")
+
+# example plot
+from srxraylib.plot.gol import plot
+plot(energy,flux,ytitle="Flux [photons/s/o.1%bw]",xtitle="Poton energy [eV]",title="Wiggler Flux",
+    xlog=True,ylog=True,show=False)
+plot(energy,spectral_power,ytitle="Power [W/eV]",xtitle="Poton energy [eV]",title="Wiggler Spectral Power",
+    xlog=True,ylog=True,show=False)
+plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [eV]",title="Wiggler Cumulated Power",
+    xlog=False,ylog=False,show=True)
+#
+# end script
+#
+"""
+
+
 
     def extract_data_from_xoppy_output(self, calculation_output):
-        e, f, sp = calculation_output
+        e, f, sp, cumulated_power = calculation_output
 
-        data = numpy.zeros((len(e), 3))
-        data[:, 0] = numpy.array(e)
-        data[:, 1] = numpy.array(f)
-        data[:, 2] = numpy.array(sp)
+        data = numpy.zeros((len(e), 4))
+        data[:,0] = numpy.array(e)
+        data[:,1] = numpy.array(f)
+        data[:,2] = numpy.array(sp)
+        data[:,3] = numpy.array(cumulated_power)
 
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
         calculated_data.add_content("xoppy_data", data)
@@ -199,19 +260,19 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
         return "XWIGGLER"
 
     def getTitles(self):
-        return ['Flux','Spectral Power']
+        return ['Flux', 'Spectral Power', 'Cumulated Power']
 
     def getXTitles(self):
-        return ["Energy [eV]","Energy [eV]"]
+        return ["Energy [eV]", "Energy [eV]", "Energy [eV]"]
 
     def getYTitles(self):
-        return ["Flux [Phot/sec/0.1%bw]", "Spectral Power [W/eV]"]
+        return ["Flux [Phot/sec/0.1%bw]", "Spectral Power [W/eV]", "Cumulated Power [W]"]
 
     def getLogPlot(self):
-        return [(True, True), (True, True)]
+        return [(True, True), (True, True), (False, False)]
 
     def getVariablesToPlot(self):
-        return [(0, 1), (0, 2)]
+        return [(0, 1), (0, 2), (0,3)]
 
     def receive_syned_data(self, data):
 
@@ -248,41 +309,6 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
                 self.id_ULAMBDA.setEnabled(False)
                 self.id_K.setEnabled(False)
                 self.id_FIELD.setEnabled(False)
-
-# --------------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------------
-
-def xoppy_calc_xwiggler(FIELD=0,NPERIODS=12,ULAMBDA=0.125,K=14.0,ENERGY=6.04,PHOT_ENERGY_MIN=100.0,\
-                        PHOT_ENERGY_MAX=100100.0,NPOINTS=100,NTRAJPOINTS=101,CURRENT=200.0,FILE="?"):
-
-    print("Inside xoppy_calc_xwiggler. ")
-
-    outFileTraj = "xwiggler_traj.spec"
-    outFile = "xwiggler.spec"
-
-    if FIELD == 0:
-        t0,p = srfunc.wiggler_trajectory(b_from=0, nPer=NPERIODS, nTrajPoints=NTRAJPOINTS, \
-                                         ener_gev=ENERGY, per=ULAMBDA, kValue=K, \
-                                         trajFile=outFileTraj)
-    if FIELD == 1:
-        # magnetic field from B(s) map
-        t0,p = srfunc.wiggler_trajectory(b_from=1, nPer=NPERIODS, nTrajPoints=NTRAJPOINTS, \
-                                         ener_gev=ENERGY, inData=FILE, trajFile=outFileTraj)
-    if FIELD == 2:
-        # magnetic field from harmonics
-        # hh = srfunc.wiggler_harmonics(b_t,Nh=41,fileOutH="tmp.h")
-        t0,p = srfunc.wiggler_trajectory(b_from=2, nPer=NPERIODS, nTrajPoints=NTRAJPOINTS, \
-                                         ener_gev=ENERGY, per=ULAMBDA, inData="", trajFile=outFileTraj)
-    print(p)
-    #
-    # now spectra
-    #
-    e, f0, p0 = srfunc.wiggler_spectrum(t0, enerMin=PHOT_ENERGY_MIN, enerMax=PHOT_ENERGY_MAX, nPoints=NPOINTS, \
-                                    electronCurrent=CURRENT*1e-3, outFile=outFile, elliptical=False)
-
-    print("\nPower from integral of spectrum: %8.3f W"%(f0.sum()*1e3*codata.e*(e[1]-e[0])))
-    return e, f0, p0
-
 
 
 if __name__ == "__main__":
