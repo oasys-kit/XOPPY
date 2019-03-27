@@ -465,6 +465,10 @@ class OWxpower(XoppyWidget):
                         # self.SOURCE_FILE = "xoppy_xwiggler_flux"
                         no_bandwidth = True
                         index_flux = 2
+                    elif exchangeData.get_widget_name() =="WS" :
+                        # self.SOURCE_FILE = "xoppy_xwiggler_flux"
+                        no_bandwidth = True
+                        index_flux = 2
                     elif exchangeData.get_widget_name() =="XTUBES" :
                         # self.SOURCE_FILE = "xoppy_xtubes_flux"
                         index_flux = 1

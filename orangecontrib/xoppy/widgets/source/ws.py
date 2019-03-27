@@ -215,19 +215,19 @@ class OWws(XoppyWidget,WidgetDecorator):
         return "WS"
 
     def getTitles(self):
-        return ['Flux','Spectral power']
+        return ['Flux','Spectral power','Cumulated power']
 
     def getXTitles(self):
-        return ["Energy [eV]","Energy [eV]"]
+        return ["Energy [eV]","Energy [eV]","Energy [eV]"]
 
     def getYTitles(self):
-        return ["Flux [Photons/sec/0.1%bw]","Spectral Power [W/eV]"]
+        return ["Flux [Photons/sec/0.1%bw]","Spectral Power [W/eV]","Cumulated Power [W]"]
 
     def getVariablesToPlot(self):
-        return [(0, 1),(0, 2)]
+        return [(0, 1),(0, 2),(0, 3)]
 
     def getLogPlot(self):
-        return [(True, True),(True, True)]
+        return [(True, True),(True, True),(False, False)]
 
     def receive_syned_data(self, data):
 
@@ -292,13 +292,16 @@ def xoppy_calc_ws(ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.0,KX=0.0,KY=8.73999977111
         f.write("#F ws.spec\n")
         f.write("\n")
         f.write("#S 1 ws results\n")
-        f.write("#N 3\n")
-        f.write("#L  Energy(eV)  Flux(photons/s/0.1%bw)  Spectral power(W/eV)\n")
+        f.write("#N 4\n")
+        f.write("#L  Energy(eV)  Flux(photons/s/0.1%bw)  Spectral power(W/eV)  Cumulated power(W)\n")
+        cum = 0.0
+        estep = (EMAX-EMIN)/(NEE-1)
         for i in txt:
             tmp = i.strip(" ")
             if tmp[0].isdigit():
                 tmp1 = numpy.fromstring(tmp, dtype=float, sep=' ')
-                f.write("%f %f %f \n"%(tmp1[0],tmp1[1],tmp1[1]*codata.e*1e3))
+                cum += tmp1[1]*codata.e*1e3
+                f.write("%f  %g  %f  %f \n"%(tmp1[0],tmp1[1],tmp1[1]*codata.e*1e3,cum*estep))
             else:
                f.write("#UD "+tmp)
         f.close()
@@ -316,6 +319,8 @@ def xoppy_calc_ws(ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.0,KX=0.0,KY=8.73999977111
 
 
 if __name__ == "__main__":
+    import os
+    os.environ['LD_LIBRARY_PATH'] = ''
     app = QApplication(sys.argv)
     w = OWws()
     w.show()

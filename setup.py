@@ -8,16 +8,16 @@ except AttributeError:
     from setuptools import find_packages, setup
 
 NAME = 'OASYS1-XOPPY'
-VERSION = '1.0.38'
+VERSION = '1.0.39'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
 README_FILE = os.path.join(os.path.dirname(__file__), 'README.txt')
 LONG_DESCRIPTION = open(README_FILE).read()
 AUTHOR = 'Manuel Sanchez del Rio, Luca Rebuffi, and Bioinformatics Laboratory, FRI UL'
-AUTHOR_EMAIL = 'srio@esrf.eu, luca.rebuffi@elettra.eu'
-URL = 'https://github.com/srio/Orange-XOPPY'
-DOWNLOAD_URL = 'https://github.com/srio/Orange-XOPPY'
+AUTHOR_EMAIL = 'srio@esrf.eu, lrebuffi@anl.gov'
+URL = 'https://github.com/oasys-kit/XOPPY'
+DOWNLOAD_URL = 'https://github.com/oasys-kit/XOPPY'
 LICENSE = 'GPLv3'
 
 KEYWORDS = (

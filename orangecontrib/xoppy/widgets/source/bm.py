@@ -206,10 +206,22 @@ class OWbm(XoppyWidget, WidgetDecorator):
         self.show_at(self.unitFlags()[idx], box1)
 
     def unitLabels(self):
-         return ['Type of calculation','Machine name','B from:','Machine Radius [m]','Magnetic Field [T]','Beam energy [GeV]','Beam Current [A]','Horizontal div Theta [mrad]','Psi (vertical div) for energy spectra','Min Photon Energy [eV]','Max Photon Energy [eV]','Number of energy points','Separation between energy points','Max Psi[mrad] for angular plots','Psi min [mrad]','Psi max [mrad]','Number of Psi points','Dump file']
+         return ['Type of calculation','Machine name',
+                 'B from:','Machine Radius [m]','Magnetic Field [T]',
+                 'Beam energy [GeV]','Beam Current [A]',
+                 'Horizontal div Theta [mrad]','Psi (vertical div) for energy spectra',
+                 'Min Photon Energy [eV]','Max Photon Energy [eV]','Number of points','Separation between energy points',
+                 'Max Psi[mrad] for angular plots','Psi min [mrad]','Psi max [mrad]','Number of Psi points',
+                 'Dump file']
 
     def unitFlags(self):
-         return ['True','True','True','self.RB_CHOICE  ==  0','self.RB_CHOICE  ==  1','True','True','True','True','True','True','True','True','True','self.VER_DIV  >=  2','self.VER_DIV  ==  2','self.VER_DIV  ==  2','True']
+         return ['True','True',
+                 'True','self.RB_CHOICE  ==  0','self.RB_CHOICE  ==  1',
+                 'True','True',
+                 'True','self.TYPE_CALC == 0',
+                 'True','True','True','self.TYPE_CALC == 0',
+                 'True','self.VER_DIV  >=  2','self.VER_DIV  ==  2','self.VER_DIV  ==  2',
+                 'True']
 
     def set_TYPE_CALC(self):
 
@@ -250,7 +262,9 @@ class OWbm(XoppyWidget, WidgetDecorator):
             self.PSI_MIN = congruence.checkNumber(self.PSI_MIN, "Min Photon Energy")
 
     def plot_results(self, calculated_data, progressBarValue=80):
-        if self.TYPE_CALC != 3: super().plot_results(calculated_data, progressBarValue)
+        if self.TYPE_CALC != 3:
+            super().plot_results(calculated_data, progressBarValue)
+            self.tabs.setCurrentIndex(len(self.getTitles())-1)
         elif not self.view_type == 0:
             if not calculated_data is None:
                 self.view_type_combo.setEnabled(False)
@@ -266,19 +280,17 @@ class OWbm(XoppyWidget, WidgetDecorator):
                                      a,
                                      energy_ev,
                                      0, 0,
-                                     xtitle="Angle [mrad]",
+                                     xtitle="Psi [mrad]",
                                      ytitle="Photon energy [eV]",
-                                     title="Flux [photons/s/0.1%bw/mrad]")
+                                     title="Flux [photons/s/0.1%bw]")
 
                     self.plot_data2D(fm*codata.e*1e3,
                                      a,
                                      energy_ev,
                                      1, 1,
-                                     xtitle="Angle [mrad]",
+                                     xtitle="Psi [mrad]",
                                      ytitle="Photon energy [eV]",
-                                     title="Spectral power [W/eV/mrad]")
-
-                    self.tabs.setCurrentIndex(1)
+                                     title="Spectral power [W/eV]")
                 except Exception as e:
                     self.view_type_combo.setEnabled(True)
 
@@ -287,6 +299,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
                 self.view_type_combo.setEnabled(True)
             else:
                 raise Exception("Empty Data")
+
 
     def do_xoppy_calculation(self):
         a6_T, fm, a, energy_ev =  xoppy_calc_bm(TYPE_CALC=self.TYPE_CALC,
