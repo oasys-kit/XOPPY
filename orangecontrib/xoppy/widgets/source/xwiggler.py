@@ -141,7 +141,7 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
     def unitLabels(self):
          return ['Magnetic field: ','Number of periods','Wiggler period [m]','K value','Beam energy [GeV]',
                  'Min Photon Energy [eV]','Max Photon Energy [eV]','Number of energy points',
-                 'Number of traj points per period','Electron Beam Current [mA]','File with Magnetic Field']
+                 'Number of traj points per period','Electron Beam Current [mA]','File/Url with Magnetic Field']
 
     def unitFlags(self):
          return ['True','True','self.FIELD  !=  1','self.FIELD  ==  0','True',
@@ -170,9 +170,9 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
         elif self.FIELD == 1:
             self.ULAMBDA = congruence.checkStrictlyPositiveNumber(self.ULAMBDA, "Wiggler period")
             self.NTRAJPOINTS = congruence.checkStrictlyPositiveNumber(self.NTRAJPOINTS, "Number of traj points per period")
-            congruence.checkFile(self.FILE)
+            congruence.checkUrl(self.FILE)
         elif self.FIELD == 2:
-            congruence.checkFile(self.FILE)
+            congruence.checkUrl(self.FILE)
 
 
     def do_xoppy_calculation(self):
