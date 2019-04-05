@@ -1,6 +1,6 @@
 __author__ = 'labx'
 
-import sys, os, numpy
+import sys, os, numpy, platform
 import orangecanvas.resources as resources
 from PyQt5 import QtGui, QtCore
 
@@ -28,15 +28,24 @@ class EmittingStream(QtCore.QObject):
 class locations:
     @classmethod
     def home_bin(cls):
-        return resources.package_dirname("orangecontrib.xoppy.util") + "/bin/" + str(sys.platform) + "/"
+        if platform.system() == "Windows":
+            return resources.package_dirname("orangecontrib.xoppy.util") + "\\bin\windows\\"
+        else:
+            return resources.package_dirname("orangecontrib.xoppy.util") + "/bin/" + str(sys.platform) + "/"
 
     @classmethod
     def home_doc(cls):
-        return resources.package_dirname("orangecontrib.xoppy.util") + "/doc_txt/"
+        if platform.system() == "Windows":
+            return resources.package_dirname("orangecontrib.xoppy.util") + "\doc_txt/"
+        else:
+            return resources.package_dirname("orangecontrib.xoppy.util") + "/doc_txt/"
 
     @classmethod
     def home_data(cls):
-        return resources.package_dirname("orangecontrib.xoppy.util") + "/data/"
+        if platform.system() == "Windows":
+            return resources.package_dirname("orangecontrib.xoppy.util") + "\data/"
+        else:
+            return resources.package_dirname("orangecontrib.xoppy.util") + "/data/"
 
     @classmethod
     def home_bin_run(cls):
@@ -53,6 +62,8 @@ def xoppy_doc(app):
         command = "'open -a TextEdit "+filename1+" &'"
     elif sys.platform == 'linux':
         command = "'gedit "+filename1+" &'"
+    else:
+        command = "'start "+filename1+"'"
 
     os.system(command)
 

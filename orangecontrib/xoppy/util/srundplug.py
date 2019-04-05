@@ -27,7 +27,7 @@ srundplug: Undulator spectra calculations. An easy (or not too difficult)
 
 __author__    = "Manuel Sanchez del Rio"
 __contact__   = "srio@esrf.eu"
-__copyright__ = "ESRF, 2014-2016"
+__copyright__ = "ESRF, 2014-2019"
 
 #
 #----------------------------  IMPORT ------------------------------------------
@@ -51,13 +51,10 @@ USE_PYSRU = False
 
 if USE_SRWLIB:
     try:
-        import srwlib
+        import vinyl_srw.srwlib as srwlib
     except:
-        try:
-            import wpg.srwlib as srwlib
-        except:
-            USE_SRWLIB = False
-            print("SRW is not available")
+        USE_SRWLIB = False
+        print("SRW is not available")
 
 
 #catch standard optput
@@ -103,6 +100,9 @@ except:
         print("srundplug: undefined home_bin. It has been set to ", home_bin)
     elif platform.system() == 'Darwin':
         home_bin = "/scisoft/xop2.4/bin.darwin/"
+        print("srundplug: undefined home_bin. It has been set to ", home_bin)
+    elif platform.system() == 'Windows':
+        home_bin = ""
         print("srundplug: undefined home_bin. It has been set to ", home_bin)
     else:
         raise FileNotFoundError("srundplug: undefined home_bin")
