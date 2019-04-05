@@ -153,10 +153,10 @@ def xoppy_calc_bm(MACHINE_NAME="ESRF bending magnet",RB_CHOICE=0,MACHINE_R_M=25.
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
 
-def xoppy_calc_xwiggler(FIELD=0,NPERIODS=12,ULAMBDA=0.125,K=14.0,ENERGY=6.04,PHOT_ENERGY_MIN=100.0,\
+def xoppy_calc_wigg(FIELD=0,NPERIODS=12,ULAMBDA=0.125,K=14.0,ENERGY=6.04,PHOT_ENERGY_MIN=100.0,\
                         PHOT_ENERGY_MAX=100100.0,NPOINTS=100,NTRAJPOINTS=101,CURRENT=200.0,FILE="?"):
 
-    print("Inside xoppy_calc_xwiggler. ")
+    print("Inside xoppy_calc_wigg. ")
 
     outFileTraj = "xwiggler_traj.spec"
     outFile = "xwiggler.spec"
