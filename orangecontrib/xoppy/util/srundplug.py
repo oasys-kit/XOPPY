@@ -108,10 +108,10 @@ except:
         raise FileNotFoundError("srundplug: undefined home_bin")
 
 #check
-if os.path.isfile(home_bin + 'us') == False:
-    raise FileNotFoundError("srundplug: File not found: "+home_bin+'us')
-if os.path.isfile(home_bin + 'urgent') == False:
-    raise FileNotFoundError("srundplug: File not found: " + home_bin + 'urgent')
+#if os.path.isfile(home_bin + 'us') == False:
+#    raise FileNotFoundError("srundplug: File not found: "+home_bin+'us')
+#if os.path.isfile(home_bin + 'urgent') == False:
+#    raise FileNotFoundError("srundplug: File not found: " + home_bin + 'urgent')
 
 
 
@@ -125,10 +125,10 @@ except NameError:
     print("srundplug: undefined home_bin. It has been set to ",home_bin)
 
 #check
-if os.path.isfile(home_bin+'us') == False:
-    print("srundplug: File not found: "+home_bin+'us')
-if os.path.isfile(home_bin+'urgent') == False:
-    sys.exit("srundplug: File not found: "+home_bin+'urgent')
+#if os.path.isfile(home_bin+'us') == False:
+#    print("srundplug: File not found: "+home_bin+'us')
+#if os.path.isfile(home_bin+'urgent') == False:
+#    sys.exit("srundplug: File not found: "+home_bin+'urgent')
 
 
 
