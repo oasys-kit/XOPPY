@@ -1,4 +1,5 @@
 import sys, os
+import platform
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
 from orangewidget import gui
@@ -238,7 +239,10 @@ def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:
             f.write("1\n")
             f.close()
 
-        command = "'" + os.path.join(locations.home_bin(),'xcom') + "' < xoppy.inp"
+        if platform.system() == "Windows":
+            command = os.path.join(locations.home_bin(),'xcom.exe < xoppy.inp')
+        else:
+            command = "'" + os.path.join(locations.home_bin(),'xcom') + "' < xoppy.inp"
         print("Running command '%s' in directory: %s "%(command,locations.home_bin_run()))
         print("\n--------------------------------------------------------\n")
         os.system(command)

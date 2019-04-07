@@ -1,5 +1,6 @@
 import sys,os
 import numpy
+import platform
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
 
@@ -363,7 +364,13 @@ class OWxtc(XoppyWidget):
             f.write("%d %d %d %d %s\n"%(self.HELICAL,self.METHOD,1,self.NEKS,"Helical Method Print_K Neks"))
             f.write("foreground\n")
 
-        command = "'" + os.path.join(locations.home_bin(), 'tc') + "'"
+
+        if platform.system() == "Windows":
+            command = os.path.join(locations.home_bin(),'tc.exe')
+        else:
+            command = "'" + os.path.join(locations.home_bin(), 'tc') + "'"
+
+
         print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
         print("\n--------------------------------------------------------\n")
         os.system(command)

@@ -1,6 +1,7 @@
 import sys
 import os
 import numpy
+import platform
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
 
@@ -482,7 +483,10 @@ class OWxcrystal(XoppyWidget):
 
 
 
-        command = "'" + os.path.join(locations.home_bin(), 'diff_pat') + "' < xoppy.inp"
+        if platform.system() == "Windows":
+            command = os.path.join(locations.home_bin(),'diff_pat.exe < xoppy.inp')
+        else:
+            command = "'" + os.path.join(locations.home_bin(), 'diff_pat') + "' < xoppy.inp"
         print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
         print("\n--------------------------------------------------------\n")
         os.system(command)

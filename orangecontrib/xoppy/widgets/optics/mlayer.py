@@ -1,4 +1,5 @@
 import sys, os
+import platform
 import numpy
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
@@ -367,7 +368,11 @@ class OWmlayer(XoppyWidget):
         #
         # run external program mlayer
         #
-        command = "'" + os.path.join(locations.home_bin(), 'mlayer') + "' < mlayer.inp"
+
+        if platform.system() == "Windows":
+            command = os.path.join(locations.home_bin(),'mlayer.exe < mlayer.inp')
+        else:
+            command = "'" + os.path.join(locations.home_bin(), 'mlayer') + "' < mlayer.inp"
         print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
         print("\n--------------------------------------------------------\n")
         os.system(command)
