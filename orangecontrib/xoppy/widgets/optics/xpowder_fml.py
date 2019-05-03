@@ -1,5 +1,6 @@
 import sys,os
 import numpy
+import platform
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
 from orangewidget import gui
@@ -206,7 +207,10 @@ class OWxpowder_fml(XoppyWidget):
             f.write("%g\n"%(self.STEP))
             f.write("%s\n"%(self.THMAX))
 
-        command = "'" + os.path.join(locations.home_bin(), 'xpowder_fml') + "' < xoppy.inp"
+        if platform.system() == "Windows":
+            command = os.path.join(locations.home_bin(),'xpowder_fml.exe < xoppy.inp')
+        else:
+            command = "'" + os.path.join(locations.home_bin(), 'xpowder_fml') + "' < xoppy.inp"
         print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
         print("\n--------------------------------------------------------\n")
         os.system(command)

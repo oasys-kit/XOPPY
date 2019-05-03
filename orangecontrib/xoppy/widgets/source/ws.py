@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, platform
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
 from orangewidget import gui
@@ -279,7 +279,11 @@ def xoppy_calc_ws(ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.0,KX=0.0,KY=8.73999977111
             f.write("%f  %f  %f  %f  %f  %d  %d\n"%(D,XPC,YPC,XPS,YPS,NXP,NYP))
             f.write("%d  \n"%(4))
 
-        command = "'" + os.path.join(locations.home_bin(),'ws') + "'"
+        
+        if platform.system() == "Windows":
+            command = os.path.join(locations.home_bin(),'ws.exe')
+        else:
+            command = "'" + os.path.join(locations.home_bin(),'ws') + "'"
         print("Running command '%s' in directory: %s \n"%(command, locations.home_bin_run()))
         # TODO try to capture the text output of the external code
         os.system(command)

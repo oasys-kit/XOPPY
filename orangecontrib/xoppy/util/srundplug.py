@@ -27,7 +27,7 @@ srundplug: Undulator spectra calculations. An easy (or not too difficult)
 
 __author__    = "Manuel Sanchez del Rio"
 __contact__   = "srio@esrf.eu"
-__copyright__ = "ESRF, 2014-2016"
+__copyright__ = "ESRF, 2014-2019"
 
 #
 #----------------------------  IMPORT ------------------------------------------
@@ -37,6 +37,7 @@ import os
 import sys
 import time
 import array
+import platform
 
 import numpy
 import shutil # to copy files
@@ -51,13 +52,10 @@ USE_PYSRU = False
 
 if USE_SRWLIB:
     try:
-        import srwlib
+        import vinyl_srw.srwlib as srwlib
     except:
-        try:
-            import wpg.srwlib as srwlib
-        except:
-            USE_SRWLIB = False
-            print("SRW is not available")
+        USE_SRWLIB = False
+        print("SRW is not available")
 
 
 #catch standard optput
@@ -104,14 +102,17 @@ except:
     elif platform.system() == 'Darwin':
         home_bin = "/scisoft/xop2.4/bin.darwin/"
         print("srundplug: undefined home_bin. It has been set to ", home_bin)
+    elif platform.system() == 'Windows':
+        home_bin = ""
+        print("srundplug: undefined home_bin. It has been set to ", home_bin)
     else:
         raise FileNotFoundError("srundplug: undefined home_bin")
 
 #check
-if os.path.isfile(home_bin + 'us') == False:
-    raise FileNotFoundError("srundplug: File not found: "+home_bin+'us')
-if os.path.isfile(home_bin + 'urgent') == False:
-    raise FileNotFoundError("srundplug: File not found: " + home_bin + 'urgent')
+#if os.path.isfile(home_bin + 'us') == False:
+#    raise FileNotFoundError("srundplug: File not found: "+home_bin+'us')
+#if os.path.isfile(home_bin + 'urgent') == False:
+#    raise FileNotFoundError("srundplug: File not found: " + home_bin + 'urgent')
 
 
 
@@ -125,10 +126,10 @@ except NameError:
     print("srundplug: undefined home_bin. It has been set to ",home_bin)
 
 #check
-if os.path.isfile(home_bin+'us') == False:
-    print("srundplug: File not found: "+home_bin+'us')
-if os.path.isfile(home_bin+'urgent') == False:
-    sys.exit("srundplug: File not found: "+home_bin+'urgent')
+#if os.path.isfile(home_bin+'us') == False:
+#    print("srundplug: File not found: "+home_bin+'us')
+#if os.path.isfile(home_bin+'urgent') == False:
+#    sys.exit("srundplug: File not found: "+home_bin+'urgent')
 
 
 
@@ -460,7 +461,10 @@ def calc1d_urgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnerg
         f.write("%d\n"%(0))               #NOMEGA
         f.write("%f\n"%(0.00000))         #DOMEGA
 
-    command = "'" + os.path.join(home_bin,"urgent' < urgent.inp")
+    if platform.system() == "Windows":
+        command = os.path.join(home_bin,'urgent.exe < urgent.inp')
+    else:
+        command = "'" + os.path.join(home_bin,"urgent' < urgent.inp")
     print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
     os.system(command)
     print('Done calc1dUrgent calculation in %10.3f s'%(time.time()-t0))
@@ -565,7 +569,10 @@ def calc1d_us(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoi
         f.write("       0       0     0.0      64     8.0     0 Nphi Nalpha Dalpha2 Nomega Domega Nsigma\n")
         f.write("foreground\n")
 
-    command = "'" + os.path.join(home_bin,'us') + "'"
+    if platform.system() == "Windows":
+        command = os.path.join(home_bin,'us.exe < us.inp')
+    else:
+        command = "'" + os.path.join(home_bin,'us') + "'"
     print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
     os.system(command)
     print('Done calc1dUs calculation in %10.3f s'%(time.time()-t0))
@@ -903,7 +910,10 @@ def calc2d_us(bl,zero_emittance=False,hSlitPoints=51,vSlitPoints=51,fileName=Non
         f.write("       0       0     0.0      64     8.0     0 Nphi Nalpha Dalpha2 Nomega Domega Nsigma\n")
         f.write("foreground\n")
 
-    command = "'" + os.path.join(home_bin,'us') + "'"
+    if platform.system() == "Windows":
+        command = os.path.join(home_bin,'us.exe < us.inp')
+    else:
+        command = "'" + os.path.join(home_bin,'us') + "'"
     print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
     print("\n--------------------------------------------------------\n")
     os.system(command)
@@ -1076,7 +1086,10 @@ def calc2d_urgent(bl,zero_emittance=False,fileName=None,fileAppend=False,hSlitPo
         f.write("%d\n"%(0))               #NOMEGA
         f.write("%f\n"%(0.00000))         #DOMEGA
 
-    command = "'" + os.path.join(home_bin,"urgent' < urgent.inp")
+    if platform.system() == "Windows":
+        command = os.path.join(home_bin,'urgent.exe < urgent.inp')
+    else:
+        command = "'" + os.path.join(home_bin,"urgent' < urgent.inp")
     print("\n\n--------------------------------------------------------\n")
     print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
     os.system(command)
@@ -1485,7 +1498,10 @@ def calc3d_urgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergy
             f.write("%d\n"%(0))               #NOMEGA
             f.write("%f\n"%(0.00000))         #DOMEGA
 
-        command = "'" + os.path.join(home_bin,"urgent' < urgent.inp")
+        if platform.system() == "Windows":
+            command = os.path.join(home_bin, 'urgent.exe < urgent.inp')
+        else:
+            command = "'" + os.path.join(home_bin, "urgent' < urgent.inp")
         print("\n\n--------------------------------------------------------\n")
         print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
         os.system(command)
@@ -1686,7 +1702,10 @@ def calc3d_us(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
             f.write("       0       0     0.0      64     8.0     0 Nphi Nalpha Dalpha2 Nomega Domega Nsigma\n")
             f.write("foreground\n")
 
-        command = "'" + os.path.join(home_bin,'us') + "'"
+        if platform.system() == "Windows":
+            command = os.path.join(home_bin, 'us.exe < us.inp')
+        else:
+            command = "'" + os.path.join(home_bin,'us') + "'"
         print("\n\n--------------------------------------------------------\n")
         print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
         os.system(command)

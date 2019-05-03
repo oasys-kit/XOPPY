@@ -41,7 +41,7 @@ SETUP_REQUIRES = (
 
 INSTALL_REQUIRES = (
     'oasys1>=1.1.42',
-    'oasys1-srwlib',
+    'vinyl-srw',
     'pySRU',
 )
 
