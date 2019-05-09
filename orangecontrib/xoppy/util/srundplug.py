@@ -52,7 +52,7 @@ USE_PYSRU = False
 
 if USE_SRWLIB:
     try:
-        import vinyl_srw.srwlib as srwlib
+        import oasys_srw.srwlib as srwlib
     except:
         USE_SRWLIB = False
         print("SRW is not available")
