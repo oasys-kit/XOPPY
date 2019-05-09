@@ -1,14 +1,23 @@
 __author__ = 'labx'
 
-import sys, os, numpy
-import pathlib
+import sys, os, numpy, platform
 import orangecanvas.resources as resources
+from PyQt5 import QtGui, QtCore
+
+try:
+    import matplotlib
+    import matplotlib.pyplot as plt
+    from matplotlib import cm
+    from matplotlib import figure as matfig
+    import pylab
+except ImportError:
+    print(sys.exc_info()[1])
+    pass
 
 
-from PyQt5 import QtCore
+import xraylib
 
-
-
+from oasys.widgets import gui
 
 class EmittingStream(QtCore.QObject):
     textWritten = QtCore.pyqtSignal(str)
@@ -19,15 +28,24 @@ class EmittingStream(QtCore.QObject):
 class locations:
     @classmethod
     def home_bin(cls):
-        return pathlib.Path(resources.package_dirname("orangecontrib.xoppy.util"),"bin","windows")
+        if platform.system() == "Windows":
+            return resources.package_dirname("orangecontrib.xoppy.util") + "\\bin\windows\\"
+        else:
+            return resources.package_dirname("orangecontrib.xoppy.util") + "/bin/" + str(sys.platform) + "/"
 
     @classmethod
     def home_doc(cls):
-        return pathlib.Path(resources.package_dirname("orangecontrib.xoppy.util"),"doc_txt")
+        if platform.system() == "Windows":
+            return resources.package_dirname("orangecontrib.xoppy.util") + "\doc_txt/"
+        else:
+            return resources.package_dirname("orangecontrib.xoppy.util") + "/doc_txt/"
 
     @classmethod
     def home_data(cls):
-        return pathlib.Path(resources.package_dirname("orangecontrib.xoppy.util"),"data")
+        if platform.system() == "Windows":
+            return resources.package_dirname("orangecontrib.xoppy.util") + "\data/"
+        else:
+            return resources.package_dirname("orangecontrib.xoppy.util") + "/data/"
 
     @classmethod
     def home_bin_run(cls):
@@ -50,11 +68,16 @@ def xoppy_doc(app):
     os.system(command)
 
 class XoppyPhysics:
-    import xraylib
-    import scipy.constants as codata
 
-    A2EV = (codata.h*codata.c/codata.e)*1e+10
-    K2EV = 2*numpy.pi/(codata.h*codata.c/codata.e*1e+2)
+    ######################################
+    # FROM NIST
+    codata_h = numpy.array(6.62606957e-34)
+    codata_ec = numpy.array(1.602176565e-19)
+    codata_c = numpy.array(299792458.0)
+    ######################################
+
+    A2EV = (codata_h*codata_c/codata_ec)*1e+10
+    K2EV = 2*numpy.pi/(codata_h*codata_c/codata_ec*1e+2)
 
     @classmethod
     def getWavelengthFromEnergy(cls, energy): #in eV
@@ -80,7 +103,7 @@ class XoppyPhysics:
             return 0.0
 
 class XoppyGui:
-    from oasys.widgets import gui
+
     @classmethod
     def combobox_text(cls, widget, master, value, box=None, label=None, labelWidth=None,
              orientation='vertical', items=(), callback=None,
@@ -99,19 +122,10 @@ class XoppyGui:
         return combo
 
 class XoppyPlot:
-    #try:
-    #    import matplotlib
-    #    import matplotlib.pyplot as plt
-    #    from matplotlib import cm
-    #    from matplotlib import figure as matfig
-    #    import pylab
-    #except ImportError:
-    #    print(sys.exc_info()[1])
-    #    pass
 
     @classmethod
     def plot_histo(cls, plot_window, x, y, title, xtitle, ytitle, color='blue', replace=True):
-        #matplotlib.rcParams['axes.formatter.useoffset']='False'
+        matplotlib.rcParams['axes.formatter.useoffset']='False'
         plot_window.addCurve(x, y, title, symbol='', color=color, xlabel=xtitle, ylabel=ytitle, replace=replace) #'+', '^', ','
         if not xtitle is None: plot_window.setGraphXLabel(xtitle)
         if not ytitle is None: plot_window.setGraphYLabel(ytitle)
