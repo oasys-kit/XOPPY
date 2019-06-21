@@ -317,8 +317,8 @@ def f1f2_calc_mix(descriptor,energy,theta=3.0e-3,F=0,density=None,rough=0.0):
     f1 = numpy.zeros_like(energy)
     f2 = numpy.zeros_like(energy)
     for i,zi in enumerate(zetas):
-        f1i = f1f2_calc(xraylib.AtomicNumberToSymbol(zi),1e-3*energy,theta,F=1)
-        f2i = f1f2_calc(xraylib.AtomicNumberToSymbol(zi),1e-3*energy,theta,F=2)
+        f1i = f1f2_calc(xraylib.AtomicNumberToSymbol(zi), energy,theta,F=1)
+        f2i = f1f2_calc(xraylib.AtomicNumberToSymbol(zi), energy,theta,F=2)
         f1 += f1i * weights[i]
         f2 += f2i * weights[i]
 
@@ -1814,7 +1814,7 @@ if __name__ == "__main__":
     # parsers (not used, we use xraylib instead)
     #
 
-    aw1 = parse_formula("H2O")
+    aw1 = parse_formula("B4C")
     print(aw1)
 
     # tmp = write_spec_file("tmp.spec",numpy.zeros((4,100)),titles=['x','y','z','more z'])
@@ -1824,14 +1824,15 @@ if __name__ == "__main__":
     #
     # f1f2_calc*
     #
-    for i in range(12):
-        tmp = f1f2_calc(26,[10000.0,22000],F=i)
-        print(">>>>>>>>>>>>>>F=%d, Z=26,f1f2_calc="%i,tmp,tmp.shape )
+    # for i in range(12):
+    #     tmp = f1f2_calc(26,[10000.0,22000],F=i)
+    #     print(">>>>>>>>>>>>>>F=%d, Z=26,f1f2_calc="%i,tmp,tmp.shape )
+    #
+    # for i in range(12):
+    #     # print(">>>>>>>>>>>>>>F=%d, f1f2_calc_mix="%i, f1f2_calc_mix("SiC",[10000.0],F=i,density=3.21))
+    #     print(">>>>>>>>>>>>>>F=%d, f1f2_calc_mix for H2O="%i, f1f2_calc_mix("H2O",[10000.0],F=i,density=1.0))
 
-    for i in range(12):
-        # print(">>>>>>>>>>>>>>F=%d, f1f2_calc_mix="%i, f1f2_calc_mix("SiC",[10000.0],F=i,density=3.21))
-        print(">>>>>>>>>>>>>>F=%d, f1f2_calc_mix for H2O="%i, f1f2_calc_mix("H2O",[10000.0],F=i,density=1.0))
-
+    # assert( numpy.abs( tmp1[0] - 8.7654751491065230e-07) < 1e-9  )
 
 
 
