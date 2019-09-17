@@ -15,8 +15,6 @@ from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
 import syned.storage_ring.magnetic_structures.insertion_device as synedid
 
-import numpy
-import scipy.constants as codata
 
 class OWundulator_power_density(XoppyWidget, WidgetDecorator):
     name = "Undulator Power Density"
@@ -38,9 +36,11 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
     PERIODID = Setting(0.018)
     NPERIODS = Setting(222)
     KV = Setting(1.68)
+    KH = Setting(0.0)
+    KPHASE = Setting(0.0)
     DISTANCE = Setting(30.0)
-    GAPH = Setting(0.003)
-    GAPV = Setting(0.003)
+    GAPH = Setting(0.01)
+    GAPV = Setting(0.01)
     HSLITPOINTS = Setting(41)
     VSLITPOINTS = Setting(41)
     METHOD = Setting(2)
@@ -64,8 +64,6 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
         #
         #
         #
-
-
         idx += 1
         box1 = gui.widgetBox(box)
         gui.comboBox(box1, self, "USEEMITTANCES",
@@ -154,7 +152,24 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
-        
+
+        #widget index 9 B
+        idx += 1
+        box1 = gui.widgetBox(box)
+        self.id_KH = oasysgui.lineEdit(box1, self, "KH",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 9 C
+        idx += 1
+        box1 = gui.widgetBox(box)
+        self.id_KPHASE = oasysgui.lineEdit(box1, self, "KPHASE",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+
         #widget index 10 
         idx += 1 
         box1 = gui.widgetBox(box) 
@@ -278,7 +293,8 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
     def unitLabels(self):
          return ["Use emittances","Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]",\
                  "Electron Beam Size H [m]", "Electron Beam Size V [m]", "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", \
-                 "Period ID [m]", "Number of periods", "Kv [undulator K value vertical field]",\
+                 "Period ID [m]", "Number of periods", "Kv [K value vertical field]", \
+                 "Kh [K value horizontal field]","Kphase [Phase diff Kh-Kv in rad]",\
                  "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "Number of slit mesh points in H", "Number of slit mesh points in V",\
                  "calculation code",\
                  "modify slit","Rotation around H axis [deg]","Rotation around V axis [deg]","Mask H min [mm]","Mask H max [mm]",'Mask V min [mm]',"Mask V max [mm]",\
@@ -288,6 +304,7 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
          return ["True","True", "self.USEEMITTANCES == 1 and self.METHOD != 1", "True",\
                  "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", \
                  "True", "True", "True",\
+                 "self.METHOD != 0","self.METHOD != 0",\
                  "True", "True", "True", "True", "True",\
                  "True",\
                  "True","self.MASK_FLAG == 1","self.MASK_FLAG == 1","self.MASK_FLAG == 1","self.MASK_FLAG == 1","self.MASK_FLAG == 1","self.MASK_FLAG == 1",\
@@ -308,6 +325,8 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
         self.PERIODID = congruence.checkStrictlyPositiveNumber(self.PERIODID, "Period ID")
         self.NPERIODS = congruence.checkStrictlyPositiveNumber(self.NPERIODS, "Number of Periods")
         self.KV = congruence.checkPositiveNumber(self.KV, "Kv")
+        self.KH = congruence.checkPositiveNumber(self.KH, "Kh")
+        self.KPHASE = congruence.checkNumber(self.KPHASE, "Kphase")
         self.DISTANCE = congruence.checkPositiveNumber(self.DISTANCE, "Distance to slit")
         self.GAPH = congruence.checkPositiveNumber(self.GAPH, "Slit gap H")
         self.GAPV = congruence.checkPositiveNumber(self.GAPV, "Slit gap V")
@@ -372,6 +391,8 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
             "PERIODID":self.PERIODID,
             "NPERIODS":self.NPERIODS,
             "KV":self.KV,
+            "KH": self.KH,
+            "KPHASE": self.KPHASE,
             "DISTANCE":self.DISTANCE,
             "GAPH":self.GAPH,
             "GAPV":self.GAPV,
@@ -387,7 +408,8 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
             "MASK_V_MIN":self.MASK_V_MIN,
             "MASK_V_MAX":self.MASK_V_MAX,
         }
-        return  xoppy_calc_undulator_power_density(ELECTRONENERGY=self.ELECTRONENERGY,
+
+        h, v, p, code =  xoppy_calc_undulator_power_density(ELECTRONENERGY=self.ELECTRONENERGY,
                                                    ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,
                                                    ELECTRONCURRENT=self.ELECTRONCURRENT,
                                                    ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,
@@ -397,6 +419,8 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
                                                    PERIODID=self.PERIODID,
                                                    NPERIODS=self.NPERIODS,
                                                    KV=self.KV,
+                                                   KH=self.KH,
+                                                   KPHASE=self.KPHASE,
                                                    DISTANCE=self.DISTANCE,
                                                    GAPH=self.GAPH,
                                                    GAPV=self.GAPV,
@@ -416,6 +440,89 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
                                                    h5_initialize=True,
                                                    h5_parameters=h5_parameters,
                                                    )
+
+        print(h5_parameters)
+        print(self.script_template().format_map(h5_parameters))
+        # print(">>>>>>>>>>>>>>>{ELECTRONENERGY}<<<<<<<<<<<<<<<\n".format_map(h5_parameters))
+
+
+        return h, v, p, code
+
+    def script_template(self):
+        return """
+#
+# script to make the calculations (created by XOPPY:undulator_spectrum)
+#
+from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_power_density
+h5_parameters = dict()
+h5_parameters["ELECTRONENERGY"]=           {ELECTRONENERGY}
+h5_parameters["ELECTRONENERGYSPREAD"]=     {ELECTRONENERGYSPREAD}
+h5_parameters["ELECTRONCURRENT"]=          {ELECTRONCURRENT}
+h5_parameters["ELECTRONBEAMSIZEH"]=        {ELECTRONBEAMSIZEH}
+h5_parameters["ELECTRONBEAMSIZEV"]=        {ELECTRONBEAMSIZEV}
+h5_parameters["ELECTRONBEAMDIVERGENCEH"]=  {ELECTRONBEAMDIVERGENCEH}
+h5_parameters["ELECTRONBEAMDIVERGENCEV"]=  {ELECTRONBEAMDIVERGENCEV}
+h5_parameters["PERIODID"]=                 {PERIODID}
+h5_parameters["NPERIODS"]=                 {NPERIODS}
+h5_parameters["KV"]=                       {KV}
+h5_parameters["KH"]=                       {KH}
+h5_parameters["KPHASE"]=                   {KPHASE}
+h5_parameters["DISTANCE"]=                 {DISTANCE}
+h5_parameters["GAPH"]=                     {GAPH}
+h5_parameters["GAPV"]=                     {GAPV}
+h5_parameters["HSLITPOINTS"]=              {HSLITPOINTS}
+h5_parameters["VSLITPOINTS"]=              {VSLITPOINTS}
+h5_parameters["METHOD"]=                   {METHOD}
+h5_parameters["USEEMITTANCES"]=            {USEEMITTANCES}
+h5_parameters["MASK_FLAG"]=                {MASK_FLAG}
+h5_parameters["MASK_ROT_H_DEG"]=           {MASK_ROT_H_DEG}
+h5_parameters["MASK_ROT_V_DEG"]=           {MASK_ROT_V_DEG}
+h5_parameters["MASK_H_MIN"]=               {MASK_H_MIN}
+h5_parameters["MASK_H_MAX"]=               {MASK_H_MAX}
+h5_parameters["MASK_V_MIN"]=               {MASK_V_MIN}
+h5_parameters["MASK_V_MAX"]=               {MASK_V_MAX}
+# 
+        
+h, v, p, code = xoppy_calc_undulator_power_density(
+    ELECTRONENERGY           =h5_parameters["ELECTRONENERGY"],
+    ELECTRONENERGYSPREAD     =h5_parameters["ELECTRONENERGYSPREAD"],
+    ELECTRONCURRENT          =h5_parameters["ELECTRONCURRENT"],
+    ELECTRONBEAMSIZEH        =h5_parameters["ELECTRONBEAMSIZEH"],
+    ELECTRONBEAMSIZEV        =h5_parameters["ELECTRONBEAMSIZEV"],
+    ELECTRONBEAMDIVERGENCEH  =h5_parameters["ELECTRONBEAMDIVERGENCEH"],
+    ELECTRONBEAMDIVERGENCEV  =h5_parameters["ELECTRONBEAMDIVERGENCEV"],
+    PERIODID                 =h5_parameters["PERIODID"],
+    NPERIODS                 =h5_parameters["NPERIODS"],
+    KV                       =h5_parameters["KV"],
+    KH                       =h5_parameters["KH"],
+    KPHASE                   =h5_parameters["KPHASE"],
+    DISTANCE                 =h5_parameters["DISTANCE"],
+    GAPH                     =h5_parameters["GAPH"],
+    GAPV                     =h5_parameters["GAPV"],
+    HSLITPOINTS              =h5_parameters["HSLITPOINTS"],
+    VSLITPOINTS              =h5_parameters["VSLITPOINTS"],
+    METHOD                   =h5_parameters["METHOD"],
+    USEEMITTANCES            =h5_parameters["USEEMITTANCES"],
+    MASK_FLAG                =h5_parameters["MASK_FLAG"],
+    MASK_ROT_H_DEG           =h5_parameters["MASK_ROT_H_DEG"],
+    MASK_ROT_V_DEG           =h5_parameters["MASK_ROT_V_DEG"],
+    MASK_H_MIN               =h5_parameters["MASK_H_MIN"],
+    MASK_H_MAX               =h5_parameters["MASK_H_MAX"],
+    MASK_V_MIN               =h5_parameters["MASK_V_MIN"],
+    MASK_V_MAX               =h5_parameters["MASK_V_MAX"],
+    h5_file                  ="",
+    h5_entry_name            ="XOPPY_POWERDENSITY",
+    h5_initialize            =True,
+    h5_parameters            =h5_parameters,
+    )
+# example plot
+from srxraylib.plot.gol import plot_image
+plot_image(p,h,v,xtitle="H [mm]",ytitle="V [mm]",title="Power density W/mm2")
+#
+# end script
+#
+"""
+
 
     def extract_data_from_xoppy_output(self, calculation_output):
         h, v, p, code = calculation_output
@@ -452,6 +559,8 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
                 self.PERIODID = light_source._magnetic_structure._period_length
                 self.NPERIODS = light_source._magnetic_structure._number_of_periods
                 self.KV = light_source._magnetic_structure._K_vertical
+                self.KH = light_source._magnetic_structure._K_horizontal
+                # TODO self.KPHASE = light_source._magnetic_structure._K_vertical
 
                 self.set_enabled(False)
 
@@ -474,6 +583,8 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
                 self.id_PERIODID.setEnabled(True)
                 self.id_NPERIODS.setEnabled(True)
                 self.id_KV.setEnabled(True)
+                self.id_KH.setEnabled(True)
+                self.id_KPHASE.setEnabled(True)
         else:
                 self.id_ELECTRONENERGY.setEnabled(False)
                 self.id_ELECTRONENERGYSPREAD.setEnabled(False)
@@ -485,6 +596,8 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
                 self.id_PERIODID.setEnabled(False)
                 self.id_NPERIODS.setEnabled(False)
                 self.id_KV.setEnabled(False)
+                self.id_KH.setEnabled(False)
+                self.id_KPHASE.setEnabled(False)
 
 
 if __name__ == "__main__":

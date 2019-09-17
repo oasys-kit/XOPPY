@@ -264,14 +264,28 @@ def calc1d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
     cte = codata.e/(2*numpy.pi*codata.electron_mass*codata.c)
     B0 = bl['Kv']/bl['PeriodID']/cte
 
+    try:
+        B0x = bl['Kh']/bl['PeriodID']/cte
+    except:
+        B0x = 0.0
+
+    try:
+        Kphase = bl['Kphase']
+    except:
+        Kphase = 0.0
 
     if srw_max_harmonic_number == None:
         gamma = bl['ElectronEnergy'] / (codata_mee * 1e-3)
 
-        resonance_wavelength = (1 + bl['Kv']**2 / 2.0) / 2 / gamma**2 * bl["PeriodID"]
+        try:
+            Kh = bl['Kh']
+        except:
+            Kh = 0.0
+
+        resonance_wavelength = (1 + (bl['Kv']**2 + Kh**2) / 2.0) / 2 / gamma**2 * bl["PeriodID"]
         resonance_energy = m2ev / resonance_wavelength
 
-        srw_max_harmonic_number = int(photonEnergyMax / resonance_energy * 1.1)
+        srw_max_harmonic_number = int(photonEnergyMax / resonance_energy * 2.5)
         print ("Max harmonic considered:%d ; Resonance energy: %g eV\n"%(srw_max_harmonic_number,resonance_energy))
 
 
@@ -279,25 +293,43 @@ def calc1d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
 
     print('Running SRW (SRWLIB Python)')
 
-    #***********Undulator
-    harmB = srwlib.SRWLMagFldH() #magnetic field harmonic
-    harmB.n = 1 #harmonic number
-    harmB.h_or_v = 'v' #magnetic field plane: horzontal ('h') or vertical ('v')
-    harmB.B = B0 #magnetic field amplitude [T]
+    if B0x == 0:    #*********** Conventional Undulator
+        harmB = srwlib.SRWLMagFldH() #magnetic field harmonic
+        harmB.n = 1 #harmonic number ??? Mostly asymmetry
+        harmB.h_or_v = 'v' #magnetic field plane: horzontal ('h') or vertical ('v')
+        harmB.B = B0 #magnetic field amplitude [T]
+        und = srwlib.SRWLMagFldU([harmB])
+        und.per = bl['PeriodID'] #period length [m]
+        und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
+        #Container of all magnetic field elements
+        magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('d', [0]), srwlib.array('d', [0]), srwlib.array('d', [0]))
+    else:  #***********Undulator (elliptical)
+        magnetic_fields = []
+        magnetic_fields.append(srwlib.SRWLMagFldH(1, 'v',
+                                           _B=B0,
+                                           _ph=0.0,
+                                           _s=1, # 1=symmetrical, -1=antisymmetrical
+                                           _a=1.0))
+        magnetic_fields.append(srwlib.SRWLMagFldH(1, 'h',
+                                           _B=B0x,
+                                           _ph=Kphase,
+                                           _s=1,
+                                           _a=1.0))
+        und = srwlib.SRWLMagFldU(_arHarm=magnetic_fields, _per=bl['PeriodID'], _nPer=bl['NPeriods'])
 
-    und = srwlib.SRWLMagFldU([harmB])
-    und.per = bl['PeriodID'] #period length [m]
-    und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
+        magFldCnt = srwlib.SRWLMagFldC(_arMagFld=[und],
+                                        _arXc=srwlib.array('d', [0.0]),
+                                        _arYc=srwlib.array('d', [0.0]),
+                                        _arZc=srwlib.array('d', [0.0]))
 
-    #Container of all magnetic field elements
-    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('d', [0]), srwlib.array('d', [0]), srwlib.array('d', [0]))
 
     #***********Electron Beam
     eBeam = srwlib.SRWLPartBeam()
     eBeam.Iavg = bl['ElectronCurrent'] #average current [A]
     eBeam.partStatMom1.x = 0. #initial transverse positions [m]
     eBeam.partStatMom1.y = 0.
-    eBeam.partStatMom1.z = 0. #initial longitudinal positions (set in the middle of undulator)
+    # eBeam.partStatMom1.z = 0 #initial longitudinal positions (set in the middle of undulator)
+    eBeam.partStatMom1.z = - bl['PeriodID']*(bl['NPeriods']+4)/2 # initial longitudinal positions (set in the middle of undulator)
     eBeam.partStatMom1.xp = 0 #initial relative transverse velocities
     eBeam.partStatMom1.yp = 0
     eBeam.partStatMom1.gamma = bl['ElectronEnergy']*1e3/codata_mee #relative energy
@@ -420,12 +452,22 @@ def calc1d_urgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnerg
         except:
             pass
 
+    try:
+        Kh = bl['Kh']
+    except:
+        Kh = 0.0
+
+    try:
+        Kphase = bl['Kphase']
+    except:
+        Kphase = 0.0
+
     with open("urgent.inp","wt") as f:
         f.write("%d\n"%(1))               # ITYPE
         f.write("%f\n"%(bl['PeriodID']))  # PERIOD
-        f.write("%f\n"%(0.00000))         #KX
+        f.write("%f\n"%(Kh))         #KX
         f.write("%f\n"%(bl['Kv']))        #KY
-        f.write("%f\n"%(0.00000))         #PHASE
+        f.write("%f\n"%(Kphase*180.0/numpy.pi))         #PHASE
         f.write("%d\n"%(bl['NPeriods']))         #N
 
         f.write("%f\n"%(photonEnergyMin))            #EMIN
@@ -664,7 +706,8 @@ def calc2d_pysru(bl,zero_emittance=False,hSlitPoints=51,vSlitPoints=51,
 
 
 
-def calc2d_srw(bl,zero_emittance=False,hSlitPoints=101,vSlitPoints=51,srw_max_harmonic_number=21,
+def calc2d_srw(bl,zero_emittance=False,hSlitPoints=101,vSlitPoints=51,
+              srw_max_harmonic_number=51, # Not needed, kept for eventual compatibility
               fileName=None,fileAppend=False,):
 
     r"""
@@ -677,31 +720,53 @@ def calc2d_srw(bl,zero_emittance=False,hSlitPoints=101,vSlitPoints=51,srw_max_ha
     global scanCounter
     print("Inside calc2d_srw")
     #Maximum number of harmonics considered. This is critical for speed.
-    #TODO: set it automatically to a reasonable value (see how is done by Urgent).
-    Nmax = srw_max_harmonic_number # 21,61
-    #derived
-    #TODO calculate the numerical factor using codata
-    # B0 = bl['Kv']/0.934/(bl['PeriodID']*1e2)
+
     cte = codata.e/(2*numpy.pi*codata.electron_mass*codata.c)
     B0 = bl['Kv']/bl['PeriodID']/cte
 
+    try:
+        B0x = bl['Kh'] / bl['PeriodID'] / cte
+    except:
+        B0x = 0.0
+
+    try:
+        Kphase = bl['Kphase']
+    except:
+        Kphase = 0.0
+
     print('Running SRW (SRWLIB Python)')
 
-    #***********Undulator
-    harmB = None
-    harmB = srwlib.SRWLMagFldH() #magnetic field harmonic
-    harmB.n = 1 #harmonic number
-    harmB.h_or_v = 'v' #magnetic field plane: horzontal ('h') or vertical ('v')
-    harmB.B = B0 #magnetic field amplitude [T]
+    if B0x == 0:    #*********** Conventional Undulator
+        harmB = srwlib.SRWLMagFldH() #magnetic field harmonic
+        harmB.n = 1 #harmonic number ??? Mostly asymmetry
+        harmB.h_or_v = 'v' #magnetic field plane: horzontal ('h') or vertical ('v')
+        harmB.B = B0 #magnetic field amplitude [T]
+        und = srwlib.SRWLMagFldU([harmB])
+        und.per = bl['PeriodID']  # period length [m]
+        und.nPer = bl['NPeriods']  # number of periods (will be rounded to integer)
 
-    und = None
-    und = srwlib.SRWLMagFldU([harmB])
-    und.per = bl['PeriodID'] #period length [m]
-    und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
+        magFldCnt = None
+        magFldCnt = srwlib.SRWLMagFldC([und], array.array('d', [0]), array.array('d', [0]), array.array('d', [0]))
+    else:  #***********Undulator (elliptical)
 
-    #Container of all magnetic field elements
-    magFldCnt = None
-    magFldCnt = srwlib.SRWLMagFldC([und], array.array('d', [0]), array.array('d', [0]), array.array('d', [0]))
+        magnetic_fields = []
+        magnetic_fields.append(srwlib.SRWLMagFldH(1, 'v',
+                                           _B=B0,
+                                           _ph=0.0,
+                                           _s=1, # 1=symmetrical, -1=antisymmetrical
+                                           _a=1.0))
+        magnetic_fields.append(srwlib.SRWLMagFldH(1, 'h',
+                                           _B=B0x,
+                                           _ph=Kphase,
+                                           _s=1,
+                                           _a=1.0))
+        und = srwlib.SRWLMagFldU(_arHarm=magnetic_fields, _per=bl['PeriodID'], _nPer=bl['NPeriods'])
+
+        magFldCnt = srwlib.SRWLMagFldC(_arMagFld=[und],
+                                        _arXc=srwlib.array('d', [0.0]),
+                                        _arYc=srwlib.array('d', [0.0]),
+                                        _arZc=srwlib.array('d', [0.0]))
+
 
     #***********Electron Beam
     eBeam = None
@@ -709,10 +774,12 @@ def calc2d_srw(bl,zero_emittance=False,hSlitPoints=101,vSlitPoints=51,srw_max_ha
     eBeam.Iavg = bl['ElectronCurrent'] #average current [A]
     eBeam.partStatMom1.x  = 0. #initial transverse positions [m]
     eBeam.partStatMom1.y  = 0.
-    eBeam.partStatMom1.z  = 0. #initial longitudinal positions (set in the middle of undulator)
+    # eBeam.partStatMom1.z  = 0. #initial longitudinal positions (set in the middle of undulator)
+    eBeam.partStatMom1.z = - bl['PeriodID']*(bl['NPeriods']+4)/2 # initial longitudinal positions (set in the middle of undulator)
     eBeam.partStatMom1.xp = 0. #initial relative transverse velocities
     eBeam.partStatMom1.yp = 0.
     eBeam.partStatMom1.gamma = bl['ElectronEnergy']*1e3/codata_mee #relative energy
+
 
     if zero_emittance:
         sigEperE = 1e-25
@@ -808,6 +875,7 @@ def calc2d_srw(bl,zero_emittance=False,hSlitPoints=101,vSlitPoints=51,srw_max_ha
             powerArray[i,j] = stkP.arS[ij]
             hArray[i] = xx*1e3 # mm
             vArray[j] = yy*1e3 # mm
+
 
     # dump
     if fileName is not None:
@@ -1044,13 +1112,22 @@ def calc2d_urgent(bl,zero_emittance=False,fileName=None,fileAppend=False,hSlitPo
             os.remove(os.path.join(locations.home_bin_run(),file))
         except:
             pass
+    try:
+        Kh = bl['Kh']
+    except:
+        Kh = 0.0
+
+    try:
+        Kphase = bl['Kphase']
+    except:
+        Kphase = 0.0
 
     with open("urgent.inp","wt") as f:
         f.write("%d\n"%(1))               # ITYPE
         f.write("%f\n"%(bl['PeriodID']))  # PERIOD
-        f.write("%f\n"%(0.00000))         #KX
+        f.write("%f\n"%(Kh))         #KX
         f.write("%f\n"%(bl['Kv']))        #KY
-        f.write("%f\n"%(0.00000))         #PHASE
+        f.write("%f\n"%(Kphase*180.0/numpy.pi))         #PHASE
         f.write("%d\n"%(bl['NPeriods']))         #N
 
         f.write("1000.0\n")                #EMIN
@@ -2608,7 +2685,7 @@ def calculate_power(bl):
 def main(radiance=True,flux=True,flux_from_3d=True,power_density=True):
 
     #
-    # example fig 2-5 in X-ray Data Booklet
+    # example fig 2-5 in X-ray Data Booklet #####################################################################
     #
 
     beamline = {}
@@ -2627,9 +2704,33 @@ def main(radiance=True,flux=True,flux_from_3d=True,power_density=True):
     beamline['gapH']      = 0.002*1e2 #0.001
     beamline['gapV']      = 0.002*1e2 #0.001
 
+    # beamline['Kh'] = 1.87
+    # beamline['Kphase'] = numpy.pi/3  # Phase of h component in rad (phase of v is zero)
 
     zero_emittance = True
 
+    # # example 6 in SRW ####################################################################################
+    #
+    # beamline = {}
+    # beamline['name'] = "SRW_EXAMPLE6"
+    # beamline['ElectronBeamDivergenceH'] = 1.65e-05
+    # beamline['ElectronBeamDivergenceV'] = 2.7472e-06
+    # beamline['ElectronBeamSizeH'] = 33.33e-6
+    # beamline['ElectronBeamSizeV'] = 2.912e-06
+    # beamline['ElectronEnergySpread'] = 0.00089
+    # beamline['ElectronCurrent'] = 0.5
+    # beamline['ElectronEnergy'] = 3.0
+    # beamline['Kv'] = 1.868
+    # beamline['NPeriods'] = 150
+    # beamline['PeriodID'] = 0.02
+    # beamline['distance'] = 30.0
+    # beamline['gapH'] = 0.04
+    # beamline['gapV'] = 0.03
+    #
+    # beamline['Kh'] = 1.868
+    # beamline['Kphase'] = 1.5  # Phase of h component in rad (phase of v is zero)
+    #
+    # zero_emittance = True
 
 
     #
@@ -2662,4 +2763,4 @@ def main(radiance=True,flux=True,flux_from_3d=True,power_density=True):
         plot_power_density(out)
 
 if __name__ == '__main__':
-    main(radiance=True,flux=False,flux_from_3d=False,power_density=False)
+    main(radiance=False,flux=True,flux_from_3d=False,power_density=True)

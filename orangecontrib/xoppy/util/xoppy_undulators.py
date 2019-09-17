@@ -20,7 +20,7 @@ codata_mee = codata.codata.physical_constants["electron mass energy equivalent i
 def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
                               ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
                               ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
-                              PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
+                              PERIODID=0.018,NPERIODS=222,KV=1.68,KH=0.0,KPHASE=0.0,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
                               PHOTONENERGYMIN=3000.0,PHOTONENERGYMAX=55000.0,PHOTONENERGYPOINTS=500,METHOD=2,
                               USEEMITTANCES=1):
     print("Inside xoppy_calc_undulator_spectrum. ")
@@ -34,6 +34,8 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
     bl['ElectronEnergy'] = ELECTRONENERGY
     bl['ElectronEnergySpread'] = ELECTRONENERGYSPREAD
     bl['Kv'] = KV
+    bl['Kh'] = KH
+    bl['Kphase'] = KPHASE
     bl['NPeriods'] = NPERIODS
     bl['PeriodID'] = PERIODID
     bl['distance'] = DISTANCE
@@ -52,7 +54,7 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
     gamma = bl['ElectronEnergy'] * 1e9 / codata_mee
 
     m2ev = codata.c * codata.h / codata.e      # lambda(m)  = m2eV / energy(eV)
-    resonance_wavelength = (1 + bl['Kv']**2 / 2.0) / 2 / gamma**2 * bl["PeriodID"]
+    resonance_wavelength = (1 + (bl['Kv']**2 + bl['Kh']**2) / 2.0) / 2 / gamma**2 * bl["PeriodID"]
     resonance_energy = m2ev / resonance_wavelength
     print ("Gamma: %f \n"%(gamma))
     print ("Resonance wavelength [A]: %g \n"%(1e10*resonance_wavelength))
@@ -60,7 +62,7 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
 
 
     ptot = (NPERIODS/6) * codata.value('characteristic impedance of vacuum') * \
-           ELECTRONCURRENT * codata.e * 2 * numpy.pi * codata.c * gamma**2 * KV**2 / PERIODID
+           ELECTRONCURRENT * codata.e * 2 * numpy.pi * codata.c * gamma**2 * (KV**2+KH**2) / PERIODID
     print ("\nTotal power radiated by the undulator with fully opened slits [W]: %g \n"%(ptot))
 
 
@@ -78,7 +80,7 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
         print("\nCheck calculation output at: %s"%(os.path.join(os.getcwd(),"urgent.out")))
     if METHOD == 2:
         # get the maximum harmonic number
-        h_max = int(1.1*PHOTONENERGYMAX/resonance_energy)
+        h_max = int(2.5*PHOTONENERGYMAX/resonance_energy)
 
         print ("Number of harmonics considered: %d \n"%(h_max))
         print("Undulator flux calculation using SRW. Please wait...")
@@ -108,7 +110,7 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
 def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
                                        ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
                                        ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
-                                       PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
+                                       PERIODID=0.018,NPERIODS=222,KV=1.68,KH=0.0,KPHASE=0.0,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
                                        HSLITPOINTS=101,VSLITPOINTS=51,METHOD=2,USEEMITTANCES=1,
                                        MASK_FLAG=0,
                                        MASK_ROT_H_DEG=0.0,MASK_ROT_V_DEG=0.0,
@@ -127,6 +129,8 @@ def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=
     bl['ElectronEnergy'] = ELECTRONENERGY
     bl['ElectronEnergySpread'] = ELECTRONENERGYSPREAD
     bl['Kv'] = KV
+    bl['Kh'] = KH
+    bl['Kphase'] = KPHASE
     bl['NPeriods'] = NPERIODS
     bl['PeriodID'] = PERIODID
     bl['distance'] = DISTANCE
@@ -166,7 +170,7 @@ def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=
     codata_mee = codata.m_e * codata.c**2 / codata.e # electron mass in eV
     gamma = ELECTRONENERGY * 1e9 / codata_mee
     ptot = (NPERIODS/6) * codata.value('characteristic impedance of vacuum') * \
-           ELECTRONCURRENT * codata.e * 2 * numpy.pi * codata.c * gamma**2 * KV**2 / PERIODID
+           ELECTRONCURRENT * codata.e * 2 * numpy.pi * codata.c * gamma**2 * (KV**2 + KH**2)/ PERIODID
     print ("\nTotal power radiated by the undulator with fully opened slits [W]: %g \n"%(ptot))
 
 
@@ -252,7 +256,7 @@ def xoppy_calc_undulator_power_density(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=
 def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
                                        ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
                                        ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
-                                       PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,
+                                       PERIODID=0.018,NPERIODS=222,KV=1.68,KH=0.0,KPHASE=0.0,DISTANCE=30.0,
                                        SETRESONANCE=0,HARMONICNUMBER=1,
                                        GAPH=0.003,GAPV=0.003,\
                                        HSLITPOINTS=41,VSLITPOINTS=41,METHOD=2,
@@ -270,6 +274,8 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
     bl['ElectronEnergy'] = ELECTRONENERGY
     bl['ElectronEnergySpread'] = ELECTRONENERGYSPREAD
     bl['Kv'] = KV
+    bl['Kh'] = KH
+    bl['Kphase'] = KPHASE
     bl['NPeriods'] = NPERIODS
     bl['PeriodID'] = PERIODID
     bl['distance'] = DISTANCE
@@ -284,15 +290,15 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
     gamma = ELECTRONENERGY / (codata_mee * 1e-3)
 
 
-    resonance_wavelength = (1 + bl['Kv']**2 / 2.0) / 2 / gamma**2 * bl["PeriodID"]
+    resonance_wavelength = (1 + (bl['Kv']**2 + bl['Kh']**2)/ 2.0) / 2 / gamma**2 * bl["PeriodID"]
     m2ev = codata.c * codata.h / codata.e      # lambda(m)  = m2eV / energy(eV)
     resonance_energy = m2ev / resonance_wavelength
 
-    resonance_central_cone = 1.0/gamma*numpy.sqrt( (1+0.5*KV**2)/(2*NPERIODS*HARMONICNUMBER) )
+    resonance_central_cone = 1.0/gamma*numpy.sqrt( (1+0.5*(KV**2+KH**2))/(2*NPERIODS*HARMONICNUMBER) )
 
     ring_order = 1
 
-    resonance_ring = 1.0/gamma*numpy.sqrt( ring_order / HARMONICNUMBER * (1+0.5*KV**2) )
+    resonance_ring = 1.0/gamma*numpy.sqrt( ring_order / HARMONICNUMBER * (1+0.5*(KV**2+KH**2)) )
 
     # autoset energy
     if SETRESONANCE == 0:
@@ -373,7 +379,7 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
     print("Done")
 
     ptot = (NPERIODS/6) * codata.value('characteristic impedance of vacuum') * \
-           ELECTRONCURRENT * codata.e * 2 * numpy.pi * codata.c * gamma**2 * KV**2 / PERIODID
+           ELECTRONCURRENT * codata.e * 2 * numpy.pi * codata.c * gamma**2 * (KV**2 + KH**2)/ PERIODID
     print ("\nTotal power radiated by the undulator with fully opened slits [W]: %f \n"%(ptot))
 
 

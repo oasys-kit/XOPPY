@@ -37,6 +37,8 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
     PERIODID = Setting(0.018)
     NPERIODS = Setting(222)
     KV = Setting(1.68)
+    KH = Setting(0.0)
+    KPHASE = Setting(0.0)
     DISTANCE = Setting(30.0)
     GAPH = Setting(0.001)
     GAPV = Setting(0.001)
@@ -151,6 +153,25 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
+        #widget index 9B
+        idx += 1
+        box1 = gui.widgetBox(box)
+        self.id_KH = oasysgui.lineEdit(box1, self, "KH",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 9C
+        idx += 1
+        box1 = gui.widgetBox(box)
+        self.id_KPHASE = oasysgui.lineEdit(box1, self, "KPHASE",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+
+
+
         #widget index 10
         idx += 1
         box1 = gui.widgetBox(box)
@@ -210,10 +231,22 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
 
 
     def unitLabels(self):
-         return ["Use emittances","Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]", "Electron Beam Size H [m]", "Electron Beam Size V [m]", "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", "Period ID [m]", "Number of periods", "Kv [undulator K value vertical field]", "Distance to slit [m]", "Slit gap H [m]", "Slit gap V [m]", "photon Energy Min [eV]", "photon Energy Max [eV]", "photon Energy Points", "calculation code"]
+         return ["Use emittances","Electron Energy [GeV]", "Electron Energy Spread",
+                 "Electron Current [A]", "Electron Beam Size H [m]", "Electron Beam Size V [m]",
+                 "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", "Period ID [m]",
+                 "Number of periods", "Kv [K value vertical field]", "Kh [K value horizontal field]",
+                 "Kphase [phase diff Kh - Kv in rad]","Distance to slit [m]","Slit gap H [m]",
+                 "Slit gap V [m]", "photon Energy Min [eV]","photon Energy Max [eV]",
+                 "photon Energy Points", "calculation code"]
 
     def unitFlags(self):
-         return ["True", "True", "self.USEEMITTANCES == 1 and self.METHOD != 1", "True", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "True", "True", "True", "True", "True", "True", "True", "True", "True", "True"]
+         return ["True", "True", "self.USEEMITTANCES == 1 and self.METHOD != 1",
+                 "True", "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1",
+                 "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1", "True",
+                 "True", "True", "self.METHOD != 0",
+                 "self.METHOD != 0","True", "True",
+                 "True", "True", "True",
+                 "True", "True"]
 
     def get_help_name(self):
         return 'undulator_spectrum'
@@ -229,6 +262,8 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
         self.PERIODID = congruence.checkStrictlyPositiveNumber(self.PERIODID, "Period ID")
         self.NPERIODS = congruence.checkStrictlyPositiveNumber(self.NPERIODS, "Number of Periods")
         self.KV = congruence.checkPositiveNumber(self.KV, "Kv")
+        self.KH = congruence.checkPositiveNumber(self.KH, "Kh")
+        self.KPHASE = congruence.checkNumber(self.KPHASE, "KPHASE")
         self.DISTANCE = congruence.checkPositiveNumber(self.DISTANCE, "Distance to slit")
         self.GAPH = congruence.checkPositiveNumber(self.GAPH, "Slit gap H")
         self.GAPV = congruence.checkPositiveNumber(self.GAPV, "Slit gap V")
@@ -254,6 +289,8 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
                                              PERIODID=self.PERIODID,
                                              NPERIODS=self.NPERIODS,
                                              KV=self.KV,
+                                             KH=self.KH,
+                                             KPHASE=self.KPHASE,
                                              DISTANCE=self.DISTANCE,
                                              GAPH=self.GAPH,
                                              GAPV=self.GAPV,
@@ -275,6 +312,8 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
             "PERIODID" : self.PERIODID,
             "NPERIODS" : self.NPERIODS,
             "KV" : self.KV,
+            "KH": self.KH,
+            "KPHASE": self.KPHASE,
             "DISTANCE" : self.DISTANCE,
             "GAPH" : self.GAPH,
             "GAPV" : self.GAPV,
@@ -307,6 +346,8 @@ energy, flux, spectral_power, cumulated_power = xoppy_calc_undulator_spectrum(
     PERIODID={PERIODID},
     NPERIODS={NPERIODS},
     KV={KV},
+    KH={KH},
+    KPHASE={KPHASE},
     DISTANCE={DISTANCE},
     GAPH={GAPH},
     GAPV={GAPV},
@@ -382,6 +423,8 @@ plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [e
                 self.PERIODID = light_source._magnetic_structure._period_length
                 self.NPERIODS = int(light_source._magnetic_structure._number_of_periods)
                 self.KV = light_source._magnetic_structure._K_vertical
+                self.KH = light_source._magnetic_structure._K_horizontal
+                self.KPHASE = 0.0 # TODO  light_source._magnetic_structure._K_vertical
 
                 self.set_enabled(False)
 
@@ -404,6 +447,8 @@ plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [e
                 self.id_PERIODID.setEnabled(True)
                 self.id_NPERIODS.setEnabled(True)
                 self.id_KV.setEnabled(True)
+                self.id_KH.setEnabled(True)
+                self.id_KPHASE.setEnabled(True)
         else:
                 self.id_ELECTRONENERGY.setEnabled(False)
                 self.id_ELECTRONENERGYSPREAD.setEnabled(False)
@@ -415,6 +460,8 @@ plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [e
                 self.id_PERIODID.setEnabled(False)
                 self.id_NPERIODS.setEnabled(False)
                 self.id_KV.setEnabled(False)
+                self.id_KH.setEnabled(False)
+                self.id_KPHASE.setEnabled(False)
 
 
 
