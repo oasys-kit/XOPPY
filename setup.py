@@ -8,7 +8,7 @@ except AttributeError:
     from setuptools import find_packages, setup
 
 NAME = 'OASYS1-XOPPY'
-VERSION = '1.0.44'
+VERSION = '1.0.45'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
@@ -60,11 +60,7 @@ ENTRY_POINTS = {
         "XOPPY Sources = orangecontrib.xoppy.widgets.source",
         "XOPPY Optics = orangecontrib.xoppy.widgets.optics",
     ),
-    #'oasys.menus' : ("xoppymenu = orangecontrib.xoppy.menu",)
 }
-
-import site, shutil, sys
-
 
 if __name__ == '__main__':
     is_beta = False
@@ -88,7 +84,7 @@ if __name__ == '__main__':
               classifiers = CLASSIFIERS,
               packages = PACKAGES,
               package_data = PACKAGE_DATA,
-              #          py_modules = PY_MODULES,
+              #py_modules = PY_MODULES,
               setup_requires = SETUP_REQUIRES,
               install_requires = INSTALL_REQUIRES,
               #extras_require = EXTRAS_REQUIRE,
@@ -99,4 +95,4 @@ if __name__ == '__main__':
               zip_safe = False,
               )
 
-        if is_beta: raise NotImplementedError("This version of XOPPY doesn't work with Oasys1 beta.\nPlease install OASYS1 final release: http://www.elettra.eu/oasys.html")
+        if is_beta: raise NotImplementedError("This version of XOPPY doesn't work with Oasys1 beta.\nPlease install OASYS1 final release.")

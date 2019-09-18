@@ -49,6 +49,9 @@ class OWtc_slit(XoppyWidget):
 
     inputs = WidgetDecorator.syned_input_data()
 
+    def __init__(self):
+        super().__init__(show_script_tab=True)
+
     def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
@@ -470,7 +473,8 @@ class OWtc_slit(XoppyWidget):
             'do_plot_peaks'           : False,
             'code'                    : code,
             }
-        print(self.script_template().format_map(dict_parameters))
+
+        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
 
 
         return K_scan,harmonics,power_array,energy_values_at_flux_peak,flux_values
@@ -508,7 +512,10 @@ K_scan,harmonics,power_array, energy_values_at_flux_peak,flux_values = srundplug
     zero_emittance={zero_emittance},
     do_plot_peaks={do_plot_peaks},
     code="{code}")
-                    
+      
+from srxraylib.plot.gol import plot
+plot(energy_values_at_flux_peak,flux_values,xtitle="Photon energy [eV]",ytitle="Flux on slit [photons/s/0.1%bw]")
+              
 #
 # end script
 #

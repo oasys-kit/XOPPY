@@ -15,6 +15,7 @@ from orangecontrib.xoppy.util.script.python_script import PythonConsole
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 from PyQt5 import QtWidgets
+from orangecontrib.xoppy.util.python_script import PythonScript
 
 class OWmare(XoppyWidget):
     name = "MARE"
@@ -210,8 +211,18 @@ class OWmare(XoppyWidget):
     def getTitles(self):
         titles = []
 
+        #'Spaghetti', 'Spaghetti+Umweg', 'Spaghetti+Glitches', 'All'
+        if self.DISPLAY == 0:
+            what = ["Spaghetti"]
+        elif self.DISPLAY == 1:
+            what = ["Spaghetti","Umweg"]
+        elif self.DISPLAY == 2:
+            what = ["Spaghetti", "Glitches"]
+        elif self.DISPLAY == 3:
+            what = ["Spaghetti", "Umweg","Glitches"]
+
         for index in range(0, self.number_of_scripts):
-            titles.append("Python script #" + str(index+1))
+            titles.append("Python script # %d (%s)"%(index+1,what[index]) )
 
         return titles
 
@@ -247,65 +258,20 @@ class OWmare(XoppyWidget):
 
     def write_script(self, script, progressBarValue, tabs_canvas_index, plot_canvas_index):
         if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = QtWidgets.QTextEdit(self.tab[tabs_canvas_index])
+            # self.plot_canvas[plot_canvas_index] = QtWidgets.QTextEdit(self.tab[tabs_canvas_index])
+            #SRIOSRIO
+            self.plot_canvas[plot_canvas_index] = PythonScript()
+            self.plot_canvas[plot_canvas_index].code_area.setFixedHeight(400)
             #TO DO: get it working with PythonWidget!!!
             # self.plot_canvas[plot_canvas_index] = PythonWidget(self.tab[tabs_canvas_index])
             self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
         script1 = script.replace("nan", "numpy.nan")
-        self.plot_canvas[plot_canvas_index].setText(script1)
+        # self.plot_canvas[plot_canvas_index].setText(script1)
+        self.plot_canvas[plot_canvas_index].set_code(script1)
         exec(script1)
         self.progressBarSet(progressBarValue)
 
-# class PythonWidget(QWidget):
-#     def __init__(self, parent):
-#         super().__init__(parent)
-#
-#         self.pythonScript = QTextEdit()
-#         self.pythonScript.setReadOnly(False)  # asked by Manolo
-#         self.pythonScript.setMaximumHeight(340)
-#
-#         script_box = oasysgui.widgetBox(self, "", addSpace=False, orientation="vertical", height=545, width=750)
-#         script_box.layout().addWidget(self.pythonScript)
-#
-#         console_box = oasysgui.widgetBox(script_box, "", addSpace=False, orientation="vertical", height=150, width=750)
-#
-#         self.console = PythonConsole(self.__dict__, self)
-#         console_box.layout().addWidget(self.console)
-#
-#         button_box = oasysgui.widgetBox(script_box, "", addSpace=False, orientation="horizontal")
-#
-#         gui.button(button_box, self, "Run Script", callback=self.execute_script, height=35)
-#         gui.button(button_box, self, "Save Script to File", callback=self.save_script, height=35)
-#
-#     def execute_script(self):
-#         self._script = str(self.pythonScript.toPlainText())
-#         self.console.write("\nRunning script:\n")
-#         self.console.push("exec(_script)")
-#         self.console.new_prompt(sys.ps1)
-#
-#     def save_script(self):
-#         file_name = QFileDialog.getSaveFileName(self, "Save File to Disk", ".", "*.py")[0]
-#
-#         if not file_name is None:
-#             if not file_name.strip() == "":
-#                 file = open(file_name, "w")
-#                 file.write(str(self.pythonScript.toPlainText()))
-#                 file.close()
-#
-#                 QMessageBox.information(self, "QMessageBox.information()",
-#                                               "File " + file_name + " written to disk",
-#                                               QMessageBox.Ok)
-#
-#     def setText(self, text):
-#         self.pythonScript.clear()
-#         self.pythonScript.setText(self.parse_nans(text))
-#
-#     def parse_nans(self, text):
-#         return text.replace("nan", "numpy.nan")
-
-# --------------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

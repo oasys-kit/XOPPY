@@ -49,6 +49,9 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
 
     inputs = WidgetDecorator.syned_input_data()
 
+    def __init__(self):
+        super().__init__(show_script_tab=True)
+
     def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
@@ -325,7 +328,9 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
         }
 
 
-        print(self.script_template().format_map(dict_parameters))
+        # print(self.script_template().format_map(dict_parameters))
+
+        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
 
         return energy, flux, spectral_power, cumulated_power
 

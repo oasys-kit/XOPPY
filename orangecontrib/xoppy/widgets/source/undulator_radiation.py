@@ -70,6 +70,9 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
 
     inputs = WidgetDecorator.syned_input_data()
 
+    def __init__(self):
+        super().__init__(show_script_tab=True)
+
     def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
@@ -553,8 +556,8 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         }
 
 
-        # write python script in standard output
-        print(self.script_template().format_map(dict_parameters))
+        # write python script
+        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
 
         return xoppy_calc_undulator_radiation(
                 ELECTRONENERGY           = self.ELECTRONENERGY,
@@ -592,6 +595,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
 # script to make the calculations (created by XOPPY:undulator_radiation)
 #
 from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_radiation
+
 e, h, v, p, code = xoppy_calc_undulator_radiation(
         ELECTRONENERGY           = {ELECTRONENERGY},
         ELECTRONENERGYSPREAD     = {ELECTRONENERGYSPREAD},
@@ -622,7 +626,7 @@ e, h, v, p, code = xoppy_calc_undulator_radiation(
 
 # example plot
 from srxraylib.plot.gol import plot_image
-plot_image(p[0],h,v,title="Flux [photons/s] per 0.1 bw per mm2 at %f eV"%({PHOTONENERGYMIN}),xtitle="H [mm]",ytitle="V [mm]")
+plot_image(p[0],h,v,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%({PHOTONENERGYMIN}),xtitle="H [mm]",ytitle="V [mm]")
 #
 # end script
 #

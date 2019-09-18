@@ -51,6 +51,10 @@ class OWbm(XoppyWidget, WidgetDecorator):
     PSI_NPOINTS = Setting(500)
     FILE_DUMP = Setting(0)
 
+    def __init__(self):
+        super().__init__(show_script_tab=True)
+
+
     def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
@@ -342,7 +346,8 @@ class OWbm(XoppyWidget, WidgetDecorator):
             "PSI_NPOINTS"     : self.PSI_NPOINTS,
             "FILE_DUMP"       : self.FILE_DUMP,
             }
-        print(self.script_template().format_map(dict_parameters))
+
+        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
 
         return a6_T, fm, a, energy_ev
 

@@ -23,6 +23,7 @@ from oasys.widgets.exchange import DataExchangeObject
 from oasys.util.oasys_util import EmittingStream
 
 from orangecontrib.xoppy.util.xoppy_util import xoppy_doc, XoppyPlot
+from orangecontrib.xoppy.util.python_script import PythonScript
 
 class XoppyWidget(widget.OWWidget):
     author = "Manuel Sanchez del Rio, Luca Rebuffi"
@@ -44,7 +45,7 @@ class XoppyWidget(widget.OWWidget):
 
     want_main_area = 1
 
-    def __init__(self):
+    def __init__(self,show_script_tab=False):
         super().__init__()
 
         self.runaction = OWAction("Compute", self)
@@ -78,8 +79,9 @@ class XoppyWidget(widget.OWWidget):
 
         self.main_tabs = oasysgui.tabWidget(self.mainArea)
         plot_tab = oasysgui.createTabPage(self.main_tabs, "Results")
-        out_tab = oasysgui.createTabPage(self.main_tabs, "Output")
 
+
+        #results tab
         view_box = oasysgui.widgetBox(plot_tab, "Results Options", addSpace=False, orientation="horizontal")
         view_box_1 = oasysgui.widgetBox(view_box, "", addSpace=False, orientation="vertical", width=350)
 
@@ -88,19 +90,34 @@ class XoppyWidget(widget.OWWidget):
                                             items=["No", "Yes"],
                                             callback=self.set_ViewType, sendSelectedValue=False, orientation="horizontal")
 
-        self.tab = []
         self.tabs = oasysgui.tabWidget(plot_tab)
 
+        self.tab = []
         self.initializeTabs()
 
+        #output tab
+        out_tab = oasysgui.createTabPage(self.main_tabs, "Output")
         self.xoppy_output = QtWidgets.QTextEdit()
         self.xoppy_output.setReadOnly(True)
 
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.xoppy_output)
 
-        self.xoppy_output.setFixedHeight(600)
-        self.xoppy_output.setFixedWidth(600)
+        # self.xoppy_output.setFixedHeight(600)
+        # self.xoppy_output.setFixedWidth(600)
+
+        if show_script_tab:
+
+            # script tab
+            script_tab = oasysgui.createTabPage(self.main_tabs, "Script")
+            self.xoppy_script = PythonScript()
+            self.xoppy_script.code_area.setFixedHeight(400)
+
+            script_box = gui.widgetBox(script_tab, "Python script", addSpace=True, orientation="horizontal")
+            script_box.layout().addWidget(self.xoppy_script)
+
+            # self.xoppy_script.setFixedHeight(600)
+            # self.xoppy_script.setFixedWidth(600)
 
         self.current_tab = -1
 

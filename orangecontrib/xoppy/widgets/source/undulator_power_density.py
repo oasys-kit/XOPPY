@@ -55,6 +55,8 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
     H5_FILE_DUMP=Setting(0)
     inputs = WidgetDecorator.syned_input_data()
 
+    def __init__(self):
+        super().__init__(show_script_tab=True)
 
     def build_gui(self):
 
@@ -407,6 +409,7 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
             "MASK_H_MAX":self.MASK_H_MAX,
             "MASK_V_MIN":self.MASK_V_MIN,
             "MASK_V_MAX":self.MASK_V_MAX,
+            "H5FILE": h5_file,
         }
 
         h, v, p, code =  xoppy_calc_undulator_power_density(ELECTRONENERGY=self.ELECTRONENERGY,
@@ -441,10 +444,7 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
                                                    h5_parameters=h5_parameters,
                                                    )
 
-        print(h5_parameters)
-        print(self.script_template().format_map(h5_parameters))
-        # print(">>>>>>>>>>>>>>>{ELECTRONENERGY}<<<<<<<<<<<<<<<\n".format_map(h5_parameters))
-
+        self.xoppy_script.set_code(self.script_template().format_map(h5_parameters))
 
         return h, v, p, code
 
@@ -454,6 +454,7 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
 # script to make the calculations (created by XOPPY:undulator_spectrum)
 #
 from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_power_density
+
 h5_parameters = dict()
 h5_parameters["ELECTRONENERGY"]=           {ELECTRONENERGY}
 h5_parameters["ELECTRONENERGYSPREAD"]=     {ELECTRONENERGYSPREAD}
@@ -481,39 +482,39 @@ h5_parameters["MASK_H_MIN"]=               {MASK_H_MIN}
 h5_parameters["MASK_H_MAX"]=               {MASK_H_MAX}
 h5_parameters["MASK_V_MIN"]=               {MASK_V_MIN}
 h5_parameters["MASK_V_MAX"]=               {MASK_V_MAX}
-# 
+
         
 h, v, p, code = xoppy_calc_undulator_power_density(
-    ELECTRONENERGY           =h5_parameters["ELECTRONENERGY"],
-    ELECTRONENERGYSPREAD     =h5_parameters["ELECTRONENERGYSPREAD"],
-    ELECTRONCURRENT          =h5_parameters["ELECTRONCURRENT"],
-    ELECTRONBEAMSIZEH        =h5_parameters["ELECTRONBEAMSIZEH"],
-    ELECTRONBEAMSIZEV        =h5_parameters["ELECTRONBEAMSIZEV"],
-    ELECTRONBEAMDIVERGENCEH  =h5_parameters["ELECTRONBEAMDIVERGENCEH"],
-    ELECTRONBEAMDIVERGENCEV  =h5_parameters["ELECTRONBEAMDIVERGENCEV"],
-    PERIODID                 =h5_parameters["PERIODID"],
-    NPERIODS                 =h5_parameters["NPERIODS"],
-    KV                       =h5_parameters["KV"],
-    KH                       =h5_parameters["KH"],
-    KPHASE                   =h5_parameters["KPHASE"],
-    DISTANCE                 =h5_parameters["DISTANCE"],
-    GAPH                     =h5_parameters["GAPH"],
-    GAPV                     =h5_parameters["GAPV"],
-    HSLITPOINTS              =h5_parameters["HSLITPOINTS"],
-    VSLITPOINTS              =h5_parameters["VSLITPOINTS"],
-    METHOD                   =h5_parameters["METHOD"],
-    USEEMITTANCES            =h5_parameters["USEEMITTANCES"],
-    MASK_FLAG                =h5_parameters["MASK_FLAG"],
-    MASK_ROT_H_DEG           =h5_parameters["MASK_ROT_H_DEG"],
-    MASK_ROT_V_DEG           =h5_parameters["MASK_ROT_V_DEG"],
-    MASK_H_MIN               =h5_parameters["MASK_H_MIN"],
-    MASK_H_MAX               =h5_parameters["MASK_H_MAX"],
-    MASK_V_MIN               =h5_parameters["MASK_V_MIN"],
-    MASK_V_MAX               =h5_parameters["MASK_V_MAX"],
-    h5_file                  ="",
-    h5_entry_name            ="XOPPY_POWERDENSITY",
-    h5_initialize            =True,
-    h5_parameters            =h5_parameters,
+    ELECTRONENERGY           =  {ELECTRONENERGY},
+    ELECTRONENERGYSPREAD     =  {ELECTRONENERGYSPREAD},
+    ELECTRONCURRENT          =  {ELECTRONCURRENT},
+    ELECTRONBEAMSIZEH        =  {ELECTRONBEAMSIZEH},
+    ELECTRONBEAMSIZEV        =  {ELECTRONBEAMSIZEV},
+    ELECTRONBEAMDIVERGENCEH  =  {ELECTRONBEAMDIVERGENCEH},
+    ELECTRONBEAMDIVERGENCEV  =  {ELECTRONBEAMDIVERGENCEV},
+    PERIODID                 =  {PERIODID},
+    NPERIODS                 =  {NPERIODS},
+    KV                       =  {KV},
+    KH                       =  {KH},
+    KPHASE                   =  {KPHASE},
+    DISTANCE                 =  {DISTANCE},
+    GAPH                     =  {GAPH},
+    GAPV                     =  {GAPV},
+    HSLITPOINTS              =  {HSLITPOINTS},
+    VSLITPOINTS              =  {VSLITPOINTS},
+    METHOD                   =  {METHOD},
+    USEEMITTANCES            =  {USEEMITTANCES},
+    MASK_FLAG                =  {MASK_FLAG},
+    MASK_ROT_H_DEG           =  {MASK_ROT_H_DEG},
+    MASK_ROT_V_DEG           =  {MASK_ROT_V_DEG},
+    MASK_H_MIN               =  {MASK_H_MIN},
+    MASK_H_MAX               =  {MASK_H_MAX},
+    MASK_V_MIN               =  {MASK_V_MIN},
+    MASK_V_MAX               =  {MASK_V_MIN},
+    h5_file                  =  "{H5FILE}",
+    h5_entry_name            =  "XOPPY_POWERDENSITY",
+    h5_initialize            =  True,
+    h5_parameters            =  h5_parameters,
     )
 # example plot
 from srxraylib.plot.gol import plot_image
