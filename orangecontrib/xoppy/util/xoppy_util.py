@@ -1,5 +1,3 @@
-__author__ = 'labx'
-
 import sys, os, numpy, platform
 import orangecanvas.resources as resources
 from PyQt5 import QtGui, QtCore
@@ -18,6 +16,9 @@ except ImportError:
 import xraylib
 
 from oasys.widgets import gui
+from orangecontrib.xoppy.util.text_window import TextWindow
+
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPlainTextEdit
 
 class EmittingStream(QtCore.QObject):
     textWritten = QtCore.pyqtSignal(str)
@@ -57,15 +58,9 @@ def xoppy_doc(app):
 
     filename1 = os.path.join(home_doc,app+'.txt')
 
-    print("xoppy_doc: opening file %s"%filename1)
-    if sys.platform == 'darwin':
-        command = "'open -a TextEdit "+filename1+" &'"
-    elif sys.platform == 'linux':
-        command = "'gedit "+filename1+" &'"
-    else:
-        command = "'start "+filename1+"'"
+    o = TextWindow()
+    o.set_file(filename1)
 
-    os.system(command)
 
 class XoppyPhysics:
 

@@ -473,7 +473,19 @@ class XoppyWidget(widget.OWWidget):
          self.resetSettings()
 
     def help1(self):
-        xoppy_doc(self.get_help_name())
+
+        import os
+        from orangecontrib.xoppy.util.text_window import TextWindow
+        from orangecontrib.xoppy.util.xoppy_util import locations
+
+        home_doc = locations.home_doc()
+
+        filename1 = os.path.join(home_doc, self.get_help_name() + '.txt')
+
+        TextWindow(file=filename1,parent=self)
+
+
+
 
     def get_help_name(self):
         raise Exception("This method should be reimplementd in subclasses!")
