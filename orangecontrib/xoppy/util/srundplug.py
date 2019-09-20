@@ -329,7 +329,7 @@ def calc1d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
     eBeam.partStatMom1.x = 0. #initial transverse positions [m]
     eBeam.partStatMom1.y = 0.
     # eBeam.partStatMom1.z = 0 #initial longitudinal positions (set in the middle of undulator)
-    eBeam.partStatMom1.z = - bl['PeriodID']*(bl['NPeriods']+4)/2 # initial longitudinal positions (set in the middle of undulator)
+    eBeam.partStatMom1.z = - bl['PeriodID']*(bl['NPeriods']+4)/2 # initial longitudinal positions
     eBeam.partStatMom1.xp = 0 #initial relative transverse velocities
     eBeam.partStatMom1.yp = 0
     eBeam.partStatMom1.gamma = bl['ElectronEnergy']*1e3/codata_mee #relative energy
@@ -775,7 +775,7 @@ def calc2d_srw(bl,zero_emittance=False,hSlitPoints=101,vSlitPoints=51,
     eBeam.partStatMom1.x  = 0. #initial transverse positions [m]
     eBeam.partStatMom1.y  = 0.
     # eBeam.partStatMom1.z  = 0. #initial longitudinal positions (set in the middle of undulator)
-    eBeam.partStatMom1.z = - bl['PeriodID']*(bl['NPeriods']+4)/2 # initial longitudinal positions (set in the middle of undulator)
+    eBeam.partStatMom1.z = - bl['PeriodID']*(bl['NPeriods']+4)/2 # initial longitudinal positions
     eBeam.partStatMom1.xp = 0. #initial relative transverse velocities
     eBeam.partStatMom1.yp = 0.
     eBeam.partStatMom1.gamma = bl['ElectronEnergy']*1e3/codata_mee #relative energy
@@ -1312,21 +1312,13 @@ def calc3d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
             fout.write("#F "+fileName+"\n")
 
 
-    #TODO calculate the numerical factor using codata
-    # B0 = bl['Kv']/0.934/(bl['PeriodID']*1e2)
-    cte = codata.e/(2*numpy.pi*codata.electron_mass*codata.c)
-    B0 = bl['Kv']/bl['PeriodID']/cte
-
-    print('Running SRW (SRWLIB Python)')
-
-
     if zero_emittance:
         eBeam = _srw_electron_beam(E=bl['ElectronEnergy'],Iavg=bl['ElectronCurrent'],) # no emmitance now
     else:
         eBeam = _srw_electron_beam(E=bl['ElectronEnergy'], sigE = bl['ElectronEnergySpread'], Iavg=bl['ElectronCurrent'],
                      sigX=bl['ElectronBeamSizeH'], sigY=bl['ElectronBeamSizeV'],
                      sigXp=bl['ElectronBeamDivergenceH'], sigYp=bl['ElectronBeamDivergenceV'])
-
+    eBeam.partStatMom1.z = - bl['PeriodID'] * (bl['NPeriods'] + 4) / 2  # initial longitudinal positions
 
 
     #***********Precision Parameters
@@ -1336,6 +1328,54 @@ def calc3d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
                               -bl['gapV']/2,bl['gapV']/2,vSlitPoints,bl['distance'])
 
 
+
+    cte = codata.e/(2*numpy.pi*codata.electron_mass*codata.c)
+    B0 = bl['Kv']/bl['PeriodID']/cte
+
+    try:
+        B0x = bl['Kh'] / bl['PeriodID'] / cte
+    except:
+        B0x = 0.0
+
+    try:
+        Kphase = bl['Kphase']
+    except:
+        Kphase = 0.0
+
+    print('Running SRW (SRWLIB Python)')
+
+    if B0x == 0:    #*********** Conventional Undulator
+        # harmB = srwlib.SRWLMagFldH() #magnetic field harmonic
+        # harmB.n = 1 #harmonic number ??? Mostly asymmetry
+        # harmB.h_or_v = 'v' #magnetic field plane: horzontal ('h') or vertical ('v')
+        # harmB.B = B0 #magnetic field amplitude [T]
+        # und = srwlib.SRWLMagFldU([harmB])
+        # und.per = bl['PeriodID']  # period length [m]
+        # und.nPer = bl['NPeriods']  # number of periods (will be rounded to integer)
+        #
+        # magFldCnt = None
+        # magFldCnt = srwlib.SRWLMagFldC([und], array.array('d', [0]), array.array('d', [0]), array.array('d', [0]))
+
+        und0 = srwlib.SRWLMagFldU([srwlib.SRWLMagFldH(1, 'v', B0)], bl['PeriodID'], bl['NPeriods'])
+        und = srwlib.SRWLMagFldC([und0], array.array('d', [0]), array.array('d', [0]), array.array('d', [0]))
+    else:  #***********Undulator (elliptical)
+
+        magnetic_fields = []
+        magnetic_fields.append(srwlib.SRWLMagFldH(1, 'v',
+                                           _B=B0,
+                                           _ph=0.0,
+                                           _s=1, # 1=symmetrical, -1=antisymmetrical
+                                           _a=1.0))
+        magnetic_fields.append(srwlib.SRWLMagFldH(1, 'h',
+                                           _B=B0x,
+                                           _ph=Kphase,
+                                           _s=1,
+                                           _a=1.0))
+        und0 = srwlib.SRWLMagFldU(_arHarm=magnetic_fields, _per=bl['PeriodID'], _nPer=bl['NPeriods'])
+        und = srwlib.SRWLMagFldC([und0], array.array('d', [0]), array.array('d', [0]), array.array('d', [0]))
+
+
+    print('Running SRW (SRWLIB Python)')
     #
     # #***********UR Stokes Parameters (mesh) for Spectral Flux
     # stkF = srwlib.SRWLStokes() #for spectral flux vs photon energy
@@ -1353,12 +1393,12 @@ def calc3d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
     t0 = time.time()
 
 
+
     if zero_emittance:
         #
         # single electron
         #
-        und0 = srwlib.SRWLMagFldU([srwlib.SRWLMagFldH(1, 'v', B0)],bl['PeriodID'],bl['NPeriods'])
-        und = srwlib.SRWLMagFldC([und0],array.array('d', [0]), array.array('d', [0]), array.array('d', [0]))
+
 
         # arPrecS = [0]*7 #for electric field and single-electron intensity
         # arPrecS[0] = 1 #SR calculation method: 0- "manual", 1- "auto-undulator", 2- "auto-wiggler"
@@ -1407,8 +1447,6 @@ def calc3d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
         #
         # convolution
         #
-        und0 = srwlib.SRWLMagFldU([srwlib.SRWLMagFldH(1, 'v', B0)],bl['PeriodID'],bl['NPeriods'])
-        und = srwlib.SRWLMagFldC([und0],array.array('d', [0]), array.array('d', [0]), array.array('d', [0]))
 
         # arPrecS = [0]*7 #for electric field and single-electron intensity
         # arPrecS[0] = 1 #SR calculation method: 0- "manual", 1- "auto-undulator", 2- "auto-wiggler"
@@ -1534,13 +1572,23 @@ def calc3d_urgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergy
             except:
                 pass
 
+        try:
+            Kh = bl['Kh']
+        except:
+            Kh = 0.0
+
+        try:
+            Kphase = bl['Kphase']
+        except:
+            Kphase = 0.0
+
         with open("urgent.inp","wt") as f:
             f.write("%d\n"%(1))               # ITYPE
             f.write("%f\n"%(bl['PeriodID']))  # PERIOD
-            f.write("%f\n"%(0.00000))         #KX
-            f.write("%f\n"%(bl['Kv']))        #KY
-            f.write("%f\n"%(0.00000))         #PHASE
-            f.write("%d\n"%(bl['NPeriods']))         #N
+            f.write("%f\n"%(Kh))              # KX
+            f.write("%f\n"%(bl['Kv']))        # KY
+            f.write("%f\n"%(Kphase))          # PHASE
+            f.write("%d\n"%(bl['NPeriods']))  # N
 
             f.write("%f\n"%(ener))       #EMIN
             f.write("100000.0\n")              #EMAX
@@ -2343,21 +2391,24 @@ def compare_flux(beamline,emin=3000.0,emax=50000.0,npoints=200,
     return beamline
 
 def plot_flux(beamline_dict,plot_lin=True,plot_log=True,show=True):
-    data = []
-    legend = []
-    for key in ["calc1d_us","calc1d_urgent","calc1d_pysru","calc1d_srw"]:
-        if key in beamline_dict.keys():
-            data.append(beamline_dict[key]["energy"])
-            data.append(beamline_dict[key]["flux"])
-            legend.append(key)
+    try:
+        data = []
+        legend = []
+        for key in ["calc1d_us","calc1d_urgent","calc1d_pysru","calc1d_srw"]:
+            if key in beamline_dict.keys():
+                data.append(beamline_dict[key]["energy"])
+                data.append(beamline_dict[key]["flux"])
+                legend.append(key)
 
-    if plot_lin: plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=True)
-    if plot_log: plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=False)
-    if show: plot_show()
+        if plot_lin: plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=True)
+        if plot_log: plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=False)
+        if show: plot_show()
+    except:
+        pass
 
 
 def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,
-                 zero_emittance=False,fileName=None,iplot=False,show=True):
+                 zero_emittance=False,fileName=None,iplot=True,show=True):
 
     gamma = beamline['ElectronEnergy'] / (codata_mee * 1e-3)
     print ("Gamma: %f \n"%(gamma))
@@ -2377,12 +2428,12 @@ def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,
     npoints_grid = 51
 
     if USE_PYSRU:
-        r_pysru = calc_from_3d("pySRU",  beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
+        r_pysru = calc_from_3d("pySRU",beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
                              npoints_grid=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
     if USE_SRWLIB:
-        r_srw = calc_from_3d("SRW",      beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
+        r_srw = calc_from_3d("SRW",beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
                                  npoints_grid=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-    r_us = calc_from_3d("US",        beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
+    r_us = calc_from_3d("US", beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
                              npoints_grid=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
     r_urgent = calc_from_3d("URGENT",beamline,photonEnergyMin=emin,photonEnergyMax=emax,photonEnergyPoints=npoints,
                              npoints_grid=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
@@ -2738,7 +2789,7 @@ def main(radiance=True,flux=True,flux_from_3d=True,power_density=True):
     #
 
     if radiance:
-        out = compare_radiation(beamline,zero_emittance=zero_emittance,npoints_grid=101,energy=None)
+        out = compare_radiation(beamline,zero_emittance=zero_emittance,npoints_grid=101)
         plot_radiation(out)
 
 
@@ -2763,4 +2814,4 @@ def main(radiance=True,flux=True,flux_from_3d=True,power_density=True):
         plot_power_density(out)
 
 if __name__ == '__main__':
-    main(radiance=False,flux=True,flux_from_3d=False,power_density=True)
+    main(radiance=False,flux=False,flux_from_3d=True,power_density=False)

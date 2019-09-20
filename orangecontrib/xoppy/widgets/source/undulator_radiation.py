@@ -51,6 +51,8 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
     PERIODID = Setting(0.018)
     NPERIODS = Setting(222)
     KV = Setting(1.68)
+    KH = Setting(0.0)
+    KPHASE = Setting(0.0)
 
     DISTANCE = Setting(30.0)
     SETRESONANCE = Setting(0)
@@ -173,7 +175,21 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
+        #widget index 9B
+        idx += 1
+        box1 = gui.widgetBox(box)
+        self.id_KH = oasysgui.lineEdit(box1, self, "KH",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
 
+        #widget index 9C
+        idx += 1
+        box1 = gui.widgetBox(box)
+        self.id_KPHASE = oasysgui.lineEdit(box1, self, "KPHASE",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
 
 
         #widget index 10
@@ -276,11 +292,10 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         idx += 1
         box1 = gui.widgetBox(box)
         gui.comboBox(box1, self, "H5_FILE_DUMP",
-                     label=self.unitLabels()[idx], addSpace=False,
+                    label=self.unitLabels()[idx], addSpace=False,
                     items=['None', 'Write h5 file: undulator_radiation.h5','Read from file...'],
                     valueType=int, orientation="horizontal", labelWidth=250, callback=self.read_or_write_file)
         self.show_at(self.unitFlags()[idx], box1)
-
 
     def read_or_write_file(self):
 
@@ -372,28 +387,30 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
 
         hf = h5py.File(file_h5,'r')
 
-        self.METHOD                  = hf[subtitle+"/parameters/METHOD"].value
-        self.USEEMITTANCES           = hf[subtitle+"/parameters/USEEMITTANCES"].value
-        self.ELECTRONENERGY          = hf[subtitle+"/parameters/ELECTRONENERGY"].value
-        self.ELECTRONENERGYSPREAD    = hf[subtitle+"/parameters/ELECTRONENERGYSPREAD"].value
-        self.ELECTRONCURRENT         = hf[subtitle+"/parameters/ELECTRONCURRENT"].value
-        self.ELECTRONBEAMSIZEH       = hf[subtitle+"/parameters/ELECTRONBEAMSIZEH"].value
-        self.ELECTRONBEAMSIZEV       = hf[subtitle+"/parameters/ELECTRONBEAMSIZEV"].value
-        self.ELECTRONBEAMDIVERGENCEH = hf[subtitle+"/parameters/ELECTRONBEAMDIVERGENCEH"].value
-        self.ELECTRONBEAMDIVERGENCEV = hf[subtitle+"/parameters/ELECTRONBEAMDIVERGENCEV"].value
-        self.PERIODID                = hf[subtitle+"/parameters/PERIODID"].value
-        self.NPERIODS                = hf[subtitle+"/parameters/NPERIODS"].value
-        self.KV                      = hf[subtitle+"/parameters/KV"].value
-        self.DISTANCE                = hf[subtitle+"/parameters/DISTANCE"].value
-        self.SETRESONANCE            = hf[subtitle+"/parameters/SETRESONANCE"].value
-        self.HARMONICNUMBER          = hf[subtitle+"/parameters/HARMONICNUMBER"].value
-        self.GAPH                    = hf[subtitle+"/parameters/GAPH"].value
-        self.GAPV                    = hf[subtitle+"/parameters/GAPV"].value
-        self.HSLITPOINTS             = hf[subtitle+"/parameters/HSLITPOINTS"].value
-        self.VSLITPOINTS             = hf[subtitle+"/parameters/VSLITPOINTS"].value
-        self.PHOTONENERGYMIN         = hf[subtitle+"/parameters/PHOTONENERGYMIN"].value
-        self.PHOTONENERGYMAX         = hf[subtitle+"/parameters/PHOTONENERGYMAX"].value
-        self.PHOTONENERGYPOINTS      = hf[subtitle+"/parameters/PHOTONENERGYPOINTS"].value
+        self.METHOD                  = hf[subtitle + "/parameters/METHOD"].value
+        self.USEEMITTANCES           = hf[subtitle + "/parameters/USEEMITTANCES"].value
+        self.ELECTRONENERGY          = hf[subtitle + "/parameters/ELECTRONENERGY"].value
+        self.ELECTRONENERGYSPREAD    = hf[subtitle + "/parameters/ELECTRONENERGYSPREAD"].value
+        self.ELECTRONCURRENT         = hf[subtitle + "/parameters/ELECTRONCURRENT"].value
+        self.ELECTRONBEAMSIZEH       = hf[subtitle + "/parameters/ELECTRONBEAMSIZEH"].value
+        self.ELECTRONBEAMSIZEV       = hf[subtitle + "/parameters/ELECTRONBEAMSIZEV"].value
+        self.ELECTRONBEAMDIVERGENCEH = hf[subtitle + "/parameters/ELECTRONBEAMDIVERGENCEH"].value
+        self.ELECTRONBEAMDIVERGENCEV = hf[subtitle + "/parameters/ELECTRONBEAMDIVERGENCEV"].value
+        self.PERIODID                = hf[subtitle + "/parameters/PERIODID"].value
+        self.NPERIODS                = hf[subtitle + "/parameters/NPERIODS"].value
+        self.KV                      = hf[subtitle + "/parameters/KV"].value
+        self.KH                      = hf[subtitle + "/parameters/KH"].value
+        self.KPHASE                  = hf[subtitle + "/parameters/KPHASE"].value
+        self.DISTANCE                = hf[subtitle + "/parameters/DISTANCE"].value
+        self.SETRESONANCE            = hf[subtitle + "/parameters/SETRESONANCE"].value
+        self.HARMONICNUMBER          = hf[subtitle + "/parameters/HARMONICNUMBER"].value
+        self.GAPH                    = hf[subtitle + "/parameters/GAPH"].value
+        self.GAPV                    = hf[subtitle + "/parameters/GAPV"].value
+        self.HSLITPOINTS             = hf[subtitle + "/parameters/HSLITPOINTS"].value
+        self.VSLITPOINTS             = hf[subtitle + "/parameters/VSLITPOINTS"].value
+        self.PHOTONENERGYMIN         = hf[subtitle + "/parameters/PHOTONENERGYMIN"].value
+        self.PHOTONENERGYMAX         = hf[subtitle + "/parameters/PHOTONENERGYMAX"].value
+        self.PHOTONENERGYPOINTS      = hf[subtitle + "/parameters/PHOTONENERGYPOINTS"].value
 
         hf.close()
 
@@ -401,7 +418,8 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
     def unitLabels(self):
         return ["Use emittances","Electron Energy [GeV]", "Electron Energy Spread", "Electron Current [A]",
                 "Electron Beam Size H [m]", "Electron Beam Size V [m]","Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]",
-                "Period ID [m]", "Number of periods","Kv [undulator K value vertical field]",
+                "Period ID [m]", "Number of periods","Kv [K value vertical field]",
+                "Kh [K value horizontal field]","Kphase [phase diff Kh - Kv in rad]",
                 "Distance to slit [m]",
                 "Set photon energy and slit","Harmonic number",
                 "Slit gap H [m]", "Slit gap V [m]",
@@ -414,6 +432,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         return ["True", "True", "False", "True",
                 "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1","self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1",
                 "True", "True", "True",
+                "self.METHOD != 0","self.METHOD != 0",
                 "True",
                 "True", "self.SETRESONANCE > 0",
                 "self.SETRESONANCE == 0", "self.SETRESONANCE == 0",
@@ -436,6 +455,8 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         self.PERIODID = congruence.checkStrictlyPositiveNumber(self.PERIODID, "Period ID")
         self.NPERIODS = congruence.checkStrictlyPositiveNumber(self.NPERIODS, "Number of Periods")
         self.KV = congruence.checkPositiveNumber(self.KV, "Kv")
+        self.KH = congruence.checkPositiveNumber(self.KH, "Kh")
+        self.KPHASE = congruence.checkNumber(self.KPHASE, "KPHASE")
         self.DISTANCE = congruence.checkStrictlyPositiveNumber(self.DISTANCE, "Distance to slit")
 
         if self.SETRESONANCE == 0:
@@ -538,6 +559,8 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                 "PERIODID"               : self.PERIODID,
                 "NPERIODS"               : self.NPERIODS,
                 "KV"                     : self.KV,
+                "KH"                     : self.KH,
+                "KPHASE"                 : self.KPHASE,
                 "DISTANCE"               : self.DISTANCE,
                 "SETRESONANCE"           : self.SETRESONANCE,
                 "HARMONICNUMBER"         : self.HARMONICNUMBER,
@@ -570,6 +593,8 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                 PERIODID                 = self.PERIODID,
                 NPERIODS                 = self.NPERIODS,
                 KV                       = self.KV,
+                KH                       = self.KH,
+                KPHASE                   = self.KPHASE,
                 DISTANCE                 = self.DISTANCE,
                 SETRESONANCE             = self.SETRESONANCE,
                 HARMONICNUMBER           = self.HARMONICNUMBER,
@@ -607,6 +632,8 @@ e, h, v, p, code = xoppy_calc_undulator_radiation(
         PERIODID                 = {PERIODID},
         NPERIODS                 = {NPERIODS},
         KV                       = {KV},
+        KH                       = {KH},
+        KPHASE                   = {KPHASE},
         DISTANCE                 = {DISTANCE},
         SETRESONANCE             = {SETRESONANCE},
         HARMONICNUMBER           = {HARMONICNUMBER},
@@ -668,6 +695,8 @@ plot_image(p[0],h,v,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%({PH
                 self.PERIODID = light_source._magnetic_structure._period_length
                 self.NPERIODS = light_source._magnetic_structure._number_of_periods
                 self.KV = light_source._magnetic_structure._K_vertical
+                self.KH = light_source._magnetic_structure._K_horizontal
+                # TODO: self.KPHASE = ... define and import it in SYNED
 
                 self.set_enabled(False)
 
@@ -679,6 +708,7 @@ plot_image(p[0],h,v,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%({PH
             # raise ValueError("Syned data not correct")
 
     def set_enabled(self,value):
+
         if value == True:
                 self.id_ELECTRONENERGY.setEnabled(True)
                 self.id_ELECTRONENERGYSPREAD.setEnabled(True)
@@ -690,6 +720,7 @@ plot_image(p[0],h,v,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%({PH
                 self.id_PERIODID.setEnabled(True)
                 self.id_NPERIODS.setEnabled(True)
                 self.id_KV.setEnabled(True)
+                self.id_KH.setEnabled(True)
         else:
                 self.id_ELECTRONENERGY.setEnabled(False)
                 self.id_ELECTRONENERGYSPREAD.setEnabled(False)
@@ -701,7 +732,7 @@ plot_image(p[0],h,v,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%({PH
                 self.id_PERIODID.setEnabled(False)
                 self.id_NPERIODS.setEnabled(False)
                 self.id_KV.setEnabled(False)
-
+                self.id_KH.setEnabled(False)
 
 
 
@@ -710,18 +741,22 @@ if __name__ == "__main__":
 
 
     bl = None
-    try:
-        from syned.util.json_tools import load_from_json_file, load_from_json_url
-        from syned.storage_ring.light_source import LightSource
-        from syned.beamline.beamline import Beamline
 
-        remote_file_name = "http://ftp.esrf.eu/pub/scisoft/syned/lightsources/ESRF_ID21_EBS_ppu42_17.json"
-        remote_file_name = "http://ftp.esrf.eu/pub/scisoft/syned/lightsources/ESRF_ID21_LowBeta_ppu42_17.json"
-        tmp = load_from_json_url(remote_file_name)
-        if  isinstance(tmp,LightSource):
-            bl = Beamline(tmp)
-    except:
-        pass
+    LOAD_REMOTE_BEAMLINE = False
+
+    if LOAD_REMOTE_BEAMLINE:
+        try:
+            from syned.util.json_tools import load_from_json_file, load_from_json_url
+            from syned.storage_ring.light_source import LightSource
+            from syned.beamline.beamline import Beamline
+
+            remote_file_name = "http://ftp.esrf.eu/pub/scisoft/syned/lightsources/ESRF_ID21_EBS_ppu42_17.json"
+            remote_file_name = "http://ftp.esrf.eu/pub/scisoft/syned/lightsources/ESRF_ID21_LowBeta_ppu42_17.json"
+            tmp = load_from_json_url(remote_file_name)
+            if  isinstance(tmp,LightSource):
+                bl = Beamline(tmp)
+        except:
+            pass
 
 
 

@@ -354,10 +354,7 @@ class OWtc_slit(XoppyWidget):
                                                          "Click on curve to highlight it",
                                                          xlabel=xtitles[index], ylabel=ytitles[index],
                                                          symbol='', color='white')
-                        # self.plot_canvas[index].setActiveCurve("Click on curve to highlight it")
-                        # self.plot_canvas[index].showLegends()
 
-                        self.tabs.setCurrentIndex(index)
                     except Exception as e:
                         self.view_type_combo.setEnabled(True)
 
@@ -365,6 +362,7 @@ class OWtc_slit(XoppyWidget):
 
 
                 self.view_type_combo.setEnabled(True)
+                self.tabs.setCurrentIndex(0)
             else:
                 raise Exception("Empty Data")
 

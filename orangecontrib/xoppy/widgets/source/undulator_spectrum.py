@@ -429,7 +429,7 @@ plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [e
                 self.NPERIODS = int(light_source._magnetic_structure._number_of_periods)
                 self.KV = light_source._magnetic_structure._K_vertical
                 self.KH = light_source._magnetic_structure._K_horizontal
-                self.KPHASE = 0.0 # TODO  light_source._magnetic_structure._K_vertical
+                # TODO  self.KPHASE = light_source._magnetic_structure....
 
                 self.set_enabled(False)
 
@@ -453,7 +453,6 @@ plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [e
                 self.id_NPERIODS.setEnabled(True)
                 self.id_KV.setEnabled(True)
                 self.id_KH.setEnabled(True)
-                self.id_KPHASE.setEnabled(True)
         else:
                 self.id_ELECTRONENERGY.setEnabled(False)
                 self.id_ELECTRONENERGYSPREAD.setEnabled(False)
@@ -466,7 +465,6 @@ plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [e
                 self.id_NPERIODS.setEnabled(False)
                 self.id_KV.setEnabled(False)
                 self.id_KH.setEnabled(False)
-                self.id_KPHASE.setEnabled(False)
 
 
 
