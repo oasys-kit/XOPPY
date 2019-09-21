@@ -34,37 +34,76 @@ class OWpower3D(XoppyWidget):
     # inputs = [("xoppy_data", DataExchangeObject, "acceptExchangeData")]
 
 
+
     NELEMENTS = Setting(1)
+
+    MAX_OE = 5
+
     EL1_FOR = Setting("Be")
-    EL1_FLAG = Setting(0)
+    EL1_FLAG = Setting(4)  # 0=Filter 1=Mirror 2 = Aperture 3 magnifier
     EL1_THI = Setting(0.5)
     EL1_ANG = Setting(3.0)
     EL1_ROU = Setting(0.0)
     EL1_DEN = Setting("?")
+    EL1_HGAP = Setting(0.1)
+    EL1_VGAP = Setting(0.1)
+    EL1_HMAG = Setting(1.0)
+    EL1_VMAG = Setting(1.0)
+    EL1_HROT = Setting(0.0)
+    EL1_VROT = Setting(0.0)
+
     EL2_FOR = Setting("Rh")
-    EL2_FLAG = Setting(1)
+    EL2_FLAG = Setting(3)
     EL2_THI = Setting(0.5)
     EL2_ANG = Setting(3.0)
     EL2_ROU = Setting(0.0)
     EL2_DEN = Setting("?")
+    EL2_HGAP = Setting(100.0)
+    EL2_VGAP = Setting(100.0)
+    EL2_HMAG = Setting(2.0)
+    EL2_VMAG = Setting(2.0)
+    EL2_HROT = Setting(0.0)
+    EL2_VROT = Setting(0.0)
+
     EL3_FOR = Setting("Al")
     EL3_FLAG = Setting(0)
     EL3_THI = Setting(0.5)
     EL3_ANG = Setting(3.0)
     EL3_ROU = Setting(0.0)
     EL3_DEN = Setting("?")
+    EL3_HGAP = Setting(100.0)
+    EL3_VGAP = Setting(100.0)
+    EL3_HMAG = Setting(2.0)
+    EL3_VMAG = Setting(2.0)
+    EL3_HROT = Setting(0.0)
+    EL3_VROT = Setting(0.0)
+
     EL4_FOR = Setting("B")
     EL4_FLAG = Setting(0)
     EL4_THI = Setting(0.5)
     EL4_ANG = Setting(3.0)
     EL4_ROU = Setting(0.0)
     EL4_DEN = Setting("?")
+    EL4_HGAP = Setting(100.0)
+    EL4_VGAP = Setting(100.0)
+    EL4_HMAG = Setting(1.0)
+    EL4_VMAG = Setting(1.0)
+    EL4_HROT = Setting(0.0)
+    EL4_VROT = Setting(0.0)
+
     EL5_FOR = Setting("Pt")
     EL5_FLAG = Setting(1)
     EL5_THI = Setting(0.5)
     EL5_ANG = Setting(3.0)
     EL5_ROU = Setting(0.0)
     EL5_DEN = Setting("?")
+    EL5_HGAP = Setting(100.0)
+    EL5_VGAP = Setting(100.0)
+    EL5_HMAG = Setting(1.0)
+    EL5_VMAG = Setting(1.0)
+    EL5_HROT = Setting(0.0)
+    EL5_VROT = Setting(0.0)
+
     PLOT_SETS = Setting(1)
     FILE_DUMP = 0
 
@@ -88,250 +127,43 @@ class OWpower3D(XoppyWidget):
                     valueType=int, orientation="horizontal", callback=self.set_NELEMENTS, labelWidth=330)
         self.show_at(self.unitFlags()[idx], box1)
 
-        #widget index 11
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.separator(box1, height=7)
 
-        oasysgui.lineEdit(box1, self, "EL1_FOR",
-                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 12 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "EL1_FLAG",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    items=['Filter', 'Mirror'],
-                    valueType=int, orientation="horizontal", callback=self.set_EL_FLAG, labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 13 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL1_THI",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 14 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL1_ANG",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 15 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL1_ROU",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 16 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL1_DEN",
-                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1)
 
-        #widget index 17
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.separator(box1, height=7)
 
-        oasysgui.lineEdit(box1, self, "EL2_FOR",
-                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 18 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "EL2_FLAG",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    items=['Filter', 'Mirror'],
-                    valueType=int, orientation="horizontal", callback=self.set_EL_FLAG, labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 19 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL2_THI",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 20 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL2_ANG",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 21 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL2_ROU",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 22 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL2_DEN",
-                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 23 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.separator(box1, height=7)
 
-        oasysgui.lineEdit(box1, self, "EL3_FOR",
-                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 24 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "EL3_FLAG",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    items=['Filter', 'Mirror'],
-                    valueType=int, orientation="horizontal", callback=self.set_EL_FLAG, labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 25 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL3_THI",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 26 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL3_ANG",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 27 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL3_ROU",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 28 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL3_DEN",
-                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 29 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.separator(box1, height=7)
+        #############################LOOP OVER OE###########################
 
-        oasysgui.lineEdit(box1, self, "EL4_FOR",
-                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 30 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "EL4_FLAG",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    items=['Filter', 'Mirror'],
-                    valueType=int, orientation="horizontal", callback=self.set_EL_FLAG, labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 31 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL4_THI",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 32 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL4_ANG",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 33 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL4_ROU",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 34 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL4_DEN",
-                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 35 
-        idx += 1 
-        box1 = gui.widgetBox(box)
-        gui.separator(box1, height=7)
+        for oe_n in range(1,1+self.MAX_OE):
+            box11 = gui.widgetBox(box)
+            #widget index 12
+            idx += 1
+            box1 = gui.widgetBox(box11)
+            gui.comboBox(box1, self, "EL%d_FLAG"%oe_n,
+                        label=self.unitLabels()[idx], addSpace=False,
+                        items=['Filter', 'Mirror','Aperture','Magnifier','Screen Rotation'],
+                        valueType=int, orientation="horizontal", callback=self.set_EL_FLAG, labelWidth=250)
+            self.show_at(self.unitFlags()[idx], box1)
 
-        oasysgui.lineEdit(box1, self, "EL5_FOR",
-                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 36 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "EL5_FLAG",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    items=['Filter', 'Mirror'],
-                    valueType=int, orientation="horizontal", callback=self.set_EL_FLAG, labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 37 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL5_THI",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 38 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL5_ANG",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 39 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL5_ROU",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 40 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EL5_DEN",
-                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1)
+            #widget index 11
+            idx += 1
+            box1 = gui.widgetBox(box11)
+            gui.separator(box1, height=7)
+            oasysgui.lineEdit(box1, self, "EL%d_FOR"%oe_n,
+                         label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
+            self.show_at(self.unitFlags()[idx], box1)
+
+
+            list_w = ["EL%d_THI"%oe_n,"EL%d_ANG"%oe_n,"EL%d_ROU"%oe_n,"EL%d_DEN"%oe_n,
+                      "EL%d_HGAP"%oe_n,"EL%d_VGAP"%oe_n,"EL%d_HMAG"%oe_n,"EL%d_VMAG"%oe_n,"EL%d_HROT"%oe_n,"EL%d_VROT"%oe_n]
+
+            for el in list_w:
+                idx += 1
+                box1 = gui.widgetBox(box11)
+                oasysgui.lineEdit(box1, self, el,
+                                  label=self.unitLabels()[idx], addSpace=False,
+                                  valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                self.show_at(self.unitFlags()[idx], box1)
+
 
         #widget index 41
         idx += 1
@@ -339,7 +171,7 @@ class OWpower3D(XoppyWidget):
         gui.separator(box1, height=7)
 
         gui.comboBox(box1, self, "PLOT_SETS",
-                     label=self.unitLabels()[idx], addSpace=False,
+                    label=self.unitLabels()[idx], addSpace=False,
                     items=['Input beam',
                            'Beam transmitted after last element',
                            'Absorption by ALL elements',
@@ -365,23 +197,57 @@ class OWpower3D(XoppyWidget):
         self.initializeTabs()
 
     def unitLabels(self):
-         return ['Number of elements:',
-                 '1st oe formula','kind:','Filter thick[mm]','Mirror angle[mrad]','Roughness[A]','Density [g/cm^3]',
-                 '2nd oe formula','kind:','Filter thick[mm]','Mirror angle[mrad]','Roughness[A]','Density [g/cm^3]',
-                 '3rd oe formula','kind:','Filter thick[mm]','Mirror angle[mrad]','Roughness[A]','Density [g/cm^3]',
-                 '4th oe formula','kind:','Filter thick[mm]','Mirror angle[mrad]','Roughness[A]','Density [g/cm^3]',
-                 '5th oe formula','kind:','Filter thick[mm]','Mirror angle[mrad]','Roughness[A]','Density [g/cm^3]',
-                 "Plot","Dump file"]
+        labels =  ['Number of elements:']
+        ordinals = [
+            '1st',
+            '2nd',
+            '3rd',
+            '4th',
+            '5th']
+        for i in range(self.MAX_OE):
+            labels.append('%s oe is: '%ordinals[i])
+            labels.append('formula: ')
+            labels.append('Filter thick[mm]')
+            labels.append('Mirror angle[mrad]')
+            labels.append('Roughness[A]')
+            labels.append('Density [g/cm^3]')
+            labels.append('H Gap')
+            labels.append('V Gap')
+            labels.append('H Magnification')
+            labels.append('V Magnification')
+            labels.append('H Rotation angle [deg]')
+            labels.append('V Rotation angle [deg]')
+
+        labels.append("Plot")
+        labels.append("Dump file")
+
+        return labels
+
+
 
 
     def unitFlags(self):
-         return ['True',
-                 'self.NELEMENTS  >=  1+0',' self.NELEMENTS  >=  1+0','self.EL1_FLAG  ==  0  and  self.NELEMENTS  >=  1+0','self.EL1_FLAG  !=  0  and  self.NELEMENTS  >=  1+0','self.EL1_FLAG  !=  0  and  self.NELEMENTS  >=  1+0',' self.NELEMENTS  >=  1+0',
-                 'self.NELEMENTS  >=  1+1',' self.NELEMENTS  >=  1+1','self.EL2_FLAG  ==  0  and  self.NELEMENTS  >=  1+1','self.EL2_FLAG  !=  0  and  self.NELEMENTS  >=  1+1','self.EL2_FLAG  !=  0  and  self.NELEMENTS  >=  1+1',' self.NELEMENTS  >=  1+1',
-                 'self.NELEMENTS  >=  1+2',' self.NELEMENTS  >=  1+2','self.EL3_FLAG  ==  0  and  self.NELEMENTS  >=  1+2','self.EL3_FLAG  !=  0  and  self.NELEMENTS  >=  1+2','self.EL3_FLAG  !=  0  and  self.NELEMENTS  >=  1+2',' self.NELEMENTS  >=  1+2',
-                 'self.NELEMENTS  >=  1+3',' self.NELEMENTS  >=  1+3','self.EL4_FLAG  ==  0  and  self.NELEMENTS  >=  1+3','self.EL4_FLAG  !=  0  and  self.NELEMENTS  >=  1+3','self.EL4_FLAG  !=  0  and  self.NELEMENTS  >=  1+3',' self.NELEMENTS  >=  1+3',
-                 'self.NELEMENTS  >=  1+4',' self.NELEMENTS  >=  1+4','self.EL5_FLAG  ==  0  and  self.NELEMENTS  >=  1+4','self.EL5_FLAG  !=  0  and  self.NELEMENTS  >=  1+4','self.EL5_FLAG  !=  0  and  self.NELEMENTS  >=  1+4',' self.NELEMENTS  >=  1+4',
-                 'True','True']
+        flags =  ['True']
+
+        for i in range(self.MAX_OE):
+
+            flags.append('self.NELEMENTS  >=  1+%d'%i)                                     # kind
+            flags.append('self.EL%d_FLAG  <=  1  and  self.NELEMENTS  >=  1+%d'%(i+1,i))   # formula
+            flags.append('self.EL%d_FLAG  ==  0  and  self.NELEMENTS  >=  1+%d'%(i+1,i))   # thickness
+            flags.append('self.EL%d_FLAG  ==  1  and  self.NELEMENTS  >=  1+%d'%(i+1,i))   # angle
+            flags.append('self.EL%d_FLAG  ==  1  and  self.NELEMENTS  >=  1+%d'%(i+1,i))   # roughness
+            flags.append('self.EL%d_FLAG  <=  1  and  self.NELEMENTS  >=  1+%i'%(i+1,i))   # density
+            flags.append('self.EL%d_FLAG  ==  2  and  self.NELEMENTS  >=  1+%d'%(i+1,i))   # gap
+            flags.append('self.EL%d_FLAG  ==  2  and  self.NELEMENTS  >=  1+%d'%(i+1,i))   # gap
+            flags.append('self.EL%d_FLAG  ==  3  and  self.NELEMENTS  >=  1+%d'%(i+1,i))   # magnification
+            flags.append('self.EL%d_FLAG  ==  3  and  self.NELEMENTS  >=  1+%d'%(i+1,i))   # magnification
+            flags.append('self.EL%d_FLAG  ==  4  and  self.NELEMENTS  >=  1+%d'%(i+1,i))   # rotation
+            flags.append('self.EL%d_FLAG  ==  4  and  self.NELEMENTS  >=  1+%d'%(i+1,i))   # rotation
+
+        flags.append("True")
+        flags.append("True")
+        return flags
+
 
     def get_help_name(self):
         return 'power3d'
@@ -424,6 +290,15 @@ class OWpower3D(XoppyWidget):
             elif self.EL1_FLAG == 1: # mirror
                 self.EL1_ANG = congruence.checkStrictlyPositiveNumber(self.EL1_ANG, "1st oe mirror angle")
                 self.EL1_ROU = congruence.checkPositiveNumber(self.EL1_ROU, "1st oe mirror roughness")
+            elif self.EL1_FLAG == 2: # aperture
+                self.EL1_HGAP = congruence.checkStrictlyPositiveNumber(self.EL1_HGAP, "1st oe H gap")
+                self.EL1_VGAP = congruence.checkPositiveNumber(self.EL1_VGAP, "1st oe V Gap")
+            elif self.EL1_FLAG == 3: # magnifier
+                self.EL1_HMAG = congruence.checkStrictlyPositiveNumber(self.EL1_HMAG, "1st oe H magnification")
+                self.EL1_VMAG = congruence.checkPositiveNumber(self.EL1_VMAG, "1st oe V magnification")
+            elif self.EL1_FLAG == 4: # rotation
+                self.EL1_HROT = congruence.checkNumber(self.EL1_HROT, "1st oe rotation H")
+                self.EL1_VROT = congruence.checkNumber(self.EL1_VROT, "1st oe rotation V")
 
             if not self.EL1_DEN.strip() == "?":
                 self.EL1_DEN = str(congruence.checkStrictlyPositiveNumber(float(congruence.checkNumber(self.EL1_DEN, "1st oe density")), "1st oe density"))
@@ -436,6 +311,15 @@ class OWpower3D(XoppyWidget):
             elif self.EL2_FLAG == 1: # mirror
                 self.EL2_ANG = congruence.checkStrictlyPositiveNumber(self.EL2_ANG, "2nd oe mirror angle")
                 self.EL2_ROU = congruence.checkPositiveNumber(self.EL2_ROU, "2nd oe mirror roughness")
+            elif self.EL2_FLAG == 2: # aperture
+                self.EL2_HGAP = congruence.checkStrictlyPositiveNumber(self.EL2_HGAP, "1st oe H gap")
+                self.EL2_VGAP = congruence.checkPositiveNumber(self.EL2_VGAP, "1st oe V Gap")
+            elif self.EL2_FLAG == 3: # magnifier
+                self.EL2_HMAG = congruence.checkStrictlyPositiveNumber(self.EL2_HMAG, "1st oe H magnification")
+                self.EL2_VMAG = congruence.checkPositiveNumber(self.EL2_VMAG, "1st oe V magnification")
+            elif self.EL2_FLAG == 4: # rotation
+                self.EL2_HROT = congruence.checkNumber(self.EL2_HROT, "1st oe rotation H")
+                self.EL2_VROT = congruence.checkNumber(self.EL2_VROT, "1st oe rotation V")
 
             if not self.EL2_DEN.strip() == "?":
                 self.EL2_DEN = str(congruence.checkStrictlyPositiveNumber(float(congruence.checkNumber(self.EL2_DEN, "2nd oe density")), "2nd oe density"))
@@ -486,11 +370,13 @@ class OWpower3D(XoppyWidget):
 
     def extract_data_from_xoppy_output(self, calculation_output):
 
+        transmittance,E,H,V = calculation_output
+
         [p, e, h, v] = self.input_beam.get_content("xoppy_data")
 
         data_to_send = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
-        data_to_send.add_content("xoppy_data", [p*calculation_output.prod(axis=0), e, h, v])
+        data_to_send.add_content("xoppy_data", [p*transmittance.prod(axis=0), E[-1], H[-1], V[-1]])
         data_to_send.add_content("xoppy_transmittivity", calculation_output)
         data_to_send.add_content("xoppy_code", "power3")
 
@@ -543,7 +429,7 @@ class OWpower3D(XoppyWidget):
                 p_spectral_power = p * codata.e * 1e3
                 p_to_plot = p_spectral_power
 
-                transmittivity = calculated_data.get_content("xoppy_transmittivity")
+                transmittivity,E,H,V = calculated_data.get_content("xoppy_transmittivity")
 
 
                 transmittivity_total = transmittivity.prod(axis=0)
@@ -567,15 +453,15 @@ class OWpower3D(XoppyWidget):
 
                 # plot transmittance stack
                 try:
-                    self.plot_data3D(transmittivity_total, e, h, v, 0, 0,
+                    self.plot_data3D(transmittivity_total, e, H[-1], V[-1], 0, 0,
                                      xtitle='H [mm]',
                                      ytitle='V [mm]',
                                      title='Code '+code+'; Flux [photons/s/0.1%bw/mm^2]',)
 
                     self.tabs.setCurrentIndex(0)
-                except Exception as e:
+                except Exception as ex:
                     self.view_type_combo.setEnabled(True)
-                    raise Exception("Data not plottable: bad content\n" + str(e))
+                    raise Exception("Data not plottable: bad content\n" + str(ex))
 
 
                 # plot transmittance spectrum
@@ -586,23 +472,23 @@ class OWpower3D(XoppyWidget):
                                      title='Transmittance',)
 
                     # self.tabs.setCurrentIndex(2)
-                except Exception as e:
+                except Exception as ex:
                     self.view_type_combo.setEnabled(True)
-                    raise Exception("Data not plottable: bad content\n" + str(e))
+                    raise Exception("Data not plottable: bad content\n" + str(ex))
 
 
 
                 # plot result s E,X,Y
                 try:
-                    self.plot_data3D(p_to_plot, e, h, v, 2, 0,
+                    self.plot_data3D(p_to_plot, e, H[-1], V[-1], 2, 0,
                                      xtitle='H [mm]',
                                      ytitle='V [mm]',
                                      title=pre_title+' Spectral power density[W/eV/mm^2]',)
 
                     self.tabs.setCurrentIndex(0)
-                except Exception as e:
+                except Exception as ex:
                     self.view_type_combo.setEnabled(True)
-                    raise Exception("Data not plottable: bad content\n" + str(e))
+                    raise Exception("Data not plottable: bad content\n" + str(ex))
 
                 # plot result vs X,Y
                 try:
@@ -611,27 +497,27 @@ class OWpower3D(XoppyWidget):
                     else:
                         energy_step = 1.0
 
-                    self.plot_data2D(p_to_plot.sum(axis=0)*energy_step, h, v, 3, 0,
+                    self.plot_data2D(p_to_plot.sum(axis=0)*energy_step, H[-1], V[-1], 3, 0,
                                      xtitle='H [mm]',
                                      ytitle='V [mm]',
                                      title=pre_title+' Power density [W/mm^2]',)
 
                     # self.tabs.setCurrentIndex(1)
-                except Exception as e:
+                except Exception as ex:
                     self.view_type_combo.setEnabled(True)
-                    raise Exception("Data not plottable: bad content\n" + str(e))
+                    raise Exception("Data not plottable: bad content\n" + str(ex))
 
                 # plot result vs E
                 try:
-                    self.plot_data1D(e,p_to_plot.sum(axis=2).sum(axis=1)*(h[1]-h[0])*(v[1]-v[0]), 4, 0,
+                    self.plot_data1D(e,p_to_plot.sum(axis=2).sum(axis=1)*(H[-1][1]-H[-1][0])*(V[-1][1]-V[-1][0]), 4, 0,
                                      xtitle='Photon Energy [eV]',
                                      ytitle= 'Spectral power [W/eV]',
                                      title=pre_title+' Spectral power',)
 
                     # self.tabs.setCurrentIndex(2)
-                except Exception as e:
+                except Exception as ex:
                     self.view_type_combo.setEnabled(True)
-                    raise Exception("Data not plottable: bad content\n" + str(e))
+                    raise Exception("Data not plottable: bad content\n" + str(ex))
 
                 self.view_type_combo.setEnabled(True)
 
@@ -657,6 +543,12 @@ class OWpower3D(XoppyWidget):
         dens      = [self.EL1_DEN,self.EL2_DEN,self.EL3_DEN,self.EL4_DEN,self.EL5_DEN]
         roughness = numpy.array( (self.EL1_ROU,self.EL2_ROU,self.EL3_ROU,self.EL4_ROU,self.EL5_ROU))
         flags     = numpy.array( (self.EL1_FLAG,self.EL2_FLAG,self.EL3_FLAG,self.EL4_FLAG,self.EL5_FLAG))
+        hgap = numpy.array( (self.EL1_HGAP,self.EL2_HGAP,self.EL3_HGAP,self.EL4_HGAP,self.EL5_HGAP))
+        vgap = numpy.array( (self.EL1_VGAP,self.EL2_VGAP,self.EL3_VGAP,self.EL4_VGAP,self.EL5_VGAP))
+        hmag = numpy.array( (self.EL1_HMAG,self.EL2_HMAG,self.EL3_HMAG,self.EL4_HMAG,self.EL5_HMAG))
+        vmag = numpy.array( (self.EL1_VMAG,self.EL2_VMAG,self.EL3_VMAG,self.EL4_VMAG,self.EL5_VMAG))
+        hrot = numpy.array( (self.EL1_HROT,self.EL2_HROT,self.EL3_HROT,self.EL4_HROT,self.EL5_HROT))
+        vrot = numpy.array( (self.EL1_VROT,self.EL2_VROT,self.EL3_VROT,self.EL4_VROT,self.EL5_VROT))
 
         substance = substance[0:self.NELEMENTS+1]
         thick = thick[0:self.NELEMENTS+1]
@@ -671,29 +563,32 @@ class OWpower3D(XoppyWidget):
         energies = e
 
 
+        # note that element of zero index corresponds to source!!!
+        transmittance = numpy.zeros((nelem_including_source,p.shape[0],p.shape[1],p.shape[2]))
+        E =  numpy.zeros((nelem_including_source,p.shape[0]))
+        H =  numpy.zeros((nelem_including_source,p.shape[1]))
+        V =  numpy.zeros((nelem_including_source,p.shape[2]))
 
         # initialize results
 
-
-        # note that element of zero index corresponds to source!!!
-        transmittance = numpy.zeros((nelem_including_source,p.shape[0],p.shape[1],p.shape[2]))
         for i in range(nelem_including_source):
-            transmittance[i] = numpy.ones_like(p)
+            transmittance[i] = numpy.ones_like(p)  # initialize all transmissions to one
+            E[i] = e  # same energy array for all elements
+        H[0] = h
+        V[0] = v
 
         #
         # get undefined densities
         #
-        for i in range(nelem_including_source):
-            try:
+        for i in range(self.NELEMENTS):
+            try:  # apply written value
                 rho = float(dens[i])
-            except:
+            except:   # in case of ?
                 rho = xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(substance[i]))
                 print("Density for %s: %g g/cm3"%(substance[i],rho))
-
             dens[i] = rho
 
 
-        #info oe
         txt = ""
         for i in range(self.NELEMENTS):
             if flags[i] == 0:
@@ -701,13 +596,24 @@ class OWpower3D(XoppyWidget):
                 txt += '      Material: %s\n'%(substance[i])
                 txt += '      Density [g/cm^3]: %f \n'%(dens[i])
                 txt += '      thickness [mm] : %f \n'%(thick[i])
-            else:
+            elif flags[i] == 1:
                 txt += '      *****   oe '+str(i+1)+'  [Mirror] *************\n'
                 txt += '      Material: %s\n'%(substance[i])
                 txt += '      Density [g/cm^3]: %f \n'%(dens[i])
                 txt += '      grazing angle [mrad]: %f \n'%(angle[i])
                 txt += '      roughness [A]: %f \n'%(roughness[i])
-
+            elif flags[i] == 2:
+                txt += '      *****   oe '+str(i+1)+'  [Aperture] *************\n'
+                txt += '      H gap [mm]: %f \n'%(hgap[i])
+                txt += '      V gap [mm]: %f \n'%(vgap[i])
+            elif flags[i] == 3:
+                txt += '      *****   oe '+str(i+1)+'  [Magnifier] *************\n'
+                txt += '      H magnification: %f \n'%(hmag[i])
+                txt += '      V magnification: %f \n'%(vmag[i])
+            elif flags[i] == 4:
+                txt += '      *****   oe '+str(i+1)+'  [Screen rotated] *************\n'
+                txt += '      H angle [deg]: %f \n'%(hrot[i])
+                txt += '      V angle [deg]: %f \n'%(vrot[i])
 
         for i in range(self.NELEMENTS):
             if flags[i] == 0: # filter
@@ -718,9 +624,11 @@ class OWpower3D(XoppyWidget):
 
                     # pay attention to the element index...
                     transmittance[i+1,j,:,:] = numpy.exp(-tmp*dens[i]*(thick[i]/10.0))
+                    H[i + 1] = H[i]
+                    V[i + 1] = V[i]
 
 
-            if flags[i] == 1: # mirror
+            elif flags[i] == 1: # mirror
                 tmp = numpy.zeros(energies.size)
                 for j,energy in enumerate(energies):
                     tmp[j] = xraylib.Refractive_Index_Re(substance[i],energy/1000.0,dens[i])
@@ -736,6 +644,31 @@ class OWpower3D(XoppyWidget):
 
                 for j,energy in enumerate(energies):
                     transmittance[i+1,j,:,:] = rs[j]
+                H[i + 1] = H[i]
+                V[i + 1] = V[i]
+
+            elif flags[i] == 2:  # aperture
+
+                transmittance[i + 1, :, :, :] = 1.0
+                h_indices_bad = numpy.where(numpy.abs(H[i]) > hgap[i])
+                if len(h_indices_bad) > 0:
+                    transmittance[i + 1, :, h_indices_bad, :] = 0.0
+
+                v_indices_bad = numpy.where(numpy.abs(V[i]) > vgap[i])
+                if len(v_indices_bad) > 0:
+                    transmittance[i + 1, :, :, v_indices_bad] = 0.0
+                H[i + 1] = H[i]
+                V[i + 1] = V[i]
+
+            elif flags[i] == 3:  # magnifier
+                transmittance[i + 1, :, :, :] = 1.0 / (hmag[i] * vmag[i])
+                H[i + 1] = H[i] * hmag[i]
+                V[i + 1] = V[i] * vmag[i]
+
+            elif flags[i] == 4:  # rotation screen
+                transmittance[i + 1, :, :, :] = numpy.cos(hrot[i] * numpy.pi / 180) * numpy.cos(vrot[i] * numpy.pi / 180)
+                H[i + 1] = H[i] / numpy.cos(hrot[i] * numpy.pi / 180)
+                V[i + 1] = V[i] / numpy.cos(vrot[i] * numpy.pi / 180)
 
 
         txt += "\n\n\n"
@@ -743,7 +676,9 @@ class OWpower3D(XoppyWidget):
         p_cumulated = p.copy()
         power_cumulated = p_cumulated.sum()*integration_constante
         txt += '      Input beam power: %f W\n'%(power_cumulated)
+
         for i in range(self.NELEMENTS):
+            integration_constante = (E[i+1][1] - E[i+1][0]) * (H[i+1][1] - H[i+1][0]) * (V[i+1][1] - V[i+1][0]) * codata.e * 1e3
             p_cumulated *= transmittance[i+1]
             power_transmitted = (p_cumulated).sum()*integration_constante
             txt += '      Beam power after optical element %d: %6.3f W (absorbed: %6.3f W)\n'%\
@@ -751,9 +686,7 @@ class OWpower3D(XoppyWidget):
             power_cumulated = power_transmitted
         print(txt)
 
-        return transmittance
-
-
+        return transmittance,E,H,V #{"transmittance":transmittance,"H":H,"V":v,"E":E}
 
 
 
