@@ -17,6 +17,8 @@ from orangecontrib.xoppy.util.xoppy_xraylib_util import reflectivity_fresnel
 import scipy.constants as codata
 import xraylib
 
+from srxraylib.util.h5_simple_writer import H5SimpleWriter
+
 
 class OWpower3D(XoppyWidget):
     name = "POWER3D"
@@ -180,15 +182,15 @@ class OWpower3D(XoppyWidget):
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 42
-        # idx += 1
-        # box1 = gui.widgetBox(box)
-        # gui.separator(box1, height=7)
-        #
-        # gui.comboBox(box1, self, "FILE_DUMP",
-        #              label=self.unitLabels()[idx], addSpace=False,
-        #             items=['No', 'Yes (power.spec)'],
-        #             valueType=int, orientation="horizontal", labelWidth=250)
-        # self.show_at(self.unitFlags()[idx], box1)
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.separator(box1, height=7)
+
+        gui.comboBox(box1, self, "FILE_DUMP",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    items=['No', 'Yes (power3D.h5)'],
+                    valueType=int, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
 
     def set_NELEMENTS(self):
         self.initializeTabs()
@@ -219,7 +221,7 @@ class OWpower3D(XoppyWidget):
             labels.append('V Rotation angle [deg]')
 
         labels.append("Plot")
-        labels.append("Dump file")
+        labels.append("Dump hdf5 file")
 
         return labels
 
@@ -312,14 +314,14 @@ class OWpower3D(XoppyWidget):
                 self.EL2_ANG = congruence.checkStrictlyPositiveNumber(self.EL2_ANG, "2nd oe mirror angle")
                 self.EL2_ROU = congruence.checkPositiveNumber(self.EL2_ROU, "2nd oe mirror roughness")
             elif self.EL2_FLAG == 2: # aperture
-                self.EL2_HGAP = congruence.checkStrictlyPositiveNumber(self.EL2_HGAP, "1st oe H gap")
-                self.EL2_VGAP = congruence.checkPositiveNumber(self.EL2_VGAP, "1st oe V Gap")
+                self.EL2_HGAP = congruence.checkStrictlyPositiveNumber(self.EL2_HGAP, "2nd oe H gap")
+                self.EL2_VGAP = congruence.checkPositiveNumber(self.EL2_VGAP, "2nd oe V Gap")
             elif self.EL2_FLAG == 3: # magnifier
-                self.EL2_HMAG = congruence.checkStrictlyPositiveNumber(self.EL2_HMAG, "1st oe H magnification")
-                self.EL2_VMAG = congruence.checkPositiveNumber(self.EL2_VMAG, "1st oe V magnification")
+                self.EL2_HMAG = congruence.checkStrictlyPositiveNumber(self.EL2_HMAG, "2nd oe H magnification")
+                self.EL2_VMAG = congruence.checkPositiveNumber(self.EL2_VMAG, "2nd oe V magnification")
             elif self.EL2_FLAG == 4: # rotation
-                self.EL2_HROT = congruence.checkNumber(self.EL2_HROT, "1st oe rotation H")
-                self.EL2_VROT = congruence.checkNumber(self.EL2_VROT, "1st oe rotation V")
+                self.EL2_HROT = congruence.checkNumber(self.EL2_HROT, "2nd oe rotation H")
+                self.EL2_VROT = congruence.checkNumber(self.EL2_VROT, "2nd oe rotation V")
 
             if not self.EL2_DEN.strip() == "?":
                 self.EL2_DEN = str(congruence.checkStrictlyPositiveNumber(float(congruence.checkNumber(self.EL2_DEN, "2nd oe density")), "2nd oe density"))
@@ -332,6 +334,15 @@ class OWpower3D(XoppyWidget):
             elif self.EL3_FLAG == 1: # mirror
                 self.EL3_ANG = congruence.checkStrictlyPositiveNumber(self.EL3_ANG, "3rd oe mirror angle")
                 self.EL3_ROU = congruence.checkPositiveNumber(self.EL3_ROU, "3rd oe mirror roughness")
+            elif self.EL3_FLAG == 2: # aperture
+                self.EL3_HGAP = congruence.checkStrictlyPositiveNumber(self.EL3_HGAP, "3rd oe H gap")
+                self.EL3_VGAP = congruence.checkPositiveNumber(self.EL3_VGAP, "3rd oe V Gap")
+            elif self.EL3_FLAG == 3: # magnifier
+                self.EL3_HMAG = congruence.checkStrictlyPositiveNumber(self.EL3_HMAG, "3rd oe H magnification")
+                self.EL3_VMAG = congruence.checkPositiveNumber(self.EL3_VMAG, "3rd oe V magnification")
+            elif self.EL3_FLAG == 4: # rotation
+                self.EL3_HROT = congruence.checkNumber(self.EL3_HROT, "3rd oe rotation H")
+                self.EL3_VROT = congruence.checkNumber(self.EL3_VROT, "3rd oe rotation V")
 
             if not self.EL3_DEN.strip() == "?":
                 self.EL3_DEN = str(congruence.checkStrictlyPositiveNumber(float(congruence.checkNumber(self.EL3_DEN, "3rd oe density")), "3rd oe density"))
@@ -344,7 +355,15 @@ class OWpower3D(XoppyWidget):
             elif self.EL4_FLAG == 1: # mirror
                 self.EL4_ANG = congruence.checkStrictlyPositiveNumber(self.EL4_ANG, "4th oe mirror angle")
                 self.EL4_ROU = congruence.checkPositiveNumber(self.EL4_ROU, "4th oe mirror roughness")
-
+            elif self.EL4_FLAG == 2: # aperture
+                self.EL4_HGAP = congruence.checkStrictlyPositiveNumber(self.EL4_HGAP, "4th oe H gap")
+                self.EL4_VGAP = congruence.checkPositiveNumber(self.EL4_VGAP, "4th oe V Gap")
+            elif self.EL4_FLAG == 3: # magnifier
+                self.EL4_HMAG = congruence.checkStrictlyPositiveNumber(self.EL4_HMAG, "4th oe H magnification")
+                self.EL4_VMAG = congruence.checkPositiveNumber(self.EL4_VMAG, "4th oe V magnification")
+            elif self.EL4_FLAG == 4: # rotation
+                self.EL4_HROT = congruence.checkNumber(self.EL4_HROT, "4th oe rotation H")
+                self.EL4_VROT = congruence.checkNumber(self.EL4_VROT, "4th oe rotation V")
             if not self.EL4_DEN.strip() == "?":
 
                 self.EL4_DEN = str(congruence.checkStrictlyPositiveNumber(float(congruence.checkNumber(self.EL4_DEN, "4th oe density")), "4th oe density"))
@@ -357,6 +376,15 @@ class OWpower3D(XoppyWidget):
             elif self.EL5_FLAG == 1: # mirror
                 self.EL5_ANG = congruence.checkStrictlyPositiveNumber(self.EL5_ANG, "5th oe mirror angle")
                 self.EL5_ROU = congruence.checkPositiveNumber(self.EL5_ROU, "5th oe mirror roughness")
+            elif self.EL5_FLAG == 2: # aperture
+                self.EL5_HGAP = congruence.checkStrictlyPositiveNumber(self.EL5_HGAP, "5th oe H gap")
+                self.EL5_VGAP = congruence.checkPositiveNumber(self.EL5_VGAP, "5th oe V Gap")
+            elif self.EL5_FLAG == 3: # magnifier
+                self.EL5_HMAG = congruence.checkStrictlyPositiveNumber(self.EL5_HMAG, "5th oe H magnification")
+                self.EL5_VMAG = congruence.checkPositiveNumber(self.EL5_VMAG, "5th oe V magnification")
+            elif self.EL5_FLAG == 4: # rotation
+                self.EL5_HROT = congruence.checkNumber(self.EL5_HROT, "5th oe rotation H")
+                self.EL5_VROT = congruence.checkNumber(self.EL5_VROT, "5th oe rotation V")
 
             if not self.EL5_DEN.strip() == "?":
                 self.EL5_DEN = str(congruence.checkStrictlyPositiveNumber(float(congruence.checkNumber(self.EL5_DEN, "5th oe density")), "5th oe density"))
@@ -447,9 +475,6 @@ class OWpower3D(XoppyWidget):
                     transmittivity_before_last_element = transmittivity_total / transmittivity[-1,:,:,:]
                     p_to_plot = p_spectral_power * (transmittivity_before_last_element - transmittivity_total)
                     pre_title = "Absorption by the LAST element"
-
-
-
 
                 # plot transmittance stack
                 try:
@@ -686,8 +711,98 @@ class OWpower3D(XoppyWidget):
             power_cumulated = power_transmitted
         print(txt)
 
-        return transmittance,E,H,V #{"transmittance":transmittance,"H":H,"V":v,"E":E}
+        calculated_data = (transmittance,E,H,V)
 
+        if self.FILE_DUMP:
+            self.xoppy_write_h5file(calculated_data)
+
+        return  calculated_data
+
+    def xoppy_write_h5file(self,calculated_data):
+
+        p, e, h, v = self.input_beam.get_content("xoppy_data")
+        code = self.input_beam.get_content("xoppy_code")
+
+        p_spectral_power = p * codata.e * 1e3
+
+        transmittivity, E, H, V = calculated_data
+
+
+        h5_file = "power3D.h5"
+        try:
+
+            h5w = H5SimpleWriter.initialize_file(h5_file, creator="power3D.py")
+            p_cumulated = p.copy()
+            txt = "\n\n\n"
+            integration_constante = (e[1] - e[0]) * (h[1] - h[0]) * (v[1] - v[0]) * codata.e * 1e3
+            p_cumulated = p.copy()
+            power_cumulated = p_cumulated.sum() * integration_constante
+            txt += '      Input beam power: %f W\n' % (power_cumulated)
+
+            for i in range(self.NELEMENTS):
+                integration_constante = (E[i + 1][1] - E[i + 1][0]) * (H[i + 1][1] - H[i + 1][0]) * (
+                            V[i + 1][1] - V[i + 1][0]) * codata.e * 1e3
+                p_cumulated *= transmittivity[i + 1]
+                power_transmitted = (p_cumulated).sum() * integration_constante
+                txt += '      Beam power after optical element %d: %6.3f W (absorbed: %6.3f W)\n' % \
+                       (i + 1, power_transmitted, power_cumulated - power_transmitted)
+                power_cumulated = power_transmitted
+            print(txt)
+
+            h5w.add_key("info", txt, entry_name=None)
+
+            #
+            # source
+            #
+            entry_name = "source"
+
+            h5w.create_entry(entry_name, nx_default=None)
+
+
+            h5w.add_stack(e, h, v, p, stack_name="Radiation stack", entry_name=entry_name,
+                          title_0="Photon energy [eV]",
+                          title_1="X gap [mm]",
+                          title_2="Y gap [mm]")
+
+            h5w.add_image(p_spectral_power.sum(axis=0) * (E[i][1] - E[i][0]), H[i], V[i],
+                          image_name="Power Density", entry_name=entry_name,
+                          title_x="X [mm]", title_y="Y [mm]")
+
+            h5w.add_dataset(E[0], p_spectral_power.sum(axis=2).sum(axis=1) * (h[1] - h[0]) * (v[1] - v[0]) ,
+                            entry_name=entry_name, dataset_name="Spectral power",
+                            title_x="Photon Energy [eV]", title_y="Spectral density [W/eV]")
+
+
+            for i in range(self.NELEMENTS):
+                entry_name = "optical_element_%d"%(i+1)
+
+                h5w.create_entry(entry_name, nx_default="Absorbed Power Density")
+
+                h5w.add_stack(E[i], H[i], V[i], transmittivity[i],
+                              stack_name="Transmittivity_stack", entry_name=entry_name,
+                              title_0="Photon energy [eV]",
+                              title_1="X gap [mm]",
+                              title_2="Y gap [mm]")
+
+                transmittivity_total = (transmittivity[0:(i+2),:,:,:]).prod(axis=0)
+                p_to_plot = p_spectral_power * transmittivity_total
+                h5w.add_image(p_to_plot.sum(axis=0)*(E[i][1]-E[i][0]),H[i],V[i],image_name="Transmitted Power Density",entry_name=entry_name,
+                              title_x="X [mm]",title_y="Y [mm]")
+
+                h5w.add_dataset(E[i], p_to_plot.sum(axis=2).sum(axis=1) * (H[i][1] - H[i][0]) * (V[i][1] - V[i][0]) ,
+                                entry_name=entry_name, dataset_name="Spectral power",
+                                title_x="Photon Energy [eV]", title_y="Spectral density [W/eV]")
+
+                transmittivity_before_last_element = (transmittivity[0:(i+1),:,:,:]).prod(axis=0)
+                p_to_plot = p_spectral_power * (transmittivity_before_last_element - transmittivity_total)
+                h5w.add_image(p_to_plot.sum(axis=0)*(E[i][1]-E[i][0]),H[i],V[i],image_name="Absorbed Power Density",entry_name=entry_name,
+                              title_x="X [mm]",title_y="Y [mm]")
+
+
+
+            print("File written to disk: %s" % h5_file)
+        except:
+            print("ERROR writing h5 file")
 
 
 if __name__ == "__main__":
@@ -705,7 +820,7 @@ if __name__ == "__main__":
                                        HSLITPOINTS=41,VSLITPOINTS=41,METHOD=2,
                                        PHOTONENERGYMIN=7000,PHOTONENERGYMAX=8100,PHOTONENERGYPOINTS=20,
                                        USEEMITTANCES=1)
-    # received_data = DataExchangeObject("XOPPY", "UNDULATOR_RADIATION")
+
     received_data = DataExchangeObject("XOPPY", "POWER3D")
     received_data.add_content("xoppy_data", [p, e, h, v])
     received_data.add_content("xoppy_code", code)

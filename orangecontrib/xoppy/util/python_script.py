@@ -46,11 +46,13 @@ class PythonScript(QWidget):
 
         if not file_name is None:
             if not file_name.strip() == "":
+                if os.path.splitext(file_name)[1] != "py":
+                    file_name += ".py"
                 file = open(file_name, "w")
-                file.write(str(self.pythonScript.toPlainText()))
+                file.write(str(self.code_area.toPlainText()))
                 file.close()
 
-                QtWidgets.QMessageBox.information(self, "QMessageBox.information()",
+                QtWidgets.QMessageBox.information(self, "Information",
                                               "File " + file_name + " written to disk",
                                               QtWidgets.QMessageBox.Ok)
 
