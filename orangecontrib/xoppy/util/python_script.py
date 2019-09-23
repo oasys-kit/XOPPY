@@ -46,7 +46,7 @@ class PythonScript(QWidget):
 
         if not file_name is None:
             if not file_name.strip() == "":
-                if os.path.splitext(file_name)[1] != "py":
+                if os.path.splitext(file_name)[1].lower() != ".py":
                     file_name += ".py"
                 file = open(file_name, "w")
                 file.write(str(self.code_area.toPlainText()))
