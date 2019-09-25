@@ -17,6 +17,8 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 import scipy.constants as codata
 import xraylib
 
+from shadow4.physical_models.mlayer.mlayer import MLayer
+
 class OWmlayer(XoppyWidget):
     name = "MLayer"
     id = "orange.widgets.datamlayer"
@@ -26,188 +28,508 @@ class OWmlayer(XoppyWidget):
     category = ""
     keywords = ["xoppy", "mlayer"]
 
-    MODE = Setting(0)
-    SCAN = Setting(0)
-    F12_FLAG = Setting(0)
-    SUBSTRATE = Setting("Si")
-    ODD_MATERIAL = Setting("Si")
-    EVEN_MATERIAL = Setting("W")
-    ENERGY = Setting(8050.0)
-    THETA = Setting(0.0)
-    SCAN_STEP = Setting(0.01)
-    NPOINTS = Setting(600)
-    ODD_THICKNESS = Setting(25.0)
-    EVEN_THICKNESS = Setting(25.0)
+    # MODE = Setting(0)
+    # SCAN = Setting(0)
+    # F12_FLAG = Setting(2)  # 0=old, 1=old with mlayer.f12, 2 = new
+    # SUBSTRATE = Setting("Si")
+    # ODD_MATERIAL = Setting("Si")
+    # EVEN_MATERIAL = Setting("W")
+    # ENERGY = Setting(8050.0)
+    # THETA = Setting(0.0)
+    # SCAN_STEP = Setting(0.01)
+    # NPOINTS = Setting(600)
+    # ODD_THICKNESS = Setting(25.0)
+    # EVEN_THICKNESS = Setting(25.0)
+    # NLAYERS = Setting(50)
+    # FILE = Setting("layers.dat")
+
+
+    CALCULATE = Setting(0) # 0 = old mlayer, 1=
+
+
+    MATERIAL_S = Setting("Si")
+    DENSITY_S = Setting("?")
+    ROUGHNESS_S = Setting(0.0)
+
+
+    MATERIAL_E = Setting("W")
+    DENSITY_E = Setting("?")
+    ROUGHNESS_E = Setting(0.0)
+
+    MATERIAL_O = Setting("Si")
+    DENSITY_O = Setting("?")
+    ROUGHNESS_O = Setting(0.0)
+
+    THICKNESS = Setting(50.0)
+    GAMMA = Setting(0.5)
     NLAYERS = Setting(50)
-    FILE = Setting("layers.dat")
+
+    # THETA_FLAG = Setting(1)
+    # THETA_N = Setting(600)
+    # THETA = Setting(0.0)
+    # THETA_END = Setting(6.0)
+    #
+    # ENERGY_FLAG = Setting(0)
+    # ENERGY_N = Setting(100)
+    # ENERGY = Setting(8050.)
+    # ENERGY_END = Setting(15000.0)
+
+
+    THETA_FLAG = Setting(1)
+    THETA_N = Setting(50)
+    THETA = Setting(00)
+    THETA_END = Setting(6.0)
+
+    ENERGY_FLAG = Setting(1)
+    ENERGY_N = Setting(100)
+    ENERGY = Setting(5000.)
+    ENERGY_END = Setting(15000.0)
+
+
+
+
+    DUMP_TO_FILE = Setting(0)
+    FILE_NAME = Setting("mlayer.h5")
+
+    xtitle = None
+    ytitle = None
 
     def build_gui(self):
 
-        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        box0 = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1 
         
         #widget index 0 
         idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "MODE",
+        box1 = gui.widgetBox(box0)
+        gui.comboBox(box1, self, "CALCULATE",
                      label=self.unitLabels()[idx], addSpace=False,
-                    items=['Periodic Layers', 'Individual Layers'],
+                    items=['Reflectivity-s', 'Reflectivity-p'],
                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 1 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "SCAN",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    items=['Grazing Angle', 'Photon Energy'],
-                    valueType=int, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 2 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        gui.comboBox(box1, self, "F12_FLAG",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    items=['Create on the fly', 'Use existing file: mlayers.f12'],
-                    valueType=int, orientation="horizontal", labelWidth=150)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 3 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "SUBSTRATE",
-                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 4 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "ODD_MATERIAL",
-                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 5 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EVEN_MATERIAL",
-                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 6 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "ENERGY",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 7 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "THETA",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 8 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "SCAN_STEP",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 9 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "NPOINTS",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 10 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "ODD_THICKNESS",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 11 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "EVEN_THICKNESS",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 12 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        oasysgui.lineEdit(box1, self, "NLAYERS",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        #widget index 13 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
-        file_box = oasysgui.widgetBox(box1, "", addSpace=False, orientation="horizontal", height=25)
 
-        self.le_file = oasysgui.lineEdit(file_box, self, "FILE",
-                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal")
+        
+        #
+        #
+        #
+        box = gui.widgetBox(box0, "Substrate", orientation="vertical")
+
+        #widget index 1
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        oasysgui.lineEdit(box1, self, "MATERIAL_S",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1) 
+
+        #widget index 2
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "DENSITY_S",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-        gui.button(file_box, self, "...", callback=self.selectFile)
+        #widget index 3
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "ROUGHNESS_S",
+                    valueType=float, validator=QDoubleValidator(),
+                    label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #
+        #
+        #
+        box = gui.widgetBox(box0, "Even layer (closer to substrate)", orientation="vertical")
+
+        #widget index 4
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "MATERIAL_E",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 5
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "DENSITY_E",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 6
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "ROUGHNESS_E",
+                    valueType=float, validator=QDoubleValidator(),
+                    label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #
+        #
+        #
+        box = gui.widgetBox(box0, "Odd layer (close to vacuum)", orientation="vertical")
+        #widget index 7
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "MATERIAL_O",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 8
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "DENSITY_O",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 9
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "ROUGHNESS_O",
+                    valueType=float, validator=QDoubleValidator(),
+                    label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #
+        #
+        #
+        box = gui.widgetBox(box0, "Bilayers", orientation="vertical")
+        #widget index 10
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "THICKNESS",
+                    valueType=float, validator=QDoubleValidator(),
+                    label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 11
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "GAMMA",
+                    valueType=float, validator=QDoubleValidator(),
+                    label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 12
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "NLAYERS",
+                    valueType=int, validator=QIntValidator(),
+                    label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #
+        #
+        #
+        box = gui.widgetBox(box0, "scan - angle", orientation="vertical")
+        #widget index 13
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "THETA_FLAG",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    items=['Single Value', 'Scan'],
+                    valueType=int, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        # widget index 14
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "THETA",
+                          label=self.unitLabels()[idx], addSpace=False,
+                          valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        # widget index 15
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "THETA_END",
+                          label=self.unitLabels()[idx], addSpace=False,
+                          valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        # widget index 16
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "THETA_N",
+                          label=self.unitLabels()[idx], addSpace=False,
+                          valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #
+        #
+        #
+        box = gui.widgetBox(box0, "scan - energy", orientation="vertical")
+        #widget index 17
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "ENERGY_FLAG",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    items=['Single Value', 'Scan'],
+                    valueType=int, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        # widget index 18
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "ENERGY",
+                          label=self.unitLabels()[idx], addSpace=False,
+                          valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        # widget index 19
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "ENERGY_END",
+                          label=self.unitLabels()[idx], addSpace=False,
+                          valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        # widget index 20
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "ENERGY_N",
+                          label=self.unitLabels()[idx], addSpace=False,
+                          valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+
+        #
+        #
+        #
+        box = gui.widgetBox(box0, "output", orientation="vertical")
+
+        # widget index 21
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "DUMP_TO_FILE",
+                     label=self.unitLabels()[idx], addSpace=True,
+                     items=["No", "Yes"],
+                     orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
+        # widget index 22
+        idx += 1
+        box1 = gui.widgetBox(box,orientation="horizontal")
+        gui.lineEdit(box1, self, "FILE_NAME",
+                     label=self.unitLabels()[idx], addSpace=True)
+        self.show_at(self.unitFlags()[idx], box1)
+
+
+        gui.button(box1, self, "...", callback=self.selectFile)
 
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['Layer periodicity: ','Scanning variable: ','Material parameters:',
-                 'Substrate: ','Odd layer material (closer to vacuum): ','Even layer material (closer to substrate): ',
-                 'Photon energy [eV]:','Grazing angle [degrees]:','Scanning variable step: ',
-                 'Number of scanning points','Thickness [A] for odd material:','Thickness [A] for even material:',
-                 'Number of layer pairs:','File with layer thicknesses:']
+         return ['Calculate: ',
+                'material: ',
+                'density [g/cm3]:',
+                'roughness [A]',
+                'material: ',
+                'density [g/cm3]:',
+                'roughness [A]',
+                'material: ',
+                'density [g/cm3]:',
+                'roughness [A]',
+                'Bilayer thickness [A]',
+                'Bilayer gamma [t_even/(t_even+t_odd)]',
+                'Number of bilayers:',
+                'Grazing angle [deg]',
+                'Start Graz angle [deg]',
+                'End Graz angle [deg]',
+                'Number of angular points',
+                'Photon energy',
+                'Start Energy [eV]: ',
+                'End Energy [eV]: ',
+                'Number of energy points',
+                'Dump to file',
+                'File name',
+                 ]
+
 
 
     def unitFlags(self):
-         return ['True','True','True',
-                 'self.F12_FLAG  ==  0','self.F12_FLAG  ==  0','self.F12_FLAG  ==  0',
-                 'True','True','True',
-                 'True','self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  0  &  self.F12_FLAG  ==  0',
-                 'self.MODE  ==  0  &  self.F12_FLAG  ==  0','self.MODE  ==  1']
+         return [
+                "True", #  0'Calculate: ',
+                "True", #  'material: ',
+                "True", #  'density [g/cm3]:',
+                "True", #  'roughness [A]',
+                "True", #  'material: ',
+                "True", #  'density [g/cm3]:',
+                "True", #  'roughness [A]',
+                "True", #  'material: ',
+                "True", #  'density [g/cm3]:',
+                "True", #  'roughness [A]',
+                "True", #  'Bilayer thickness [A]',
+                "True", #  'Bilayer gamma [odd/(even+odd)????]',
+                "True", #  'Number of bilayers:',
+                "True", #  13'Grazing angle',
+                "True", #  'Start Graz angle [deg]',
+                "self.THETA_FLAG == 1", #  'End Graz angle [deg]',
+                "self.THETA_FLAG == 1", #  'Number of angular points',
+                "True", #  17'Photon energy',
+                "True", #  'Start Energy [eV]: ',
+                "self.ENERGY_FLAG == 1", #  'End Energy [eV]: ',
+                "self.ENERGY_FLAG == 1", #  'Number of energy points',
+                "True", #  21'Dump to file',
+                "self.DUMP_TO_FILE == 1", #  'File name',
+                 ]
+
 
     def get_help_name(self):
         return 'mlayer'
 
     def selectFile(self):
-        self.le_file.setText(oasysgui.selectFileFromDialog(self, self.FILE, "Open File with layer thicknesses", file_extension_filter="*.dat *.txt"))
+        self.FILE_NAME.setText(oasysgui.selectFileFromDialog(self, self.FILE, "Open File For Output", file_extension_filter="*.h5 *.hdf"))
 
     def check_fields(self):
-        if self.F12_FLAG == 1:
-            congruence.checkEmptyString(self.SUBSTRATE, "Substrate")
-            congruence.checkEmptyString(self.ODD_MATERIAL, "Odd layer material")
-            congruence.checkEmptyString(self.EVEN_MATERIAL, "Even layer material")
+        self.MATERIAL_S = congruence.checkEmptyString(self.MATERIAL_S,  "Substrate")
+        self.MATERIAL_E = congruence.checkEmptyString(self.MATERIAL_E, "Substrate")
+        self.MATERIAL_O = congruence.checkEmptyString(self.MATERIAL_O, "Substrate")
 
-        if self.SCAN == 0: # ga
-            self.ENERGY = congruence.checkStrictlyPositiveNumber(self.ENERGY, "Photon energy")
-        else:
-            self.THETA = congruence.checkStrictlyPositiveNumber(self.THETA, "Grazing angle")
 
-        self.SCAN_STEP = congruence.checkStrictlyPositiveNumber(self.SCAN_STEP, "Scanning variable step")
-        self.NPOINTS = congruence.checkStrictlyPositiveNumber(self.NPOINTS, "Number of scanning points")
+        self.ENERGY = congruence.checkStrictlyPositiveNumber(self.ENERGY, "Photon energy")
+        self.THETA = congruence.checkPositiveNumber(self.THETA, "Grazing angle")
 
-        if self.MODE == 0: # periodic layers
-            self.ODD_THICKNESS = congruence.checkStrictlyPositiveNumber(self.ODD_THICKNESS, "Thickness for odd material")
-            self.EVEN_THICKNESS = congruence.checkStrictlyPositiveNumber(self.EVEN_THICKNESS, "Thickness for even material")
-            self.NLAYERS = congruence.checkStrictlyPositiveNumber(self.NLAYERS, "Number of layer pairs")
-        else:
-            congruence.checkFile(self.FILE)
+        self.ENERGY_END = congruence.checkStrictlyPositiveNumber(self.ENERGY_END, "Photon energy")
+        self.THETA_END = congruence.checkStrictlyPositiveNumber(self.THETA_END, "Grazing angle")
+
+        self.ENERGY_N = congruence.checkStrictlyPositiveNumber(self.ENERGY_N, "Number of energy points")
+        self.THETA_N = congruence.checkStrictlyPositiveNumber(self.THETA_N, "Number of angle points")
+
+        self.THICKNESS = congruence.checkStrictlyPositiveNumber(self.THICKNESS, "Bilayer thickness")
+        self.GAMMA = congruence.checkStrictlyPositiveNumber(self.GAMMA, "Bilayer gamma")
+        self.NLAYERS = congruence.checkStrictlyPositiveNumber(self.NLAYERS, "Number of bilayers")
+        #
+        self.ROUGHNESS_O = congruence.checkPositiveNumber(self.ROUGHNESS_O, "Roughness odd material")
+        self.ROUGHNESS_E = congruence.checkPositiveNumber(self.ROUGHNESS_E, "Roughness even material")
+        self.ROUGHNESS_S = congruence.checkPositiveNumber(self.ROUGHNESS_S, "Roughness substrate material")
+
 
     def do_xoppy_calculation(self):
-        return self.xoppy_calc_mlayer()
+
+        density_S = self.DENSITY_S
+        density_E = self.DENSITY_E
+        density_O = self.DENSITY_O
+
+        if density_S == "?": density_S = None
+        if density_E == "?": density_E = None
+        if density_O == "?": density_O = None
+
+
+        out = MLayer.initialize_from_bilayer_stack(
+            material_S=self.MATERIAL_S, density_S=density_S, roughness_S=self.ROUGHNESS_S,  # 2.33
+            material_E=self.MATERIAL_E, density_E=density_E, roughness_E=self.ROUGHNESS_E,  # 19.3
+            material_O=self.MATERIAL_O, density_O=density_O, roughness_O=self.ROUGHNESS_O,  # 2.33
+            bilayer_pairs=self.NLAYERS,
+            bilayer_thickness=self.THICKNESS,
+            bilayer_gamma=self.GAMMA,
+        )
+
+        for key in out.pre_mlayer_dict.keys():
+            print(key, out.pre_mlayer_dict[key])
+        #
+        # theta scan
+        #
+
+        #
+        if self.ENERGY_FLAG == 0:
+            energyN = 1
+        else:
+            energyN = self.ENERGY_N
+
+        if self.THETA_FLAG == 0:
+            thetaN = 1
+        else:
+            thetaN = self.THETA_N
+
+
+        rs, rp, e, t = out.scan(fileOut=None,  # "pre_mlayer_scan.dat",
+                                energyN=energyN, energy1=self.ENERGY, energy2=self.ENERGY_END,
+                                thetaN=thetaN, theta1=self.THETA, theta2=self.THETA_END)
+        #
+        print(rs.shape, rp.shape, e.shape, t.shape)
+        #
+
+
+
+        #
+        #
+        #
+
+
+
+        out_dict = {}
+        if self.THETA_FLAG == 1 and self.ENERGY_FLAG == 0:   # theta scan
+            out = numpy.zeros((t.size,3))
+            out[:, 0] = t
+            out[:, 1] = rs[0]
+            out[:, 2] = rp[0]
+
+            out_dict["data"] = out
+
+            # if True:
+            #     from srxraylib.plot.gol import plot
+            #     plot(t, rs[0], xtitle="angle [deg]", ytitle="Reflectivity",
+            #          title="Default xoppy - no preprocessor (direct calling xraylib)", ylog=False)
+
+        elif self.THETA_FLAG == 0 and self.ENERGY_FLAG == 1:  # energy scan
+            out = numpy.zeros((e.size,3))
+
+
+            out[:, 0] = e
+            out[:, 1] = rs[:, 0]
+            out[:, 2] = rp[:, 0]
+
+            out_dict["data"] = out
+
+            # if True:
+            #     from srxraylib.plot.gol import plot
+            #     plot(e, rs[:, 0], xtitle="energy [eV]", ytitle="Reflectivity",
+            #          title="Default xoppy - no preprocessor (direct calling xraylib)", ylog=False)
+
+
+        elif self.THETA_FLAG == 1 and self.ENERGY_FLAG == 1:  # double scan
+            if self.CALCULATE == 0:
+                out_dict["data2D"] = rs
+            elif self.CALCULATE == 1:
+                out_dict["data2D"] = rp
+            out_dict["dataX"] = e
+            out_dict["dataY"] = t
+        elif self.THETA_FLAG == 0 and self.ENERGY_FLAG == 0:  # single point
+            pass
+
+
+
+
+
+
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+
+        try:
+            calculated_data.add_content("xoppy_data", out_dict["data"])
+            calculated_data.add_content("plot_x_col", 0)
+            calculated_data.add_content("plot_y_col", 1)
+        except:
+            pass
+
+        try:
+            calculated_data.add_content("labels", out_dict["labels"])
+        except:
+            pass
+
+        try:
+            calculated_data.add_content("info", out_dict["info"])
+        except:
+            pass
+
+        try:
+            calculated_data.add_content("data2D", out_dict["data2D"])
+            calculated_data.add_content("dataX", out_dict["dataX"])
+            calculated_data.add_content("dataY", out_dict["dataY"])
+        except:
+            pass
+
+        return calculated_data
 
     def extract_data_from_xoppy_output(self, calculation_output):
         return calculation_output
@@ -216,197 +538,116 @@ class OWmlayer(XoppyWidget):
         return "MLAYER"
 
     def getTitles(self):
-        return ["s-reflectivity","p-reflectivity","averaged reflectivity","s-phase shift","p-phase shift","(s-electric field)^2","(p-electric field)^2"]
+        return ["Calculation Result"]
 
     def getXTitles(self):
-        if self.SCAN == 0:
-            return ["Grazing angle Theta [deg]",
-                    "Grazing angle Theta [deg]",
-                    "Grazing angle Theta [deg]",
-                    "Grazing angle Theta [deg]",
-                    "Grazing angle Theta [deg]",
-                    "Grazing angle Theta [deg]",
-                    "Grazing angle Theta [deg]"]
-        else:
-            return ["Photon energy [eV]",
-                    "Photon energy [eV]",
-                    "Photon energy [eV]",
-                    "Photon energy [eV]",
-                    "Photon energy [eV]",
-                    "Photon energy [eV]",
-                    "Photon energy [eV]"]
+        if self.THETA_FLAG == 1 and self.ENERGY_FLAG == 0:   # theta scan
+            return ["Grazing angle [deg]"]
+        elif self.THETA_FLAG == 0 and self.ENERGY_FLAG == 1:  # energy scan
+            return ["Photon energy [eV]"]
+        elif self.THETA_FLAG == 1 and self.ENERGY_FLAG == 1:  # double scan
+            pass
+        elif self.THETA_FLAG == 0 and self.ENERGY_FLAG == 0:  # single point
+            pass
+
+
 
     def getYTitles(self):
-        return self.getTitles()
+        if self.CALCULATE == 0:  # Rs
+            return ["reflectivity-s"]
+        elif self.CALCULATE == 1:  # Rp
+            return ["reflectivity-p"]
 
     def getVariablesToPlot(self):
-        if self.SCAN == 0:
-            return [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7)]
-        else:
-            return [(0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (0, 8)]
+        if self.CALCULATE == 0:
+            return [(0, 1)]
+        elif self.CALCULATE == 1:
+            return [(0, 1)]
 
     def getLogPlot(self):
-        return[(False, False), (False, False), (False, False), (False, False), (False, False), (False, False), (False, False)]
+        return[(False, False)]
+
+    def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False):
+        super().plot_histo(x, y,progressBarValue, tabs_canvas_index, plot_canvas_index, title, xtitle, ytitle, log_x, log_y)
+
+        # place a big dot if there is only a single value
+        if ((x.size == 1) and (y.size == 1)):
+            self.plot_canvas[plot_canvas_index].setDefaultPlotLines(False)
+            self.plot_canvas[plot_canvas_index].setDefaultPlotPoints(True)
 
 
-    def xoppy_calc_mlayer(self):
+    def plot_results(self, calculated_data, progressBarValue=80):
+        self.initializeTabs()
 
-        # copy the variable locally, so no more use of self.
-        MODE = self.MODE
-        SCAN = self.SCAN
-        F12_FLAG = self.F12_FLAG
-        SUBSTRATE = self.SUBSTRATE
-        ODD_MATERIAL = self.ODD_MATERIAL
-        EVEN_MATERIAL = self.EVEN_MATERIAL
-        ENERGY = self.ENERGY
-        THETA = self.THETA
-        SCAN_STEP = self.SCAN_STEP
-        NPOINTS = self.NPOINTS
-        ODD_THICKNESS = self.ODD_THICKNESS
-        EVEN_THICKNESS = self.EVEN_THICKNESS
-        NLAYERS = self.NLAYERS
-        FILE=self.FILE
+        try:
+            calculated_data.get_content("xoppy_data")
 
-        for file in ["mlayer.inp","mlayer.par","mlayer.f12"]:
+            self.tab[0].layout().removeItem(self.tab[0].layout().itemAt(0))
+            self.plot_canvas[0] = None
+
+            super().plot_results(calculated_data, progressBarValue)
+        except:
             try:
-                os.remove(os.path.join(locations.home_bin_run(),file))
+                data2D = calculated_data.get_content("data2D")
+                dataX = calculated_data.get_content("dataX")
+                dataY = calculated_data.get_content("dataY")
+
+                self.plot_data2D(data2D, dataX, dataY, 0, 0,
+                                 xtitle='Energy [eV]',
+                                 ytitle='Grazing angle [deg]',
+                                 title='Reflectivity')
             except:
-                pass
-
-        #
-        # write input file for Fortran mlayer: mlayer.inp
-        #
-        f = open('mlayer.inp','w')
-
-        if SCAN == 0 and MODE == 0: a0 = 1
-        if SCAN == 1 and MODE == 0: a0 = 2
-        if SCAN == 0 and MODE == 1: a0 = 3
-        if SCAN == 1 and MODE == 1: a0 = 4
-
-        f.write("%d \n"%a0)
-        f.write("N\n")
-
-        f.write("%g\n"%( codata.h * codata.c / codata.e * 1e10 / ENERGY))
-        f.write("%g\n"%THETA)
-
-        #
-        if SCAN == 0:
-            f.write("%g\n"%SCAN_STEP)
-
-        a2 = codata.h * codata.c / codata.e * 1e10 / ENERGY
-        a3 = codata.h * codata.c / codata.e * 1e10 / (ENERGY + SCAN_STEP)
-        a4 = a3 - a2
-
-        if SCAN != 0:
-            f.write("%g\n"%a4)
-
-        #
-        f.write("%d\n"%NPOINTS)
-
-        if MODE == 0:
-            f.write("%d\n"%NLAYERS)
-
-        if MODE == 0:
-            if a0 != 5:
-                f.write("%g  %g  \n"%(ODD_THICKNESS,EVEN_THICKNESS))
-            else:
-                for i in range(NLAYERS):
-                    f.write("%g  %g  \n"%(ODD_THICKNESS,EVEN_THICKNESS))
-
-        if MODE != 0:
-            f1 = open(FILE,'r')
-            a5 = f1.read()
-            f1.close()
-
-        if MODE != 0:
-            print("Number of layers in %s file is %d "%(FILE,NLAYERS))
-            f.write("%d\n"%NLAYERS)
-            f.write(a5)
-
-        f.write("mlayer.par\n")
-        f.write("mlayer.dat\n")
-
-        f.write("6\n")
-
-        f.close()
-        print('File written to disk: mlayer.inp')
-
-        #
-        # create f12 file
-        #
-
-        if F12_FLAG == 0:
-            energy = numpy.arange(0,500)
-            elefactor = numpy.log10(10000.0 / 30.0) / 300.0
-            energy = 10.0 * 10**(energy * elefactor)
-
-            f12_s = f1f2_calc(SUBSTRATE,energy)
-            f12_e = f1f2_calc(EVEN_MATERIAL,energy)
-            f12_o = f1f2_calc(ODD_MATERIAL,energy)
-
-            f = open("mlayer.f12",'w')
-            f.write('; File created by xoppy for materials [substrate=%s,even=%s,odd=%s]: \n'%(SUBSTRATE,EVEN_MATERIAL,ODD_MATERIAL))
-            f.write('; Atomic masses: \n')
-            f.write("%g %g %g \n"%(xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(SUBSTRATE)),
-                                   xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(EVEN_MATERIAL)),
-                                   xraylib.AtomicWeight(xraylib.SymbolToAtomicNumber(ODD_MATERIAL)) ))
-            f.write('; Densities: \n')
-            f.write("%g %g %g \n"%(xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(SUBSTRATE)),
-                                   xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(EVEN_MATERIAL)),
-                                   xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(ODD_MATERIAL)) ))
-            f.write('; Number of energy points: \n')
-
-            f.write("%d\n"%(energy.size))
-            f.write('; For each energy point, energy[eV], f1[substrate], f2[substrate], f1[even], f2[even], f1[odd], f2[odd]: \n')
-            for i in range(energy.size):
-                f.write("%g %g %g %g %g %g %g \n"%(energy[i],f12_s[0,i],f12_s[1,i],f12_e[0,i],f12_e[1,i],f12_o[0,i],f12_o[1,i]))
-
-            f.close()
-
-            print('File written to disk: mlayer.f12')
-
-        #
-        # run external program mlayer
-        #
-
-        if platform.system() == "Windows":
-            command = os.path.join(locations.home_bin(),'mlayer.exe < mlayer.inp')
-        else:
-            command = "'" + os.path.join(locations.home_bin(), 'mlayer') + "' < mlayer.inp"
-        print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
-        print("\n--------------------------------------------------------\n")
-        os.system(command)
-        print("\n--------------------------------------------------------\n")
+                try:
+                    self.plot_info(calculated_data.get_content("info") + "\n", progressBarValue, 0, 0)
+                except:
+                    pass
 
 
-        #send exchange
-        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+    # def getTitles(self):
+    #     return ["s-reflectivity","p-reflectivity","averaged reflectivity","s-phase shift","p-phase shift","(s-electric field)^2","(p-electric field)^2"]
+    #
+    # def getXTitles(self):
+    #     if self.SCAN == 0:
+    #         return ["Grazing angle Theta [deg]",
+    #                 "Grazing angle Theta [deg]",
+    #                 "Grazing angle Theta [deg]",
+    #                 "Grazing angle Theta [deg]",
+    #                 "Grazing angle Theta [deg]",
+    #                 "Grazing angle Theta [deg]",
+    #                 "Grazing angle Theta [deg]"]
+    #     else:
+    #         return ["Photon energy [eV]",
+    #                 "Photon energy [eV]",
+    #                 "Photon energy [eV]",
+    #                 "Photon energy [eV]",
+    #                 "Photon energy [eV]",
+    #                 "Photon energy [eV]",
+    #                 "Photon energy [eV]"]
+    #
+    # def getYTitles(self):
+    #     return self.getTitles()
+    #
+    # def getVariablesToPlot(self):
+    #     if self.SCAN == 0:
+    #         return [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7)]
+    #     else:
+    #         return [(0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (0, 8)]
+    #
+    # def getLogPlot(self):
+    #     return[(False, False), (False, False), (False, False), (False, False), (False, False), (False, False), (False, False)]
 
-        try:
-            if SCAN == 0:
-                calculated_data.add_content("xoppy_data", numpy.loadtxt("mlayer.dat"))
-                calculated_data.add_content("plot_x_col", 0)
-                calculated_data.add_content("plot_y_col", 3)
-            elif SCAN == 1: # internal scan is in wavelength. Add a column with energy
-                aa = numpy.loadtxt("mlayer.dat")
-                photon_energy = (codata.h * codata.c / codata.e * 1e10) / aa[:,0]
-                bb = numpy.zeros((aa.shape[0],1+aa.shape[1]))
-                bb[:,0] = photon_energy
-                bb[:,1:] = aa
-                calculated_data.add_content("xoppy_data", bb)
-                calculated_data.add_content("plot_x_col", 0)
-                calculated_data.add_content("plot_y_col", 4)
 
-            calculated_data.add_content("units_to_degrees", 1.0)
-        except:
-            pass
-        try:
-            info = "ML %s(%3.2f A):%s(%3.2f A) %d pairs; E=%5.3f eV"%(ODD_MATERIAL,ODD_THICKNESS,EVEN_MATERIAL,EVEN_THICKNESS,NLAYERS,ENERGY)
-            calculated_data.add_content("info",info)
-        except:
-            pass
+    # def xoppy_calc_mlayer(self):
+    #     # if self.F12_FLAG == 2:
+    #     #     self.xoppy_calc_mlayer_new()
+    #     # else:
+    #     self.xoppy_calc_mlayer_old()
+    #
+    # def xoppy_calc_mlayer_new(self):
+    #     pass
 
-        return calculated_data
+
+
 
     def defaults(self):
          self.resetSettings()
