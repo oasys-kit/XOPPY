@@ -1,21 +1,13 @@
-import sys, os
-import platform
 import numpy
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
-from orangecontrib.xoppy.util.xoppy_util import locations
 from orangecontrib.xoppy.util import xoppy_util
-from orangecontrib.xoppy.util.xoppy_xraylib_util import f1f2_calc
-
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-
-import scipy.constants as codata
-import xraylib
 
 from shadow4.physical_models.mlayer.mlayer import MLayer
 
@@ -28,23 +20,7 @@ class OWmlayer(XoppyWidget):
     category = ""
     keywords = ["xoppy", "mlayer"]
 
-    # MODE = Setting(0)
-    # SCAN = Setting(0)
-    # F12_FLAG = Setting(2)  # 0=old, 1=old with mlayer.f12, 2 = new
-    # SUBSTRATE = Setting("Si")
-    # ODD_MATERIAL = Setting("Si")
-    # EVEN_MATERIAL = Setting("W")
-    # ENERGY = Setting(8050.0)
-    # THETA = Setting(0.0)
-    # SCAN_STEP = Setting(0.01)
-    # NPOINTS = Setting(600)
-    # ODD_THICKNESS = Setting(25.0)
-    # EVEN_THICKNESS = Setting(25.0)
-    # NLAYERS = Setting(50)
-    # FILE = Setting("layers.dat")
-
-
-    CALCULATE = Setting(0) # 0 = old mlayer, 1=
+    CALCULATE = Setting(0) # 0 = Rs, 1=Rp
 
 
     MATERIAL_S = Setting("Si")
@@ -64,35 +40,19 @@ class OWmlayer(XoppyWidget):
     GAMMA = Setting(0.5)
     NLAYERS = Setting(50)
 
-    # THETA_FLAG = Setting(1)
-    # THETA_N = Setting(600)
-    # THETA = Setting(0.0)
-    # THETA_END = Setting(6.0)
-    #
-    # ENERGY_FLAG = Setting(0)
-    # ENERGY_N = Setting(100)
-    # ENERGY = Setting(8050.)
-    # ENERGY_END = Setting(15000.0)
-
-
     THETA_FLAG = Setting(1)
-    THETA_N = Setting(50)
-    THETA = Setting(00)
+    THETA_N = Setting(600)
+    THETA = Setting(0.0)
     THETA_END = Setting(6.0)
 
-    ENERGY_FLAG = Setting(1)
+    ENERGY_FLAG = Setting(0)
     ENERGY_N = Setting(100)
-    ENERGY = Setting(5000.)
+    ENERGY = Setting(8050.)
     ENERGY_END = Setting(15000.0)
-
-
-
 
     DUMP_TO_FILE = Setting(0)
     FILE_NAME = Setting("mlayer.h5")
 
-    xtitle = None
-    ytitle = None
 
     def build_gui(self):
 
@@ -390,11 +350,13 @@ class OWmlayer(XoppyWidget):
         self.ENERGY = congruence.checkStrictlyPositiveNumber(self.ENERGY, "Photon energy")
         self.THETA = congruence.checkPositiveNumber(self.THETA, "Grazing angle")
 
-        self.ENERGY_END = congruence.checkStrictlyPositiveNumber(self.ENERGY_END, "Photon energy")
-        self.THETA_END = congruence.checkStrictlyPositiveNumber(self.THETA_END, "Grazing angle")
+        if self.ENERGY_FLAG == 1:
+            self.ENERGY_END = congruence.checkStrictlyPositiveNumber(self.ENERGY_END, "Photon energy")
+            self.ENERGY_N = congruence.checkStrictlyPositiveNumber(self.ENERGY_N, "Number of energy points")
 
-        self.ENERGY_N = congruence.checkStrictlyPositiveNumber(self.ENERGY_N, "Number of energy points")
-        self.THETA_N = congruence.checkStrictlyPositiveNumber(self.THETA_N, "Number of angle points")
+        if self.THETA_FLAG == 1:
+            self.THETA_END = congruence.checkStrictlyPositiveNumber(self.THETA_END, "Grazing angle")
+            self.THETA_N = congruence.checkStrictlyPositiveNumber(self.THETA_N, "Number of angle points")
 
         self.THICKNESS = congruence.checkStrictlyPositiveNumber(self.THICKNESS, "Bilayer thickness")
         self.GAMMA = congruence.checkStrictlyPositiveNumber(self.GAMMA, "Bilayer gamma")
@@ -428,10 +390,6 @@ class OWmlayer(XoppyWidget):
         for key in out.pre_mlayer_dict.keys():
             print(key, out.pre_mlayer_dict[key])
         #
-        # theta scan
-        #
-
-        #
         if self.ENERGY_FLAG == 0:
             energyN = 1
         else:
@@ -443,50 +401,31 @@ class OWmlayer(XoppyWidget):
             thetaN = self.THETA_N
 
 
-        rs, rp, e, t = out.scan(fileOut=None,  # "pre_mlayer_scan.dat",
+        rs, rp, e, t = out.scan(fileOut=None,
                                 energyN=energyN, energy1=self.ENERGY, energy2=self.ENERGY_END,
                                 thetaN=thetaN, theta1=self.THETA, theta2=self.THETA_END)
-        #
-        print(rs.shape, rp.shape, e.shape, t.shape)
-        #
-
-
 
         #
         #
         #
-
-
-
         out_dict = {}
         if self.THETA_FLAG == 1 and self.ENERGY_FLAG == 0:   # theta scan
             out = numpy.zeros((t.size,3))
+
             out[:, 0] = t
             out[:, 1] = rs[0]
             out[:, 2] = rp[0]
 
             out_dict["data"] = out
 
-            # if True:
-            #     from srxraylib.plot.gol import plot
-            #     plot(t, rs[0], xtitle="angle [deg]", ytitle="Reflectivity",
-            #          title="Default xoppy - no preprocessor (direct calling xraylib)", ylog=False)
-
         elif self.THETA_FLAG == 0 and self.ENERGY_FLAG == 1:  # energy scan
             out = numpy.zeros((e.size,3))
-
 
             out[:, 0] = e
             out[:, 1] = rs[:, 0]
             out[:, 2] = rp[:, 0]
 
             out_dict["data"] = out
-
-            # if True:
-            #     from srxraylib.plot.gol import plot
-            #     plot(e, rs[:, 0], xtitle="energy [eV]", ytitle="Reflectivity",
-            #          title="Default xoppy - no preprocessor (direct calling xraylib)", ylog=False)
-
 
         elif self.THETA_FLAG == 1 and self.ENERGY_FLAG == 1:  # double scan
             if self.CALCULATE == 0:
@@ -496,11 +435,12 @@ class OWmlayer(XoppyWidget):
             out_dict["dataX"] = e
             out_dict["dataY"] = t
         elif self.THETA_FLAG == 0 and self.ENERGY_FLAG == 0:  # single point
-            pass
+            out = numpy.zeros((t.size,3))
+            out[:, 0] = t
+            out[:, 1] = rs[0]
+            out[:, 2] = rp[0]
 
-
-
-
+            out_dict["data"] = out
 
 
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
@@ -509,16 +449,6 @@ class OWmlayer(XoppyWidget):
             calculated_data.add_content("xoppy_data", out_dict["data"])
             calculated_data.add_content("plot_x_col", 0)
             calculated_data.add_content("plot_y_col", 1)
-        except:
-            pass
-
-        try:
-            calculated_data.add_content("labels", out_dict["labels"])
-        except:
-            pass
-
-        try:
-            calculated_data.add_content("info", out_dict["info"])
         except:
             pass
 
@@ -548,9 +478,7 @@ class OWmlayer(XoppyWidget):
         elif self.THETA_FLAG == 1 and self.ENERGY_FLAG == 1:  # double scan
             pass
         elif self.THETA_FLAG == 0 and self.ENERGY_FLAG == 0:  # single point
-            pass
-
-
+            return ["Grazing angle [deg]"]
 
     def getYTitles(self):
         if self.CALCULATE == 0:  # Rs
@@ -562,7 +490,7 @@ class OWmlayer(XoppyWidget):
         if self.CALCULATE == 0:
             return [(0, 1)]
         elif self.CALCULATE == 1:
-            return [(0, 1)]
+            return [(0, 2)]
 
     def getLogPlot(self):
         return[(False, False)]
@@ -580,12 +508,28 @@ class OWmlayer(XoppyWidget):
         self.initializeTabs()
 
         try:
-            calculated_data.get_content("xoppy_data")
 
             self.tab[0].layout().removeItem(self.tab[0].layout().itemAt(0))
             self.plot_canvas[0] = None
 
             super().plot_results(calculated_data, progressBarValue)
+
+            if self.ENERGY_FLAG == 0 and self.THETA_FLAG == 0:  # single point
+                tmp = calculated_data.get_content("xoppy_data")
+                txt = ""
+                txt += "------------------------------------------------------------------------\n"
+                txt += "Inputs: \n"
+                txt += "   energy [eV]:           %6.3f \n"%self.ENERGY
+                txt += "   grazing angle [deg]:   %6.3f \n"%tmp[0,0]
+                txt += "Outputs: \n"
+                txt += "   R_S:    %5.2f  \n"%tmp[0,1]
+                txt += "   R_P:    %5.2f  \n"%tmp[0,2]
+                txt += "------------------------------------------------------------------------\n"
+
+                QMessageBox.information(self,
+                                        "Calculation Result",
+                                        "Calculation Result:\n %s" % txt,
+                                        QMessageBox.Ok)
         except:
             try:
                 data2D = calculated_data.get_content("data2D")
@@ -597,56 +541,7 @@ class OWmlayer(XoppyWidget):
                                  ytitle='Grazing angle [deg]',
                                  title='Reflectivity')
             except:
-                try:
-                    self.plot_info(calculated_data.get_content("info") + "\n", progressBarValue, 0, 0)
-                except:
-                    pass
-
-
-    # def getTitles(self):
-    #     return ["s-reflectivity","p-reflectivity","averaged reflectivity","s-phase shift","p-phase shift","(s-electric field)^2","(p-electric field)^2"]
-    #
-    # def getXTitles(self):
-    #     if self.SCAN == 0:
-    #         return ["Grazing angle Theta [deg]",
-    #                 "Grazing angle Theta [deg]",
-    #                 "Grazing angle Theta [deg]",
-    #                 "Grazing angle Theta [deg]",
-    #                 "Grazing angle Theta [deg]",
-    #                 "Grazing angle Theta [deg]",
-    #                 "Grazing angle Theta [deg]"]
-    #     else:
-    #         return ["Photon energy [eV]",
-    #                 "Photon energy [eV]",
-    #                 "Photon energy [eV]",
-    #                 "Photon energy [eV]",
-    #                 "Photon energy [eV]",
-    #                 "Photon energy [eV]",
-    #                 "Photon energy [eV]"]
-    #
-    # def getYTitles(self):
-    #     return self.getTitles()
-    #
-    # def getVariablesToPlot(self):
-    #     if self.SCAN == 0:
-    #         return [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7)]
-    #     else:
-    #         return [(0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (0, 8)]
-    #
-    # def getLogPlot(self):
-    #     return[(False, False), (False, False), (False, False), (False, False), (False, False), (False, False), (False, False)]
-
-
-    # def xoppy_calc_mlayer(self):
-    #     # if self.F12_FLAG == 2:
-    #     #     self.xoppy_calc_mlayer_new()
-    #     # else:
-    #     self.xoppy_calc_mlayer_old()
-    #
-    # def xoppy_calc_mlayer_new(self):
-    #     pass
-
-
+                pass
 
 
     def defaults(self):
@@ -655,11 +550,12 @@ class OWmlayer(XoppyWidget):
          return
 
     def help1(self):
-        print("help pressed.")
         xoppy_util.xoppy_doc('mlayer')
 
 
 if __name__ == "__main__":
+    import sys
+    from PyQt5.QtWidgets import QApplication
     app = QApplication(sys.argv)
     w = OWmlayer()
     w.show()
