@@ -11,7 +11,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 from shadow4.physical_models.mlayer.mlayer import MLayer
 
-class OWmlayer(XoppyWidget):
+class OWMlultilayer(XoppyWidget):
     name = "MLayer"
     id = "orange.widgets.datamlayer"
     description = "Multilayer Reflectivity"
@@ -557,7 +557,7 @@ if __name__ == "__main__":
     import sys
     from PyQt5.QtWidgets import QApplication
     app = QApplication(sys.argv)
-    w = OWmlayer()
+    w = OWMlultilayer()
     w.show()
     app.exec()
     w.saveSettings()
