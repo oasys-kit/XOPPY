@@ -12,13 +12,13 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 from shadow4.physical_models.mlayer.mlayer import MLayer
 
 class OWMlultilayer(XoppyWidget):
-    name = "MLayer"
+    name = "Multilayer"
     id = "orange.widgets.datamlayer"
     description = "Multilayer Reflectivity"
     icon = "icons/xoppy_mlayer.png"
     priority = 11
     category = ""
-    keywords = ["xoppy", "mlayer"]
+    keywords = ["xoppy", "multilayer"]
 
     CALCULATE = Setting(0) # 0 = Rs, 1=Rp
 
@@ -51,8 +51,10 @@ class OWMlultilayer(XoppyWidget):
     ENERGY_END = Setting(15000.0)
 
     DUMP_TO_FILE = Setting(0)
-    FILE_NAME = Setting("mlayer.h5")
+    FILE_NAME = Setting("multilayer.h5")
 
+    def __init__(self):
+        super().__init__(show_script_tab=True)
 
     def build_gui(self):
 
@@ -336,7 +338,7 @@ class OWMlultilayer(XoppyWidget):
 
 
     def get_help_name(self):
-        return 'mlayer'
+        return 'multilayer'
 
     def selectFile(self):
         self.FILE_NAME.setText(oasysgui.selectFileFromDialog(self, self.FILE, "Open File For Output", file_extension_filter="*.h5 *.hdf"))
@@ -400,8 +402,12 @@ class OWMlultilayer(XoppyWidget):
         else:
             thetaN = self.THETA_N
 
+        if self.DUMP_TO_FILE:
+            h5file = self.FILE_NAME
+        else:
+            h5file = ""
 
-        rs, rp, e, t = out.scan(fileOut=None,
+        rs, rp, e, t = out.scan(h5file=h5file,
                                 energyN=energyN, energy1=self.ENERGY, energy2=self.ENERGY_END,
                                 thetaN=thetaN, theta1=self.THETA, theta2=self.THETA_END)
 
@@ -409,6 +415,7 @@ class OWMlultilayer(XoppyWidget):
         #
         #
         out_dict = {}
+
         if self.THETA_FLAG == 1 and self.ENERGY_FLAG == 0:   # theta scan
             out = numpy.zeros((t.size,3))
 
@@ -417,6 +424,7 @@ class OWMlultilayer(XoppyWidget):
             out[:, 2] = rp[0]
 
             out_dict["data"] = out
+            myscan = 0
 
         elif self.THETA_FLAG == 0 and self.ENERGY_FLAG == 1:  # energy scan
             out = numpy.zeros((e.size,3))
@@ -426,14 +434,16 @@ class OWMlultilayer(XoppyWidget):
             out[:, 2] = rp[:, 0]
 
             out_dict["data"] = out
+            myscan = 1
 
         elif self.THETA_FLAG == 1 and self.ENERGY_FLAG == 1:  # double scan
-            if self.CALCULATE == 0:
-                out_dict["data2D"] = rs
-            elif self.CALCULATE == 1:
-                out_dict["data2D"] = rp
+
+            out_dict["data2D_rs"] = rs
+            out_dict["data2D_rp"] = rs
             out_dict["dataX"] = e
             out_dict["dataY"] = t
+            myscan = 2
+
         elif self.THETA_FLAG == 0 and self.ENERGY_FLAG == 0:  # single point
             out = numpy.zeros((t.size,3))
             out[:, 0] = t
@@ -441,6 +451,7 @@ class OWMlultilayer(XoppyWidget):
             out[:, 2] = rp[0]
 
             out_dict["data"] = out
+            myscan = 0
 
 
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
@@ -453,47 +464,117 @@ class OWMlultilayer(XoppyWidget):
             pass
 
         try:
-            calculated_data.add_content("data2D", out_dict["data2D"])
+            calculated_data.add_content("data2D_rs", out_dict["data2D_rs"])
+            calculated_data.add_content("data2D_rp", out_dict["data2D_rp"])
             calculated_data.add_content("dataX", out_dict["dataX"])
             calculated_data.add_content("dataY", out_dict["dataY"])
         except:
             pass
 
+        # script
+
+        dict_parameters = {
+            "material_S":    self.MATERIAL_S,
+            "density_S":     density_S, \
+            "roughness_S":   self.ROUGHNESS_S, \
+            "material_E":    self.MATERIAL_E, \
+            "density_E":     density_E, \
+            "roughness_E":   self.ROUGHNESS_E, \
+            "material_O":    self.MATERIAL_O, \
+            "density_O":     density_O, \
+            "roughness_O":   self.ROUGHNESS_O, \
+            "bilayer_pairs": self.NLAYERS, \
+            "bilayer_thickness": self.THICKNESS, \
+            "bilayer_gamma":     self.GAMMA, \
+            "energyN":           energyN, \
+            "energy1":           self.ENERGY, \
+            "energy2":           self.ENERGY_END, \
+            "thetaN":            thetaN, \
+            "theta1":            self.THETA,\
+            "theta2":            self.THETA_END,
+            "myscan":            myscan, \
+            "h5file":            h5file, \
+            }
+
+
+
+        # write python script
+        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
+
         return calculated_data
+
+
+
+    def script_template(self):
+        return """
+from shadow4.physical_models.mlayer.mlayer import MLayer
+
+out = MLayer.initialize_from_bilayer_stack(
+    material_S="{material_S}", density_S={density_S}, roughness_S={roughness_S},
+    material_E="{material_E}", density_E={density_E}, roughness_E={roughness_E},
+    material_O="{material_O}", density_O={density_O}, roughness_O={roughness_O},
+    bilayer_pairs={bilayer_pairs},
+    bilayer_thickness={bilayer_thickness},
+    bilayer_gamma={bilayer_gamma},
+)
+
+for key in out.pre_mlayer_dict.keys():
+    print(key, out.pre_mlayer_dict[key])
+#
+rs, rp, e, t = out.scan(h5file="{h5file}",
+                energyN={energyN}, energy1={energy1}, energy2={energy2},
+                thetaN={thetaN}, theta1={theta1}, theta2={theta2} )
+                
+# plot (example)
+
+myscan = {myscan}
+from srxraylib.plot.gol import plot,plot_image
+
+if myscan == 0: # angle scan 
+    plot(t, rs[0], xtitle="angle [deg]", ytitle="Reflectivity-s", title="")
+elif myscan == 1: # energy scan 
+    plot(e,rs[:,0],xtitle="Photon energy [eV]",ytitle="Reflectivity-s",title="")
+elif myscan == 2: # double scan 
+    plot_image(rs,e,t,xtitle="Photon energy [eV]",ytitle="Grazing angle [deg]",title="Reflectivity-s",aspect="auto")
+               
+"""
+
+
 
     def extract_data_from_xoppy_output(self, calculation_output):
         return calculation_output
 
     def get_data_exchange_widget_name(self):
-        return "MLAYER"
+        return "MULTILAYER"
 
     def getTitles(self):
-        return ["Calculation Result"]
+        return ["Reflectivity-s","Reflectivity-p"]
 
     def getXTitles(self):
         if self.THETA_FLAG == 1 and self.ENERGY_FLAG == 0:   # theta scan
-            return ["Grazing angle [deg]"]
+            return 2*["Grazing angle [deg]"]
         elif self.THETA_FLAG == 0 and self.ENERGY_FLAG == 1:  # energy scan
-            return ["Photon energy [eV]"]
+            return 2*["Photon energy [eV]"]
         elif self.THETA_FLAG == 1 and self.ENERGY_FLAG == 1:  # double scan
             pass
         elif self.THETA_FLAG == 0 and self.ENERGY_FLAG == 0:  # single point
-            return ["Grazing angle [deg]"]
+            return 2*["Grazing angle [deg]"]
 
     def getYTitles(self):
-        if self.CALCULATE == 0:  # Rs
-            return ["reflectivity-s"]
-        elif self.CALCULATE == 1:  # Rp
-            return ["reflectivity-p"]
+        return ["reflectivity-s","reflectivity-p"]
+        # if self.CALCULATE == 0:  # Rs
+        #
+        # elif self.CALCULATE == 1:  # Rp
+        #     return ["reflectivity-p"]
 
     def getVariablesToPlot(self):
-        if self.CALCULATE == 0:
-            return [(0, 1)]
-        elif self.CALCULATE == 1:
-            return [(0, 2)]
+        # if self.CALCULATE == 0:
+        return [(0, 1),(0, 2)]
+        # elif self.CALCULATE == 1:
+        #     return [(0, 2)]
 
     def getLogPlot(self):
-        return[(False, False)]
+        return [(False, False),(False, False)]
 
     def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="", log_x=False, log_y=False):
         super().plot_histo(x, y,progressBarValue, tabs_canvas_index, plot_canvas_index, title, xtitle, ytitle, log_x, log_y)
@@ -532,16 +613,22 @@ class OWMlultilayer(XoppyWidget):
                                         QMessageBox.Ok)
         except:
             try:
-                data2D = calculated_data.get_content("data2D")
+                data2D_rs = calculated_data.get_content("data2D_rs")
+                data2D_rp = calculated_data.get_content("data2D_rp")
                 dataX = calculated_data.get_content("dataX")
                 dataY = calculated_data.get_content("dataY")
 
-                self.plot_data2D(data2D, dataX, dataY, 0, 0,
+                self.plot_data2D(data2D_rs, dataX, dataY, 0, 0,
                                  xtitle='Energy [eV]',
                                  ytitle='Grazing angle [deg]',
-                                 title='Reflectivity')
+                                 title='Reflectivity-s')
+
+                self.plot_data2D(data2D_rp, dataX, dataY, 1, 0,
+                                 xtitle='Energy [eV]',
+                                 ytitle='Grazing angle [deg]',
+                                 title='Reflectivity-p')
             except:
-                pass
+                raise Exception("Error retieving data.")
 
 
     def defaults(self):
@@ -550,7 +637,7 @@ class OWMlultilayer(XoppyWidget):
          return
 
     def help1(self):
-        xoppy_util.xoppy_doc('mlayer')
+        xoppy_util.xoppy_doc('multilayer')
 
 
 if __name__ == "__main__":
