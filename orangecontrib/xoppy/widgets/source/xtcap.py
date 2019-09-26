@@ -275,7 +275,7 @@ class OWtcap(XoppyWidget):
                  'Distance to Aperture [m]', 'Aperture Width H [mm]', 'Aperture Height V [mm]',
                  'Aperture Center H [mm]', 'Aperture Center V [mm]',
                  'Minimum harmonic number','Maximum harmonic number','Harmonic step size','Apply Harmonic Reduction',
-                 'Mode','NEKS','Method','Baseline Subraction']
+                 'Mode','Neks OR % Helicity','Method','Baseline Subraction']
 
 
     def unitFlags(self):

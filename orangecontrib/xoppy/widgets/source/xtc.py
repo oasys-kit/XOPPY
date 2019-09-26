@@ -216,7 +216,7 @@ class OWxtc(XoppyWidget):
                  'Period length (cm)','Number of periods',
                  'E1 minimum energy (eV)','E1 maximum energy (eV)',
                  'Number of energy-points','Minimum harmonic number','Maximum harmonic number','Harmonic step size',
-                 'Mode','Method','Intrinsic NEKS']
+                 'Mode','Method','Neks OR % Helicity']
 
 
     def unitFlags(self):
@@ -244,7 +244,7 @@ class OWxtc(XoppyWidget):
         self.HARMONIC_TO = congruence.checkStrictlyPositiveNumber(self.HARMONIC_TO, "Maximum harmonic number")
         congruence.checkLessThan(self.HARMONIC_FROM, self.HARMONIC_TO, "Minimum harmonic number", "Maximum harmonic number")
         self.HARMONIC_STEP = congruence.checkStrictlyPositiveNumber(self.HARMONIC_STEP, "Harmonic step size")
-        self.NEKS  = congruence.checkPositiveNumber(self.NEKS , "Intrinsic NEKS")
+        self.NEKS  = congruence.checkPositiveNumber(self.NEKS , "Neks OR % Helicity")
 
     def do_xoppy_calculation(self):
         return self.xoppy_calc_xtc()
