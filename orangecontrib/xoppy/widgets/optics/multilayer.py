@@ -9,7 +9,8 @@ from oasys.widgets.exchange import DataExchangeObject
 from orangecontrib.xoppy.util import xoppy_util
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-from shadow4.physical_models.mlayer.mlayer import MLayer
+# from shadow4.physical_models.mlayer.mlayer import MLayer
+from  orangecontrib.xoppy.util.mlayer import MLayer
 
 class OWMlultilayer(XoppyWidget):
     name = "Multilayer"
@@ -19,8 +20,6 @@ class OWMlultilayer(XoppyWidget):
     priority = 11
     category = ""
     keywords = ["xoppy", "multilayer"]
-
-    CALCULATE = Setting(0) # 0 = Rs, 1=Rp
 
 
     MATERIAL_S = Setting("Si")
@@ -61,38 +60,27 @@ class OWMlultilayer(XoppyWidget):
         box0 = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
         
         idx = -1 
-        
-        #widget index 0 
-        idx += 1 
-        box1 = gui.widgetBox(box0)
-        gui.comboBox(box1, self, "CALCULATE",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    items=['Reflectivity-s', 'Reflectivity-p'],
-                    valueType=int, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
 
-        
         #
         #
         #
         box = gui.widgetBox(box0, "Substrate", orientation="vertical")
 
-        #widget index 1
+        #widget index 0
         idx += 1 
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "MATERIAL_S",
                      label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
-        #widget index 2
+        #widget index 1
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "DENSITY_S",
                      label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-        #widget index 3
-        idx += 1
+        #widget index 2
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "ROUGHNESS_S",
                     valueType=float, validator=QDoubleValidator(),
@@ -104,21 +92,21 @@ class OWMlultilayer(XoppyWidget):
         #
         box = gui.widgetBox(box0, "Even layer (closer to substrate)", orientation="vertical")
 
-        #widget index 4
+        #widget index 3
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "MATERIAL_E",
                      label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-        #widget index 5
+        #widget index 4
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "DENSITY_E",
                      label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-        #widget index 6
+        #widget index 5
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "ROUGHNESS_E",
@@ -130,21 +118,21 @@ class OWMlultilayer(XoppyWidget):
         #
         #
         box = gui.widgetBox(box0, "Odd layer (close to vacuum)", orientation="vertical")
-        #widget index 7
+        #widget index 6
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "MATERIAL_O",
                      label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-        #widget index 8
+        #widget index 7
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "DENSITY_O",
                      label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-        #widget index 9
+        #widget index 8
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "ROUGHNESS_O",
@@ -156,7 +144,7 @@ class OWMlultilayer(XoppyWidget):
         #
         #
         box = gui.widgetBox(box0, "Bilayers", orientation="vertical")
-        #widget index 10
+        #widget index 9
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "THICKNESS",
@@ -164,7 +152,7 @@ class OWMlultilayer(XoppyWidget):
                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-        #widget index 11
+        #widget index 10
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "GAMMA",
@@ -172,7 +160,7 @@ class OWMlultilayer(XoppyWidget):
                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-        #widget index 12
+        #widget index 11
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "NLAYERS",
@@ -184,7 +172,7 @@ class OWMlultilayer(XoppyWidget):
         #
         #
         box = gui.widgetBox(box0, "scan - angle", orientation="vertical")
-        #widget index 13
+        #widget index 12
         idx += 1
         box1 = gui.widgetBox(box)
         gui.comboBox(box1, self, "THETA_FLAG",
@@ -193,7 +181,7 @@ class OWMlultilayer(XoppyWidget):
                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-        # widget index 14
+        # widget index 13
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "THETA",
@@ -201,7 +189,7 @@ class OWMlultilayer(XoppyWidget):
                           valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-        # widget index 15
+        # widget index 14
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "THETA_END",
@@ -209,7 +197,7 @@ class OWMlultilayer(XoppyWidget):
                           valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-        # widget index 16
+        # widget index 15
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "THETA_N",
@@ -221,7 +209,7 @@ class OWMlultilayer(XoppyWidget):
         #
         #
         box = gui.widgetBox(box0, "scan - energy", orientation="vertical")
-        #widget index 17
+        #widget index 16
         idx += 1
         box1 = gui.widgetBox(box)
         gui.comboBox(box1, self, "ENERGY_FLAG",
@@ -230,7 +218,7 @@ class OWMlultilayer(XoppyWidget):
                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-        # widget index 18
+        # widget index 17
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "ENERGY",
@@ -238,15 +226,14 @@ class OWMlultilayer(XoppyWidget):
                           valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-        # widget index 19
-        idx += 1
+        # widget index 18
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "ENERGY_END",
                           label=self.unitLabels()[idx], addSpace=False,
                           valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-        # widget index 20
+        # widget index 19
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "ENERGY_N",
@@ -260,7 +247,7 @@ class OWMlultilayer(XoppyWidget):
         #
         box = gui.widgetBox(box0, "output", orientation="vertical")
 
-        # widget index 21
+        # widget index 20
         idx += 1
         box1 = gui.widgetBox(box)
         gui.comboBox(box1, self, "DUMP_TO_FILE",
@@ -269,7 +256,7 @@ class OWMlultilayer(XoppyWidget):
                      orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1)
 
-        # widget index 22
+        # widget index 21
         idx += 1
         box1 = gui.widgetBox(box,orientation="horizontal")
         gui.lineEdit(box1, self, "FILE_NAME",
@@ -282,7 +269,7 @@ class OWMlultilayer(XoppyWidget):
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['Calculate: ',
+         return [
                 'material: ',
                 'density [g/cm3]:',
                 'roughness [A]',
@@ -311,7 +298,6 @@ class OWMlultilayer(XoppyWidget):
 
     def unitFlags(self):
          return [
-                "True", #  0'Calculate: ',
                 "True", #  'material: ',
                 "True", #  'density [g/cm3]:',
                 "True", #  'roughness [A]',
@@ -407,6 +393,16 @@ class OWMlultilayer(XoppyWidget):
         else:
             h5file = ""
 
+        if energyN * thetaN > 10000:
+            result = QMessageBox.question(self,
+                "Confirmation",
+                "Are you sure you want to calculate %d points in E times %d points in theta (total: %d points):\n \n That will take long time... \n"%
+                      (energyN,thetaN,energyN * thetaN),
+                QMessageBox.Yes,QMessageBox.No)
+
+            if result == QMessageBox.No:
+                raise Exception("Calculation cancelled.")
+
         rs, rp, e, t = out.scan(h5file=h5file,
                                 energyN=energyN, energy1=self.ENERGY, energy2=self.ENERGY_END,
                                 thetaN=thetaN, theta1=self.THETA, theta2=self.THETA_END)
@@ -496,8 +492,6 @@ class OWMlultilayer(XoppyWidget):
             "h5file":            h5file, \
             }
 
-
-
         # write python script
         self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
 
@@ -525,8 +519,9 @@ rs, rp, e, t = out.scan(h5file="{h5file}",
                 energyN={energyN}, energy1={energy1}, energy2={energy2},
                 thetaN={thetaN}, theta1={theta1}, theta2={theta2} )
                 
+#
 # plot (example)
-
+#
 myscan = {myscan}
 from srxraylib.plot.gol import plot,plot_image
 
@@ -562,16 +557,10 @@ elif myscan == 2: # double scan
 
     def getYTitles(self):
         return ["reflectivity-s","reflectivity-p"]
-        # if self.CALCULATE == 0:  # Rs
-        #
-        # elif self.CALCULATE == 1:  # Rp
-        #     return ["reflectivity-p"]
+
 
     def getVariablesToPlot(self):
-        # if self.CALCULATE == 0:
         return [(0, 1),(0, 2)]
-        # elif self.CALCULATE == 1:
-        #     return [(0, 2)]
 
     def getLogPlot(self):
         return [(False, False),(False, False)]
@@ -583,7 +572,6 @@ elif myscan == 2: # double scan
         if ((x.size == 1) and (y.size == 1)):
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(False)
             self.plot_canvas[plot_canvas_index].setDefaultPlotPoints(True)
-
 
     def plot_results(self, calculated_data, progressBarValue=80):
         self.initializeTabs()
@@ -608,9 +596,9 @@ elif myscan == 2: # double scan
                 txt += "------------------------------------------------------------------------\n"
 
                 QMessageBox.information(self,
-                                        "Calculation Result",
-                                        "Calculation Result:\n %s" % txt,
-                                        QMessageBox.Ok)
+                            "Calculation Result",
+                            "Calculation Result:\n %s" % txt,
+                            QMessageBox.Ok)
         except:
             try:
                 data2D_rs = calculated_data.get_content("data2D_rs")
