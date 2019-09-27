@@ -624,8 +624,8 @@ elif myscan == 2: # double scan
          self.compute()
          return
 
-    def help1(self):
-        xoppy_util.xoppy_doc('multilayer')
+    def get_help_name(self):
+        return 'multilayer'
 
 
 if __name__ == "__main__":

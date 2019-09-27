@@ -2,6 +2,7 @@ import sys, os
 import numpy
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
+import platform
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -439,7 +440,12 @@ class OWtcap(XoppyWidget):
             f.write("%d %d %d %d %d %s\n"%(self.HELICAL,self.METHOD,1,self.NEKS,self.BSL,"Helical Method Print_K Neks Bsl-Subtr "))
             f.write("foreground\n")
 
-        command = "'" + os.path.join(locations.home_bin(), 'tcap') + "'"
+
+        if platform.system() == "Windows":
+            command = os.path.join(locations.home_bin(),'tcap.exe')
+        else:
+            command = "'" + os.path.join(locations.home_bin(), 'tcap') + "'"
+
 
         print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
         print("\n--------------------------------------------------------\n")
