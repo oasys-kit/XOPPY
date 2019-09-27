@@ -1,0 +1,31 @@
+
+==============================  multilayer  ====================================
+
+ Mlayer is a widget based graphical interface to calculate multilayer 
+ reflectivities as a function of either the photon energy or incident angle.
+
+ The multilayer code uses python code from shadow4 project:
+ https://github.com/srio/shadow4/tree/master/shadow4/physical_models/mlayer
+ that evolved from the fortran code witten by J.H. Underwood at CXRO and 
+ is part of the SHADOW package. 
+
+ Schematic representation of the multilayer:
+
+               vacuum
+    |------------------------------|  \
+    |          odd (1)             |  |
+    |------------------------------|  | BILAYER # n_bilayers
+    |          even (2)            |  |
+    |------------------------------|  /
+    |          .                   |
+    |          .                   |
+    |          .                   |
+    |------------------------------|  \
+    |          odd (2n - 1)        |  |
+    |------------------------------|  | BILAYER # 1
+    |          even (2n)           |  |
+    |------------------------------|  /
+    |                              |
+    |///////// substrate //////////|
+    |                              |
+

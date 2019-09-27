@@ -18,11 +18,11 @@ import scipy.constants as codata
 import xraylib
 
 class OWmlayer(XoppyWidget):
-    name = "MLayer"
+    name = "MLayer (deprecated: use multilayer)"
     id = "orange.widgets.datamlayer"
     description = "Multilayer Reflectivity"
     icon = "icons/xoppy_mlayer.png"
-    priority = 11
+    priority = 12
     category = ""
     keywords = ["xoppy", "mlayer"]
 
