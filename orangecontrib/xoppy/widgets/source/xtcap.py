@@ -58,7 +58,14 @@ class OWtcap(XoppyWidget):
 
         self.IMAGE_WIDTH = 850
 
-        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+        #tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT-5)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+
+        tab_1 = oasysgui.createTabPage(tabs_setting, self.name + " Input Parameters")
+        tab_2 = oasysgui.createTabPage(tabs_setting, "Undulator Setting")
+
+        box = oasysgui.widgetBox(tab_1, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH-15)
 
         idx = -1
         
@@ -198,6 +205,8 @@ class OWtcap(XoppyWidget):
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
+        box = oasysgui.widgetBox(tab_2, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH-15)
+
         #widget index 18 
         idx += 1 
         box1 = gui.widgetBox(box) 
@@ -228,7 +237,7 @@ class OWtcap(XoppyWidget):
         gui.comboBox(box1, self, "HRED",
                      label=self.unitLabels()[idx], addSpace=False,
                      items=['No', 'Yes'],
-                     valueType=int, orientation="horizontal", labelWidth=250)
+                     valueType=int, orientation="horizontal", labelWidth=350)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 22
@@ -248,14 +257,13 @@ class OWtcap(XoppyWidget):
                     valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-
         #widget index 24
         idx += 1
         box1 = gui.widgetBox(box)
         gui.comboBox(box1, self, "METHOD",
                      label=self.unitLabels()[idx], addSpace=False,
                      items=['Infinite N +convolution (Dejus)','Infinite N +convolution (Dejus)','Infinite N +convolution(Walker)','Finite-N'],
-                     valueType=int, orientation="horizontal", labelWidth=250)
+                     valueType=int, orientation="horizontal", labelWidth=150)
         self.show_at(self.unitFlags()[idx], box1)
        
         #widget index 25
@@ -264,7 +272,7 @@ class OWtcap(XoppyWidget):
         gui.comboBox(box1, self, "BSL",
                      label=self.unitLabels()[idx], addSpace=False,
                      items=['No', 'Yes'],
-                     valueType=int, orientation="horizontal", labelWidth=250)
+                     valueType=int, orientation="horizontal", labelWidth=350)
         self.show_at(self.unitFlags()[idx], box1)
 
     def unitLabels(self):
@@ -378,22 +386,21 @@ class OWtcap(XoppyWidget):
                    log_x=False, log_y=False, harmonic=1, color='blue', control=True):
         h_title = "Harmonic " + str(harmonic)
 
-#        hex_r = hex(min(255, 128 + harmonic*10))[2:].upper()
-#        hex_g = hex(min(255, 20 + harmonic*15))[2:].upper()
-#        hex_b = hex(min(255, harmonic*10))[2:].upper()
-#        if len(hex_r) == 1: hex_r = "0" + hex_r
-#        if len(hex_g) == 1: hex_g = "0" + hex_g
-#        if len(hex_b) == 1: hex_b = "0" + hex_b
+        hex_r = hex(min(255, 128 + harmonic*10))[2:].upper()
+        hex_g = hex(min(255, 20 + harmonic*15))[2:].upper()
+        hex_b = hex(min(255, harmonic*10))[2:].upper()
+        if len(hex_r) == 1: hex_r = "0" + hex_r
+        if len(hex_g) == 1: hex_g = "0" + hex_g
+        if len(hex_b) == 1: hex_b = "0" + hex_b
+
+        #super().plot_histo(x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, h_title, xtitle, ytitle,
+        #                   log_x, log_y, color="green", replace=False, control=control)
 
         super().plot_histo(x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, h_title, xtitle, ytitle,
-                           log_x, log_y, color="green", replace=False, control=control)
-
-        #        super().plot_histo(x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, h_title, xtitle, ytitle,
-        #                           log_x, log_y, color="#" + hex_r + hex_g + hex_b, replace=False, control=control)
+                           log_x, log_y, color="#" + hex_r + hex_g + hex_b, replace=False, control=control)
 
         self.plot_canvas[plot_canvas_index].setGraphTitle(title)
         self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
-        # self.plot_canvas[plot_canvas_index].setDefaultPlotPoints(True)
 
     def get_data_exchange_widget_name(self):
         return "XTCAP"
