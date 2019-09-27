@@ -10,7 +10,7 @@ from orangecontrib.xoppy.util import xoppy_util
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 # from shadow4.physical_models.mlayer.mlayer import MLayer
-from  orangecontrib.xoppy.util.mlayer import MLayer
+from orangecontrib.xoppy.util.mlayer import MLayer
 
 class OWMlultilayer(XoppyWidget):
     name = "Multilayer"
@@ -501,7 +501,7 @@ class OWMlultilayer(XoppyWidget):
 
     def script_template(self):
         return """
-from shadow4.physical_models.mlayer.mlayer import MLayer
+from orangecontrib.xoppy.util.mlayer import MLayer
 
 out = MLayer.initialize_from_bilayer_stack(
     material_S="{material_S}", density_S={density_S}, roughness_S={roughness_S},
