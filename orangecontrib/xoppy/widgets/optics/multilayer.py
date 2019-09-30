@@ -227,7 +227,9 @@ class OWMlultilayer(XoppyWidget):
                           valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
+
         # widget index 18
+        idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "ENERGY_END",
                           label=self.unitLabels()[idx], addSpace=False,
@@ -299,27 +301,27 @@ class OWMlultilayer(XoppyWidget):
 
     def unitFlags(self):
          return [
-                "True", #  'material: ',
-                "True", #  'density [g/cm3]:',
-                "True", #  'roughness [A]',
-                "True", #  'material: ',
-                "True", #  'density [g/cm3]:',
-                "True", #  'roughness [A]',
-                "True", #  'material: ',
-                "True", #  'density [g/cm3]:',
-                "True", #  'roughness [A]',
-                "True", #  'Bilayer thickness [A]',
-                "True", #  'Bilayer gamma [odd/(even+odd)????]',
-                "True", #  'Number of bilayers:',
-                "True", #  13'Grazing angle',
-                "True", #  'Start Graz angle [deg]',
-                "self.THETA_FLAG == 1", #  'End Graz angle [deg]',
-                "self.THETA_FLAG == 1", #  'Number of angular points',
-                "True", #  17'Photon energy',
-                "True", #  'Start Energy [eV]: ',
-                "self.ENERGY_FLAG == 1", #  'End Energy [eV]: ',
-                "self.ENERGY_FLAG == 1", #  'Number of energy points',
-                "True", #  21'Dump to file',
+                "True",                   #  'material: ',
+                "True",                   #  'density [g/cm3]:',
+                "True",                   #  'roughness [A]',
+                "True",                   #  'material: ',
+                "True",                   #  'density [g/cm3]:',
+                "True",                   #  'roughness [A]',
+                "True",                   #  'material: ',
+                "True",                   #  'density [g/cm3]:',
+                "True",                   #  'roughness [A]',
+                "True",                   #  'Bilayer thickness [A]',
+                "True",                   #  'Bilayer gamma [t_even/(t_even+t_odd)]',,
+                "True",                   #  'Number of bilayers:',
+                "True",                   #  'Grazing angle [deg]',
+                "True",                   #  'Start Graz angle [deg]',
+                "self.THETA_FLAG == 1",   #  'End Graz angle [deg]',
+                "self.THETA_FLAG == 1",   #  'Number of angular points',
+                "True",                   #  'Photon energy',
+                "True",                   #  'Start Energy [eV]: ',
+                "self.ENERGY_FLAG == 1",  #  'End Energy [eV]: ',
+                "self.ENERGY_FLAG == 1",  #  'Number of energy points',
+                "True",                   #  'Dump to file',
                 "self.DUMP_TO_FILE == 1", #  'File name',
                  ]
 
