@@ -81,6 +81,7 @@ class OWMlultilayer(XoppyWidget):
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 2
+        idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "ROUGHNESS_S",
                     valueType=float, validator=QDoubleValidator(),
