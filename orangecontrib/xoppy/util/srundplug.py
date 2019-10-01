@@ -1417,6 +1417,8 @@ def calc3d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
         wfr.allocate(mesh.ne, mesh.nx, mesh.ny)
         # eBeam = SrwDriftElectronBeam(eBeam, und)
         srwlib.srwl.CalcElecFieldSR(wfr, 0, und, paramSE)
+
+        print('Extracting stokes ... ')
         stk = srwlib.SRWLStokes()
         stk.mesh = mesh
         stk.allocate(mesh.ne, mesh.nx, mesh.ny)
@@ -1436,6 +1438,8 @@ def calc3d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
         vArray = numpy.linspace(stk.mesh.yStart,stk.mesh.yFin,stk.mesh.ny)
         eArray = numpy.linspace(stk.mesh.eStart,stk.mesh.eFin,stk.mesh.ne)
         # intensArray = numpy.zeros((eArray.size,hArray.size,vArray.size))
+
+        print('Filling output array... ')
         intensArray = numpy.zeros((eArray.size,hArray.size,vArray.size))
         for ie in range(eArray.size):
           for ix in range(hArray.size):
@@ -1472,6 +1476,7 @@ def calc3d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
         # Extract intensity
         #
 
+        print('Extracting stokes and filling output array... ')
         mesh0 = wfr.mesh
         # arI0 = array.array('f', [0]*mesh0.nx*mesh0.ny) #"flat" array to take 2D intensity data
         # arI0 = array.array('f', [0]*mesh0.nx*mesh0.ny*mesh.ne) #"flat" array to take 2D intensity data
@@ -1499,11 +1504,11 @@ def calc3d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
 
 
     print('  done\n')
-    print('  saving SE Stokes...')
     print('Done Performing Spectral Flux 3d calculation in sec '+str(time.time()-t0))
 
 
     if fileName is not None:
+        print('  saving SE Stokes to h5 file %s...'%fileName)
         for ie in range(eArray.size):
             scanCounter += 1
             fout.write("\n#S %d Undulator 3d flux density (irradiance) calculation using SRW at E=%6.3f eV (whole slit )\n"%(scanCounter,eArray[ie]))
@@ -2814,4 +2819,4 @@ def main(radiance=True,flux=True,flux_from_3d=True,power_density=True):
         plot_power_density(out)
 
 if __name__ == '__main__':
-    main(radiance=False,flux=False,flux_from_3d=True,power_density=False)
+    main(radiance=True,flux=False,flux_from_3d=False,power_density=False)
