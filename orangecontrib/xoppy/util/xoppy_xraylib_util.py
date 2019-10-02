@@ -263,6 +263,7 @@ def f1f2_calc(descriptor,energy,theta=3.0e-3,F=0,density=None,rough=0.0):
         rs,rp,runp = interface_reflectivity(alpha,gamma,theta)
 
         if rough != 0:
+            rough *= 1e-8 # to cm
             debyewaller = numpy.exp( -( 4.0 * numpy.pi * numpy.sin(theta) * rough / wavelength)**2)
         else:
             debyewaller = 1.0
@@ -365,6 +366,7 @@ def f1f2_calc_mix(descriptor,energy,theta=3.0e-3,F=0,density=None,rough=0.0):
     rs,rp,runp = interface_reflectivity(alpha,gamma,theta)
 
     if rough != 0:
+        rough *= 1e-8 # to cm
         debyewaller = numpy.exp( -( 4.0 * numpy.pi * numpy.sin(theta) * rough / wavelength)**2)
     else:
         debyewaller = 1.0
