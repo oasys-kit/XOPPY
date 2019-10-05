@@ -37,6 +37,9 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
 
     inputs = WidgetDecorator.syned_input_data()
 
+    def __init__(self):
+        super().__init__(show_script_tab=True)
+
     def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
@@ -203,7 +206,15 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
             "CURRENT"         : self.CURRENT,
             "FILE"            : self.FILE,
             }
-        print(self.script_template().format_map(dict_parameters))
+        # print(self.script_template().format_map(dict_parameters))
+
+
+        # print(self.script_template().format_map(dict_parameters))
+
+        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
+
+
+
 
         return e, f0, p0 , cumulated_power
 
@@ -213,7 +224,7 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
 # script to make the calculations (created by XOPPY:wiggler)
 #
 from orangecontrib.xoppy.util.xoppy_bm_wiggler import xoppy_calc_wigg
-energy, flux, spectral_power, cumulated_power =  xoppy_calc_xwiggler(
+energy, flux, spectral_power, cumulated_power =  xoppy_calc_wigg(
     FIELD={FIELD},
     NPERIODS={NPERIODS},
     ULAMBDA={ULAMBDA},

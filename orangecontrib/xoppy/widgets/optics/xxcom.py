@@ -198,7 +198,7 @@ class OWxxcom(XoppyWidget):
         return [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7)]
 
     def getLogPlot(self):
-        return [(False, False), (False, False), (False, False), (False, False), (False, False), (False, False), (False, False)]
+        return [(True, True), (True, True), (True, True), (True, True), (True, True), (True, True), (True, True)]
 
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
