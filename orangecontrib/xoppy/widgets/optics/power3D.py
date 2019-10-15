@@ -213,12 +213,12 @@ class OWpower3D(XoppyWidget):
             labels.append('Mirror angle[mrad]')
             labels.append('Roughness[A]')
             labels.append('Density [g/cm^3]')
-            labels.append('H Gap')
-            labels.append('V Gap')
+            labels.append('H Gap [mm]')
+            labels.append('V Gap [mm]')
             labels.append('H Magnification')
             labels.append('V Magnification')
-            labels.append('H Rotation angle [deg]')
-            labels.append('V Rotation angle [deg]')
+            labels.append('Rotation angle around V axis [deg]')
+            labels.append('Rotation angle around H axis [deg]')
 
         labels.append("Plot")
         labels.append("Dump hdf5 file")
@@ -675,11 +675,11 @@ class OWpower3D(XoppyWidget):
             elif flags[i] == 2:  # aperture
 
                 transmittance[i + 1, :, :, :] = 1.0
-                h_indices_bad = numpy.where(numpy.abs(H[i]) > hgap[i])
+                h_indices_bad = numpy.where(numpy.abs(H[i]) > 0.5*hgap[i])
                 if len(h_indices_bad) > 0:
                     transmittance[i + 1, :, h_indices_bad, :] = 0.0
 
-                v_indices_bad = numpy.where(numpy.abs(V[i]) > vgap[i])
+                v_indices_bad = numpy.where(numpy.abs(V[i]) > 0.5*vgap[i])
                 if len(v_indices_bad) > 0:
                     transmittance[i + 1, :, :, v_indices_bad] = 0.0
                 H[i + 1] = H[i]

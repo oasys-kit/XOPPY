@@ -655,7 +655,7 @@ class OWxpower(XoppyWidget):
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Im[n]=beta")
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] delta/beta")
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Reflectivity-s")
-                if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Transmitivity")
+                if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Absorption")
                 if self.do_plot_intensity(): titles.append("Intensity after oe " + str(oe_n))
 
         return titles
