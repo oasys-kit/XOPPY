@@ -72,6 +72,8 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
 
     inputs = WidgetDecorator.syned_input_data()
 
+    filename = ""
+
     def __init__(self):
         super().__init__(show_script_tab=True)
 
@@ -309,49 +311,64 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
 
             self.H5_FILE_DUMP = 0
 
+            use_silx_file_dialog = False   # silx dialog is freezing the linux system, change to traditional
 
-            tmp = ConfirmDialog.confirmed(self,
-                    message="Please select in a hdf5 file a data block\n(such as XOPPY_RADIATION)\nthat contains a 'Radiation' entry",
-                    title="Confirm Action")
-            if tmp == False: return
-
-            dialog = DataFileDialog(self)
-            dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
-            # dialog.setDirectory("")
-            # Execute the dialog as modal
-            result = dialog.exec_()
-
-            if result:
-                print("Selection:")
+            if use_silx_file_dialog:
+                tmp = ConfirmDialog.confirmed(self,
+                        message="Please select in a hdf5 file a data block\n(such as XOPPY_RADIATION)\nthat contains a 'Radiation' entry",
+                        title="Confirm Action")
+                if tmp == False: return
+                dialog = DataFileDialog(self)
+                dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
+                result = dialog.exec_()
+                if not result:
+                    return
                 print(dialog.selectedFile())
                 print(dialog.selectedUrl())
                 print(dialog.selectedDataUrl().data_path())
-
                 calculation_output = self.extract_data_from_h5file(dialog.selectedFile(), dialog.selectedDataUrl().data_path() )
+                self.filename = dialog.selectedFile()
+            else:
+                tmp = ConfirmDialog.confirmed(self,
+                        message="Please select a hdf5 file containing a data block\n named XOPPY_RADIATION which includes 'Radiation' entry",
+                        title="Confirm Action")
+                if tmp == False: return
+
+                self.filename = oasysgui.selectFileFromDialog(self,
+                                    previous_file_path=self.filename,
+                                    message="Open hdf5 File",
+                                    start_directory="",
+                                    file_extension_filter="*.*5")
+                if self.filename == "":
+                    return
+
+                try:
+                    calculation_output = self.extract_data_from_h5file(self.filename, "/XOPPY_RADIATION" )
+                except:
+                    calculation_output = None
 
 
-                if calculation_output is None:
-                    raise Exception("Bad data from file.")
-                else:
-                    self.calculated_data = self.extract_data_from_xoppy_output(calculation_output)
+            if calculation_output is None:
+                raise Exception("Bad data from file.")
+            else:
+                self.calculated_data = self.extract_data_from_xoppy_output(calculation_output)
+                try:
+                    self.set_fields_from_h5file(self.filename, "/XOPPY_RADIATION")
+                except:
+                    pass
 
-                    try:
-                        self.set_fields_from_h5file(dialog.selectedFile(), dialog.selectedDataUrl().data_path())
-                    except:
-                        pass
+                # self.add_specific_content_to_calculated_data(self.calculated_data)
+                #
+                self.setStatusMessage("Plotting Results")
 
-                    # self.add_specific_content_to_calculated_data(self.calculated_data)
-                    #
-                    self.setStatusMessage("Plotting Results")
+                self.plot_results(self.calculated_data, progressBarValue=60)
 
-                    self.plot_results(self.calculated_data, progressBarValue=60)
+                self.setStatusMessage("")
 
-                    self.setStatusMessage("")
-
-                    self.send("xoppy_data", self.calculated_data)
+                self.send("xoppy_data", self.calculated_data)
 
 
-                self.set_enabled(True)
+            self.set_enabled(True)
 
     def extract_data_from_h5file(self,file_h5,subtitle):
 
@@ -621,6 +638,35 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
 #
 from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_radiation
 
+h5_parameters = dict()
+h5_parameters["ELECTRONENERGY"]          = {ELECTRONENERGY}
+h5_parameters["ELECTRONENERGYSPREAD"]    = {ELECTRONENERGYSPREAD}
+h5_parameters["ELECTRONCURRENT"]         = {ELECTRONCURRENT}
+h5_parameters["ELECTRONBEAMSIZEH"]       = {ELECTRONBEAMSIZEH}
+h5_parameters["ELECTRONBEAMSIZEV"]       = {ELECTRONBEAMSIZEV}
+h5_parameters["ELECTRONBEAMDIVERGENCEH"] = {ELECTRONBEAMDIVERGENCEH}
+h5_parameters["ELECTRONBEAMDIVERGENCEV"] = {ELECTRONBEAMDIVERGENCEV}
+h5_parameters["PERIODID"]                = {PERIODID}
+h5_parameters["NPERIODS"]                = {NPERIODS}
+h5_parameters["KV"]                      = {KV}
+h5_parameters["KH"]                      = {KH}
+h5_parameters["KPHASE"]                  = {KPHASE}
+h5_parameters["DISTANCE"]                = {DISTANCE}
+h5_parameters["SETRESONANCE"]            = {SETRESONANCE}
+h5_parameters["HARMONICNUMBER"]          = {HARMONICNUMBER}
+h5_parameters["GAPH"]                    = {GAPH}
+h5_parameters["GAPV"]                    = {GAPV}
+h5_parameters["HSLITPOINTS"]             = {HSLITPOINTS}
+h5_parameters["VSLITPOINTS"]             = {VSLITPOINTS}
+h5_parameters["METHOD"]                  = {METHOD}
+h5_parameters["PHOTONENERGYMIN"]         = {PHOTONENERGYMIN}
+h5_parameters["PHOTONENERGYMAX"]         = {PHOTONENERGYMAX}
+h5_parameters["PHOTONENERGYPOINTS"]      = {PHOTONENERGYPOINTS}
+h5_parameters["USEEMITTANCES"]           = {USEEMITTANCES}
+h5_parameters["h5_file"]                  = "{h5_file}"
+h5_parameters["h5_entry_name"]            = "XOPPY_RADIATION"
+h5_parameters["h5_initialize"]            = True
+
 e, h, v, p, code = xoppy_calc_undulator_radiation(
         ELECTRONENERGY           = {ELECTRONENERGY},
         ELECTRONENERGYSPREAD     = {ELECTRONENERGYSPREAD},
@@ -649,6 +695,7 @@ e, h, v, p, code = xoppy_calc_undulator_radiation(
         h5_file                  = "{h5_file}",
         h5_entry_name            = "XOPPY_RADIATION",
         h5_initialize            = True,
+        h5_parameters            = h5_parameters, 
         )
 
 # example plot
