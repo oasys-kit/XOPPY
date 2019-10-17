@@ -60,7 +60,6 @@ class OWtcap(XoppyWidget):
         self.IMAGE_WIDTH = 850
 
         tabs_setting = oasysgui.tabWidget(self.controlArea)
-        #tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT-5)
         tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
         tab_1 = oasysgui.createTabPage(tabs_setting, self.name + " Input Parameters")

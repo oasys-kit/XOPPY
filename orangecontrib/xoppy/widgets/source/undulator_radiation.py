@@ -79,7 +79,13 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
 
     def build_gui(self):
 
-        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+
+        tab_1 = oasysgui.createTabPage(tabs_setting, self.name + " Input Parameters")
+        tab_2 = oasysgui.createTabPage(tabs_setting, "Calculation Setting")
+
+        box = oasysgui.widgetBox(tab_1, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH-15)
         
         idx = -1 
 
@@ -193,6 +199,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
+        box = oasysgui.widgetBox(tab_2, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH-15)
 
         #widget index 10
         idx += 1
@@ -201,8 +208,6 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
-
-
 
         # widget <><><>
         idx += 1
