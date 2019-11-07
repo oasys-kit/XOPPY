@@ -595,9 +595,6 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                 "PHOTONENERGYMAX"        : self.PHOTONENERGYMAX,
                 "PHOTONENERGYPOINTS"     : self.PHOTONENERGYPOINTS,
                 "USEEMITTANCES"          : self.USEEMITTANCES,
-                "h5_file"                : h5_file,
-                "h5_entry_name"          : "XOPPY_RADIATION",
-                "h5_initialize"          : True
         }
 
 
@@ -668,36 +665,33 @@ h5_parameters["PHOTONENERGYMIN"]         = {PHOTONENERGYMIN}
 h5_parameters["PHOTONENERGYMAX"]         = {PHOTONENERGYMAX}
 h5_parameters["PHOTONENERGYPOINTS"]      = {PHOTONENERGYPOINTS}
 h5_parameters["USEEMITTANCES"]           = {USEEMITTANCES}
-h5_parameters["h5_file"]                  = "{h5_file}"
-h5_parameters["h5_entry_name"]            = "XOPPY_RADIATION"
-h5_parameters["h5_initialize"]            = True
 
 e, h, v, p, code = xoppy_calc_undulator_radiation(
-        ELECTRONENERGY           = {ELECTRONENERGY},
-        ELECTRONENERGYSPREAD     = {ELECTRONENERGYSPREAD},
-        ELECTRONCURRENT          = {ELECTRONCURRENT},
-        ELECTRONBEAMSIZEH        = {ELECTRONBEAMSIZEH},
-        ELECTRONBEAMSIZEV        = {ELECTRONBEAMSIZEV},
-        ELECTRONBEAMDIVERGENCEH  = {ELECTRONBEAMDIVERGENCEH},
-        ELECTRONBEAMDIVERGENCEV  = {ELECTRONBEAMDIVERGENCEV},
-        PERIODID                 = {PERIODID},
-        NPERIODS                 = {NPERIODS},
-        KV                       = {KV},
-        KH                       = {KH},
-        KPHASE                   = {KPHASE},
-        DISTANCE                 = {DISTANCE},
-        SETRESONANCE             = {SETRESONANCE},
-        HARMONICNUMBER           = {HARMONICNUMBER},
-        GAPH                     = {GAPH},
-        GAPV                     = {GAPV},
-        HSLITPOINTS              = {HSLITPOINTS},
-        VSLITPOINTS              = {VSLITPOINTS},
-        METHOD                   = {METHOD},
-        PHOTONENERGYMIN          = {PHOTONENERGYMIN},
-        PHOTONENERGYMAX          = {PHOTONENERGYMAX},
-        PHOTONENERGYPOINTS       = {PHOTONENERGYPOINTS},
-        USEEMITTANCES            = {USEEMITTANCES},
-        h5_file                  = "{h5_file}",
+        ELECTRONENERGY           = h5_parameters["ELECTRONENERGY"]         ,
+        ELECTRONENERGYSPREAD     = h5_parameters["ELECTRONENERGYSPREAD"]   ,
+        ELECTRONCURRENT          = h5_parameters["ELECTRONCURRENT"]        ,
+        ELECTRONBEAMSIZEH        = h5_parameters["ELECTRONBEAMSIZEH"]      ,
+        ELECTRONBEAMSIZEV        = h5_parameters["ELECTRONBEAMSIZEV"]      ,
+        ELECTRONBEAMDIVERGENCEH  = h5_parameters["ELECTRONBEAMDIVERGENCEH"],
+        ELECTRONBEAMDIVERGENCEV  = h5_parameters["ELECTRONBEAMDIVERGENCEV"],
+        PERIODID                 = h5_parameters["PERIODID"]               ,
+        NPERIODS                 = h5_parameters["NPERIODS"]               ,
+        KV                       = h5_parameters["KV"]                     ,
+        KH                       = h5_parameters["KH"]                     ,
+        KPHASE                   = h5_parameters["KPHASE"]                 ,
+        DISTANCE                 = h5_parameters["DISTANCE"]               ,
+        SETRESONANCE             = h5_parameters["SETRESONANCE"]           ,
+        HARMONICNUMBER           = h5_parameters["HARMONICNUMBER"]         ,
+        GAPH                     = h5_parameters["GAPH"]                   ,
+        GAPV                     = h5_parameters["GAPV"]                   ,
+        HSLITPOINTS              = h5_parameters["HSLITPOINTS"]            ,
+        VSLITPOINTS              = h5_parameters["VSLITPOINTS"]            ,
+        METHOD                   = h5_parameters["METHOD"]                 ,
+        PHOTONENERGYMIN          = h5_parameters["PHOTONENERGYMIN"]        ,
+        PHOTONENERGYMAX          = h5_parameters["PHOTONENERGYMAX"]        ,
+        PHOTONENERGYPOINTS       = h5_parameters["PHOTONENERGYPOINTS"]     ,
+        USEEMITTANCES            = h5_parameters["USEEMITTANCES"]          ,
+        h5_file                  = "undulator_radiation.h5",
         h5_entry_name            = "XOPPY_RADIATION",
         h5_initialize            = True,
         h5_parameters            = h5_parameters, 

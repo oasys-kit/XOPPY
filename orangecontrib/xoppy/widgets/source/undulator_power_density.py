@@ -409,7 +409,6 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
             "MASK_H_MAX":self.MASK_H_MAX,
             "MASK_V_MIN":self.MASK_V_MIN,
             "MASK_V_MAX":self.MASK_V_MAX,
-            "H5_FILE": h5_file,
         }
 
         h, v, p, code =  xoppy_calc_undulator_power_density(ELECTRONENERGY=self.ELECTRONENERGY,
@@ -482,7 +481,6 @@ h5_parameters["MASK_H_MIN"]=               {MASK_H_MIN}
 h5_parameters["MASK_H_MAX"]=               {MASK_H_MAX}
 h5_parameters["MASK_V_MIN"]=               {MASK_V_MIN}
 h5_parameters["MASK_V_MAX"]=               {MASK_V_MAX}
-h5_parameters["H5_FILE"]=                  "{H5_FILE}"
 
         
 h, v, p, code = xoppy_calc_undulator_power_density(
@@ -512,8 +510,8 @@ h, v, p, code = xoppy_calc_undulator_power_density(
     MASK_H_MAX               =  h5_parameters["MASK_H_MAX"],
     MASK_V_MIN               =  h5_parameters["MASK_V_MIN"],
     MASK_V_MAX               =  h5_parameters["MASK_V_MAX"],
-    h5_file                  =  h5_parameters["MASK_V_MAX"],
-    h5_entry_name            =  h5_parameters["H5_FILE"],
+    h5_file                  =  "undulator_power_density.h5",
+    h5_entry_name            =  "XOPPY_POWERDENSITY",
     h5_initialize            =  True,
     h5_parameters            =  h5_parameters,
     )

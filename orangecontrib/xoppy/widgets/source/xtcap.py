@@ -22,7 +22,7 @@ class OWtcap(XoppyWidget):
     id = "orange.widgets.datatcap"
     description = "On-axis Aperture Flux Undulator Tuning Curves"
     icon = "icons/xoppy_xtc.png"
-    priority = 6
+    priority = 8
     category = ""
     keywords = ["xoppy", "tcap"]
 
@@ -406,13 +406,13 @@ class OWtcap(XoppyWidget):
         return "XTCAP"
 
     def getTitles(self):
-        return ["Flux","Ky","Total Power","Power density","Int Power"]
+        return ["Flux peak","Ky","Total Power","Power density peak","Integrated Power on aperture"]
 
     def getXTitles(self):
         return ["Energy (eV)","Energy (eV)","Energy (eV)","Energy (eV)","Energy (eV)"]
 
     def getYTitles(self):
-        return ["Flux (ph/s/mm^2/0.1%bw)","Ky","Total Power (W)","Power density (W/mm^2)","Integrated Power (W)"]
+        return ["Flux (ph/s/mm^2/0.1%bw)","Ky","Total Power (W)","Power density (W/mm^2)","Integrated Power on Aperture (W)"]
 
     def getVariablesToPlot(self):
         return [(0, 1), (0, 3), (0, 4), (0, 5), (0, 6)]

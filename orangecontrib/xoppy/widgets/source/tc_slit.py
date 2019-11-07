@@ -24,7 +24,7 @@ class OWtc_slit(XoppyWidget):
     id = "orange.widgets.data_tc_slit"
     description = "Undulator Tuning Curves (Flux on a slit)"
     icon = "icons/xoppy_xtc.png"
-    priority = 8
+    priority = 6
     category = ""
     keywords = ["xoppy", "tc_slit"]
 
