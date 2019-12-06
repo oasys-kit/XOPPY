@@ -419,8 +419,8 @@ class OWMlultilayer(XoppyWidget):
             out = numpy.zeros((t.size,3))
 
             out[:, 0] = t
-            out[:, 1] = rs[0]
-            out[:, 2] = rp[0]
+            out[:, 1] = rs[0]**2
+            out[:, 2] = rp[0]**2
 
             out_dict["data"] = out
             myscan = 0
@@ -429,16 +429,16 @@ class OWMlultilayer(XoppyWidget):
             out = numpy.zeros((e.size,3))
 
             out[:, 0] = e
-            out[:, 1] = rs[:, 0]
-            out[:, 2] = rp[:, 0]
+            out[:, 1] = rs[:, 0]**2
+            out[:, 2] = rp[:, 0]**2
 
             out_dict["data"] = out
             myscan = 1
 
         elif self.THETA_FLAG == 1 and self.ENERGY_FLAG == 1:  # double scan
 
-            out_dict["data2D_rs"] = rs
-            out_dict["data2D_rp"] = rs
+            out_dict["data2D_rs"] = rs**2
+            out_dict["data2D_rp"] = rs**2
             out_dict["dataX"] = e
             out_dict["dataY"] = t
             myscan = 2
@@ -446,8 +446,8 @@ class OWMlultilayer(XoppyWidget):
         elif self.THETA_FLAG == 0 and self.ENERGY_FLAG == 0:  # single point
             out = numpy.zeros((t.size,3))
             out[:, 0] = t
-            out[:, 1] = rs[0]
-            out[:, 2] = rp[0]
+            out[:, 1] = rs[0]**2
+            out[:, 2] = rp[0]**2
 
             out_dict["data"] = out
             myscan = 0
@@ -517,7 +517,7 @@ out = MLayer.initialize_from_bilayer_stack(
 
 for key in out.pre_mlayer_dict.keys():
     print(key, out.pre_mlayer_dict[key])
-#
+# reflectivity is for amplitude
 rs, rp, e, t = out.scan(h5file="{h5file}",
                 energyN={energyN}, energy1={energy1}, energy2={energy2},
                 thetaN={thetaN}, theta1={theta1}, theta2={theta2} )
@@ -529,11 +529,11 @@ myscan = {myscan}
 from srxraylib.plot.gol import plot,plot_image
 
 if myscan == 0: # angle scan 
-    plot(t, rs[0], xtitle="angle [deg]", ytitle="Reflectivity-s", title="")
+    plot(t, rs[0]**2, xtitle="angle [deg]", ytitle="Reflectivity-s", title="")
 elif myscan == 1: # energy scan 
-    plot(e,rs[:,0],xtitle="Photon energy [eV]",ytitle="Reflectivity-s",title="")
+    plot(e,rs[:,0]**2,xtitle="Photon energy [eV]",ytitle="Reflectivity-s",title="")
 elif myscan == 2: # double scan 
-    plot_image(rs,e,t,xtitle="Photon energy [eV]",ytitle="Grazing angle [deg]",title="Reflectivity-s",aspect="auto")
+    plot_image(rs**2,e,t,xtitle="Photon energy [eV]",ytitle="Grazing angle [deg]",title="Reflectivity-s",aspect="auto")
                
 """
 
