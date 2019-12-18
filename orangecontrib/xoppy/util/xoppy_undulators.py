@@ -20,7 +20,8 @@ codata_mee = codata.codata.physical_constants["electron mass energy equivalent i
 def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
                               ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
                               ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
-                              PERIODID=0.018,NPERIODS=222,KV=1.68,KH=0.0,KPHASE=0.0,DISTANCE=30.0,GAPH=0.001,GAPV=0.001,\
+                              PERIODID=0.018,NPERIODS=222,KV=1.68,KH=0.0,KPHASE=0.0,DISTANCE=30.0,
+                              GAPH=0.001,GAPV=0.001,GAPH_CENTER=0.0,GAPV_CENTER=0.0,\
                               PHOTONENERGYMIN=3000.0,PHOTONENERGYMAX=55000.0,PHOTONENERGYPOINTS=500,METHOD=2,
                               USEEMITTANCES=1):
     print("Inside xoppy_calc_undulator_spectrum. ")
@@ -41,6 +42,8 @@ def xoppy_calc_undulator_spectrum(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001
     bl['distance'] = DISTANCE
     bl['gapH'] = GAPH
     bl['gapV'] = GAPV
+    bl['gapHcenter'] = GAPH_CENTER
+    bl['gapVcenter'] = GAPV_CENTER
 
     if USEEMITTANCES:
         zero_emittance = False

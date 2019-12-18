@@ -42,6 +42,8 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
     DISTANCE = Setting(30.0)
     GAPH = Setting(0.001)
     GAPV = Setting(0.001)
+    GAPH_CENTER = Setting(0.0)
+    GAPV_CENTER = Setting(0.0)
     PHOTONENERGYMIN = Setting(3000.0)
     PHOTONENERGYMAX = Setting(55000.0)
     PHOTONENERGYPOINTS = Setting(500)
@@ -199,6 +201,22 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
                     valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
+        #widget index 11B
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "GAPH_CENTER",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 12B
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "GAPV_CENTER",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
         #widget index 13
         idx += 1
         box1 = gui.widgetBox(box)
@@ -239,7 +257,8 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
                  "Electron Beam Divergence H [rad]", "Electron Beam Divergence V [rad]", "Period ID [m]",
                  "Number of periods", "Kv [K value vertical field]", "Kh [K value horizontal field]",
                  "Kphase [phase diff Kh - Kv in rad]","Distance to slit [m]","Slit gap H [m]",
-                 "Slit gap V [m]", "photon Energy Min [eV]","photon Energy Max [eV]",
+                 "Slit gap V [m]", "Slit center H [m]", "Slit center V [m]",
+                 "photon Energy Min [eV]","photon Energy Max [eV]",
                  "photon Energy Points", "calculation code"]
 
     def unitFlags(self):
@@ -249,6 +268,7 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
                  "True", "True", "self.METHOD != 0",
                  "self.METHOD != 0","True", "True",
                  "True", "True", "True",
+                 "True", "True",
                  "True", "True"]
 
     def get_help_name(self):
@@ -270,6 +290,8 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
         self.DISTANCE = congruence.checkPositiveNumber(self.DISTANCE, "Distance to slit")
         self.GAPH = congruence.checkPositiveNumber(self.GAPH, "Slit gap H")
         self.GAPV = congruence.checkPositiveNumber(self.GAPV, "Slit gap V")
+        self.GAPH_CENTER = congruence.checkPositiveNumber(self.GAPH_CENTER, "Slit center H")
+        self.GAPV_CENTER = congruence.checkPositiveNumber(self.GAPV_CENTER, "Slit center V")
         self.PHOTONENERGYMIN = congruence.checkPositiveNumber(self.PHOTONENERGYMIN, "photon Energy Min")
         self.PHOTONENERGYMAX = congruence.checkStrictlyPositiveNumber(self.PHOTONENERGYMAX, "photon Energy Max")
         congruence.checkLessThan(self.PHOTONENERGYMIN, self.PHOTONENERGYMAX, "photon Energy Min", "photon Energy Max")
@@ -297,6 +319,8 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
                                              DISTANCE=self.DISTANCE,
                                              GAPH=self.GAPH,
                                              GAPV=self.GAPV,
+                                             GAPH_CENTER=self.GAPH_CENTER,
+                                             GAPV_CENTER=self.GAPV_CENTER,
                                              PHOTONENERGYMIN=self.PHOTONENERGYMIN,
                                              PHOTONENERGYMAX=self.PHOTONENERGYMAX,
                                              PHOTONENERGYPOINTS=self.PHOTONENERGYPOINTS,
@@ -320,6 +344,8 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
             "DISTANCE" : self.DISTANCE,
             "GAPH" : self.GAPH,
             "GAPV" : self.GAPV,
+            "GAPH_CENTER": self.GAPH_CENTER,
+            "GAPV_CENTER": self.GAPV_CENTER,
             "PHOTONENERGYMIN" : self.PHOTONENERGYMIN,
             "PHOTONENERGYMAX" : self.PHOTONENERGYMAX,
             "PHOTONENERGYPOINTS" : self.PHOTONENERGYPOINTS,
@@ -356,6 +382,8 @@ energy, flux, spectral_power, cumulated_power = xoppy_calc_undulator_spectrum(
     DISTANCE={DISTANCE},
     GAPH={GAPH},
     GAPV={GAPV},
+    GAPH_CENTER={GAPH_CENTER},
+    GAPV_CENTER={GAPV_CENTER},
     PHOTONENERGYMIN={PHOTONENERGYMIN},
     PHOTONENERGYMAX={PHOTONENERGYMAX},
     PHOTONENERGYPOINTS={PHOTONENERGYPOINTS},
