@@ -816,10 +816,10 @@ def calc2d_srw(bl,zero_emittance=False,hSlitPoints=101,vSlitPoints=51,
     stkP = srwlib.SRWLStokes() #for power density
     stkP.allocate(1, hSlitPoints, vSlitPoints) #numbers of points vs horizontal and vertical positions (photon energy is not taken into account)
     stkP.mesh.zStart =  bl['distance'] #longitudinal position [m] at which power density has to be calculated
-    stkP.mesh.xStart = bl['gapHcenter'] - bl['gapH']/2.0 #initial horizontal position [m]
-    stkP.mesh.xFin =   bl['gapHcenter'] + bl['gapH']/2.0 #final horizontal position [m]
-    stkP.mesh.yStart = bl['gapVcenter'] + bl['gapV']/2.0 #initial vertical position [m]
-    stkP.mesh.yFin =   bl['gapVcenter'] + bl['gapV']/2.0 #final vertical position [m]
+    stkP.mesh.xStart = -bl['gapH']/2.0 #initial horizontal position [m]
+    stkP.mesh.xFin =    bl['gapH']/2.0 #final horizontal position [m]
+    stkP.mesh.yStart = -bl['gapV']/2.0 #initial vertical position [m]
+    stkP.mesh.yFin =    bl['gapV']/2.0 #final vertical position [m]
 
     #**********************Calculation (SRWLIB function calls)
     print('Performing Power Density calculation (from field) ... ')
@@ -969,8 +969,8 @@ def calc2d_us(bl,zero_emittance=False,hSlitPoints=51,vSlitPoints=51,fileName=Non
         f.write("    %f      %d   0.000   %f               Period N Kx Ky\n"%
                 (bl['PeriodID']*1e2,bl['NPeriods'],bl['Kv']) )
         f.write("    9972.1   55000.0     500                   Emin Emax Ne\n")
-        f.write("  %f   %f   %f   %f   %f    %d    %d   D Xpc Ypc Xps Yps Nxp Nyp\n"%
-               (bl['distance'],bl['gapHcenter']*1e3,bl['gapVcenter']*1e3,bl['gapH']*1e3,bl['gapV']*1e3,hSlitPoints-1,vSlitPoints-1) )
+        f.write("  %f   0.000   0.000   %f   %f    %d    %d   D Xpc Ypc Xps Yps Nxp Nyp\n"%
+               (bl['distance'],bl['gapH']*1e3,bl['gapV']*1e3,hSlitPoints-1,vSlitPoints-1) )
         if zero_emittance:
             f.write("       6       3       0                       Mode Method Iharm\n")
         else:
@@ -1142,8 +1142,8 @@ def calc2d_urgent(bl,zero_emittance=False,fileName=None,fileAppend=False,hSlitPo
         f.write("%f\n"%(bl['ElectronBeamDivergenceV']*1e3))   #SIGY1
 
         f.write("%f\n"%(bl['distance']))         #D
-        f.write("%f\n"%(bl['gapHcenter']*1e3))         #XPC
-        f.write("%f\n"%(bl['gapVcenter']*1e3))         #YPC
+        f.write("%f\n"%(0.00000))         #XPC
+        f.write("%f\n"%(0.00000))         #YPC
         f.write("%f\n"%(bl['gapH']*1e3))  #XPS
         f.write("%f\n"%(bl['gapV']*1e3))  #YPS
         f.write("%d\n"%(hSlitPoints-1))             #NXP
@@ -2058,8 +2058,8 @@ def calc3d_us(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
             f.write("    %f      %d   0.000   %f               Period N Kx Ky\n"%
                     (bl['PeriodID']*1e2,bl['NPeriods'],bl['Kv']) )
             f.write("    %f   55000.0       1                   Emin Emax Ne\n"%(ener))
-            f.write("  %f   %f   %f   %f   %f    %d    %d   D Xpc Ypc Xps Yps Nxp Nyp\n"%
-                   (bl['distance'],bl['gapHcenter']*1e3,bl['gapVcenter']*1e3,bl['gapH']*1e3,bl['gapV']*1e3,hSlitPoints-1,vSlitPoints-1) )
+            f.write("  %f   0.000   0.000   %f   %f    %d    %d   D Xpc Ypc Xps Yps Nxp Nyp\n"%
+                   (bl['distance'],bl['gapH']*1e3,bl['gapV']*1e3,hSlitPoints-1,vSlitPoints-1) )
             if zero_emittance:
                 f.write("       1       3       0                       Mode Method Iharm\n")
             else:
