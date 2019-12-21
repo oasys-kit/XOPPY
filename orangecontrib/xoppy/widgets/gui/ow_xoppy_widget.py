@@ -357,7 +357,7 @@ class XoppyWidget(widget.OWWidget):
                 #silx 0.4.0
                 self.plot_canvas[plot_canvas_index].getMaskAction().setVisible(False)
                 self.plot_canvas[plot_canvas_index].getRoiAction().setVisible(False)
-                self.plot_canvas[plot_canvas_index].getColormapAction().setVisible(False)
+                self.plot_canvas[plot_canvas_index].getColormapAction().setVisible(True)
                 self.plot_canvas[plot_canvas_index].setKeepDataAspectRatio(False)
 
 

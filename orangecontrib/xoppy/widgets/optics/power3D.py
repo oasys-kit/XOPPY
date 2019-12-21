@@ -468,10 +468,10 @@ class OWpower3D(XoppyWidget):
                 elif self.PLOT_SETS == 1:
                     p_to_plot = p_spectral_power * transmittivity_total
                     pre_title = "Beam transmitted after LAST element"
-                elif self.PLOT_SETS == 2:
+                elif self.PLOT_SETS == 2: # wrong with rotation
                     p_to_plot = p_spectral_power * ( numpy.ones_like(transmittivity_total) - transmittivity_total)
                     pre_title = "Absorption by ALL elements"
-                elif self.PLOT_SETS == 3:
+                elif self.PLOT_SETS == 3:  # wrong with slit, rotation
                     transmittivity_before_last_element = transmittivity_total / transmittivity[-1,:,:,:]
                     p_to_plot = p_spectral_power * (transmittivity_before_last_element - transmittivity_total)
                     pre_title = "Absorption by the LAST element"

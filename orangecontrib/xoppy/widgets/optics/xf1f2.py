@@ -277,31 +277,33 @@ class OWxf1f2(XoppyWidget):
         return calculation_output
 
     def plot_results(self, calculated_data, progressBarValue=80):
-        self.initializeTabs()
-
-        try:
-            calculated_data.get_content("xoppy_data")
-
-            self.tab[0].layout().removeItem(self.tab[0].layout().itemAt(0))
-            self.plot_canvas[0] = None
-
-            super().plot_results(calculated_data, progressBarValue)
-        except:
-            try:
-                data2D = calculated_data.get_content("data2D")
-                dataX = calculated_data.get_content("dataX")
-                dataY = calculated_data.get_content("dataY")
-
-                self.plot_data2D(data2D, dataX, dataY, 0, 0,
-                                 xtitle='Energy [eV]',
-                                 ytitle='Theta [mrad]',
-                                 title='Reflectivity')
-            except:
+        if not self.view_type == 0:
+            if not calculated_data is None:
                 try:
-                    self.plot_info(calculated_data.get_content("info") + "\n", progressBarValue, 0, 0)
-                except:
-                    pass
+                    calculated_data.get_content("xoppy_data")
 
+                    self.tab[0].layout().removeItem(self.tab[0].layout().itemAt(0))
+                    self.plot_canvas[0] = None
+
+                    super().plot_results(calculated_data, progressBarValue)
+                except:
+                    try:
+                        data2D = calculated_data.get_content("data2D")
+                        dataX = calculated_data.get_content("dataX")
+                        dataY = calculated_data.get_content("dataY")
+
+                        self.plot_data2D(data2D, dataX, dataY, 0, 0,
+                                         xtitle='Energy [eV]',
+                                         ytitle='Theta [mrad]',
+                                         title='Reflectivity')
+                    except:
+                        try:
+                            self.plot_info(calculated_data.get_content("info") + "\n", progressBarValue, 0, 0)
+                        except:
+                            pass
+
+            else:
+                raise Exception("Empty Data")
 
     def get_data_exchange_widget_name(self):
         return "XF1F2"
@@ -391,7 +393,6 @@ class OWxf1f2(XoppyWidget):
             info = "** Single value calculation E=%g eV, theta=%g mrad, Result(F=%d)=%g "%(energy[0],theta[0],1+CALCULATE,out[0,0])
             labels = ["Energy [eV]",CALCULATE_items[CALCULATE]]
             tmp = numpy.vstack((energy,out[:,0]))
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",energy.shape,out.shape,tmp.shape)
             out_dict = {"application":"xoppy","name":"xf12","info":info, "data":tmp,"labels":labels}
         elif theta.size == 1:
             tmp = numpy.vstack((energy,out[:,0]))
