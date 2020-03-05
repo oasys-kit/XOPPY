@@ -291,7 +291,7 @@ class XoppyWidget(widget.OWWidget):
 
         self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow()
 
-        self.plot_canvas[plot_canvas_index].addCurve(dataX, dataY,)
+        self.plot_canvas[plot_canvas_index].addCurve(dataX, dataY)
 
         self.plot_canvas[plot_canvas_index].resetZoom()
         self.plot_canvas[plot_canvas_index].setXAxisAutoScale(True)

@@ -276,13 +276,13 @@ def xoppy_calc_xraylib_widget(FUNCTION=0,ELEMENT=26,ELEMENTORCOMPOUND="FeSO4",CO
         command = "result = xraylib.CS_Total_CP('%s',%f)"%(ELEMENTORCOMPOUND,ENERGY)
         print("executing command: ",command)
         result = xraylib.CS_Total_CP(ELEMENTORCOMPOUND,ENERGY)
-        if result != 0.0: print("Total absorption cross section: %f  g/cm3"%(result))
+        if result != 0.0: print("Total absorption cross section: %f  g/cm2"%(result))
         else: print("No result")
     elif FUNCTION == 5:
         command = "result = xraylib.CS_Photo_CP('%s',%f)"%(ELEMENTORCOMPOUND,ENERGY)
         print("executing command: ",command)
         result = xraylib.CS_Photo_CP(ELEMENTORCOMPOUND,ENERGY)
-        if result != 0.0: print("Photoionization cross section: %f  g/cm3"%(result))
+        if result != 0.0: print("Photoionization cross section: %f  g/cm2"%(result))
         else: print("No result")
     elif FUNCTION == 6:
         shells = ['All shells', 'K_SHELL', 'L1_SHELL', 'L2_SHELL', 'L3_SHELL', 'M1_SHELL', 'M2_SHELL', 'M3_SHELL', 'M4_SHELL', 'M5_SHELL', 'N1_SHELL', 'N2_SHELL', 'N3_SHELL', 'N4_SHELL', 'N5_SHELL', 'N6_SHELL', 'N7_SHELL', 'O1_SHELL', 'O2_SHELL', 'O3_SHELL', 'O4_SHELL', 'O5_SHELL', 'O6_SHELL', 'O7_SHELL', 'P1_SHELL', 'P2_SHELL', 'P3_SHELL', 'P4_SHELL', 'P5_SHELL', 'Q1_SHELL', 'Q2_SHELL', 'Q3_SHELL']
