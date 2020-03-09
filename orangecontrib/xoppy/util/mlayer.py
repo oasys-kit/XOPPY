@@ -606,14 +606,14 @@ class MLayer(object):
                 h5_entry_name = "MLayer"
                 h5w.create_entry(h5_entry_name,nx_default="reflectivity-s")
                 if energyN == 1:
-                    h5w.add_dataset(theta_array, R_S_array[0], dataset_name="reflectivity-s", entry_name=h5_entry_name,
+                    h5w.add_dataset(theta_array, R_S_array[0]**2, dataset_name="reflectivity-s", entry_name=h5_entry_name,
                                     title_x="Grazing angle [deg]", title_y="Reflectivity-s")
                 elif thetaN == 1:
-                    h5w.add_dataset(energy_array, R_S_array[:,0], dataset_name="reflectivity-s", entry_name=h5_entry_name,
+                    h5w.add_dataset(energy_array, R_S_array[:,0]**2, dataset_name="reflectivity-s", entry_name=h5_entry_name,
                                     title_x="Photon energy [eV]", title_y="Reflectivity-s")
                 else:
                     # h5w.create_entry(h5_entry_name, nx_default="EnergyAngleScan")
-                    h5w.add_image(R_S_array, energy_array, theta_array, image_name="EnergyAngleScan",
+                    h5w.add_image(R_S_array**2, energy_array, theta_array, image_name="EnergyAngleScan",
                                   entry_name=h5_entry_name,
                                   title_x="Photon Energy [eV]",
                                   title_y="Grazing Angle [deg]")
