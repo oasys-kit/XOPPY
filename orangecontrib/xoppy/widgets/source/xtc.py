@@ -15,7 +15,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
-import syned.storage_ring.magnetic_structures.insertion_device as synedid
+from syned.storage_ring.magnetic_structures.insertion_device import InsertionDevice as synedid
 
 class OWxtc(XoppyWidget):
     name = "TC"
@@ -451,21 +451,24 @@ class OWxtc(XoppyWidget):
     def receive_syned_data(self, data):
 
         if isinstance(data, synedb.Beamline):
-            if not data._light_source is None and isinstance(data._light_source._magnetic_structure, synedid.InsertionDevice):
-                light_source = data._light_source
+            if not data._light_source is None and isinstance(data.get_light_source().get_magnetic_structure(), synedid):
+                light_source = data.get_light_source()
 
-                self.ENERGY = light_source._electron_beam._energy_in_GeV
-                self.ENERGY_SPREAD = light_source._electron_beam._energy_spread
-                self.CURRENT = 1000.0 * light_source._electron_beam._current
+                self.ENERGY = light_source.get_electron_beam().energy()
+                self.ENERGY_SPREAD = light_source.get_electron_beam()._energy_spread
+                self.CURRENT = 1000.0 * light_source._electron_beam.current()
 
-                x, xp, y, yp = light_source._electron_beam.get_sigmas_all()
+                x, xp, y, yp = light_source.get_electron_beam().get_sigmas_all()
 
                 self.SIGX = 1e3 * x
                 self.SIGY = 1e3 * y
                 self.SIGX1 = 1e3 * xp
                 self.SIGY1 = 1e3 * yp
-                self.PERIOD = 100.0 * light_source._magnetic_structure._period_length
-                self.NP = light_source._magnetic_structure._number_of_periods
+                self.PERIOD = 100.0 * light_source.get_magnetic_structure().period_length()
+                self.NP = light_source.get_magnetic_structure().number_of_periods()
+
+                self.EMIN = light_source.get_magnetic_structure().resonance_energy(gamma=light_source.get_electron_beam().gamma())
+                self.EMAX = 5 * self.EMIN
 
                 self.set_enabled(False)
 

@@ -417,6 +417,8 @@ class OWtc_slit(XoppyWidget):
         bl['distance']                = self.DISTANCE
         bl['gapH']                    = self.GAPH
         bl['gapV']                    = self.GAPV
+        bl['gapHcenter']              = 0.0
+        bl['gapVcenter']              = 0.0
 
         if self.USEEMITTANCES:
             zero_emittance = False
@@ -462,7 +464,9 @@ class OWtc_slit(XoppyWidget):
             'distance'                : self.DISTANCE,
             'gapH'                    : self.GAPH,
             'gapV'                    : self.GAPV,
-            'HARMONICS'                    : self.HARMONICS,
+            'gapHcenter'              : 0.0,
+            'gapVcenter'              : 0.0,
+            'HARMONICS'               : self.HARMONICS,
             'Kmin'                    : self.KMIN,
             'Kmax'                    : self.KMAX,
             'Kpoints'                 : self.KPOINTS,
@@ -499,6 +503,8 @@ bl['PeriodID']                = {PeriodID}
 bl['distance']                = {distance}
 bl['gapH']                    = {gapH}
 bl['gapV']                    = {gapV}
+bl['gapHcenter']              = 0.0
+bl['gapVcenter']              = 0.0
 
 harmonics = "{HARMONICS}".split(",")
 
