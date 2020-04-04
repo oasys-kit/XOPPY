@@ -25,7 +25,7 @@ class OWpower3D(XoppyWidget):
     name = "POWER3D"
     id = "orange.widgets.datapower3D"
     description = "Power (vs Energy and spatial coordinates) Absorbed and Transmitted by Optical Elements"
-    icon = "icons/xoppy_power3d_obsolete1.png"
+    icon = "icons/obsolete_power3d.png"
     priority = 3
     category = ""
     keywords = ["xoppy", "power3D"]
