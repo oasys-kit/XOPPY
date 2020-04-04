@@ -19,12 +19,13 @@ import xraylib
 
 from srxraylib.util.h5_simple_writer import H5SimpleWriter
 
+from oasys.widgets.gui import ConfirmDialog
 
 class OWpower3D(XoppyWidget):
     name = "POWER3D"
     id = "orange.widgets.datapower3D"
     description = "Power (vs Energy and spatial coordinates) Absorbed and Transmitted by Optical Elements"
-    icon = "icons/xoppy_power3d.png"
+    icon = "icons/xoppy_power3d_obsolete.png"
     priority = 3
     category = ""
     keywords = ["xoppy", "power3D"]
@@ -191,6 +192,10 @@ class OWpower3D(XoppyWidget):
                     items=['No', 'Yes (power3D.h5)'],
                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
+
+        tmp = ConfirmDialog.confirmed(self,
+                                      message="POWER3D is an obsolete application.\nReplaced by power3Dcomponent.\nPlease move convert your workspaces as it will disappear soon.",
+                                      title="Obsolete application")
 
     def set_NELEMENTS(self):
         self.initializeTabs()
