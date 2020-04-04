@@ -12,19 +12,15 @@ from orangewidget.settings import Setting
 
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
-# from orangecontrib.xoppy.util.xoppy_exchange import RadiationDataExchangeObject #as DataExchangeObject
 
 from oasys.util.oasys_util import TTYGrabber
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 from orangecontrib.xoppy.util.xoppy_xraylib_util import reflectivity_fresnel
-# from orangecontrib.xoppy.als.util.messages import  showCriticalMessage
 from oasys.widgets.gui import ConfirmDialog
 
 import scipy.constants as codata
 import xraylib
 from srxraylib.util.h5_simple_writer import H5SimpleWriter
-
-
 
 class OWpower3Dcomponent(XoppyWidget):
     name = "Power3Dcomponent"
@@ -313,9 +309,6 @@ class OWpower3Dcomponent(XoppyWidget):
         elif self.EL1_FLAG == 4: # rotation
             self.EL1_HROT = congruence.checkNumber(self.EL1_HROT, "1st oe rotation H")
             self.EL1_VROT = congruence.checkNumber(self.EL1_VROT, "1st oe rotation V")
-
-        # if not self.EL1_DEN.strip() == "?":
-        #     self.EL1_DEN = str(congruence.checkStrictlyPositiveNumber(float(congruence.checkNumber(self.EL1_DEN, "1st oe density")), "1st oe density"))
 
     def do_xoppy_calculation(self):
         return self.xoppy_calc_power3Dcomponent()
@@ -751,9 +744,6 @@ class OWpower3Dcomponent(XoppyWidget):
                 absorbance[:, :, v_indices_bad] = 0.0
 
         elif flags == 2:  # aperture
-
-            # transmittance[:, :, :] = 1.0
-
             h_indices_bad = numpy.where(numpy.abs(H) > 0.5*hgap)
             if len(h_indices_bad) > 0:
                 transmittance[:, h_indices_bad, :] = 0.0
@@ -764,7 +754,6 @@ class OWpower3Dcomponent(XoppyWidget):
             absorbance = 1.0 - transmittance
 
         elif flags == 3:  # magnifier
-            # transmittance[:, :, :] = 1.0 / (hmag * vmag)
             H = h * hmag
             V = v * vmag
 
@@ -802,9 +791,6 @@ class OWpower3Dcomponent(XoppyWidget):
 
         power_transmitted = integral_3d(p * transmittance, e, h, v, method=0) * codata.e * 1e3
         power_absorbed = integral_3d(p * absorbance, e, h, v, method=0) * codata.e * 1e3
-
-        # txt += '      Beam power after optical element: %6.3f W (absorbed: %6.3f/>>%6.3f<< W)\n'%\
-        #        (power_transmitted, power_input-power_transmitted, power_absorbed)
 
         power_lost = power_input - ( power_transmitted +  power_absorbed)
         if numpy.abs( power_lost ) > 1e-9:
@@ -871,9 +857,6 @@ class OWpower3Dcomponent(XoppyWidget):
         p_spectral_power = p * codata.e * 1e3
         transmittance, absorbance, E, H, V = calculated_data
 
-        # if (os.path.splitext(self.FILE_NAME))[-1] not in [".h5",".H5",".hdf5",".HDF5"]:
-        #     showCriticalMessage("Invalid file extension in output file: \n%s\nIt must be: .h5, .H5, .hdf5, .HDF5"%self.FILE_NAME)
-        #     return
         if (os.path.splitext(self.FILE_NAME))[-1] not in [".h5",".H5",".hdf5",".HDF5"]:
             filename_alternative = (os.path.splitext(self.FILE_NAME))[0] + ".h5"
             tmp = ConfirmDialog.confirmed(self,
@@ -885,9 +868,6 @@ class OWpower3Dcomponent(XoppyWidget):
         try:
             h5w = H5SimpleWriter.initialize_file(self.FILE_NAME, creator="power3Dcomponent.py")
             txt = "\n\n\n"
-            # p_cumulated = p.copy()
-            # power_cumulated = integral_3d(p_cumulated, e, h, v) * codata.e * 1e3
-            # txt += '      Input beam power: %f W\n' % (power_cumulated)
             txt += self.info_total_power(p, e, v, h, transmittance, absorbance)
             h5w.add_key("info", txt, entry_name=None)
         except:
