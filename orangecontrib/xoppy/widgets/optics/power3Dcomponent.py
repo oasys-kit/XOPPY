@@ -828,7 +828,7 @@ class OWpower3Dcomponent(XoppyWidget):
         if method == "3columns":
             for i in range(H.size):
                 for j in range(V.size):
-                    f.write("%g  %g  %g\n" % (H[i]*1e-3, V[i]*1e-3, absorbed2d[i,j]*1e-6))
+                    f.write("%g  %g  %g\n" % (H[i]*1e-3, V[i]*1e-3, absorbed2d[i,j]*1e6))
         elif method == "matrix":
             f.write("%10.5g" % 0)
             for i in range(H.size):
@@ -838,7 +838,7 @@ class OWpower3Dcomponent(XoppyWidget):
             for j in range(V.size):
                     f.write("%10.5g" % (V[j] * 1e-3))
                     for i in range(H.size):
-                        f.write(", %10.5g" % (absorbed2d[i,j] * 1e-6))
+                        f.write(", %10.5g" % (absorbed2d[i,j] * 1e6))
                     f.write("\n")
         else:
             raise Exception("File type not understood.")
