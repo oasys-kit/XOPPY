@@ -108,14 +108,23 @@ class OWxpower(XoppyWidget):
                     valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
-        #widget index 9 
-        idx += 1 
-        box1 = gui.widgetBox(box) 
+        # #widget index 9
+        # idx += 1
+        # box1 = gui.widgetBox(box)
+        #
+        # file_box = oasysgui.widgetBox(box1, "", addSpace=False, orientation="horizontal", height=25)
+        #
+        # self.le_file = oasysgui.lineEdit(file_box, self, "SOURCE_FILE",
+        #              label=self.unitLabels()[idx], addSpace=False, orientation="horizontal")
+        # self.show_at(self.unitFlags()[idx], box1)
 
-        file_box = oasysgui.widgetBox(box1, "", addSpace=False, orientation="horizontal", height=25)
-
-        self.le_file = oasysgui.lineEdit(file_box, self, "SOURCE_FILE",
-                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal")
+        #widget index 9 ***********   File Browser ******************
+        idx += 1
+        box1 = gui.widgetBox(box)
+        file_box_id = oasysgui.widgetBox(box1, "", addSpace=False, orientation="horizontal")
+        self.file_id = oasysgui.lineEdit(file_box_id, self, "SOURCE_FILE", self.unitLabels()[idx],
+                                    labelWidth=100, valueType=str, orientation="horizontal")
+        gui.button(file_box_id, self, "...", callback=self.select_input_file, width=25)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 10
@@ -396,6 +405,10 @@ class OWxpower(XoppyWidget):
 
         self.input_spectrum = None
 
+    def select_input_file(self):
+        self.file_id.setText(oasysgui.selectFileFromDialog(self, self.SOURCE_FILE,
+                                    "Open 2-columns file with spectral power",
+                                    file_extension_filter="ascii dat (*.dat *.txt *spec)"))
 
     def set_NELEMENTS(self):
         self.initializeTabs()

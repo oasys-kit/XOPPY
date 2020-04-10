@@ -542,60 +542,6 @@ class OWpower3Dcomponent(XoppyWidget):
             except:
                 pass
 
-    # TODO: integrate this in ow_xoppy_widget
-    def plot_data3D(self, data3D, dataE, dataX, dataY, tabs_canvas_index, plot_canvas_index,
-                    title="", xtitle="", ytitle="", color_limits_uniform=False):
-
-        from silx.gui.plot.StackView import StackViewMainWindow # TODO (re)move
-
-        for i in range(1+self.tab[tabs_canvas_index].layout().count()):
-            self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(i))
-
-        #self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
-
-
-        xmin = numpy.min(dataX)
-        xmax = numpy.max(dataX)
-        ymin = numpy.min(dataY)
-        ymax = numpy.max(dataY)
-
-
-        stepX = dataX[1]-dataX[0]
-        stepY = dataY[1]-dataY[0]
-        if len(dataE) > 1: stepE = dataE[1]-dataE[0]
-        else: stepE = 1.0
-
-        if stepE == 0.0: stepE = 1.0
-        if stepX == 0.0: stepX = 1.0
-        if stepY == 0.0: stepY = 1.0
-
-        dim0_calib = (dataE[0],stepE)
-        dim1_calib = (ymin, stepY)
-        dim2_calib = (xmin, stepX)
-
-
-        data_to_plot = numpy.swapaxes(data3D,1,2)
-
-        if color_limits_uniform:
-            colormap = {"name":"temperature", "normalization":"linear", "autoscale":False, "vmin":data3D.min(), "vmax":data3D.max(), "colors":256}
-
-        else:
-            colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
-
-        self.plot_canvas[plot_canvas_index] = StackViewMainWindow()
-
-        self.plot_canvas[plot_canvas_index].setGraphTitle(title)
-        self.plot_canvas[plot_canvas_index].setLabels(["Photon Energy [eV]",ytitle,xtitle])
-        self.plot_canvas[plot_canvas_index].setColormap(colormap=colormap)
-        self.plot_canvas[plot_canvas_index].setTitleCallback(lambda idx: "Energy: %6.3f eV"%dataE[idx])
-
-        self.plot_canvas[plot_canvas_index].setStack(numpy.array(data_to_plot),
-                                                     calibrations=[dim0_calib, dim1_calib, dim2_calib] )
-        self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
-
-
-
-
     def xoppy_calc_power3Dcomponent(self):
 
         #

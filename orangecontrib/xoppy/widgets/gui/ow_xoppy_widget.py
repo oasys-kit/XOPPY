@@ -285,11 +285,29 @@ class XoppyWidget(widget.OWWidget):
 
         self.progressBarSet(progressBarValue)
 
-    def plot_data1D(self, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle=""):
+    def plot_data1D(self, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
+                    control=False):
 
         self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
 
-        self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow()
+        self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow(parent=None,
+                                                                      backend=None,
+                                                                      resetzoom=True,
+                                                                      autoScale=False,
+                                                                      logScale=True,
+                                                                      grid=True,
+                                                                      curveStyle=True,
+                                                                      colormap=False,
+                                                                      aspectRatio=False,
+                                                                      yInverted=False,
+                                                                      copy=True,
+                                                                      save=True,
+                                                                      print_=True,
+                                                                      control=control,
+                                                                      position=True,
+                                                                      roi=False,
+                                                                      mask=False,
+                                                                      fit=False)
 
         self.plot_canvas[plot_canvas_index].addCurve(dataX, dataY)
 
@@ -378,14 +396,11 @@ class XoppyWidget(widget.OWWidget):
         self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
 
-
-    def plot_data3D(self, data3D, dataE, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle=""):
+    def plot_data3D(self, data3D, dataE, dataX, dataY, tabs_canvas_index, plot_canvas_index,
+                    title="", xtitle="", ytitle="", color_limits_uniform=False):
 
         for i in range(1+self.tab[tabs_canvas_index].layout().count()):
             self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(i))
-
-        #self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
-
 
         xmin = numpy.min(dataX)
         xmax = numpy.max(dataX)
@@ -409,20 +424,22 @@ class XoppyWidget(widget.OWWidget):
 
         data_to_plot = numpy.swapaxes(data3D,1,2)
 
-        colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
+        if color_limits_uniform:
+            colormap = {"name":"temperature", "normalization":"linear", "autoscale":False, "vmin":data3D.min(), "vmax":data3D.max(), "colors":256}
+
+        else:
+            colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
 
         self.plot_canvas[plot_canvas_index] = StackViewMainWindow()
 
         self.plot_canvas[plot_canvas_index].setGraphTitle(title)
         self.plot_canvas[plot_canvas_index].setLabels(["Photon Energy [eV]",ytitle,xtitle])
         self.plot_canvas[plot_canvas_index].setColormap(colormap=colormap)
+        self.plot_canvas[plot_canvas_index].setTitleCallback(lambda idx: "Energy: %6.3f eV"%dataE[idx])
 
         self.plot_canvas[plot_canvas_index].setStack(numpy.array(data_to_plot),
                                                      calibrations=[dim0_calib, dim1_calib, dim2_calib] )
         self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
-
-
-
 
 
     def compute(self):
@@ -461,10 +478,7 @@ class XoppyWidget(widget.OWWidget):
         except Exception as exception:
             QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception), QtWidgets.QMessageBox.Ok)
-
             self.setStatusMessage("Error!")
-
-            #raise exception
 
         self.progressBarFinished()
 
@@ -479,9 +493,7 @@ class XoppyWidget(widget.OWWidget):
         from orangecontrib.xoppy.util.xoppy_util import locations
 
         home_doc = locations.home_doc()
-
         filename1 = os.path.join(home_doc, self.get_help_name() + '.txt')
-
         TextWindow(file=filename1,parent=self)
 
 
