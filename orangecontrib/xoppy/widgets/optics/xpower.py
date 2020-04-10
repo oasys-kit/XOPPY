@@ -862,7 +862,7 @@ if __name__ == "__main__":
 
 
 
-    input_data_type = "POWER3D"
+    input_data_type = "POWER"
 
     if input_data_type == "POWER":
         # create fake UNDULATOR_FLUX xoppy exchange data
@@ -895,12 +895,7 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     w = OWxpower()
-
-
     w.acceptExchangeData(received_data)
-
     w.show()
-
-
     app.exec()
     w.saveSettings()

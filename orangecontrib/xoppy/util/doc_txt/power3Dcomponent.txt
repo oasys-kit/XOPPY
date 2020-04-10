@@ -1,56 +1,39 @@
 
-==============================  power   =====================================
+==============================  power3Dcomponent   =====================================
 
- Power calculates the transmission in terms of flux or spectral power energy
- as a function of photon energy for a set of up to five attenuators and mirrors.
+ Power3Dcomponent calculates the transmission and absorption of the optical element
+ as a function of the spatial coordinates and energies.
+ It should be wired to a "Undulator Radiation" widget or use an input file created by it.
 
  It uses the XRAYLIB library to calculate reflectivities and transmissions.
 
+ The idea is that power3Dcomponent projects the source as calculated by "Undulator Radiation"
+ on a mirror or filter and computes the transmittance and absorbance (functions of the photon energy).
 
- Input parameters for POWER
- ==========================
+ The widget proposed also other elements:
+ - an aperture that permits to crop the beam.
+ - a screen rotation to project the source on a rotated plane (e.g., on a mirror)
+ - a magnifier that permits to expand or contract the source by a factor.
+   This is used to "propagate" the beam from element to element. In a beamline we calculate
+   the source with "Undulator Radiation" at a given distance D0. This distance is usually defined
+   where the first mirror M1 is placed, therefore the power on the mirror is calculated by projection
+   on the mirror surface. Suppose the first mirror is plane, and we have a second mirror M2 at a distance D2.
+   To propagate the beam from M1 to M2 we just define a new element that is a magnifier with magnification:
+   D2 / D0. Therefore we will kave 4 widgets: Source (Undulator Radiation) , M1 (mirror), Drift space
+   from M1 to M2 (magnifier) and M2.
+   This situation can be generalized even using focusing mirrors. In that case the mirror magnification
+   should be taken into acount to calculate the magnification in the drift spaces.
 
-
-	Source: Select one of the following possibilities:
-	   1) Normalized to 1 (standard E grid): The source is normalized
-		to 1 and the energy array consist in 500 points in the
-		[1,100] keV interval.
-	   2) Normalized to 1 (E grid from keyboard): The source is normalized
-		to 1 and the energy starting point, ending point and
-		number of points are entered from the keyboard (next entries).
-		The number og points must be greater than one.
-		For calculating a single energy point, set the starting
-		and the ending value to the same value.
-	   3) From external file: The energy [in eV] and source arrays
-		are thetwo first columns of the given file.
-		In the case that the file does not exist, it asks for
-		a new one. Therefore, by entering any string (e.g. '?'),
-		a browser to select the file will be launched.
-
-	If selected source is case 2, then entry the start, end and
-		number of E points.
-	If selected source is 3, entry the file name.
-
-	Number of elements: The number of optical elements for
-		calculations (from 1 to 5).
-		For each optical elements a line of entry boxes appear
-		with the following meaning:
-
-		xx oe formula: The optical element formula. This may be
-		  an element or compound formula (i.e. Si, H2O, etc.), a
-		  compound formula (i.e.  H2O), or a
-		  material name as defined in NIST list of compounds listed below.
-
-		Filter/Mirror (select the appropiate entry).
-		In the Flter case entry the filter thickness [mm]
-		In the Mirror case entry the grazing angle [mrad] and
-		  the surface roughness rms [Angstroms]
-		Density: The density value in g/cm^3.
-		    It acceps "?" and takes the value from the database (for elements
-		    and NIST compounds only)
-
-
-List of NIST compounds:
+material: Three options are available:
+	a) Element(formula): calculation for a single element.
+	b) Compounds(formula):  calculation for a compound. The user
+		defines the compound formula.
+		The syntaxis is the following: string with the chemical
+		formula of the compound.
+		Examples:
+		H20
+		SiO2
+	c) Compounds(by name) from the NIST list of compounds:
 
 A-150 Tissue-Equivalent Plastic
 Acetone

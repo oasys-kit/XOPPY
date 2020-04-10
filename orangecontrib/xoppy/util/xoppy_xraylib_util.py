@@ -36,6 +36,65 @@ def write_spec_file(file_out,data,titles,scan_title=""):
     f.close()
     print("File written to disk: %s"%file_out)
 
+def nist_compound_list():
+    return xraylib.GetCompoundDataNISTList()
+
+def density(descriptor):
+    kind = descriptor_kind_index(descriptor)
+    if kind == 0:
+        return density_element(descriptor)
+    elif kind == 1:
+        raise Exception("cannot retrieve density for a compound (%s): it must be defined by user" % descriptor)
+    elif kind == 2:
+        return density_nist(descriptor)
+    else:
+        raise Exception("Unknown descriptor: %s" % descriptor)
+
+def density_element(DESCRIPTOR, verbose=False):
+    if isinstance(DESCRIPTOR, str):
+        Z = xraylib.SymbolToAtomicNumber(DESCRIPTOR)
+    elif isinstance(DESCRIPTOR, int):
+        Z = DESCRIPTOR
+    elif isinstance(input, float):
+        Z = int(DESCRIPTOR)
+    else:
+        raise Exception("Bad input.")
+    density = xraylib.ElementDensity(Z)
+    if verbose:
+        print("Density for Z=%d: %6.3f "%(Z, density))
+    return density
+
+def density_nist(DESCRIPTOR, verbose=False):
+    if isinstance(DESCRIPTOR, str):
+        Zarray = xraylib.GetCompoundDataNISTByName(DESCRIPTOR)
+        density = Zarray["density"]
+        if verbose:
+            print("Density for %s: %6.3f "%(DESCRIPTOR, density))
+    elif isinstance(DESCRIPTOR, int):
+        Zarray = xraylib.GetCompoundDataNISTByIndex(DESCRIPTOR)
+        density = Zarray["density"]
+        if verbose:
+            print("Density for NIST compound with index %d: %6.3f " % (DESCRIPTOR, density))
+    return density
+
+def descriptor_kind_index(descriptor):
+    if not isinstance(descriptor, str):
+        raise Exception("descriptor must be a string!")
+    out = -1
+    if len(descriptor) <=2:
+        Z = xraylib.SymbolToAtomicNumber(descriptor)
+        if Z > 0:
+            return 0
+    if descriptor in nist_compound_list():
+        return 2
+    try:
+        xraylib.CompoundParser(descriptor)
+        return 1
+    except:
+        pass
+    return out
+
+
 def parse_formula(formula): # included now in xraylib, so not used but kept for other possible uses
     """
 
@@ -72,6 +131,23 @@ def parse_formula(formula): # included now in xraylib, so not used but kept for 
 
     return {"Symbols":elements,"Elements":zetas,"n":fatomic,"atomicWeight":atomic_weight,"massFractions":massFractions,"molecularWeight":mweight}
 
+#
+# bind some xraylib functions to allow NIST compound as inputs
+#
+def Refractive_Index_Re(descriptor, energy_in_keV, density):
+    if descriptor_kind_index(descriptor) == 2:
+        return 1.0 - f1f2_calc_nist(descriptor, energy_in_keV * 1e3, F=3, density=density, verbose=False)[0]
+    else:
+        return xraylib.Refractive_Index_Re(descriptor, energy_in_keV, density)
+
+def Refractive_Index_Im(descriptor, energy_in_keV, density):
+    if descriptor_kind_index(descriptor) == 2:
+        # return f1f2_calc_nist(descriptor, energy_in_keV * 1e3, F=4, density=density)[0]
+        cs = cross_calc_nist(descriptor, energy_in_keV * 1e3, calculate=0, unit=3, density=density, verbose=False)[0]
+        wavelength = codata.h * codata.c / codata.e / (energy_in_keV * 1e3)
+        return (wavelength * 1e2) * cs / (4 * numpy.pi)
+    else:
+        return xraylib.Refractive_Index_Im(descriptor, energy_in_keV, density)
 
 #=======================================================================================================================
 #  CROSS SECTIONS, MIRROR AND FILTER UTILITIES
@@ -160,8 +236,83 @@ def interface_reflectivity(alpha,gamma,theta1):
 
     return rs,rp,runp
 
+def f0_calc(
+    MAT_FLAG,
+    DESCRIPTOR,
+    GRIDSTART,
+    GRIDEND,
+    GRIDN,
+    FILE_NAME="",
+    ):
 
-def f1f2_calc(descriptor,energy,theta=3.0e-3,F=0,density=None,rough=0.0):
+    qscale = numpy.linspace(GRIDSTART, GRIDEND, GRIDN)
+
+    f0 = numpy.zeros_like(qscale)
+
+    if MAT_FLAG == 0: # element
+        descriptor = DESCRIPTOR
+        for i,iqscale in enumerate(qscale):
+            f0[i] = xraylib.FF_Rayl(xraylib.SymbolToAtomicNumber(descriptor), iqscale)
+    elif MAT_FLAG == 1: # formula
+        tmp = parse_formula(DESCRIPTOR)
+        zetas = tmp["Elements"]
+        multiplicity = tmp["n"]
+        for j,jz in enumerate(zetas):
+            for i,iqscale in enumerate(qscale):
+                f0[i] += multiplicity[j] * xraylib.FF_Rayl(jz, iqscale)
+    elif MAT_FLAG == 2: # nist
+
+        Zarray = xraylib.GetCompoundDataNISTByName(DESCRIPTOR)
+        zetas = Zarray["Elements"]
+        fractions = numpy.array(Zarray["massFractions"])
+
+        multiplicity = []
+        for i in range(fractions.size):
+            multiplicity.append( fractions[i] / xraylib.AtomicWeight(zetas[i]) )
+
+        multiplicity = numpy.array(multiplicity)
+        multiplicity /= multiplicity.min()
+
+        atwt = 0.0
+        for i in range(fractions.size):
+            atwt += multiplicity[i] * xraylib.AtomicWeight(zetas[i])
+
+        print("f0_calc - nist: ")
+        print("    Descriptor: ", DESCRIPTOR)
+        print("    Zs: ", zetas)
+        print("    n: ", multiplicity)
+        print("    atomic weight: ", atwt)
+
+        for j, jz in enumerate(zetas):
+            for i, iqscale in enumerate(qscale):
+                f0[i] += multiplicity[j] * xraylib.FF_Rayl(jz, iqscale)
+
+
+
+
+    else:
+        raise Exception("Not implemented")
+
+    if FILE_NAME != "":
+        with open(FILE_NAME, "w") as file:
+            try:
+                file.write("#F %s\n"%FILE_NAME)
+                file.write("\n#S 1 xoppy f0 results\n")
+                file.write("#N 2\n")
+                file.write("#L  q=sin(theta)/lambda [A^-1]  f0 [electron units]\n")
+                for j in range(qscale.size):
+                    # file.write("%19.12e  "%energy[j])
+                    file.write("%19.12e  %19.12e\n"%(qscale[j],f0[j]))
+                file.close()
+                print("File written to disk: %s \n"%FILE_NAME)
+            except:
+                raise Exception("f0: The data could not be dumped onto the specified file!\n")
+    #
+    # return
+    #
+    return {"application":"xoppy","name":"f0","data":numpy.vstack((qscale,f0)),"labels":["q=sin(theta)/lambda [A^-1]","f0 [electron units]"]}
+
+def f1f2_calc(descriptor, energy, theta=3.0e-3, F=0, density=None, rough=0.0, verbose=True):
     """
     calculate the elastic Photon-Atom anonalous f1 and f2  coefficients as a function of energy.
     It also gives the refractive index components delta and beta (n=1-delta - i beta),
@@ -198,8 +349,11 @@ def f1f2_calc(descriptor,energy,theta=3.0e-3,F=0,density=None,rough=0.0):
         Z = descriptor
         symbol = xraylib.AtomicNumberToSymbol(descriptor)
 
-    if density == None:
+    if density is None:
         density = xraylib.ElementDensity(Z)
+
+    if verbose:
+        print("f1f2_calc: using density: %f g/cm3" % density)
 
 
     if F == 0:   # F=0 (default) returns a 2-col array with f1 and f2
@@ -278,7 +432,7 @@ def f1f2_calc(descriptor,energy,theta=3.0e-3,F=0,density=None,rough=0.0):
     return out
 
 
-def f1f2_calc_mix(descriptor,energy,theta=3.0e-3,F=0,density=None,rough=0.0):
+def f1f2_calc_mix(descriptor, energy, theta=3.0e-3, F=0, density=None, rough=0.0, verbose=True):
     """
     Like f1f2_calc but for a chemical formula. S
 
@@ -313,13 +467,13 @@ def f1f2_calc_mix(descriptor,energy,theta=3.0e-3,F=0,density=None,rough=0.0):
     print("molarMass: %g"%atwt)
 
 
-    print("f1f2_calc_mix: Zs: ",zetas," n: ",weights)
+    if verbose: print("f1f2_calc_mix: Zs: ",zetas," n: ",weights)
 
     f1 = numpy.zeros_like(energy)
     f2 = numpy.zeros_like(energy)
     for i,zi in enumerate(zetas):
-        f1i = f1f2_calc(xraylib.AtomicNumberToSymbol(zi), energy,theta,F=1)
-        f2i = f1f2_calc(xraylib.AtomicNumberToSymbol(zi), energy,theta,F=2)
+        f1i = f1f2_calc(xraylib.AtomicNumberToSymbol(zi), energy, theta, F=1, verbose=verbose)
+        f2i = f1f2_calc(xraylib.AtomicNumberToSymbol(zi), energy, theta, F=2, verbose=verbose)
         f1 += f1i * weights[i]
         f2 += f2i * weights[i]
 
@@ -330,7 +484,7 @@ def f1f2_calc_mix(descriptor,energy,theta=3.0e-3,F=0,density=None,rough=0.0):
     elif F == 2:
         return f2
 
-    if density == None:
+    if density is None:
         raise Exception("Please define density.")
 
     avogadro = codata.Avogadro
@@ -377,7 +531,128 @@ def f1f2_calc_mix(descriptor,energy,theta=3.0e-3,F=0,density=None,rough=0.0):
 
     raise Exception("Why am I here? ")
 
-def cross_calc(descriptor,energy,calculate=0,unit=None,density=None):
+def f1f2_calc_nist(descriptor, energy, theta=3.0e-3, F=0, density=None, rough=0.0, verbose=True):
+    """
+    Like f1f2_calc but for a compound defined in the NIST list
+        See list here:  http://lvserver.ugent.be/xraylib-web/index.php?xrlFunction=GetCompoundDataNISTList&Element=26&ElementOrCompound=FeSO4&Compound=Ca5%28PO4%293&AugerTransa=K&AugerTransb=L2&AugerTransc=M3&LinenameSwitch=IUPAC&Linename1a=K&Linename1b=L3&Linename2=KA1_LINE&NISTcompound=Gadolinium+Oxysulfide&RadioNuclide=55Fe&Shell=K_SHELL&Energy=10.0&Theta=1.5707964&Phi=3.14159&MomentumTransfer=0.57032&CKTrans=FL12_TRANS&Density=1.0&PZ=1.0&submit=Go%21&Language=C
+
+    :param descriptor: string with the name of compound as in NIST table
+    :param energy: array with energies (eV)
+    :param theta: array with grazing angles (rad)
+    :param F: calculation flag:
+
+           F=0 (default) returns a 2-col array with f1 and f2
+           F=1  returns f1
+           F=2  returns f2
+           F=3  returns delta  [n = 1 -delta -i beta]
+           F=4  returns betaf  [n = 1 -delta -i beta]
+           F=5  returns Photoelectric linear absorption coefficient
+           F=6  returns Photoelectric mass absorption coefficient
+           F=7  returns Photoelectric Cross Section
+           F=8  returns s-polarized reflectivity
+           F=9  returns p-polarized reflectivity
+           F=10  returns unpolarized reflectivity
+           F=11  returns delta/betaf
+    :param density: the density. If None, take from xraylib
+    :param rough: the roughness RMS in Angstroms for reflectivity calculations
+    :return: a numpy array with results
+    """
+    energy = numpy.array(energy,dtype=float).reshape(-1)
+
+    # >>>> name
+    # >>>> nElements
+    # >>>> density
+    # >>>> Elements
+    # >>>> massFractions
+    # {'name': 'Alanine', 'nElements': 4, 'density': 1.42, 'Elements': [1, 6, 7, 8],
+    # 'massFractions': [0.07919, 0.404439, 0.157213, 0.359159]}
+    Zarray = xraylib.GetCompoundDataNISTByName(descriptor)
+
+    # Zarray = parse_formula(descriptor)
+    zetas = Zarray["Elements"]
+    fractions = numpy.array(Zarray["massFractions"])
+    if density is None:
+        density = Zarray["density"]
+
+    weights = []
+    for i in range(fractions.size):
+        weights.append( fractions[i] / xraylib.AtomicWeight(zetas[i]) )
+
+    weights = numpy.array(weights)
+    weights /= weights.min()
+
+    atwt = 0.0
+    for i in range(fractions.size):
+        atwt += weights[i] * xraylib.AtomicWeight(zetas[i])
+
+    if verbose:
+        print("f1f2_calc_nist: ")
+        print("    Descriptor: ",descriptor)
+        print("    Zs: ", zetas)
+        print("    n: ", weights)
+        print("    atomic weight: ", atwt)
+        print("Density: ", density)
+
+    f1 = numpy.zeros_like(energy)
+    f2 = numpy.zeros_like(energy)
+    for i,zi in enumerate(zetas):
+        f1i = f1f2_calc(xraylib.AtomicNumberToSymbol(zi), energy, theta, F=1, verbose=verbose)
+        f2i = f1f2_calc(xraylib.AtomicNumberToSymbol(zi), energy, theta, F=2, verbose=verbose)
+        f1 += f1i * weights[i]
+        f2 += f2i * weights[i]
+
+    if F == 0:
+        return numpy.vstack((f1,f2))
+    elif F == 1:
+        return f1
+    elif F == 2:
+        return f2
+
+    avogadro = codata.Avogadro
+    toangstroms = codata.h * codata.c / codata.e * 1e10
+    re = codata.e**2 / codata.m_e / codata.c**2 / (4*numpy.pi*codata.epsilon_0) * 1e2 # in cm
+
+    molecules_per_cc = density * avogadro / atwt
+    wavelength = toangstroms / energy  * 1e-8 # in cm
+    k = molecules_per_cc * re * wavelength * wavelength / 2.0 / numpy.pi
+
+    # ;
+    # ; calculation of refraction index
+    # ;
+
+    delta = k * f1
+    beta = k * f2
+    mu = 4.0 * numpy.pi * beta / wavelength
+
+    if F == 3: return delta
+    if F == 4: return beta
+    if F == 5: return mu
+    if F == 6: return mu/density
+    if F == 7: return mu/molecules_per_cc*1e24
+    if F == 11: return delta/beta
+
+    #
+    # interface reflectivities
+    #
+
+    alpha = 2.0 * k * f1
+    gamma = 2.0 * k * f2
+
+    rs,rp,runp = interface_reflectivity(alpha,gamma,theta)
+
+    if rough != 0:
+        rough *= 1e-8 # to cm
+        debyewaller = numpy.exp( -( 4.0 * numpy.pi * numpy.sin(theta) * rough / wavelength)**2)
+    else:
+        debyewaller = 1.0
+
+    if F == 8: return rs*debyewaller # returns s-polarized reflectivity
+    if F == 9: return rp*debyewaller # returns p-polarized reflectivity
+    if F == 10: return runp*debyewaller# returns unpolarized reflectivity
+
+    raise Exception("Why am I here? ")
+
+def cross_calc(descriptor, energy, calculate=0, unit=None, density=None, verbose=True):
     """
     calculate the atomic cross sections and attenuation coefficients.
     :param descriptor: string with the element symbol or integer with Z
@@ -427,7 +702,7 @@ def cross_calc(descriptor,energy,calculate=0,unit=None,density=None):
         for i,ienergy in enumerate(energy):
             tmp[i] = xraylib.CSb_Total(Z,1e-3*ienergy) - xraylib.CSb_Rayl(Z,1e-3*ienergy)
 
-    if density == None:
+    if density is None:
         density = xraylib.ElementDensity(Z)
 
     out = numpy.zeros((5,energy.size))
@@ -437,15 +712,15 @@ def cross_calc(descriptor,energy,calculate=0,unit=None,density=None):
     out[3,:] = tmp * 1e-24 * codata.Avogadro / xraylib.AtomicWeight(Z)           # cm^2/g (Mass Attenuation Coefficient)
     out[4,:] = tmp * 1e-24 * codata.Avogadro / xraylib.AtomicWeight(Z) * density # cm^-1 (Linear Attenuation Coefficient)
 
-    if unit == None:
+    if unit is None:
         return out
     else:
         return out[1+unit,:].copy()
 
 
-def cross_calc_mix(descriptor,energy,calculate=0,unit=None,parse_or_nist=0,density=None):
+def cross_calc_mix(descriptor, energy, calculate=0, unit=None, parse_or_nist=0, density=None, verbose=True):
     """
-    Same as cross_calc, but for a compund (formula or name in the NIST compound list)
+    Same as cross_calc, but for a compund formula
     :param descriptor: a compound descriptor (as in xraylib)
     :param energy: photon energy array in eV
     :param calculate:
@@ -460,7 +735,7 @@ def cross_calc_mix(descriptor,energy,calculate=0,unit=None,parse_or_nist=0,densi
             1: cm^2 (Cross Section calculation)
             2: cm^2/g (Mass Attenuation Coefficient)
             3: cm^-1 (Linear Attenuation Coefficient)
-    :param parse_or_nist: 0 for compound (default), 1 for name in the NIST compound list
+    :param parse_or_nist: useless. Kept for back-compatibility.
     :param density: the material density in g/cm^3
     :return:
     """
@@ -468,18 +743,10 @@ def cross_calc_mix(descriptor,energy,calculate=0,unit=None,parse_or_nist=0,densi
     energy = numpy.array(energy,dtype=float).reshape(-1)
     out = numpy.zeros_like(energy)
 
-    if parse_or_nist == 0:
-        if (density == None):
-            raise Exception("Please define density")
-    else:
-        if isinstance(descriptor,int):
-            nist_compound = xraylib.GetCompoundDataNISTByIndex(descriptor)
-            descriptor = nist_compound["name"]
-        if (density == None):
-            nist_compound = xraylib.GetCompoundDataNISTByName(descriptor)
-            density = nist_compound["density"]
+    if (density is None):
+        raise Exception("Please define density")
 
-    print("cross_calc_mix: Using density %g g/cm3"%density)
+    if verbose: print("cross_calc_mix: Using density %g g/cm3"%density)
     tmp = numpy.zeros_like(energy)
     tmp2 = numpy.zeros_like(energy)
 
@@ -512,14 +779,90 @@ def cross_calc_mix(descriptor,energy,calculate=0,unit=None,parse_or_nist=0,densi
     out[3,:] = tmp2 # cm^2/g (Mass Attenuation Coefficient)
     out[4,:] = tmp2 * density # cm^-1 (Linear Attenuation Coefficient)
 
-    if unit == None:
+    if unit is None:
         return out
     else:
         return out[1+unit,:].copy()
 
+def cross_calc_nist(descriptor0, energy, calculate=0, unit=None, density=None, verbose=True):
+    """
+    Same as cross_calc, but for a compund from the NIST compound list
+    :param descriptor: a compound descriptor (as in xraylib)
+    :param energy: photon energy array in eV
+    :param calculate:
+            0: total cross section
+            1: photoelectric cross section
+            2: rayleigh cross serction
+            3: compton cross section
+            4: total minus rayleigh cross section
+    :param unit:An flag indicating the unit of the output array
+            None (default) return all units in multiple columns
+            0: barn/atom (Cross Section calculation)
+            1: cm^2 (Cross Section calculation)
+            2: cm^2/g (Mass Attenuation Coefficient)
+            3: cm^-1 (Linear Attenuation Coefficient)
+    :param density: the material density in g/cm^3. If set to None, use the xraylib value.
+    :return:
+    """
 
-def xpower_calc(energies=numpy.linspace(1000.0,50000.0,100),source=numpy.ones(100),
-                substance=["Be"],flags=[0],dens=["?"],thick=[0.5],angle=[3.0],roughness=0.0,
+    energy = numpy.array(energy,dtype=float).reshape(-1)
+    out = numpy.zeros_like(energy)
+
+
+    if isinstance(descriptor0, int):
+        nist_compound = xraylib.GetCompoundDataNISTByIndex(descriptor0)
+        descriptor = nist_compound["name"]
+    else:
+        nist_compound = xraylib.GetCompoundDataNISTByName(descriptor0)
+        descriptor = descriptor0
+
+    if verbose:
+        print("nist compound:")
+        for key in nist_compound.keys():
+            print("   %s: "%key, nist_compound[key])
+
+    if density is None:
+        density = nist_compound["density"]
+
+    if verbose: print("cross_calc_mix: Using density %g g/cm3"%density)
+    tmp = numpy.zeros_like(energy)
+    tmp2 = numpy.zeros_like(energy)
+
+    if calculate == 0:
+        for i,ienergy in enumerate(energy):
+            tmp[i] = xraylib.CSb_Total_CP(descriptor,1e-3*ienergy)
+            tmp2[i] = xraylib.CS_Total_CP(descriptor,1e-3*ienergy)
+    elif calculate == 1:
+        for i,ienergy in enumerate(energy):
+            tmp[i] = xraylib.CSb_Photo_CP(descriptor,1e-3*ienergy)
+            tmp2[i] = xraylib.CS_Photo_CP(descriptor,1e-3*ienergy)
+    elif calculate == 2:
+        for i,ienergy in enumerate(energy):
+            tmp[i] = xraylib.CSb_Rayl_CP(descriptor,1e-3*ienergy)
+            tmp2[i] = xraylib.CS_Rayl_CP(descriptor,1e-3*ienergy)
+    elif calculate == 3:
+        for i,ienergy in enumerate(energy):
+            tmp[i] = xraylib.CSb_Compt_CP(descriptor,1e-3*ienergy)
+            tmp2[i] = xraylib.CS_Compt_CP(descriptor,1e-3*ienergy)
+    elif calculate == 4:
+        for i,ienergy in enumerate(energy):
+            tmp[i] = xraylib.CSb_Total_CP(descriptor,1e-3*ienergy) - xraylib.CSb_Rayl_CP(descriptor,1e-3*ienergy)
+            tmp2[i] = xraylib.CS_Total_CP(descriptor,1e-3*ienergy) - xraylib.CS_Rayl_CP(descriptor,1e-3*ienergy)
+
+    out = numpy.zeros((5,energy.size))
+    out[0,:] = energy
+    out[1,:] = tmp # barn/atom (Cross Section calculation)
+    out[2,:] = tmp * 1e-24 #  cm^2 (Cross Section calculation)
+    out[3,:] = tmp2 # cm^2/g (Mass Attenuation Coefficient)
+    out[4,:] = tmp2 * density # cm^-1 (Linear Attenuation Coefficient)
+
+    if unit is None:
+        return out
+    else:
+        return out[1+unit,:].copy()
+
+def xpower_calc(energies=numpy.linspace(1000.0,50000.0,100), source=numpy.ones(100),
+                substance=["Be"], flags=[0], dens=["?"], thick=[0.5], angle=[3.0], roughness=0.0,
                 output_file=None):
     """
     Apply reflectivities/transmittivities of optical elements on a source spectrum
@@ -540,11 +883,17 @@ def xpower_calc(energies=numpy.linspace(1000.0,50000.0,100),source=numpy.ones(10
     nelem = len(substance)
 
     for i in range(nelem):
+        kind = descriptor_kind_index(substance[i])
+        if kind == -1:
+            raise Exception("Bad descriptor/formula: %s"%substance[i])
+
         try:
             rho = float(dens[i])
         except:
-            rho = xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(substance[i]))
-            print("Density for %s: %g g/cm3"%(substance[i],rho))
+            rho = density(substance[i])
+
+
+        print("Density for %s: %g g/cm3"%(substance[i],rho))
 
         dens[i] = rho
 
@@ -1153,7 +1502,7 @@ def crystal_fh(input_dictionary,phot_in,theta=None,forceratio=0):
     itheta = numpy.zeros_like(phot_in)
     for i,phot in enumerate(phot_in):
 
-        if theta == None:
+        if theta is None:
             itheta[i] = numpy.arcsin(toangstroms*1e-8/phot/2/dspacing)
         else:
             itheta[i] = theta
@@ -1806,18 +2155,14 @@ def mare_calc(descriptor,H,K,L,HMAX,KMAX,LMAX,FHEDGE,DISPLAY,lambda1,deltalambda
 #                       EL4_FOR= "B",EL4_FLAG=0,EL4_THI=0.5,EL4_ANG=3.0,EL4_ROU=0.0,EL4_DEN="?",\
 #                       EL5_FOR="Pt",EL5_FLAG=1,EL5_THI=0.5,EL5_ANG=3.0,EL5_ROU=0.0,EL5_DEN="?"):
 
-
-
-
-
 if __name__ == "__main__":
-
+    pass
     #
     # parsers (not used, we use xraylib instead)
     #
 
-    aw1 = parse_formula("B4C")
-    print(aw1)
+    # aw1 = parse_formula("B4C")
+    # print(aw1)
 
     # tmp = write_spec_file("tmp.spec",numpy.zeros((4,100)),titles=['x','y','z','more z'])
 
@@ -1832,7 +2177,11 @@ if __name__ == "__main__":
     #
     # for i in range(12):
     #     # print(">>>>>>>>>>>>>>F=%d, f1f2_calc_mix="%i, f1f2_calc_mix("SiC",[10000.0],F=i,density=3.21))
-    #     print(">>>>>>>>>>>>>>F=%d, f1f2_calc_mix for H2O="%i, f1f2_calc_mix("H2O",[10000.0],F=i,density=1.0))
+    # for i in range(12):
+    #     tmp1 = f1f2_calc_mix("H2O",[10000.0],F=i,density=1.0)
+    #     tmp2 = f1f2_calc_nist("Water, Liquid", [10000.0], F=i)
+    #     print(">>>>>>>>>>>>>>F=%d, f1f2_calc_mix for H2O. f1f2_calc_nist for Water: ** %g, %g **" % (i, tmp1[0], tmp2[0]) )
+
 
     # assert( numpy.abs( tmp1[0] - 8.7654751491065230e-07) < 1e-9  )
 
@@ -1898,3 +2247,32 @@ if __name__ == "__main__":
     #     exec(script)
 
 
+    # a = f0_calc(1,"H2O",0,6,100)
+    # b = f0_calc(2, "Water, Liquid", 0, 6, 100)
+    # from srxraylib.plot.gol import plot
+    # plot(a["data"][0,:],a["data"][1,:],
+    #      b["data"][0,:],b["data"][1,:])
+
+    # print(density_element("Fe", verbose=True), density_element(26, verbose=True))
+    # print(density_nist("Water, Liquid", verbose=True),density_nist(177, verbose=True))
+
+    # a = cross_calc_mix("H2O",1000.0,0,density=1.0)
+    # b = cross_calc_nist("Water, Liquid", 1000.0, 0)
+    # print("\n\n\nCross section :",a, b)
+
+    # descriptors = ["Be","BB","CCC","BeO","Water, Liquid", "jdfjys","C12H22O6",'k',"K","KK","Water, Liquidd"]
+    # out = []
+    # for descriptor in descriptors:
+    #     out.append(descriptor_kind_index(descriptor))
+    # for i in range(len(descriptors)):
+    #     print(descriptors[i], out[i])
+
+    # for descriptor in ["Be","B","K","Water, Liquid","KK"]:
+    #     print("%s density: %f" % (descriptor, density(descriptor)))
+
+    # list1 = nist_compound_list()
+    # for el in list1:
+    #     print(el)
+
+    print(Refractive_Index_Re("H2O", 12.4 , 1.0), Refractive_Index_Re("Water, Liquid", 12.4, 1.0))
+    print(Refractive_Index_Im("H2O", 12.4 , 1.0), Refractive_Index_Im("Water, Liquid", 12.4, 1.0))

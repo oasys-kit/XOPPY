@@ -4,7 +4,7 @@
 
  CrossSec is a widget based graphical interface to calculate Photon-Atom
  Cross Sections, Mass Absorption Coefficients and Liner Absorption Coefficients
- for elements, compounds and mixtures.
+ for elements and compoundss.
  The data are taken from the XRAYLIB data base:
  https://github.com/tschoonj/xraylib/wiki
 
@@ -16,37 +16,24 @@
 	Linear Absorption Coefficient [cm^-1]
 
 
-
-Contents:
-    1) Calculation method (for mixtures)
-    2) Important notice (for mixtures)
-    3) Description of the input parameters
-
-
-
-
-    3) Description of the input parameters
-    ======================================
+    Description of the input parameters
+    ===================================
 
 
 material: Select the desired material type. Three options are available:
 	a) Element(formula) calculation for a single element.
-	b) Mixture(formula) calculation for a compound or a mixture. The user
-		defines the mixture formula.
-		The syntax is the following: string with the chemical
-		formula of the compound(s) with their weight fraction between
-		parenthesis.
+	b) Compounds(formula) calculation for a compound. The user
+		defines the compound formula.
+		The syntaxis is the following: string with the chemical
+		formula of the compound.
 		Examples:
 		H20
-		SiO2(0.807)B2O3(0.129)Na2O(0.038)Al2O3(0.022)K2O(0.004)
-		H2O(0.99)Cl2(0.01)
-		H(0.11189834)O(0.88810166)
-	c) Mixture(table) calculation for a compound or a mixture defined
-		in the included mixture-table
+		SiO2
+	c) Compounds(by name) from the NIST list of compounds.
 
 table: Compound table, only available if the c) option in material is chosen.
 
-formula: The element or compound or mixture formula, depending the "material"
+formula: The element or compound formula, depending the "material"
 		selection.
 
 calculate: type the calculation magnitude.

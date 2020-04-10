@@ -4,6 +4,11 @@ import os
 import numpy
 import h5py
 
+import scipy.constants as codata
+import xraylib
+
+from srxraylib.util.h5_simple_writer import H5SimpleWriter
+
 from PyQt5.QtWidgets import QApplication, QMessageBox, QSizePolicy
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
 
@@ -12,15 +17,18 @@ from orangewidget.settings import Setting
 
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
-
-from oasys.util.oasys_util import TTYGrabber
-from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-from orangecontrib.xoppy.util.xoppy_xraylib_util import reflectivity_fresnel
 from oasys.widgets.gui import ConfirmDialog
 
-import scipy.constants as codata
-import xraylib
-from srxraylib.util.h5_simple_writer import H5SimpleWriter
+from oasys.util.oasys_util import TTYGrabber
+
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+from orangecontrib.xoppy.util.xoppy_xraylib_util import reflectivity_fresnel
+from orangecontrib.xoppy.util.xoppy_xraylib_util import nist_compound_list, density
+
+
+
+
+
 
 class OWpower3Dcomponent(XoppyWidget):
     name = "Power3Dcomponent"
@@ -634,12 +642,12 @@ class OWpower3Dcomponent(XoppyWidget):
             try:  # apply written value
                 rho = float(dens)
             except:   # in case of ?
-                grabber = TTYGrabber()
-                grabber.start()
-                rho = xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(substance))
-                grabber.stop()
-                for row in grabber.ttyData:
-                    self.writeStdOut(row)
+                # grabber = TTYGrabber()
+                # grabber.start()
+                rho = density(substance)
+                # grabber.stop()
+                # for row in grabber.ttyData:
+                #     self.writeStdOut(row)
                 print("Density for %s: %g g/cm3"%(substance,rho))
             dens = rho
 
@@ -997,32 +1005,29 @@ def integral_3d(data3D, e=None, h=None, v=None, method=0):
 
 if __name__ == "__main__":
 
-    # # create unulator_radiation xoppy exchange data
-    # from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_radiation
-    # from oasys.widgets.exchange import DataExchangeObject
-    #
-    # e, h, v, p, code = xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
-    #                                    ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
-    #                                    ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
-    #                                    PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,
-    #                                    SETRESONANCE=0,HARMONICNUMBER=1,
-    #                                    GAPH=0.001,GAPV=0.001,\
-    #                                    HSLITPOINTS=41,VSLITPOINTS=41,METHOD=2,
-    #                                    PHOTONENERGYMIN=7000,PHOTONENERGYMAX=8100,PHOTONENERGYPOINTS=20,
-    #                                    USEEMITTANCES=1)
-    #
-    # received_data = DataExchangeObject("XOPPY", "Power3Dcomponent")
-    # received_data.add_content("xoppy_data", [p, e, h, v])
-    # received_data.add_content("xoppy_code", code)
+    # create unulator_radiation xoppy exchange data
+    from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_radiation
+    from oasys.widgets.exchange import DataExchangeObject
+
+    e, h, v, p, code = xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
+                                       ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
+                                       ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
+                                       PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,
+                                       SETRESONANCE=0,HARMONICNUMBER=1,
+                                       GAPH=0.001,GAPV=0.001,\
+                                       HSLITPOINTS=41,VSLITPOINTS=41,METHOD=2,
+                                       PHOTONENERGYMIN=7000,PHOTONENERGYMAX=8100,PHOTONENERGYPOINTS=20,
+                                       USEEMITTANCES=1)
+
+    received_data = DataExchangeObject("XOPPY", "Power3Dcomponent")
+    received_data.add_content("xoppy_data", [p, e, h, v])
+    received_data.add_content("xoppy_code", code)
 
 
     #
     app = QApplication(sys.argv)
     w = OWpower3Dcomponent()
-
-    # w.acceptExchangeData(received_data)
-
+    w.acceptExchangeData(received_data)
     w.show()
     app.exec()
-
     w.saveSettings()

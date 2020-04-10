@@ -29,3 +29,194 @@
     |///////// substrate //////////|
     |                              |
 
+material: Three options are available:
+	a) Element(formula): calculation for a single element.
+	b) Compounds(formula):  calculation for a compound. The user
+		defines the compound formula.
+		The syntaxis is the following: string with the chemical
+		formula of the compound.
+		Examples:
+		H20
+		SiO2
+	c) Compounds(by name) from the NIST list of compounds:
+
+A-150 Tissue-Equivalent Plastic
+Acetone
+Acetylene
+Adenine
+Adipose Tissue (ICRP)
+Air, Dry (near sea level)
+Alanine
+Aluminum Oxide
+Amber
+Ammonia
+Aniline
+Anthracene
+B-100 Bone-Equivalent Plastic
+Bakelite
+Barium Fluoride
+Barium Sulfate
+Benzene
+Beryllium oxide
+Bismuth Germanium oxide
+Blood (ICRP)
+Bone, Compact (ICRU)
+Bone, Cortical (ICRP)
+Boron Carbide
+Boron Oxide
+Brain (ICRP)
+Butane
+N-Butyl Alcohol
+C-552 Air-Equivalent Plastic
+Cadmium Telluride
+Cadmium Tungstate
+Calcium Carbonate
+Calcium Fluoride
+Calcium Oxide
+Calcium Sulfate
+Calcium Tungstate
+Carbon Dioxide
+Carbon Tetrachloride
+Cellulose Acetate, Cellophane
+Cellulose Acetate Butyrate
+Cellulose Nitrate
+Ceric Sulfate Dosimeter Solution
+Cesium Fluoride
+Cesium Iodide
+Chlorobenzene
+Chloroform
+Concrete, Portland
+Cyclohexane
+1,2-Ddihlorobenzene
+Dichlorodiethyl Ether
+1,2-Dichloroethane
+Diethyl Ether
+N,N-Dimethyl Formamide
+Dimethyl Sulfoxide
+Ethane
+Ethyl Alcohol
+Ethyl Cellulose
+Ethylene
+Eye Lens (ICRP)
+Ferric Oxide
+Ferroboride
+Ferrous Oxide
+Ferrous Sulfate Dosimeter Solution
+Freon-12
+Freon-12B2
+Freon-13
+Freon-13B1
+Freon-13I1
+Gadolinium Oxysulfide
+Gallium Arsenide
+Gel in Photographic Emulsion
+Glass, Pyrex
+Glass, Lead
+Glass, Plate
+Glucose
+Glutamine
+Glycerol
+Guanine
+Gypsum, Plaster of Paris
+N-Heptane
+N-Hexane
+Kapton Polyimide Film
+Lanthanum Oxybromide
+Lanthanum Oxysulfide
+Lead Oxide
+Lithium Amide
+Lithium Carbonate
+Lithium Fluoride
+Lithium Hydride
+Lithium Iodide
+Lithium Oxide
+Lithium Tetraborate
+Lung (ICRP)
+M3 Wax
+Magnesium Carbonate
+Magnesium Fluoride
+Magnesium Oxide
+Magnesium Tetraborate
+Mercuric Iodide
+Methane
+Methanol
+Mix D Wax
+MS20 Tissue Substitute
+Muscle, Skeletal
+Muscle, Striated
+Muscle-Equivalent Liquid, with Sucrose
+Muscle-Equivalent Liquid, without Sucrose
+Naphthalene
+Nitrobenzene
+Nitrous Oxide
+Nylon, Du Pont ELVAmide 8062
+Nylon, type 6 and type 6/6
+Nylon, type 6/10
+Nylon, type 11 (Rilsan)
+Octane, Liquid
+Paraffin Wax
+N-Pentane
+Photographic Emulsion
+Plastic Scintillator (Vinyltoluene based)
+Plutonium Dioxide
+Polyacrylonitrile
+Polycarbonate (Makrolon, Lexan)
+Polychlorostyrene
+Polyethylene
+Polyethylene Terephthalate (Mylar)
+Polymethyl Methacralate (Lucite, Perspex)
+Polyoxymethylene
+Polypropylene
+Polystyrene
+Polytetrafluoroethylene (Teflon)
+Polytrifluorochloroethylene
+Polyvinyl Acetate
+Polyvinyl Alcohol
+Polyvinyl Butyral
+Polyvinyl Chloride
+Polyvinylidene Chloride, Saran
+Polyvinylidene Fluoride
+Polyvinyl Pyrrolidone
+Potassium Iodide
+Potassium Oxide
+Propane
+Propane, Liquid
+N-Propyl Alcohol
+Pyridine
+Rubber, Butyl
+Rubber, Natural
+Rubber, Neoprene
+Silicon Dioxide
+Silver Bromide
+Silver Chloride
+Silver Halides in Photographic Emulsion
+Silver Iodide
+Skin (ICRP)
+Sodium Carbonate
+Sodium Iodide
+Sodium Monoxide
+Sodium Nitrate
+Stilbene
+Sucrose
+Terphenyl
+Testes (ICRP)
+Tetrachloroethylene
+Thallium Chloride
+Tissue, Soft (ICRP)
+Tissue, Soft (ICRU four-component)
+Tissue-Equivalent GAS (Methane based)
+Tissue-Equivalent GAS (Propane based)
+Titanium Dioxide
+Toluene
+Trichloroethylene
+Triethyl Phosphate
+Tungsten Hexafluoride
+Uranium Dicarbide
+Uranium Monocarbide
+Uranium Oxide
+Urea
+Valine
+Viton Fluoroelastomer
+Water, Liquid
+Water Vapor
+Xylene

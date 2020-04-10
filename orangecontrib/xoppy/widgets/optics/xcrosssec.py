@@ -8,10 +8,11 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
-from orangecontrib.xoppy.util.xoppy_xraylib_util import cross_calc, cross_calc_mix
+from orangecontrib.xoppy.util.xoppy_xraylib_util import cross_calc, cross_calc_mix, cross_calc_nist
+from orangecontrib.xoppy.util.xoppy_xraylib_util import nist_compound_list, density_element, density_nist
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-import xraylib
+# import xraylib
 
 
 class OWxcrosssec(XoppyWidget):
@@ -23,10 +24,10 @@ class OWxcrosssec(XoppyWidget):
     category = ""
     keywords = ["xoppy", "xcrosssec"]
 
-    MAT_FLAG = Setting(0)
-    MAT_LIST = Setting(0)
+    MAT_FLAG = Setting(2)
     DESCRIPTOR = Setting("Si")
-    DENSITY = Setting(1.0)
+    MAT_LIST = Setting(177)
+    DENSITY = Setting("?")
     CALCULATE = Setting(1)
     GRID = Setting(0)
     GRIDSTART = Setting(100.0)
@@ -50,14 +51,14 @@ class OWxcrosssec(XoppyWidget):
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "MAT_FLAG",
                      label=self.unitLabels()[idx], addSpace=False,
-                    items=['Element(formula)', 'Mixture(formula)', 'Mixture(table)'],
+                    items=['Element(formula)', 'Compound(formula)', 'Compound(table)'],
                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box)
-        items = xraylib.GetCompoundDataNISTList()
+        items = nist_compound_list()
         gui.comboBox(box1, self, "MAT_LIST",
                      label=self.unitLabels()[idx], addSpace=False,
                      items=items,
@@ -76,7 +77,7 @@ class OWxcrosssec(XoppyWidget):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "DENSITY",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=str, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
@@ -152,13 +153,15 @@ class OWxcrosssec(XoppyWidget):
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['material','table','formula','density','Cross section','Energy [eV] grid:',
+         return ['material','table','formula','density',
+                 'Cross section','Energy [eV] grid:',
                  'Starting Energy [eV]: ','To: ','Number of points','Units',
                  'Dump to file','File name']
 
     def unitFlags(self):
-         return ['True','self.MAT_FLAG  ==  2','self.MAT_FLAG  <=  1 ','self.MAT_FLAG  ==  1  &  self.UNIT  ==  3',
-                 'True','True','self.GRID  !=  0','self.GRID  ==  1','self.GRID  ==  1','True',
+         return ['True','self.MAT_FLAG  ==  2','self.MAT_FLAG  <=  1 ','True',
+                 'True','True',
+                 'self.GRID  !=  0','self.GRID  ==  1','self.GRID  ==  1','True',
                  'True','self.DUMP_TO_FILE == 1']
 
     def get_help_name(self):
@@ -166,8 +169,6 @@ class OWxcrosssec(XoppyWidget):
 
     def check_fields(self):
         self.DESCRIPTOR = congruence.checkEmptyString(self.DESCRIPTOR, "formula")
-        if self.MAT_FLAG == 1:
-            self.DENSITY = congruence.checkStrictlyPositiveNumber(self.DENSITY, "density")
 
         if self.GRID > 0:
             self.GRIDSTART = congruence.checkPositiveNumber(self.GRIDSTART, "Starting Energy")
@@ -266,8 +267,8 @@ class OWxcrosssec(XoppyWidget):
 
         MAT_FLAG = self.MAT_FLAG
         MAT_LIST = self.MAT_LIST
-        DESCRIPTOR = self.DESCRIPTOR
-        density = self.DENSITY
+        # DESCRIPTOR = self.DESCRIPTOR
+        # density = self.DENSITY
         CALCULATE = self.CALCULATE
         GRID = self.GRID
         GRIDSTART = self.GRIDSTART
@@ -277,14 +278,24 @@ class OWxcrosssec(XoppyWidget):
 
 
         if MAT_FLAG == 0: # element
-            descriptor = DESCRIPTOR
-            density = xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(DESCRIPTOR))
-        elif MAT_FLAG == 1: # formula
-            descriptor = DESCRIPTOR
-        elif MAT_FLAG == 2:
-            tmp = xraylib.GetCompoundDataNISTByIndex(MAT_LIST)
-            descriptor = tmp["name"]
-            density = tmp["density"]
+            descriptor = self.DESCRIPTOR
+            # density = element_density(DESCRIPTOR)
+            try:
+                density = float(self.DENSITY)
+            except:
+                density = density_element(self.DESCRIPTOR, verbose=True)
+        elif MAT_FLAG == 1: # compund
+            descriptor = self.DESCRIPTOR
+            try:
+                density = float(self.DENSITY)
+            except:
+                raise Exception("Density must be entered.")
+        elif MAT_FLAG == 2: # nist list
+            descriptor = nist_compound_list()[self.MAT_LIST]
+            try:
+                density = float(self.DENSITY)
+            except:
+                density = density_nist(descriptor, verbose=True)
 
         print("xoppy_calc_xcrosssec: using density = %g g/cm3"%density)
         if GRID == 0:
@@ -302,9 +313,9 @@ class OWxcrosssec(XoppyWidget):
         if MAT_FLAG == 0: # element
             out =  cross_calc(descriptor,energy,calculate=CALCULATE,density=density)
         elif MAT_FLAG == 1: # compound parse
-            out =  cross_calc_mix(descriptor,energy,calculate=CALCULATE,density=density,parse_or_nist=0)
+            out =  cross_calc_mix(descriptor,energy,calculate=CALCULATE,density=density)
         elif MAT_FLAG == 2: # NIST compound
-            out =  cross_calc_mix(descriptor,energy,calculate=CALCULATE,density=density,parse_or_nist=1)
+            out =  cross_calc_nist(descriptor,energy,calculate=CALCULATE,density=density)
 
         calculate_items = ['Total','PhotoElectric','Rayleigh','Compton','Total minus Rayleigh']
         unit_items = ['barn/atom','cm^2','cm^2/g','cm^-1']

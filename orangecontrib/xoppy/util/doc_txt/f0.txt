@@ -12,22 +12,18 @@ This is a description of the input parameters for f0
 
 material: Select the desired material type. Three options are available:
 	a) Element(formula) calculation for a single element.
-	b) Mixture(formula) calculation for a compound. The user
-		defines the mixture formula.
+	b) Compounds(formula) calculation for a compound. The user
+		defines the compound formula.
 		The syntaxis is the following: string with the chemical
-		formula of the compound(s) with their weight fraction between
-		parenthesis.
+		formula of the compound.
 		Examples:
 		H20
-		SiO2(0.807)B2O3(0.129)Na2O(0.038)Al2O3(0.022)K2O(0.004)
-		H2O(0.99)Cl2(0.01)
-		H(0.11189834)O(0.88810166)
-	c) Mixture(table) calculation for a compound or a mixture defined
-		in the included mixture-table (from dabax file Compounds.dat)
+		SiO2
+	c) Compounds(by name) from the NIST list of compounds.
 
 table: Compound table, only available if the c) option in material is chosen.
 
-formula: The element or compound or mixture formula, depending the "material"
+formula: The element or compound formula, depending the "material"
 		selection.
 
 sin_theta/lambda [A**(-1)] grid: the abscissas values for the calculations. Two

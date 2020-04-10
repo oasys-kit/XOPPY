@@ -7,10 +7,10 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
-from orangecontrib.xoppy.util.xoppy_xraylib_util import f1f2_calc,f1f2_calc_mix
+from orangecontrib.xoppy.util.xoppy_xraylib_util import f1f2_calc, f1f2_calc_mix, f1f2_calc_nist
+from orangecontrib.xoppy.util.xoppy_xraylib_util import nist_compound_list, density_element, density_nist
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-import xraylib
 
 
 class OWxf1f2(XoppyWidget):
@@ -25,7 +25,8 @@ class OWxf1f2(XoppyWidget):
     # DATASETS = Setting(1)
     MAT_FLAG = Setting(0)
     DESCRIPTOR = Setting("Si")
-    DENSITY = Setting(1.0)
+    NIST_NAME = Setting(177)
+    DENSITY = Setting("?")
     CALCULATE = Setting(1)
     GRID = Setting(0)
     GRIDSTART = Setting(5000.0)
@@ -53,7 +54,7 @@ class OWxf1f2(XoppyWidget):
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "MAT_FLAG",
                      label=self.unitLabels()[idx], addSpace=False,
-                    items=['Element(formula)', 'Mixture(formula)'],
+                    items=['Element(formula)', 'Compound(formula)','Compound(NIST list)'],
                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
@@ -64,13 +65,28 @@ class OWxf1f2(XoppyWidget):
         oasysgui.lineEdit(box1, self, "DESCRIPTOR",
                      label=self.unitLabels()[idx], addSpace=False, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1) 
-        
+
+
+        #widget index 5
+        idx += 1
+        box1 = gui.widgetBox(box)
+        self.nist_list = nist_compound_list()
+        gui.comboBox(box1, self, "NIST_NAME",
+                    label=self.unitLabels()[idx], addSpace=False,
+                    items=self.nist_list,
+                    valueType=int, orientation="horizontal", labelWidth=150)
+        self.show_at(self.unitFlags()[idx], box1)
+
+
+
+
+
         #widget index 4 
         idx += 1 
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "DENSITY",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=str, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
@@ -183,27 +199,29 @@ class OWxf1f2(XoppyWidget):
 
 
     def unitLabels(self):
-         return ['material',                        #   True',
-                 'formula',                         #   self.MAT_FLAG  <=  1',
-                 'density',                         #   self.MAT_FLAG  ==  1  &  (s
-                 'Calculate',                       #   True',
-                 'Energy [eV] grid:',               #   True',
-                 'Starting Energy [eV]: ',          #   self.GRID  !=  0',
-                 'To: ',                            #   self.GRID  ==  1',
-                 'Number of points',                #   self.GRID  ==  1',
-                 'Grazing angle',                   #   self.CALCULATE  ==  0 or (s
-                 'Roughness rms [A]',               #   self.CALCULATE  ==  0 or (s
-                 'Starting Graz angle [mrad]',      #   self.CALCULATE  ==  0 or (s
-                 'To [mrad]',                       #   (self.CALCULATE  ==  0 or (
-                 'Number of angular points',        #   (self.CALCULATE  ==  0 or (
+         return ['material',  #   True',
+                 'formula',  #   self.MAT_FLAG  <=  1',
+                 'name',
+                 'density',  #   self.MAT_FLAG  ==  1  &  (s
+                 'Calculate',  #   True',
+                 'Energy [eV] grid:',  #   True',
+                 'Starting Energy [eV]: ',  #   self.GRID  !=  0',
+                 'To: ',  #   self.GRID  ==  1',
+                 'Number of points',  #   self.GRID  ==  1',
+                 'Grazing angle',  #   self.CALCULATE  ==  0 or (s
+                 'Roughness rms [A]',  #   self.CALCULATE  ==  0 or (s
+                 'Starting Graz angle [mrad]',  #   self.CALCULATE  ==  0 or (s
+                 'To [mrad]',  #   (self.CALCULATE  ==  0 or (
+                 'Number of angular points',  #   (self.CALCULATE  ==  0 or (
                  'Dump to file',
                  'File name']
 
 
     def unitFlags(self):
          return ['True',
-                 'self.MAT_FLAG  <=  1',
-                 'self.MAT_FLAG  ==  1  or (self.MAT_FLAG  ==  1 and  (self.CALCULATE  ==  2 or self.CALCULATE  ==  3 or self.CALCULATE  ==  4 or self.CALCULATE  ==  7 or self.CALCULATE  ==  8 or self.CALCULATE  ==  9 or self.CALCULATE  ==  10 ))  ',
+                 'self.MAT_FLAG  in [0,1]',
+                 'self.MAT_FLAG  ==  2',
+                 'True', #'self.MAT_FLAG  ==  1  or (self.MAT_FLAG  ==  1 and  (self.CALCULATE  ==  2 or self.CALCULATE  ==  3 or self.CALCULATE  ==  4 or self.CALCULATE  ==  7 or self.CALCULATE  ==  8 or self.CALCULATE  ==  9 or self.CALCULATE  ==  10 ))  ',
                  'True',
                  'True',
                  'self.GRID  !=  0',
@@ -222,8 +240,8 @@ class OWxf1f2(XoppyWidget):
 
     def check_fields(self):
         self.DESCRIPTOR = congruence.checkEmptyString(self.DESCRIPTOR, "formula")
-        if self.MAT_FLAG == 1:
-            self.DENSITY = congruence.checkStrictlyPositiveNumber(self.DENSITY, "density")
+        # if self.MAT_FLAG == 1:
+        #     self.DENSITY = congruence.checkStrictlyPositiveNumber(self.DENSITY, "density")
 
         if self.GRID > 0:
             self.GRIDSTART = congruence.checkPositiveNumber(self.GRIDSTART, "Starting Energy")
@@ -341,8 +359,8 @@ class OWxf1f2(XoppyWidget):
     def xoppy_calc_xf1f2(self):
 
         MAT_FLAG   = self.MAT_FLAG
-        DESCRIPTOR = self.DESCRIPTOR
-        density    = self.DENSITY
+        # DESCRIPTOR = self.DESCRIPTOR
+        # density    = self.DENSITY
         CALCULATE  = self.CALCULATE
         GRID       = self.GRID
         GRIDSTART  = self.GRIDSTART
@@ -355,11 +373,26 @@ class OWxf1f2(XoppyWidget):
         THETAN     = self.THETAN
 
         if MAT_FLAG == 0: # element
-            descriptor = DESCRIPTOR
-            density = xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(DESCRIPTOR))
-        elif MAT_FLAG == 1: # formula
-            descriptor = DESCRIPTOR
+            descriptor = self.DESCRIPTOR
+            # density = element_density(DESCRIPTOR)
+            try:
+                density = float(self.DENSITY)
+            except:
+                density = density_element(self.DESCRIPTOR, verbose=True)
+        elif MAT_FLAG == 1: # compund
+            descriptor = self.DESCRIPTOR
+            try:
+                density = float(self.DENSITY, verbose=True)
+            except:
+                raise Exception("Density must be entered.")
+        elif MAT_FLAG == 2: # nist list
+            descriptor = self.nist_list[self.NIST_NAME]
+            try:
+                density = float(self.DENSITY)
+            except:
+                density = density_nist(descriptor, verbose=True)
 
+        print("Using density: %6.3f"%density)
         if GRID == 0: # standard energy grid
             energy = numpy.arange(0,500)
             elefactor = numpy.log10(10000.0 / 30.0) / 300.0
@@ -385,8 +418,11 @@ class OWxf1f2(XoppyWidget):
             if MAT_FLAG == 0: # element
                 tmp = f1f2_calc(descriptor,energy,1e-3*itheta,F=1+CALCULATE,rough=ROUGH,density=density)
                 out[:,i] = tmp
-            else:
+            elif MAT_FLAG == 1:  # compound
                 tmp = f1f2_calc_mix(descriptor,energy,1e-3*itheta,F=1+CALCULATE,rough=ROUGH,density=density)
+                out[:,i] = tmp
+            elif MAT_FLAG == 2:  # nist list
+                tmp = f1f2_calc_nist(descriptor,energy,1e-3*itheta,F=1+CALCULATE,rough=ROUGH,density=density)
                 out[:,i] = tmp
 
         if ((energy.size == 1) and (theta.size == 1)):

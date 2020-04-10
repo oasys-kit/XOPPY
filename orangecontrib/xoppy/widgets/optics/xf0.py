@@ -7,11 +7,10 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
-from orangecontrib.xoppy.util.xoppy_xraylib_util import parse_formula
+
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-import xraylib
-
+from orangecontrib.xoppy.util.xoppy_xraylib_util import f0_calc, nist_compound_list
 
 class OWxf0(XoppyWidget):
     name = "F0"
@@ -24,6 +23,7 @@ class OWxf0(XoppyWidget):
 
     MAT_FLAG = Setting(0)
     DESCRIPTOR = Setting("Si")
+    NIST_NAME = Setting(177)
     GRIDSTART = Setting(0.0)
     GRIDEND = Setting(8.0)
     GRIDN = Setting(100)
@@ -41,17 +41,29 @@ class OWxf0(XoppyWidget):
         box1 = gui.widgetBox(box) 
         gui.comboBox(box1, self, "MAT_FLAG",
                      label=self.unitLabels()[idx], addSpace=False,
-                    items=['Element(formula)', 'Mixture(formula)'],
+                    items=['Element(formula)', 'Compound(formula)','Compound(NIST list)'],
                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
-        #widget index 3 
+        #widget index 2
         idx += 1 
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "DESCRIPTOR",
                      label=self.unitLabels()[idx], orientation="horizontal", addSpace=False)
         self.show_at(self.unitFlags()[idx], box1)
-        
+
+
+        #widget index 3
+        idx += 1
+        box1 = gui.widgetBox(box)
+        self.nist_list = nist_compound_list()
+        gui.comboBox(box1, self, "NIST_NAME",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    items=self.nist_list,
+                    valueType=int, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+
         #widget index 5 
         idx += 1 
         box1 = gui.widgetBox(box) 
@@ -95,11 +107,11 @@ class OWxf0(XoppyWidget):
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['material','formula','From q [sin(theta)/lambda]: ','To q [sin(theta)/lambda]: ','Number of q points',
+         return ['material','formula','name','From q [sin(theta)/lambda]: ','To q [sin(theta)/lambda]: ','Number of q points',
                  'Dump to file','File name']
 
     def unitFlags(self):
-         return ['True','self.MAT_FLAG  !=  2','True','True','True',
+         return ['True','self.MAT_FLAG  !=  2','self.MAT_FLAG  ==  2','True','True','True',
                  'True','self.DUMP_TO_FILE == 1']
 
     def get_help_name(self):
@@ -113,7 +125,26 @@ class OWxf0(XoppyWidget):
         self.GRIDN = congruence.checkStrictlyPositiveNumber(self.GRIDN, "Number of q Points")
 
     def do_xoppy_calculation(self):
-        out_dict = self.xoppy_calc_xf0()
+        if self.DUMP_TO_FILE:
+            FILE_NAME = self.FILE_NAME
+        else:
+            FILE_NAME = ""
+
+        if self.MAT_FLAG == 2:
+            DESCRIPTOR = self.nist_list[self.NIST_NAME]
+        else:
+            DESCRIPTOR = self.DESCRIPTOR
+
+        out_dict = f0_calc(
+                MAT_FLAG = self.MAT_FLAG,
+                DESCRIPTOR = DESCRIPTOR,
+                GRIDSTART = self.GRIDSTART,
+                GRIDEND = self.GRIDEND,
+                GRIDN = self.GRIDN,
+                FILE_NAME=FILE_NAME,
+                )
+
+        print(">>>>>>>>>>>>>>>>>>>>>", out_dict)
 
         if "info" in out_dict.keys():
             print(out_dict["info"])
@@ -151,53 +182,6 @@ class OWxf0(XoppyWidget):
 
     def getYTitles(self):
         return ["f0 [electron units]"]
-
-    def xoppy_calc_xf0(self):
-        MAT_FLAG = self.MAT_FLAG
-        DESCRIPTOR = self.DESCRIPTOR
-        GRIDSTART = self.GRIDSTART
-        GRIDEND = self.GRIDEND
-        GRIDN = self.GRIDN
-
-        qscale = numpy.linspace(GRIDSTART,GRIDEND,GRIDN)
-
-        f0 = numpy.zeros_like(qscale)
-
-        if MAT_FLAG == 0: # element
-            descriptor = DESCRIPTOR
-            for i,iqscale in enumerate(qscale):
-                f0[i] = xraylib.FF_Rayl(xraylib.SymbolToAtomicNumber(descriptor),iqscale)
-        elif MAT_FLAG == 1: # formula
-            tmp = parse_formula(DESCRIPTOR)
-            zetas = tmp["Elements"]
-            multiplicity = tmp["n"]
-            for j,jz in enumerate(zetas):
-                for i,iqscale in enumerate(qscale):
-                    f0[i] += multiplicity[j] * xraylib.FF_Rayl(jz,iqscale)
-        elif MAT_FLAG == 2:
-            raise Exception("Not implemented")
-
-        if self.DUMP_TO_FILE:
-            with open(self.FILE_NAME, "w") as file:
-                try:
-                    file.write("#F %s\n"%self.FILE_NAME)
-                    file.write("\n#S 1 xoppy f0 results\n")
-                    file.write("#N 2\n")
-                    file.write("#L  q=sin(theta)/lambda [A^-1]  f0 [electron units]\n")
-                    for j in range(qscale.size):
-                        # file.write("%19.12e  "%energy[j])
-                        file.write("%19.12e  %19.12e\n"%(qscale[j],f0[j]))
-                    file.close()
-                    print("File written to disk: %s \n"%self.FILE_NAME)
-                except:
-                    raise Exception("f0: The data could not be dumped onto the specified file!\n")
-
-
-        #
-        # return
-        #
-        return {"application":"xoppy","name":"f0","data":numpy.vstack((qscale,f0)),"labels":["q=sin(theta)/lambda [A^-1]","f0 [electron units]"]}
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

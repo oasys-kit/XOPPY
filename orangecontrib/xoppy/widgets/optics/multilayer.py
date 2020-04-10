@@ -6,11 +6,11 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
-from orangecontrib.xoppy.util import xoppy_util
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 # from shadow4.physical_models.mlayer.mlayer import MLayer
 from orangecontrib.xoppy.util.mlayer import MLayer
+from orangecontrib.xoppy.util.xoppy_xraylib_util import density
 
 class OWMlultilayer(XoppyWidget):
     name = "Multilayer"
@@ -360,14 +360,33 @@ class OWMlultilayer(XoppyWidget):
 
     def do_xoppy_calculation(self):
 
-        density_S = self.DENSITY_S
-        density_E = self.DENSITY_E
-        density_O = self.DENSITY_O
+        # density_S = self.DENSITY_S
+        # density_E = self.DENSITY_E
+        # density_O = self.DENSITY_O
+        #
+        # if density_S == "?": density_S = None
+        # if density_E == "?": density_E = None
+        # if density_O == "?": density_O = None
 
-        if density_S == "?": density_S = None
-        if density_E == "?": density_E = None
-        if density_O == "?": density_O = None
+        try:
+            density_S = float(self.DENSITY_S)
+        except:
+            density_S = density(self.MATERIAL_S)
 
+        try:
+            density_E = float(self.DENSITY_E)
+        except:
+            density_E = density(self.MATERIAL_E)
+
+        try:
+            density_O = float(self.DENSITY_O)
+        except:
+            density_O = density(self.MATERIAL_O)
+
+        print("Using density:\n  substrate(%s): %f\n  even(%s): %f\n  odd(%s): %f" %
+              (self.MATERIAL_S, density_S,
+               self.MATERIAL_E, density_E,
+               self.MATERIAL_O, density_O, ))
 
         out = MLayer.initialize_from_bilayer_stack(
             material_S=self.MATERIAL_S, density_S=density_S, roughness_S=self.ROUGHNESS_S,  # 2.33
