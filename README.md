@@ -1,4 +1,5 @@
-#XOPPY
+XOPPY
+=====
 
 XOPPY is the implementation of XOP [1] under python for the OASYS [2] environment
 
