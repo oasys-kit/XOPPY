@@ -261,7 +261,7 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
                                        ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
                                        PERIODID=0.018,NPERIODS=222,KV=1.68,KH=0.0,KPHASE=0.0,DISTANCE=30.0,
                                        SETRESONANCE=0,HARMONICNUMBER=1,
-                                       GAPH=0.003,GAPV=0.003,\
+                                       GAPH=0.003,GAPV=0.003,GAPH_CENTER=0.0,GAPV_CENTER=0.0,
                                        HSLITPOINTS=41,VSLITPOINTS=41,METHOD=2,
                                        PHOTONENERGYMIN=7982.2,PHOTONENERGYMAX=7983.2,PHOTONENERGYPOINTS=2,
                                        USEEMITTANCES=1,
@@ -284,6 +284,8 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
     bl['distance'] = DISTANCE
     bl['gapH'] = GAPH
     bl['gapV'] = GAPV
+    bl['gapHcenter'] = GAPH_CENTER
+    bl['gapVcenter'] = GAPV_CENTER
 
     if USEEMITTANCES:
         zero_emittance = False
@@ -354,6 +356,13 @@ def xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.00
         e,h,v,p = srundplug.calc3d_srw(bl,fileName=outFile,fileAppend=False,hSlitPoints=HSLITPOINTS,vSlitPoints=VSLITPOINTS,
                                     photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,
                                     photonEnergyPoints=photonEnergyPoints,zero_emittance=zero_emittance)
+    if METHOD == 22:
+        code = "SRW"
+        print("Undulator radiation calculation using SRW. Please wait...")
+        e, h, v, p = srundplug.calc3d_srw_step_by_step(bl, fileName=outFile, fileAppend=False, hSlitPoints=HSLITPOINTS,
+                                          vSlitPoints=VSLITPOINTS,
+                                          photonEnergyMin=photonEnergyMin, photonEnergyMax=photonEnergyMax,
+                                          photonEnergyPoints=photonEnergyPoints, zero_emittance=zero_emittance)
     if METHOD == 3:
         # todo too slow
         code = "pySRU"

@@ -1770,7 +1770,7 @@ def calc3d_srw_step_by_step(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,ph
 
 def calc3d_urgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoints=500,
                   zero_emittance=False,hSlitPoints=50,vSlitPoints=50,
-                  fileName=None,fileAppend=False,):
+                  fileName=None,fileAppend=False,copyUrgentFiles=False):
 
     r"""
         run Urgent for calculating intensity vs H,V,energy
@@ -1854,7 +1854,7 @@ def calc3d_urgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergy
                 f.write("%d\n"%(3))
             else:
                 f.write("%d\n"%(1))
-            f.write("%d\n"%(-81))             #IHARM   TODO: check max harmonic number
+            f.write("%d\n"%(-1))             #IHARM   TODO: check max harmonic number
 
             f.write("%d\n"%(0))               #NPHI
             f.write("%d\n"%(0))               #NSIG
@@ -1872,8 +1872,9 @@ def calc3d_urgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergy
         os.system(command)
         print("Done.")
 
-        shutil.copy2("urgent.inp","urgent_energy_index%d.inp"%iEner)
-        shutil.copy2("urgent.out","urgent_energy_index%d.out"%iEner)
+        if copyUrgentFiles:
+            shutil.copy2("urgent.inp","urgent_energy_index%d.inp"%iEner)
+            shutil.copy2("urgent.out","urgent_energy_index%d.out"%iEner)
         # write spec file
         txt = open("urgent.out").readlines()
 
@@ -1991,10 +1992,10 @@ def calc3d_urgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergy
 
     print("\n--------------------------------------------------------\n\n")
     # append direct calculation for comparison
-    tmp = calc1d_urgent(bl,photonEnergyMin=photonEnergyMin,
-                  photonEnergyMax=photonEnergyMax,
-                  photonEnergyPoints=photonEnergyPoints,
-                  fileName=fileName,fileAppend=True)
+    # tmp = calc1d_urgent(bl,photonEnergyMin=photonEnergyMin,
+    #               photonEnergyMax=photonEnergyMax,
+    #               photonEnergyPoints=photonEnergyPoints,
+    #               fileName=fileName,fileAppend=True)
     # return abscissas in mm
     return  (eArray, hArray, vArray, int_mesh3)
 
@@ -2002,7 +2003,7 @@ def calc3d_urgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergy
 
 def calc3d_us(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoints=500,
               zero_emittance=False,hSlitPoints=50,vSlitPoints=50,
-              fileName=None,fileAppend=True,):
+              fileName=None,fileAppend=True,copyUsFiles=False):
 
     r"""
         run Us for calculating intensity vs H,V,energy
@@ -2076,9 +2077,10 @@ def calc3d_us(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
         os.system(command)
         print("Done.")
 
-        shutil.copy2("us.inp","us_energy_index%d.inp"%iEner)
-        shutil.copy2("us.out","us_energy_index%d.out"%iEner)
-        # shutil.copy2("us.log","us%d.log"%iEner)
+        if copyUsFiles:
+            shutil.copy2("us.inp","us_energy_index%d.inp"%iEner)
+            shutil.copy2("us.out","us_energy_index%d.out"%iEner)
+            # shutil.copy2("us.log","us%d.log"%iEner)
 
 
         txt = open("us.out").readlines()

@@ -454,7 +454,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         return ["True", "True", "False", "True",
                 "self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1","self.USEEMITTANCES == 1", "self.USEEMITTANCES == 1",
                 "True", "True", "True",
-                "self.METHOD != 0","self.METHOD != 0",
+                "self.METHOD != 3","self.METHOD != 3",
                 "True",
                 "True", "self.SETRESONANCE > 0",
                 "self.SETRESONANCE == 0", "self.SETRESONANCE == 0",
