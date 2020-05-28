@@ -1,0 +1,58 @@
+
+	######################################################
+
+	       SRCALC-IDPOWER  (OASYS-XOPPY version)
+	######################################################
+
+	The IDPower code calculates the power and power densities
+	emitted by an insertion device (ID) and the power absorbed
+	by a series of optical elements in a beamline.
+
+	IDPower was originally part of the SRCalc suite of routines
+	written by Ruben Reininger for calculations used in synchrotron
+	radiation beamline design.
+
+	SRCalc run within IGOR using its graphic and programing capabilities.
+
+	The first part of the IDPower program allow to enter the machine
+	and ID parameters as well as the description of the beamline components.
+
+	The calculation of the power emitted by the insertion device is based
+	on the FORTRAN program, URGENT, written by R.P. Walker and B. Diviacco
+	(Rev. Sci. Instrum. 63, 392 (1992).) URGENT can perform several calculations
+	related to the radiation emitted by an ID. In particular, the power density
+	on a rectangular grid at a given distance from the ID due to either one
+	harmonic or due to all the harmonics up to a given value.
+
+	The FORTRAN part of IDPower (its second component) is an expanded version
+	of URGENT that calculates the power absorbed by up to 6 optical elements (OE)
+	exposed to the ID radiation either from one harmonic or from the first harmonic
+	up to a harmonic that shows saturation on the power emitted by the device.
+	The expanded FORTRAN code sets up new rectangular grids (representing the
+	optical elements) in which the power reflected (or transmitted) by each one
+	of the OEs is stored. The code then calculates the power density emitted at
+	each photon energy and each grid point. It multiplies this value by the
+	reflectivity (or transmission) of each optical element and sums up the values
+	for each optical component in its corresponding grid. In the case of planar
+	undulators, the mirror reflectivity is either s or p depending on the mirror
+	orientation. For helical/elliptical undulators the mirror reflectivity is
+	taken as the average between the s and p.
+
+	In the third component of IDPower,  the full beamline is ray traced using
+	the same divergence grid as the one used in the Urgent code.
+
+	The fourth component reads the results of the FORTRAN code, maps the values
+	of the power densities at the rectangular grids to the illumination
+	determined by the ray tracing at the corresponding OE, and generates image
+	plots for each OE.  In addition, the parameters of the calculations as well
+	as the total power absorbed and maximum absorbed power density at each OE
+	are added to the notebook named "Summary".
+
+	IDPower can also calculate the power density at the exit plane of one of
+	the optical elements. This is done by an extension that runs a loop using
+	random values for the electron beam size and the position along the depth
+	of the insertion device.
+
+
+
+

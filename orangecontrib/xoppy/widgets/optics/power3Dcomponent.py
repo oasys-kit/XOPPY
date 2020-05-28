@@ -35,7 +35,7 @@ class OWpower3Dcomponent(XoppyWidget):
     id = "orange.widgets.datapower3D"
     description = "Power (vs Energy and spatial coordinates) Absorbed and Transmitted or Reflected by Optical Elements"
     icon = "icons/xoppy_power3d.png"
-    priority = 2
+    priority = 3
     category = ""
     keywords = ["xoppy", "Undulator Radiation", "power3Dcomponent"]
 

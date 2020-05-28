@@ -20,7 +20,7 @@ class OWxpower(XoppyWidget):
     id = "orange.widgets.dataxpower"
     description = "Power Absorbed and Transmitted by Optical Elements"
     icon = "icons/xoppy_xpower.png"
-    priority = 3
+    priority = 2
     category = ""
     keywords = ["xoppy", "power"]
 
