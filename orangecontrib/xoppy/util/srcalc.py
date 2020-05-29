@@ -643,19 +643,24 @@ def debug_plot_3d(zs,xs,ys,title=""):
     self_axis.set_title(title)
     plt.show()
 
-def write_ansys_files(absorbed2d, H, V, oe_number=1):
+def write_ansys_files(absorbed2d, H, V, oe_number=1,is_image=False):
 
-    filename="idpower_fea_3columns_element%d.txt" % oe_number
+    if is_image:
+        fim = "_image"
+    else:
+        fim = ""
+
+    filename="idpower_fea_3columns_element%d%s.txt" % (oe_number, fim)
     f = open(filename, 'w')
     for i in range(H.size):
         for j in range(V.size):
-            f.write("%g  %g  %g\n" % (H[i]*1e-3, V[j]*1e-3, absorbed2d[i,j]*1e6))
+            f.write("%g,  %g,  %g\n" % (H[i]*1e-3, V[j]*1e-3, absorbed2d[i,j]*1e6))
     f.close()
     print("File written to disk: %s" % filename)
 
     #
 
-    filename="idpower_fea_matrix_element%d.txt" % oe_number
+    filename="idpower_fea_matrix_element%d%s.txt" % (oe_number, fim)
     f = open(filename, 'w')
 
     f.write("%10.5g" % 0)

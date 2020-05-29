@@ -31,56 +31,25 @@ from orangecontrib.xoppy.util.srcalc import  compute_power_density_footprint, co
 from orangecontrib.xoppy.util.srcalc import  trapezoidal_rule_2d, trapezoidal_rule_2d_1darrays
 from orangecontrib.xoppy.util.srcalc import  write_ansys_files
 from orangecontrib.wofry.util.wofry_util import ImageViewWithFWHM
-
+from orangecontrib.xoppy.util.xoppy_util import locations
 
 #
 # TODO: Recompile IDPower with higher dimensions
 #                         with better format:                Pow. ref(W)    Pow. abs.(W)
 #                                                            Mirror 1     ***********     ***********
-#
 
-
-#
-# TO DO: uncomment import and delete class when moving to xoppy
-#
-from orangecontrib.xoppy.util.xoppy_util import locations
-# class locations:
-#     @classmethod
-#     def home_bin(cls):
-#         if platform.system() == "Windows":
-#             return resources.package_dirname("orangecontrib.xoppy.als.util") + "\\bin\windows\\"
-#         else:
-#             return resources.package_dirname("orangecontrib.xoppy.als.util") + "/bin/" + str(sys.platform) + "/"
-#
-#     @classmethod
-#     def home_doc(cls):
-#         if platform.system() == "Windows":
-#             return resources.package_dirname("orangecontrib.xoppy.als.util") + "\doc_txt/"
-#         else:
-#             return resources.package_dirname("orangecontrib.xoppy.als.util") + "/doc_txt/"
-#
-#     @classmethod
-#     def home_data(cls):
-#         if platform.system() == "Windows":
-#             return resources.package_dirname("orangecontrib.xoppy.als.util") + "\data/"
-#         else:
-#             return resources.package_dirname("orangecontrib.xoppy.als.util") + "/data/"
-#
-#     @classmethod
-#     def home_bin_run(cls):
-#         return os.getcwd()
 
 class OWsrcalc_idpower(XoppyWidget, WidgetDecorator):
 
     IS_DEVELOP = False if not "OASYSDEVELOP" in os.environ.keys() else str(os.environ.get('OASYSDEVELOP')) == "1"
 
-    name = "IDPOWER"
-    id = "orange.widgets.srcalc"
+    name = "SRCALC-IDPOWER"
+    id = "srcalc_idpower"
     description = "Power Absorbed and Transmitted by Optical Elements"
     icon = "icons/srcalc.png"
     priority = 1
     category = ""
-    keywords = ["srcalc", "power"]
+    keywords = ["srcalc", "IDPower", "power", "Reininger", "OASYS"]
 
 
     RING_ENERGY = Setting(2.0)
@@ -1039,6 +1008,15 @@ class OWsrcalc_idpower(XoppyWidget, WidgetDecorator):
                                          xtitle=xtitle,
                                          ytitle=ytitle,
                                          title=title)
+
+                        if self.DUMP_ANSYS_FILES == 0:
+                            pass
+                        if self.DUMP_ANSYS_FILES == 1:  # as plotted
+                            write_ansys_files(data2D / (stepx * stepy), H[:, 0], V[0, :], oe_number=oe_n,
+                                              is_image=True)
+                        elif self.DUMP_ANSYS_FILES == 2:  # transposed
+                            write_ansys_files(data2D.T / (stepx * stepy), V[0, :], H[:, 0], oe_number=oe_n,
+                                              is_image=True)
 
 
     def get_data_exchange_widget_name(self):
