@@ -30,8 +30,8 @@ from orangecontrib.xoppy.util.srcalc import  load_srcalc_output_file, ray_tracin
 from orangecontrib.xoppy.util.srcalc import  compute_power_density_footprint, compute_power_density_image
 from orangecontrib.xoppy.util.srcalc import  trapezoidal_rule_2d, trapezoidal_rule_2d_1darrays
 from orangecontrib.xoppy.util.srcalc import  write_ansys_files
-from orangecontrib.wofry.util.wofry_util import ImageViewWithFWHM
 from orangecontrib.xoppy.util.xoppy_util import locations
+from orangecontrib.xoppy.widgets.gui.image_view_with_fwhm import ImageViewWithFWHM
 
 #
 # TODO: Recompile IDPower with higher dimensions
