@@ -1191,7 +1191,7 @@ class OWsrcalc_idpower(XoppyWidget, WidgetDecorator):
         self.info_output.setText("\n\n\n#\n# Info from IDPower/Urgent\n#\n" + txt + \
                                  "\n\n\n#\n# Additional Info from undulator source\n#\n" + txt2 + \
                                  "\n\n\n#\n# Additional Info o.e. distances\n#\n\n" + txt3 + \
-                                 "\n\n\n#\n# Additional Info o.e. polarization (TO BE DELETED??)\n#\n\n" + polarization_info)
+                                 "\n\n\n#\n# Additional Info o.e. polarization\n#\n\n" + polarization_info)
 
 
         #
