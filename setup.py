@@ -43,6 +43,7 @@ INSTALL_REQUIRES = (
     'oasys1>=1.2.27',
     'oasys-srwpy',
     'pySRU',
+    'shadow4>=0.0.17',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
