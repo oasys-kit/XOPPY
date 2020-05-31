@@ -26,10 +26,10 @@ import scipy.constants as codata
 from silx.gui.plot import Plot2D
 
 from orangecontrib.xoppy.util.messages import  showCriticalMessage
-from orangecontrib.xoppy.util.srcalc import  load_srcalc_output_file, ray_tracing
-from orangecontrib.xoppy.util.srcalc import  compute_power_density_footprint, compute_power_density_image
-from orangecontrib.xoppy.util.srcalc import  trapezoidal_rule_2d, trapezoidal_rule_2d_1darrays
-from orangecontrib.xoppy.util.srcalc import  write_ansys_files
+from orangecontrib.xoppy.util.srcalc.srcalc import  load_srcalc_output_file, ray_tracing
+from orangecontrib.xoppy.util.srcalc.srcalc import  compute_power_density_footprint, compute_power_density_image
+from orangecontrib.xoppy.util.srcalc.srcalc import  trapezoidal_rule_2d, trapezoidal_rule_2d_1darrays
+from orangecontrib.xoppy.util.srcalc.srcalc import  write_ansys_files
 from orangecontrib.xoppy.util.xoppy_util import locations
 from orangecontrib.xoppy.widgets.gui.image_view_with_fwhm import ImageViewWithFWHM
 
@@ -137,7 +137,6 @@ class OWsrcalc_idpower(XoppyWidget, WidgetDecorator):
 
     PLOT_MODE = Setting(2)
     DO_PLOT_GRID = Setting(0)
-    DUMP_SHADOW_FILES = Setting(0)
     DUMP_ANSYS_FILES = Setting(0)
     SHOW_URGENT_PLOTS = Setting(0) # 0 only source, 1 all
     ORIENTATION_LOGIC = Setting(1) # 0=shadow, 1=Lab
@@ -528,17 +527,6 @@ class OWsrcalc_idpower(XoppyWidget, WidgetDecorator):
 
 
         box = gui.widgetBox(box0,"Files")
-        #widget index xx
-        idx += 1
-        box1 = gui.widgetBox(box)
-        gui.separator(box1, height=7)
-
-        gui.comboBox(box1, self, "DUMP_SHADOW_FILES",
-                     label=self.unitLabels()[idx], addSpace=False,
-                    items=['No [default]', 'Yes {begin,mirr,star}_srcalc.xx'],
-                    valueType=int, orientation="horizontal", labelWidth=350)
-
-        self.show_at(self.unitFlags()[idx], box1)
 
         #widget index xx
         idx += 1
@@ -688,7 +676,7 @@ class OWsrcalc_idpower(XoppyWidget, WidgetDecorator):
 
          labels = labels + ["Calculate power on images","Number of ray-tracing runs","Random seed (int): ",
                             "Plot mode","Plot ray-traced grid","Show URGENT plots",
-                            "Write SHADOW files","Write FEA/ANSYS files",
+                            "Write FEA/ANSYS files",
                             "O.E. orientation","Calculation method for images","Interpolation",
                             "Ratio pixels axis 0 o.e./source","Ratio pixels axis 1 o.e./source",
                             "Debug mode (do not run URGENT)"]
@@ -719,7 +707,7 @@ class OWsrcalc_idpower(XoppyWidget, WidgetDecorator):
                  "True", "True", "True", "self.EL5_SHAPE not in (2,8,9)", "self.EL5_SHAPE not in (2,8,9)", "True", "self.EL5_SHAPE in (8,9)", "True", "True",  # OE fields
                  'True', 'self.RAY_TRACING_IMAGE == 1', 'self.RAY_TRACING_IMAGE == 1',
                  'True', 'True', 'True',
-                 'True', 'True',
+                 'True',
                  'True', 'True', 'True',
                  'True', 'True',
                  'True']
@@ -1266,7 +1254,6 @@ class OWsrcalc_idpower(XoppyWidget, WidgetDecorator):
                             number_of_elements=self.NELEMENTS,
                             oe_parameters=oe_parameters,
                             real_space_shuffle=[0, 0, 0],
-                            dump_shadow_files=self.DUMP_SHADOW_FILES,
                             store_footprint=True,
                             store_image=False,
                             accumulate_results=False,
@@ -1304,7 +1291,6 @@ class OWsrcalc_idpower(XoppyWidget, WidgetDecorator):
                                 number_of_elements=self.NELEMENTS,
                                 oe_parameters=oe_parameters,
                                 real_space_shuffle=real_space_shuffle,
-                                dump_shadow_files=self.DUMP_SHADOW_FILES,
                                 store_footprint=False,
                                 store_image=True,
                                 accumulate_results=True,
@@ -1765,7 +1751,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     w = OWsrcalc_idpower()
     w.DEBUG_RUN_URGENT = 1
-    # w.DUMP_SHADOW_FILES = 1
     w.show()
     app.exec()
     w.saveSettings()

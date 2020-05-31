@@ -114,7 +114,6 @@ def ray_tracing(
             "EL0_RELATIVE_TO_PREVIOUS":2,
                         },
         real_space_shuffle=[0,0,0],
-        dump_shadow_files=True,
         accumulate_results=True,
         store_footprint=True,
         store_image=True,
@@ -128,7 +127,6 @@ def ray_tracing(
     :param number_of_elements:
     :param oe_parameters:
     :param real_space_shuffle:
-    :param dump_shadow_files:
     :param accumulate_results:
     :param verbose:
     :return:
@@ -137,11 +135,13 @@ def ray_tracing(
             OE_IMAGE:     list[oe_index]  ndarray(3, 2709)   (shadow: col2,col1,col23)
     """
 
-    from shadow4.beam.beam import Beam
-    from shadow4.compatibility.beam3 import Beam3
+    from orangecontrib.xoppy.util.srcalc.beam import Beam
+    from orangecontrib.xoppy.util.srcalc.conic import Conic
+    from orangecontrib.xoppy.util.srcalc.toroid import Toroid
 
-    from shadow4.optical_surfaces.conic import Conic
-    from shadow4.optical_surfaces.toroid import Toroid
+    # from shadow4.beam.beam import Beam
+    # from shadow4.optical_surfaces.conic import Conic
+    # from shadow4.optical_surfaces.toroid import Toroid
 
     #
     # compute shadow beam from urgent results
@@ -170,19 +170,20 @@ def ray_tracing(
     beam.set_column(5, VY)
     beam.set_column(6, VZ)
 
-    if dump_shadow_files:
-        beam.set_column(7, (numpy.sqrt(out_dictionary["Zlist"][0]).flatten()))
-        beam.set_column(8, 0.0)
-        beam.set_column(9, 0.0)
-        beam.set_column(16, 0.0)
-        beam.set_column(17, 0.0)
-        beam.set_column(18, 0.0)
-        if run_index is None:
-            filename = 'begin_srcalc.dat'
-        else:
-            filename = 'begin_srcalc_%03d.dat' % run_index
-        Beam3.initialize_from_shadow4_beam(beam).write(filename)
-        print("File written to disk: %s" % filename)
+    # if dump_shadow_files:
+    #     from shadow4.compatibility.beam3 import Beam3
+    #     beam.set_column(7, (numpy.sqrt(out_dictionary["Zlist"][0]).flatten()))
+    #     beam.set_column(8, 0.0)
+    #     beam.set_column(9, 0.0)
+    #     beam.set_column(16, 0.0)
+    #     beam.set_column(17, 0.0)
+    #     beam.set_column(18, 0.0)
+    #     if run_index is None:
+    #         filename = 'begin_srcalc.dat'
+    #     else:
+    #         filename = 'begin_srcalc_%03d.dat' % run_index
+    #     Beam3.initialize_from_shadow4_beam(beam).write(filename)
+    #     print("File written to disk: %s" % filename)
 
     OE_FOOTPRINT = []
     OE_IMAGE = []
@@ -277,19 +278,20 @@ def ray_tracing(
         print("      theta_grazing: %f rad = %f deg" %  (theta_grazing, theta_grazing*180/numpy.pi) )
         print("      theta_normal: %f rad = %f deg \n" % (numpy.pi/2 - theta_grazing, 90 - theta_grazing * 180 / numpy.pi))
 
-        if dump_shadow_files:
-            newbeam.set_column(7, (numpy.sqrt(out_dictionary["Zlist"][oe_index] - out_dictionary["Zlist"][oe_index + 1]).flatten()))
-            newbeam.set_column(8, 0.0)
-            newbeam.set_column(9, 0.0)
-            newbeam.set_column(16, 0.0)
-            newbeam.set_column(17, 0.0)
-            newbeam.set_column(18, 0.0)
-            if run_index is None:
-                filename = 'mirr_srcalc.%02d' % (oe_index+1)
-            else:
-                filename = 'mirr_srcalc_%03d.%02d' % (run_index, oe_index+1)
-            Beam3.initialize_from_shadow4_beam(newbeam).write(filename)
-            print("File written to disk: %s" % filename)
+        # if dump_shadow_files:
+        #     from shadow4.compatibility.beam3 import Beam3
+        #     newbeam.set_column(7, (numpy.sqrt(out_dictionary["Zlist"][oe_index] - out_dictionary["Zlist"][oe_index + 1]).flatten()))
+        #     newbeam.set_column(8, 0.0)
+        #     newbeam.set_column(9, 0.0)
+        #     newbeam.set_column(16, 0.0)
+        #     newbeam.set_column(17, 0.0)
+        #     newbeam.set_column(18, 0.0)
+        #     if run_index is None:
+        #         filename = 'mirr_srcalc.%02d' % (oe_index+1)
+        #     else:
+        #         filename = 'mirr_srcalc_%03d.%02d' % (run_index, oe_index+1)
+        #     Beam3.initialize_from_shadow4_beam(newbeam).write(filename)
+        #     print("File written to disk: %s" % filename)
         tmp = newbeam.get_columns((2, 1, 23))
         tmp[2,:] = (out_dictionary["Zlist"][oe_index+1]).flatten()
         OE_FOOTPRINT.append( tmp )
@@ -301,19 +303,20 @@ def ray_tracing(
         if undo_shadow_orientation_angle_rotation:
             newbeam.rotate(-alpha, axis=2)
         newbeam.retrace(q, resetY=True)
-        if dump_shadow_files:
-            newbeam.set_column(7, (numpy.sqrt(out_dictionary["Zlist"][oe_index + 1]).flatten()))
-            newbeam.set_column(8, 0.0)
-            newbeam.set_column(9, 0.0)
-            newbeam.set_column(16, 0.0)
-            newbeam.set_column(17, 0.0)
-            newbeam.set_column(18, 0.0)
-            if run_index is None:
-                filename = 'star_srcalc.%02d' % (oe_index+1)
-            else:
-                filename = 'star_srcalc_%03d.%02d' % (run_index, oe_index+1)
-            Beam3.initialize_from_shadow4_beam(newbeam).write(filename)
-            print("File written to disk: %s" % filename)
+        # if dump_shadow_files:
+        #     from shadow4.compatibility.beam3 import Beam3
+        #     newbeam.set_column(7, (numpy.sqrt(out_dictionary["Zlist"][oe_index + 1]).flatten()))
+        #     newbeam.set_column(8, 0.0)
+        #     newbeam.set_column(9, 0.0)
+        #     newbeam.set_column(16, 0.0)
+        #     newbeam.set_column(17, 0.0)
+        #     newbeam.set_column(18, 0.0)
+        #     if run_index is None:
+        #         filename = 'star_srcalc.%02d' % (oe_index+1)
+        #     else:
+        #         filename = 'star_srcalc_%03d.%02d' % (run_index, oe_index+1)
+        #     Beam3.initialize_from_shadow4_beam(newbeam).write(filename)
+        #     print("File written to disk: %s" % filename)
 
         tmp = newbeam.get_columns((1, 3, 23))
         tmp[2,:] = (out_dictionary["Zlist"][oe_index+1]).flatten()

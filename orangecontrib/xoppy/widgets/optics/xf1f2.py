@@ -382,7 +382,7 @@ class OWxf1f2(XoppyWidget):
         elif MAT_FLAG == 1: # compund
             descriptor = self.DESCRIPTOR
             try:
-                density = float(self.DENSITY, verbose=True)
+                density = float(self.DENSITY)
             except:
                 raise Exception("Density must be entered.")
         elif MAT_FLAG == 2: # nist list
