@@ -1,0 +1,46 @@
+
+==================================   Wiggler Radiation       =================
+
+Wiggler Radiation calculates the emission (flux) and power of a wiggler versus
+photon energy and X and Y coordinates at a given screen.
+
+The application deals with conventional (sinusoidal) wigglers, wigglers (or short IDs)
+with magnetic field from a file, and bending magnets (which are treated as a wiggler
+with constant magnetic field).
+
+The wiggler emission can cropped and further propagated using XOPPY/Power3D.
+
+The algorithm is based on the following ideas:
+
+1) calculate the electron transversal velocity from the integral of the magnetic field
+   versus the s coordinate (along the ring).
+   This velocity gives the horizontal divergence divergence of the emission generated
+   at that particular s point.
+
+2) Calculate the corresponding emission intensity for each photon energy Ephoton, which is
+   proportional srfunc.sync_g1(Ephoton/Ec). Interpolate it to a uniform grid in divergence (H).
+
+3) Calculate the vertical divergence profile given by srfunc.sync_ang(Ephoton/Ec).
+
+4) Convolve (if wanted) the horizontal divergence with the vertical divergence to get a new
+   horizontal divergence without edge effects.
+
+5) Calculate for each photon energy the intensity of the emission by doing the outer product
+   of the horizontal by the vertical divergences. Normalize it to one.
+
+6) Multiply the maps from 5) by the distance and by the integrated flux at each photon energy
+   to get the illumination on the slit.
+
+Note that:
+
+1) The storage ring emittance is not used. It is supposed that its effect is negliageble
+  as compared with the wiggler emission.
+
+2) The calculation use the spectrum totally integrated (full emission from
+  srfunc.wiggler_spectrum) therefore the window has to accept all the radiation. The
+  window is calculated automatically, therefore there is no user control on that. If one
+  wants to calculate the power in a given slit, then use Power3D to crop the generated radiation.
+
+
+
+
