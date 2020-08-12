@@ -230,8 +230,12 @@ class OWpower3Dcomponent(XoppyWidget):
     def acceptExchangeData(self, exchangeData):
         try:
             if not exchangeData is None:
-                if exchangeData.get_program_name() not in ["XOPPY", "UNDULATOR_RADIATION", "POWER3DCOMPONENT"]:
-                        raise Exception("Xoppy Input beam not recognized")
+
+                if exchangeData.get_program_name() not in ["XOPPY"]:
+                        raise Exception("Exchange data must be XOPPY data")
+
+                if exchangeData.get_widget_name() not in ["UNDULATOR_RADIATION", "WIGGLER_RADIATION", "POWER3DCOMPONENT"]:
+                        raise Exception("Xoppy Input widget not recognized: %s" % exchangeData.get_widget_name())
 
                 self.input_beam = exchangeData
                 self.output_beam = None
@@ -951,24 +955,76 @@ def integral_3d(data3D, e=None, h=None, v=None, method=0):
 
 if __name__ == "__main__":
 
-    # create unulator_radiation xoppy exchange data
-    from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_radiation
-    from oasys.widgets.exchange import DataExchangeObject
+    # # create unulator_radiation xoppy exchange data
+    # from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_radiation
+    # from oasys.widgets.exchange import DataExchangeObject
+    #
+    # e, h, v, p, code = xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
+    #                                    ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
+    #                                    ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
+    #                                    PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,
+    #                                    SETRESONANCE=0,HARMONICNUMBER=1,
+    #                                    GAPH=0.001,GAPV=0.001,\
+    #                                    HSLITPOINTS=41,VSLITPOINTS=41,METHOD=2,
+    #                                    PHOTONENERGYMIN=7000,PHOTONENERGYMAX=8100,PHOTONENERGYPOINTS=20,
+    #                                    USEEMITTANCES=1)
+    #
+    # received_data = DataExchangeObject("XOPPY", "Power3Dcomponent")
+    # received_data.add_content("xoppy_data", [p, e, h, v])
+    # received_data.add_content("xoppy_code", code)
 
-    e, h, v, p, code = xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
-                                       ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
-                                       ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
-                                       PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,
-                                       SETRESONANCE=0,HARMONICNUMBER=1,
-                                       GAPH=0.001,GAPV=0.001,\
-                                       HSLITPOINTS=41,VSLITPOINTS=41,METHOD=2,
-                                       PHOTONENERGYMIN=7000,PHOTONENERGYMAX=8100,PHOTONENERGYPOINTS=20,
-                                       USEEMITTANCES=1)
+    # create wiggler_radiation xoppy exchange data
+    from orangecontrib.xoppy.util.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation
 
-    received_data = DataExchangeObject("XOPPY", "Power3Dcomponent")
+    h5_parameters = dict()
+    h5_parameters["ELECTRONENERGY"] = 3.0
+    h5_parameters["ELECTRONCURRENT"] = 0.1
+    h5_parameters["PERIODID"] = 0.12
+    h5_parameters["NPERIODS"] = 37.0
+    h5_parameters["KV"] = 22.416
+    h5_parameters["FIELD"] = 0  # 0= sinusoidal, 1=from file
+    h5_parameters["FILE"] = ''
+    h5_parameters["POLARIZATION"] = 0  # 0=total, 1=s, 2=p
+    h5_parameters["DISTANCE"] = 30.0
+    h5_parameters["HSLITPOINTS"] = 500
+    h5_parameters["VSLITPOINTS"] = 500
+    h5_parameters["PHOTONENERGYMIN"] = 100.0
+    h5_parameters["PHOTONENERGYMAX"] = 100100.0
+    h5_parameters["PHOTONENERGYPOINTS"] = 101
+    h5_parameters["SHIFT_X_FLAG"] = 0
+    h5_parameters["SHIFT_X_VALUE"] = 0.0
+    h5_parameters["SHIFT_BETAX_FLAG"] = 0
+    h5_parameters["SHIFT_BETAX_VALUE"] = 0.0
+    h5_parameters["CONVOLUTION"] = 1
+
+    e, h, v, p, traj = xoppy_calc_wiggler_radiation(
+        ELECTRONENERGY=h5_parameters["ELECTRONENERGY"],
+        ELECTRONCURRENT=h5_parameters["ELECTRONCURRENT"],
+        PERIODID=h5_parameters["PERIODID"],
+        NPERIODS=h5_parameters["NPERIODS"],
+        KV=h5_parameters["KV"],
+        FIELD=h5_parameters["FIELD"],
+        FILE=h5_parameters["FILE"],
+        POLARIZATION=h5_parameters["POLARIZATION"],
+        DISTANCE=h5_parameters["DISTANCE"],
+        HSLITPOINTS=h5_parameters["HSLITPOINTS"],
+        VSLITPOINTS=h5_parameters["VSLITPOINTS"],
+        PHOTONENERGYMIN=h5_parameters["PHOTONENERGYMIN"],
+        PHOTONENERGYMAX=h5_parameters["PHOTONENERGYMAX"],
+        PHOTONENERGYPOINTS=h5_parameters["PHOTONENERGYPOINTS"],
+        SHIFT_X_FLAG=h5_parameters["SHIFT_X_FLAG"],
+        SHIFT_X_VALUE=h5_parameters["SHIFT_X_VALUE"],
+        SHIFT_BETAX_FLAG=h5_parameters["SHIFT_BETAX_FLAG"],
+        SHIFT_BETAX_VALUE=h5_parameters["SHIFT_BETAX_VALUE"],
+        CONVOLUTION=h5_parameters["CONVOLUTION"],
+        h5_file="wiggler_radiation.h5",
+        h5_entry_name="XOPPY_RADIATION",
+        h5_initialize=True,
+        h5_parameters=h5_parameters,
+    )
+    received_data = DataExchangeObject("XOPPY", "WIGGLER_RADIATION")
     received_data.add_content("xoppy_data", [p, e, h, v])
-    received_data.add_content("xoppy_code", code)
-
+    # received_data.add_content("xoppy_code", code)
 
     #
     app = QApplication(sys.argv)

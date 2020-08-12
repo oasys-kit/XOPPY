@@ -8,7 +8,7 @@ The application deals with conventional (sinusoidal) wigglers, wigglers (or shor
 with magnetic field from a file, and bending magnets (which are treated as a wiggler
 with constant magnetic field).
 
-The wiggler emission can cropped and further propagated using XOPPY/Power3D.
+The wiggler emission can cropped and further propagated using XOPPY/Power3Dcomponent.
 
 The algorithm is based on the following ideas:
 
@@ -17,29 +17,33 @@ The algorithm is based on the following ideas:
    This velocity gives the horizontal divergence divergence of the emission generated
    at that particular s point.
 
-2) Calculate the corresponding emission intensity for each photon energy Ephoton, which is
-   proportional srfunc.sync_g1(Ephoton/Ec). Interpolate it to a uniform grid in divergence (H).
+2) Calculate at each s point the local critical energy Ec (proportional to magnetic
+   field).
 
-3) Calculate the vertical divergence profile given by srfunc.sync_ang(Ephoton/Ec).
+3) Calculate the emission intensity for each s value and photon energy Ephoton, which
+   is proportional srfunc.sync_g1(Ephoton/Ec). Interpolate it to a uniform grid in divergence (H).
 
-4) Convolve (if wanted) the horizontal divergence with the vertical divergence to get a new
+4) Calculate the vertical divergence profile given by srfunc.sync_ang(Ephoton/Ec).
+
+5) Convolve (if wanted) the horizontal divergence with the vertical divergence to get a new
    horizontal divergence without edge effects.
 
-5) Calculate for each photon energy the intensity of the emission by doing the outer product
+6) Calculate for each photon energy the intensity of the emission by doing the outer product
    of the horizontal by the vertical divergences. Normalize it to one.
 
-6) Multiply the maps from 5) by the distance and by the integrated flux at each photon energy
+7) Multiply the maps from 6) by the distance and by the integrated flux at each photon energy
    to get the illumination on the slit.
 
 Note that:
 
-1) The storage ring emittance is not used. It is supposed that its effect is negliageble
+1) The storage ring emittance is not used. It is supposed that its effect is negligeable
   as compared with the wiggler emission.
 
 2) The calculation use the spectrum totally integrated (full emission from
   srfunc.wiggler_spectrum) therefore the window has to accept all the radiation. The
   window is calculated automatically, therefore there is no user control on that. If one
-  wants to calculate the power in a given slit, then use Power3D to crop the generated radiation.
+  wants to calculate the power in a given slit, then use Power3Dcomponent to crop the
+  generated radiation.
 
 
 

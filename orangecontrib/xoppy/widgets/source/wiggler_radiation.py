@@ -432,6 +432,10 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
 
                 self.setStatusMessage("")
 
+                # p, e, h, v = self.calculated_data.get_content("xoppy_data")
+                # traj = self.calculated_data.get_content("xoppy_data")
+                # data_to_send = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+                # data_to_send.add_content("xoppy_data", [p, e, h, v, traj])
                 self.send("xoppy_data", self.calculated_data)
 
 
@@ -516,7 +520,8 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
 
                 self.view_type_combo.setEnabled(False)
 
-                p, e, h, v, traj = calculated_data.get_content("xoppy_data")
+                p, e, h, v = calculated_data.get_content("xoppy_data")
+                traj = calculated_data.get_content("xoppy_trajectory")
                 # code = calculated_data.get_content("xoppy_code")
 
                 try:
@@ -761,8 +766,9 @@ plot_image(p[0],h,v,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%({PH
 
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
-        calculated_data.add_content("xoppy_data", [p, e, h, v, traj])
-
+        calculated_data.add_content("xoppy_data", [p, e, h, v])
+        calculated_data.add_content("xoppy_trajectory", traj)
+        calculated_data.add_content("xoppy_code", "srfunc")
         return calculated_data
 
     def get_data_exchange_widget_name(self):
