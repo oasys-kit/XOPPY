@@ -21,7 +21,8 @@ The algorithm is based on the following ideas:
    field).
 
 3) Calculate the emission intensity for each s value and photon energy Ephoton, which
-   is proportional srfunc.sync_g1(Ephoton/Ec). Interpolate it to a uniform grid in divergence (H).
+   is proportional srfunc.sync_g1(Ephoton/Ec). Interpolate it to a uniform grid in
+   divergence (H) with attention that it is a multivalued-function.
 
 4) Calculate the vertical divergence profile given by srfunc.sync_ang(Ephoton/Ec).
 
@@ -41,10 +42,10 @@ Note that:
 
 2) The calculation use the spectrum totally integrated (full emission from
   srfunc.wiggler_spectrum) therefore the window has to accept all the radiation. The
-  window is calculated automatically, therefore there is no user control on that. If one
-  wants to calculate the power in a given slit, then use Power3Dcomponent to crop the
-  generated radiation.
-
+  window is calculated automatically using a passepartout value that can be controlled
+  bu the user. Attention  must be given to the fact that the emission should completely
+  fit in the window for every photon energy. For calculating the power in a given slit,
+  use Power3Dcomponent to crop the generated radiation.
 
 
 

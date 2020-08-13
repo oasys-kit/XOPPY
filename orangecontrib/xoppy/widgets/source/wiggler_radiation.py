@@ -41,33 +41,35 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
     outputs = [{"name": "xoppy_data",
                 "type": DataExchangeObject,
                 "doc": ""}]
-    ELECTRONENERGY = 3.0
-    ELECTRONCURRENT = 0.1
-    PERIODID = 0.120
-    NPERIODS = 37.0
-    KV = 22.416
-    DISTANCE = 30.0
-    HSLITPOINTS = 500
-    VSLITPOINTS = 500
-    PHOTONENERGYMIN = 100.0
-    PHOTONENERGYMAX = 100100.0
-    PHOTONENERGYPOINTS = 101
+
+    ELECTRONENERGY = Setting(3.0)
+    ELECTRONCURRENT = Setting(0.1)
+    PERIODID = Setting(0.120)
+    NPERIODS = Setting(37.0)
+    KV = Setting(22.416)
+    DISTANCE = Setting(30.0)
+    HSLITPOINTS = Setting(500)
+    VSLITPOINTS = Setting(500)
+    PHOTONENERGYMIN = Setting(100.0)
+    PHOTONENERGYMAX = Setting(100100.0)
+    PHOTONENERGYPOINTS = Setting(101)
     H5_FILE_DUMP = Setting(0)
-    NTRAJPOINTS = 1001
-    FIELD = 0
-    FILE = "/Users/srio/Oasys/Bsin.txt"
+    NTRAJPOINTS = Setting(1001)
+    FIELD = Setting(0)
+    FILE = Setting("")
     POLARIZATION = Setting(0)
 
-    h5_file = "wiggler_radiation.h5",
-    h5_entry_name = "XOPPY_RADIATION",
-    h5_initialize = True,
-    h5_parameters = None,
+    h5_file = Setting("wiggler_radiation.h5",)
+    h5_entry_name = Setting("XOPPY_RADIATION",)
+    h5_initialize = Setting(True,)
+    h5_parameters = Setting(None,)
 
     SHIFT_X_FLAG = Setting(0)
-    SHIFT_X_VALUE =Setting(0.0)
+    SHIFT_X_VALUE = Setting(0.0)
     SHIFT_BETAX_FLAG = Setting(0)
     SHIFT_BETAX_VALUE = Setting(0.0)
     CONVOLUTION = Setting(1)
+    PASSEPARTOUT = Setting(3.0)
 
     bm_magnetic_radius = Setting(10.0)
     bm_magnetic_field = Setting(1.001)
@@ -307,6 +309,13 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
         gui.comboBox(box1, self, "CONVOLUTION", label=self.unitLabels()[idx], items=["No", "Yes [default]"], labelWidth=260, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1)
 
+        #widget index 9
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "PASSEPARTOUT", label=self.unitLabels()[idx], labelWidth=260, valueType=float, orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
+
         box = oasysgui.widgetBox(box0, "Photon Polarization", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 15)
         #widget index 9
@@ -341,6 +350,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
                 "Shift Transversal Coordinate",
                 "Value",
                 "Convolution electron x' with photon div",
+                "Passepartout in sigma' units at Emin",
                 "Polarization",
         ]
 
@@ -482,6 +492,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
         self.FILE = hf[subtitle + "/parameters/FILE"].value
         self.POLARIZATION = hf[subtitle + "/parameters/POLARIZATION"].value
         self.CONVOLUTION = hf[subtitle + "/parameters/CONVOLUTION"].value
+        self.PASSEPARTOUT = hf[subtitle + "/parameters/PASSEPARTOUT"].value
 
         self.SHIFT_X_FLAG = hf[subtitle + "/parameters/SHIFT_X_FLAG"].value
         self.SHIFT_BETAX_FLAG = hf[subtitle + "/parameters/SHIFT_BETAX_FLAG"].value
@@ -511,6 +522,8 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
         self.VSLITPOINTS = congruence.checkStrictlyPositiveNumber(self.VSLITPOINTS, "Number of slit mesh points in V")
 
         self.NTRAJPOINTS = congruence.checkStrictlyPositiveNumber(self.NTRAJPOINTS, "Number Trajectory points")
+
+        self.PASSEPARTOUT = congruence.checkStrictlyPositiveNumber(self.PASSEPARTOUT, "Passepartout in units of sigma' at Emin")
 
     def plot_results(self, calculated_data, progressBarValue=80):
         if not self.view_type == 0:
@@ -663,6 +676,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
                 "SHIFT_BETAX_FLAG"       : self.SHIFT_BETAX_FLAG,
                 "SHIFT_BETAX_VALUE"      : self.SHIFT_BETAX_VALUE,
                 "CONVOLUTION"            : self.CONVOLUTION,
+                "PASSEPARTOUT"            : self.PASSEPARTOUT,
         }
 
 
@@ -689,6 +703,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
                 SHIFT_BETAX_FLAG         = self.SHIFT_BETAX_FLAG,
                 SHIFT_BETAX_VALUE        = self.SHIFT_BETAX_VALUE,
                 CONVOLUTION              = self.CONVOLUTION,
+                PASSEPARTOUT             = self.PASSEPARTOUT,
                 h5_file                  = h5_file,
                 h5_entry_name            = "XOPPY_RADIATION",
                 h5_initialize            = True,
@@ -726,6 +741,7 @@ h5_parameters["SHIFT_X_VALUE"]           = {SHIFT_X_VALUE}
 h5_parameters["SHIFT_BETAX_FLAG"]        = {SHIFT_BETAX_FLAG}
 h5_parameters["SHIFT_BETAX_VALUE"]       = {SHIFT_BETAX_VALUE}
 h5_parameters["CONVOLUTION"]             = {CONVOLUTION}
+h5_parameters["PASSEPARTOUT"]            = {PASSEPARTOUT}
 
 e, h, v, p, traj = xoppy_calc_wiggler_radiation(
         ELECTRONENERGY           = h5_parameters["ELECTRONENERGY"]         ,
@@ -747,6 +763,7 @@ e, h, v, p, traj = xoppy_calc_wiggler_radiation(
         SHIFT_BETAX_FLAG         = h5_parameters["SHIFT_BETAX_FLAG"]       ,
         SHIFT_BETAX_VALUE        = h5_parameters["SHIFT_BETAX_VALUE"]      ,
         CONVOLUTION              = h5_parameters["CONVOLUTION"]            ,
+        PASSEPARTOUT             = h5_parameters["PASSEPARTOUT"]            ,
         h5_file                  = "wiggler_radiation.h5"                  ,
         h5_entry_name            = "XOPPY_RADIATION"                       ,
         h5_initialize            = True                                    ,

@@ -11,6 +11,8 @@ import scipy.constants as codata
 
 from orangecontrib.xoppy.util.fit_gaussian2d import fit_gaussian2d, info_params, twoD_Gaussian
 
+from oasys.util.oasys_util import get_fwhm
+
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
 
@@ -233,6 +235,7 @@ def xoppy_calc_wiggler_radiation(
         SHIFT_BETAX_FLAG         = 0,
         SHIFT_BETAX_VALUE        = 0.0,
         CONVOLUTION              = 1,
+        PASSEPARTOUT             = 3.0,
         h5_file                  = "wiggler_radiation.h5",
         h5_entry_name            = "XOPPY_RADIATION",
         h5_initialize            = True,
@@ -299,6 +302,7 @@ def xoppy_calc_wiggler_radiation(
     codata_mee = 1e-6 * codata.m_e * codata.c ** 2 / codata.e # electron mass in meV
     gamma = ELECTRONENERGY * 1e3 / codata_mee
 
+    Y = traj[1, :].copy()
     divX = traj[3,:].copy()
     By = traj[7, :].copy()
 
@@ -310,14 +314,15 @@ def xoppy_calc_wiggler_radiation(
     Ec = coeff * ELECTRONENERGY ** 2 * numpy.abs(By)
     Ecmax = coeff * ELECTRONENERGY ** 2 * (numpy.abs(By)).max()
 
-    # approx divergence for divergence (first formula in pag 43 of Tanaka's paper)
+    # approx formula for divergence (first formula in pag 43 of Tanaka's paper)
     sigmaBp = 0.597 / gamma * numpy.sqrt(Ecmax / PHOTONENERGYMIN)
 
 
     # we use vertical interval 6*sigmaBp and horizontal interval = vertical + trajectory interval
-    divXX = numpy.linspace(divX.min() - 3 * sigmaBp, divX.max() + 3 * sigmaBp, HSLITPOINTS)
 
-    divZZ = numpy.linspace(-3 * sigmaBp, 3 * sigmaBp, VSLITPOINTS)
+    divXX = numpy.linspace(divX.min() - PASSEPARTOUT * sigmaBp, divX.max() + PASSEPARTOUT * sigmaBp, HSLITPOINTS)
+
+    divZZ = numpy.linspace(-PASSEPARTOUT * sigmaBp, PASSEPARTOUT * sigmaBp, VSLITPOINTS)
 
     e = numpy.linspace(PHOTONENERGYMIN, PHOTONENERGYMAX, PHOTONENERGYPOINTS)
 
@@ -330,7 +335,7 @@ def xoppy_calc_wiggler_radiation(
 
         # vertical divergence
         fluxDivZZ = srfunc.sync_ang(1, divZZ * 1e3, polarization=POLARIZATION,
-               e_gev=3, i_a=0.1, hdiv_mrad=1.0, energy=Ephoton, ec_ev=Ecmax)
+               e_gev=ELECTRONENERGY, i_a=ELECTRONCURRENT, hdiv_mrad=1.0, energy=Ephoton, ec_ev=Ecmax)
 
         if do_plot:
             from srxraylib.plot.gol import plot
@@ -347,16 +352,15 @@ def xoppy_calc_wiggler_radiation(
 
         # horizontal divergence
         intensity = srfunc.sync_g1(Ephoton / Ec, polarization=POLARIZATION)
-        fintensity = interp1d(divX, intensity, kind='linear', axis=-1, copy=True, bounds_error=False, fill_value=0.0,
-                                   assume_sorted=False)
-        intensity_interpolated = fintensity(divXX)
+        intensity_interpolated = interpolate_multivalued_function(divX, intensity, divXX, Y, )
 
         if CONVOLUTION: # do always convolution!
             intensity_interpolated.shape = -1
             divXX_window = divXX[-1] - divXX[0]
             divXXCC = numpy.linspace( -0.5 * divXX_window, 0.5 * divXX_window, divXX.size)
             fluxDivZZCC = srfunc.sync_ang(1, divXXCC * 1e3, polarization=POLARIZATION,
-                                        e_gev=3, i_a=0.1, hdiv_mrad=1.0, energy=Ephoton, ec_ev=Ecmax)
+                                        e_gev=ELECTRONENERGY, i_a=ELECTRONCURRENT, hdiv_mrad=1.0,
+                                        energy=Ephoton, ec_ev=Ecmax)
             fluxDivZZCC.shape = -1
 
             intensity_convolved = numpy.convolve(intensity_interpolated/intensity_interpolated.max(),
@@ -365,6 +369,16 @@ def xoppy_calc_wiggler_radiation(
         else:
             intensity_convolved = intensity_interpolated
 
+        if i == 0:
+            print("\n\n============ sizes vs photon energy =======================")
+            print("Photon energy/eV  FWHM X'/urad  FWHM Y'/urad  FWHM X/mm  FWHM Z/mm ")
+
+        print("%16.3f  %12.3f  %12.3f  %9.2f  %9.2f" %
+              (Ephoton,
+              1e6 * get_fwhm(intensity_convolved, divXX)[0],
+              1e6 * get_fwhm(fluxDivZZ, divZZ)[0],
+              1e3 * get_fwhm(intensity_convolved, divXX)[0] * DISTANCE,
+              1e3 * get_fwhm(fluxDivZZ, divZZ)[0] * DISTANCE ))
 
         if do_plot:
             plot(divX, intensity/intensity.max(),
@@ -464,6 +478,39 @@ def xoppy_calc_wiggler_radiation(
 # auxiliar functions
 #
 
+def interpolate_multivalued_function(divX, intensity, divX_i, s):
+
+    divXprime = numpy.gradient(divX, s) # derivative
+    knots = crossings_nonzero_all(divXprime)
+    knots.insert(0,0)
+    knots.append(len(divXprime))
+
+    divX_split = numpy.split(divX, knots)
+    intensity_split = numpy.split(intensity, knots)
+    s_split = numpy.split(intensity, knots)
+
+    # plot(s, divX/divX.max(),
+    #      s,divXprime/divXprime.max(),
+    #      s[(knots[0]):(knots[1])], (divX/divX.max())[(knots[0]):(knots[1])],
+    #      s[(knots[-2]):(knots[-1])], (divX / divX.max())[(knots[-2]):(knots[-1])],
+    #      title='derivative',legend=["divX","divXprime","branch 1","branch N"])
+
+    intensity_interpolated = numpy.zeros_like(divX_i)
+    for i in range(len(s_split)):
+        if divX_split[i].size > 2:
+            fintensity = interp1d(divX_split[i], intensity_split[i], kind='linear', axis=-1, copy=True,
+                                  bounds_error=False, fill_value=0.0, assume_sorted=False)
+            intensity_interpolated += fintensity(divX_i)
+    return intensity_interpolated
+
+def crossings_nonzero_all(data):
+    # we suppose the array does not contain 0.0000000000000
+    # https://stackoverflow.com/questions/3843017/efficiently-detect-sign-changes-in-python
+    pos = data > 0
+    npos = ~pos
+    out =  ((pos[:-1] & npos[1:]) | (npos[:-1] & pos[1:])).nonzero()[0]
+    return out.tolist()
+
 def create_magnetic_field_for_bending_magnet(do_plot=False,filename="",B0=-1.0,divergence=1e-3,radius=10.0,npoints=500):
 
     L = radius * divergence
@@ -509,8 +556,132 @@ if __name__ == "__main__":
     # e, h, v, p, traj = xoppy_calc_wiggler_radiation(PHOTONENERGYPOINTS=100,do_plot = False, POLARIZATION=0, NPERIODS=3.5)
     # e, h, v, p, traj = xoppy_calc_wiggler_radiation(PHOTONENERGYPOINTS=3,FIELD=1)
 
-    create_magnetic_field_for_bending_magnet(do_plot=True, filename="tmp.txt", B0=-1.0, divergence=1e-3, radius=10.0,
-                                            npoints=500)
+    # create_magnetic_field_for_bending_magnet(do_plot=True, filename="tmp.txt", B0=-1.0, divergence=1e-3, radius=10.0,
+    #                                         npoints=500)
+    #
+    # e, h, v, p, traj = xoppy_calc_wiggler_radiation(PHOTONENERGYPOINTS=3, do_plot=True, POLARIZATION=0,
+    #                                                 FIELD=1, FILE="tmp.txt")
 
-    e, h, v, p, traj = xoppy_calc_wiggler_radiation(PHOTONENERGYPOINTS=3, do_plot=True, POLARIZATION=0,
-                                                    FIELD=1, FILE="tmp.txt")
+    #
+    # script to make the calculations (created by XOPPY:wiggler_radiation)
+    #
+    h5_parameters = dict()
+    h5_parameters["ELECTRONENERGY"] = 6.0
+    h5_parameters["ELECTRONCURRENT"] = 0.2
+    h5_parameters["PERIODID"] = 0.15
+    h5_parameters["NPERIODS"] = 10.0
+    h5_parameters["KV"] = 21.015
+    h5_parameters["FIELD"] = 0  # 0= sinusoidal, 1=from file
+    h5_parameters["FILE"] = ''
+    h5_parameters["POLARIZATION"] = 0  # 0=total, 1=s, 2=p
+    h5_parameters["DISTANCE"] = 30.0
+    h5_parameters["HSLITPOINTS"] = 500
+    h5_parameters["VSLITPOINTS"] = 500
+    h5_parameters["PHOTONENERGYMIN"] = 100.0
+    h5_parameters["PHOTONENERGYMAX"] = 100100.0
+    h5_parameters["PHOTONENERGYPOINTS"] = 101
+    h5_parameters["SHIFT_X_FLAG"] = 0
+    h5_parameters["SHIFT_X_VALUE"] = 0.0
+    h5_parameters["SHIFT_BETAX_FLAG"] = 0
+    h5_parameters["SHIFT_BETAX_VALUE"] = 0.0
+    h5_parameters["CONVOLUTION"] = 1
+
+    e, h, v, p, traj = xoppy_calc_wiggler_radiation(
+        ELECTRONENERGY=h5_parameters["ELECTRONENERGY"],
+        ELECTRONCURRENT=h5_parameters["ELECTRONCURRENT"],
+        PERIODID=h5_parameters["PERIODID"],
+        NPERIODS=h5_parameters["NPERIODS"],
+        KV=h5_parameters["KV"],
+        FIELD=h5_parameters["FIELD"],
+        FILE=h5_parameters["FILE"],
+        POLARIZATION=h5_parameters["POLARIZATION"],
+        DISTANCE=h5_parameters["DISTANCE"],
+        HSLITPOINTS=h5_parameters["HSLITPOINTS"],
+        VSLITPOINTS=h5_parameters["VSLITPOINTS"],
+        PHOTONENERGYMIN=h5_parameters["PHOTONENERGYMIN"],
+        PHOTONENERGYMAX=h5_parameters["PHOTONENERGYMAX"],
+        PHOTONENERGYPOINTS=h5_parameters["PHOTONENERGYPOINTS"],
+        SHIFT_X_FLAG=h5_parameters["SHIFT_X_FLAG"],
+        SHIFT_X_VALUE=h5_parameters["SHIFT_X_VALUE"],
+        SHIFT_BETAX_FLAG=h5_parameters["SHIFT_BETAX_FLAG"],
+        SHIFT_BETAX_VALUE=h5_parameters["SHIFT_BETAX_VALUE"],
+        CONVOLUTION=h5_parameters["CONVOLUTION"],
+        h5_file="wiggler_radiation.h5",
+        h5_entry_name="XOPPY_RADIATION",
+        h5_initialize=True,
+        h5_parameters=h5_parameters,
+        do_plot=0,
+        PASSEPARTOUT=1,
+    )
+
+    # example plot
+    from srxraylib.plot.gol import plot_image
+
+    plot_image(p[0], h, v, title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV" % (25100.0), xtitle="H [mm]",
+               ytitle="V [mm]")
+    #
+    # end script
+    #
+
+    # #
+    # # script to make the calculations (created by XOPPY:wiggler_radiation)
+    # #
+    #
+    # from orangecontrib.xoppy.util.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation
+    #
+    # h5_parameters = dict()
+    # h5_parameters["ELECTRONENERGY"] = 6.0
+    # h5_parameters["ELECTRONCURRENT"] = 0.2
+    # h5_parameters["PERIODID"] = 0.15
+    # h5_parameters["NPERIODS"] = 10.0
+    # h5_parameters["KV"] = 21.015
+    # h5_parameters["FIELD"] = 0  # 0= sinusoidal, 1=from file
+    # h5_parameters["FILE"] = ''
+    # h5_parameters["POLARIZATION"] = 0  # 0=total, 1=s, 2=p
+    # h5_parameters["DISTANCE"] = 30.0
+    # h5_parameters["HSLITPOINTS"] = 500
+    # h5_parameters["VSLITPOINTS"] = 500
+    # h5_parameters["PHOTONENERGYMIN"] = 100.0
+    # h5_parameters["PHOTONENERGYMAX"] = 100100.0
+    # h5_parameters["PHOTONENERGYPOINTS"] = 11
+    # h5_parameters["SHIFT_X_FLAG"] = 0
+    # h5_parameters["SHIFT_X_VALUE"] = 0.0
+    # h5_parameters["SHIFT_BETAX_FLAG"] = 0
+    # h5_parameters["SHIFT_BETAX_VALUE"] = 0.0
+    # h5_parameters["CONVOLUTION"] = 1
+    #
+    # e, h, v, p, traj = xoppy_calc_wiggler_radiation(
+    #     ELECTRONENERGY=h5_parameters["ELECTRONENERGY"],
+    #     ELECTRONCURRENT=h5_parameters["ELECTRONCURRENT"],
+    #     PERIODID=h5_parameters["PERIODID"],
+    #     NPERIODS=h5_parameters["NPERIODS"],
+    #     KV=h5_parameters["KV"],
+    #     FIELD=h5_parameters["FIELD"],
+    #     FILE=h5_parameters["FILE"],
+    #     POLARIZATION=h5_parameters["POLARIZATION"],
+    #     DISTANCE=h5_parameters["DISTANCE"],
+    #     HSLITPOINTS=h5_parameters["HSLITPOINTS"],
+    #     VSLITPOINTS=h5_parameters["VSLITPOINTS"],
+    #     PHOTONENERGYMIN=h5_parameters["PHOTONENERGYMIN"],
+    #     PHOTONENERGYMAX=h5_parameters["PHOTONENERGYMAX"],
+    #     PHOTONENERGYPOINTS=h5_parameters["PHOTONENERGYPOINTS"],
+    #     SHIFT_X_FLAG=h5_parameters["SHIFT_X_FLAG"],
+    #     SHIFT_X_VALUE=h5_parameters["SHIFT_X_VALUE"],
+    #     SHIFT_BETAX_FLAG=h5_parameters["SHIFT_BETAX_FLAG"],
+    #     SHIFT_BETAX_VALUE=h5_parameters["SHIFT_BETAX_VALUE"],
+    #     CONVOLUTION=h5_parameters["CONVOLUTION"],
+    #     h5_file="wiggler_radiation.h5",
+    #     h5_entry_name="XOPPY_RADIATION",
+    #     h5_initialize=True,
+    #     h5_parameters=h5_parameters,
+    #     do_plot=1,
+    # )
+    #
+    # # example plot
+    # from srxraylib.plot.gol import plot_image
+    #
+    # plot_image(p[0], h, v, title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV" % (100.0), xtitle="H [mm]",
+    #            ytitle="V [mm]")
+    #
+    # end script
+    #
