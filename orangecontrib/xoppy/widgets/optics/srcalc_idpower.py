@@ -352,7 +352,7 @@ class OWsrcalc_idpower(XoppyWidget, WidgetDecorator):
             "Filter",
             "Crystal"]
 
-        self.coating_list = ["Al","Au","Cr","Dia","Gra","InSb","MGF2","Ni","Pd","Rh","SiC","Test","Al2O3","Be","Cu","Fe","Ice","Ir","Mo","Os","Pt","Si","SiO2","WW"]
+        self.coating_list = ["Al","Au","Cr","Dia","Gra","InSb","MGF2","Ni","Pd","Rh","SiC","Test","Al2O3","Be","Cu","Fe","Ice","Ir","Mo","Os","Pt","Si","SiO2","WW","B4C"]
 
 
         tabs_elements = oasysgui.tabWidget(box)
