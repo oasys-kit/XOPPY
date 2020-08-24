@@ -334,8 +334,12 @@ def xoppy_calc_wiggler_radiation(
 
 
         # vertical divergence
+        intensity = srfunc.sync_g1(Ephoton / Ec, polarization=POLARIZATION)
+
+        Ecmean = (Ec * intensity).sum() / intensity.sum()
+
         fluxDivZZ = srfunc.sync_ang(1, divZZ * 1e3, polarization=POLARIZATION,
-               e_gev=ELECTRONENERGY, i_a=ELECTRONCURRENT, hdiv_mrad=1.0, energy=Ephoton, ec_ev=Ecmax)
+               e_gev=ELECTRONENERGY, i_a=ELECTRONCURRENT, hdiv_mrad=1.0, energy=Ephoton, ec_ev=Ecmean)
 
         if do_plot:
             from srxraylib.plot.gol import plot
@@ -351,7 +355,7 @@ def xoppy_calc_wiggler_radiation(
             plot(uud, 2 * numpy.pi / numpy.sqrt(3) * srfunc.sync_g1(uu))
 
         # horizontal divergence
-        intensity = srfunc.sync_g1(Ephoton / Ec, polarization=POLARIZATION)
+        # intensity = srfunc.sync_g1(Ephoton / Ec, polarization=POLARIZATION)
         intensity_interpolated = interpolate_multivalued_function(divX, intensity, divXX, Y, )
 
         if CONVOLUTION: # do always convolution!
