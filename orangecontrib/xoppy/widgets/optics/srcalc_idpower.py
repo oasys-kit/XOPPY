@@ -669,7 +669,7 @@ class OWsrcalc_idpower(XoppyWidget, WidgetDecorator):
                 'Focus Entrance Arm [m]',
                 'Focus Exit Arm [m]',
                 'Inc. Angle to normal [deg]',
-                'Thickness [microns]',
+                'Thickness [nanometers]',
                 'Orientation (see Settings tab)',
                 'Coating',
                 ]
