@@ -847,6 +847,7 @@ class OWsrcalc_idpower(XoppyWidget, WidgetDecorator):
                 self.id_KY.setEnabled(False)
 
     def do_xoppy_calculation(self):
+        self.current_index = self.tabs.currentIndex()
         # odd way to clean output window during running
         view_type_old = self.view_type
         self.view_type = 0
@@ -864,8 +865,10 @@ class OWsrcalc_idpower(XoppyWidget, WidgetDecorator):
 
     def plot_results(self, calculated_data, progressBarValue=70):
         if not self.view_type == 0:
+
             if calculated_data is None:
                 raise Exception("Empty Data")
+
 
             index = -1
 
@@ -1005,6 +1008,10 @@ class OWsrcalc_idpower(XoppyWidget, WidgetDecorator):
                         elif self.DUMP_ANSYS_FILES == 2:  # transposed
                             write_ansys_files(data2D.T / (stepx * stepy), V[0, :], H[:, 0], oe_number=oe_n,
                                               is_image=True)
+            try:
+                self.tabs.setCurrentIndex(self.current_index)
+            except:
+                pass
 
 
     def get_data_exchange_widget_name(self):

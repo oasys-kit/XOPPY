@@ -662,14 +662,17 @@ class OWxpower(XoppyWidget):
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Mu")
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Transmitivity")
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Absorption")
-                if self.do_plot_intensity(): titles.append("Intensity after oe " + str(oe_n))
+                if self.do_plot_intensity(): titles.append("Spectral power after oe " + str(oe_n))
+
+
             else: # MIRROR
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] 1-Re[n]=delta")
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Im[n]=beta")
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] delta/beta")
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Reflectivity-s")
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Absorption")
-                if self.do_plot_intensity(): titles.append("Intensity after oe " + str(oe_n))
+                if self.do_plot_intensity(): titles.append("Spectral power after oe " + str(oe_n))
+
 
         return titles
 
@@ -701,7 +704,11 @@ class OWxpower(XoppyWidget):
     def getYTitles(self):
         ytitles = []
 
-        if self.do_plot_intensity(): ytitles.append("Source")
+        if self.SOURCE == 0:
+            if self.do_plot_intensity(): ytitles.append("Spectral Power [W/eV]")
+        else:
+            if self.do_plot_intensity(): ytitles.append("Spectral Power [a.u.]")
+
 
         for oe_n in range(1, self.NELEMENTS+2):
             kind = self.getKind(oe_n)
@@ -711,14 +718,20 @@ class OWxpower(XoppyWidget):
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Mu cm^-1")
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Transmitivity")
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Absorption")
-                if self.do_plot_intensity(): ytitles.append("Intensity after oe " + str(oe_n))
+                if self.SOURCE == 0:
+                    if self.do_plot_intensity(): ytitles.append("Spectral power [W/eV]")
+                else:
+                    if self.do_plot_intensity(): ytitles.append("Spectral power [a.u.]")
             else: # MIRROR
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] 1-Re[n]=delta")
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Im[n]=beta")
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] delta/beta")
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Reflectivity-s")
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Transmitivity")
-                if self.do_plot_intensity(): ytitles.append("Intensity after oe " + str(oe_n))
+                if self.SOURCE == 0:
+                    if self.do_plot_intensity(): ytitles.append("Spectral power [W/eV]")
+                else:
+                    if self.do_plot_intensity(): ytitles.append("Spectral power [a.u.]")
 
         return ytitles
 

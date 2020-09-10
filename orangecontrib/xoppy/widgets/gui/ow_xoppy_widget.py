@@ -286,7 +286,7 @@ class XoppyWidget(widget.OWWidget):
         self.progressBarSet(progressBarValue)
 
     def plot_data1D(self, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
-                    control=False):
+                    control=False, xlog=False, ylog=False):
 
         self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
 
@@ -316,8 +316,8 @@ class XoppyWidget(widget.OWWidget):
         self.plot_canvas[plot_canvas_index].setYAxisAutoScale(True)
         self.plot_canvas[plot_canvas_index].setGraphGrid(False)
 
-        self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(False)
-        self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(False)
+        self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(xlog)
+        self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(ylog)
         self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
         self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
         self.plot_canvas[plot_canvas_index].setGraphTitle(title)

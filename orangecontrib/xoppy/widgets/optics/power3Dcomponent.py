@@ -373,7 +373,8 @@ class OWpower3Dcomponent(XoppyWidget):
         if self.PLOT_SETS == 0: # local
             for ii in ['Input Spectral Power Density vs E,X,Y',
                        'Input Power Density vs X,Y',
-                       'Input Spectral Power vs E',]:
+                       'Input Spectral Power vs E',
+                       'Input Flux vs E',]:
                 mylist.append(ii)
         elif self.PLOT_SETS == 1: # input
             for ii in [txt1 + ' vs X,Y,E',
@@ -384,13 +385,15 @@ class OWpower3Dcomponent(XoppyWidget):
         elif self.PLOT_SETS == 2:  # absorption
             for ii in ['Absorbed Spectral Power Density vs E,X,Y',
                        'Absorbed Power Density vs X,Y',
-                       'Absorbed Spectral Power vs E']:
+                       'Absorbed Spectral Power vs E',
+                       'Absorbed Flux vs E']:
                 mylist.append(ii)
         elif self.PLOT_SETS == 3: # transmittance/
             for ii in [
                     txt2 + 'Spectral Power Density vs E,X,Y',
                     txt2 + 'Power Density vs X,Y',
-                    txt2 + 'Spectral Power vs E']:
+                    txt2 + 'Spectral Power vs E',
+                    txt2 + 'Flux vs E']:
                 mylist.append(ii)
 
         return mylist
@@ -450,6 +453,14 @@ class OWpower3Dcomponent(XoppyWidget):
                                  ytitle= 'Spectral power [W/eV]',
                                  title='Input beam Spectral power. Integral: %6.3f W'%spectral_density_integral,)
 
+                # plot flux vs E
+                # spectral_density = numpy.trapz(numpy.trapz(p_spectral_power, v0, axis=2), h0, axis=1)
+                flux = spectral_density / (codata.e * 1e3)
+                self.plot_data1D(e, flux, 3, 0,
+                                 xtitle='Photon Energy [eV]',
+                                 ytitle= 'Flux [Photons/s/0.1%bw]',
+                                 title='Input beam Flux', xlog=True, ylog=True)
+
             if self.PLOT_SETS == 1:  # transmittance & absorbance
                 # plot transmittance stack
                 self.plot_data3D(transmittance, e, h, v, 0, 0,
@@ -508,6 +519,14 @@ class OWpower3Dcomponent(XoppyWidget):
                                  ytitle='Spectral power [W/eV]',
                                  title='Absorbed Spectral Power. Integral: %6.3f W'%spectral_density_integral, )
 
+                # plot flux vs E
+                # spectral_density = numpy.trapz(numpy.trapz(p_absorbed, V, axis=2), H, axis=1)
+                flux = spectral_density / (codata.e * 1e3)
+                self.plot_data1D(e, flux, 3, 0,
+                                 xtitle='Photon Energy [eV]',
+                                 ytitle='Flux [Photons/s/0.1%bw]',
+                                 title='Absorbed Flux', xlog=True, ylog=True)
+
             if self.PLOT_SETS == 3:  # transmitted/reflected by element
                 p_transmitted = p_spectral_power * transmittance / (h[0] / h0[0]) / (v[0] / v0[0])
                 if self.EL1_FLAG == 1:
@@ -538,6 +557,14 @@ class OWpower3Dcomponent(XoppyWidget):
                                  xtitle='Photon Energy [eV]',
                                  ytitle='Spectral power [W/eV]',
                                  title=tr_ref_txt+' Spectral Power. Integral: %6.3f W'%spectral_density_integral, )
+
+                # plot flux vs E
+                # spectral_density = numpy.trapz(numpy.trapz(p_transmitted, v, axis=2), h, axis=1)
+                flux = spectral_density / (codata.e * 1e3)
+                self.plot_data1D(e, flux, 3, 0,
+                                 xtitle='Photon Energy [eV]',
+                                 ytitle='Flux [Photons/s/0.1%bw]',
+                                 title=tr_ref_txt+' Flux', xlog=True, ylog=True)
 
             self.view_type_combo.setEnabled(True)
 
