@@ -1,5 +1,6 @@
 import sys
 import numpy
+import matplotlib
 
 from silx.gui.plot import Plot2D
 from silx.io.specfile import SpecFile
@@ -22,7 +23,6 @@ from oasys.widgets import gui as oasysgui
 from oasys.widgets.exchange import DataExchangeObject
 from oasys.util.oasys_util import EmittingStream
 
-from orangecontrib.xoppy.util.xoppy_util import xoppy_doc, XoppyPlot
 from orangecontrib.xoppy.util.python_script import PythonScript
 
 class XoppyWidget(widget.OWWidget):
@@ -240,6 +240,7 @@ class XoppyWidget(widget.OWWidget):
     def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
                    log_x=False, log_y=False, color='blue', replace=True, control=False):
 
+        matplotlib.rcParams['axes.formatter.useoffset']='False'
 
         if self.plot_canvas[plot_canvas_index] is None:
             self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow(parent=None,
@@ -266,7 +267,18 @@ class XoppyWidget(widget.OWWidget):
             self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
 
             self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
-        XoppyPlot.plot_histo(self.plot_canvas[plot_canvas_index], x, y, title, xtitle, ytitle, color, replace)
+
+        self.plot_canvas[plot_canvas_index].addCurve(x, y, title, symbol='', color=color, xlabel=xtitle, ylabel=ytitle, replace=replace) #'+', '^', ','
+
+        if not xtitle is None: self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
+        if not ytitle is None: self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
+        if not title is None: self.plot_canvas[plot_canvas_index].setGraphTitle(title)
+
+        self.plot_canvas[plot_canvas_index].setInteractiveMode('zoom',color='orange')
+        self.plot_canvas[plot_canvas_index].resetZoom()
+        self.plot_canvas[plot_canvas_index].replot()
+
+        self.plot_canvas[plot_canvas_index].setActiveCurve(title)
 
         self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(log_x)
         self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(log_y)
