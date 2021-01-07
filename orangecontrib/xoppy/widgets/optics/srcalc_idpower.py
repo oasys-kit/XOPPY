@@ -1152,6 +1152,7 @@ class OWsrcalc_idpower(XoppyWidget, WidgetDecorator):
 
 
     def xoppy_calc_srcalc(self):
+        self.progressBarInit()
 
         self.progressBarSet(2)
 
