@@ -4,7 +4,6 @@ from collections import OrderedDict
 import scipy.constants as codata
 
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtGui import QIntValidator, QDoubleValidator
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -77,7 +76,7 @@ class OWtc_slit(XoppyWidget):
         box1 = gui.widgetBox(box)
         self.id_ELECTRONENERGY = oasysgui.lineEdit(box1, self, "ELECTRONENERGY",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 1
@@ -85,7 +84,7 @@ class OWtc_slit(XoppyWidget):
         box1 = gui.widgetBox(box)
         self.id_ELECTRONENERGYSPREAD = oasysgui.lineEdit(box1, self, "ELECTRONENERGYSPREAD",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 2
@@ -93,7 +92,7 @@ class OWtc_slit(XoppyWidget):
         box1 = gui.widgetBox(box)
         self.id_ELECTRONCURRENT = oasysgui.lineEdit(box1, self, "ELECTRONCURRENT",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 3
@@ -101,7 +100,7 @@ class OWtc_slit(XoppyWidget):
         box1 = gui.widgetBox(box)
         self.id_ELECTRONBEAMSIZEH = oasysgui.lineEdit(box1, self, "ELECTRONBEAMSIZEH",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 4
@@ -109,7 +108,7 @@ class OWtc_slit(XoppyWidget):
         box1 = gui.widgetBox(box)
         self.id_ELECTRONBEAMSIZEV = oasysgui.lineEdit(box1, self, "ELECTRONBEAMSIZEV",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 5
@@ -117,7 +116,7 @@ class OWtc_slit(XoppyWidget):
         box1 = gui.widgetBox(box)
         self.id_ELECTRONBEAMDIVERGENCEH = oasysgui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEH",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 6
@@ -125,7 +124,7 @@ class OWtc_slit(XoppyWidget):
         box1 = gui.widgetBox(box)
         self.id_ELECTRONBEAMDIVERGENCEV = oasysgui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEV",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 7
@@ -133,7 +132,7 @@ class OWtc_slit(XoppyWidget):
         box1 = gui.widgetBox(box)
         self.id_PERIODID = oasysgui.lineEdit(box1, self, "PERIODID",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 8
@@ -141,7 +140,7 @@ class OWtc_slit(XoppyWidget):
         box1 = gui.widgetBox(box)
         self.id_NPERIODS = oasysgui.lineEdit(box1, self, "NPERIODS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
 
@@ -150,7 +149,7 @@ class OWtc_slit(XoppyWidget):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "DISTANCE",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 10
@@ -158,7 +157,7 @@ class OWtc_slit(XoppyWidget):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "GAPH",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 11
@@ -166,7 +165,7 @@ class OWtc_slit(XoppyWidget):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "GAPV",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 12
@@ -174,7 +173,7 @@ class OWtc_slit(XoppyWidget):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "KMIN",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 13
@@ -182,7 +181,7 @@ class OWtc_slit(XoppyWidget):
         box1 = gui.widgetBox(box)
         self.id_KMAX = oasysgui.lineEdit(box1, self, "KMAX",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 14
@@ -190,7 +189,7 @@ class OWtc_slit(XoppyWidget):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "KPOINTS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 15

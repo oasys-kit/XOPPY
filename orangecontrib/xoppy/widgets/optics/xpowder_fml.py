@@ -2,7 +2,7 @@ import sys,os
 import numpy
 import platform
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtGui import QIntValidator, QDoubleValidator
+
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
@@ -66,7 +66,7 @@ class OWxpowder_fml(XoppyWidget):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "LAMBDA",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
@@ -83,7 +83,7 @@ class OWxpowder_fml(XoppyWidget):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "U",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
@@ -91,7 +91,7 @@ class OWxpowder_fml(XoppyWidget):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "V",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
@@ -99,7 +99,7 @@ class OWxpowder_fml(XoppyWidget):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "W",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
@@ -107,7 +107,7 @@ class OWxpowder_fml(XoppyWidget):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "X",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
@@ -115,7 +115,7 @@ class OWxpowder_fml(XoppyWidget):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "LS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
@@ -123,7 +123,7 @@ class OWxpowder_fml(XoppyWidget):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "THMIN",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
@@ -131,7 +131,7 @@ class OWxpowder_fml(XoppyWidget):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "STEP",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
@@ -139,7 +139,7 @@ class OWxpowder_fml(XoppyWidget):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "THMAX",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
     def unitLabels(self):

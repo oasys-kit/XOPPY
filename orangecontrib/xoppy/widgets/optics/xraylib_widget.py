@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtCore import QRect
 from PyQt5.QtWidgets import QApplication, QTextEdit, QMessageBox
-from PyQt5.QtGui import QIntValidator, QDoubleValidator, QTextCursor
+from PyQt5.QtGui import QTextCursor
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -88,7 +88,7 @@ class OWxraylib_widget(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "ELEMENT",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
@@ -155,7 +155,7 @@ class OWxraylib_widget(widget.OWWidget):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "ENERGY",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
 

@@ -1,7 +1,7 @@
 import sys, os
 import platform
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtGui import QIntValidator, QDoubleValidator
+
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
@@ -34,7 +34,7 @@ class OWxtube_w(XoppyWidget):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "VOLTAGE",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
@@ -42,7 +42,7 @@ class OWxtube_w(XoppyWidget):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "RIPPLE",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
@@ -50,7 +50,7 @@ class OWxtube_w(XoppyWidget):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "AL_FILTER",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
     def unitLabels(self):

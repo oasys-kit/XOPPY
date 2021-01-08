@@ -1,5 +1,5 @@
 from PyQt5 import QtGui, QtWidgets
-from PyQt5.QtGui import QDoubleValidator
+
 from orangewidget import widget, gui
 from orangewidget.settings import Setting
 import numpy

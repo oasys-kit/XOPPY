@@ -1,6 +1,6 @@
 import numpy
 from PyQt5.QtWidgets import QMessageBox
-from PyQt5.QtGui import QIntValidator, QDoubleValidator
+
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
@@ -84,7 +84,7 @@ class OWMlultilayer(XoppyWidget):
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "ROUGHNESS_S",
-                    valueType=float, validator=QDoubleValidator(),
+                    valueType=float,
                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
@@ -111,7 +111,7 @@ class OWMlultilayer(XoppyWidget):
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "ROUGHNESS_E",
-                    valueType=float, validator=QDoubleValidator(),
+                    valueType=float,
                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
@@ -137,7 +137,7 @@ class OWMlultilayer(XoppyWidget):
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "ROUGHNESS_O",
-                    valueType=float, validator=QDoubleValidator(),
+                    valueType=float,
                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
@@ -149,7 +149,7 @@ class OWMlultilayer(XoppyWidget):
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "THICKNESS",
-                    valueType=float, validator=QDoubleValidator(),
+                    valueType=float,
                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
@@ -157,7 +157,7 @@ class OWMlultilayer(XoppyWidget):
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "GAMMA",
-                    valueType=float, validator=QDoubleValidator(),
+                    valueType=float,
                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
@@ -165,7 +165,7 @@ class OWMlultilayer(XoppyWidget):
         idx += 1
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "NLAYERS",
-                    valueType=int, validator=QIntValidator(),
+                    valueType=int,
                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
@@ -187,7 +187,7 @@ class OWMlultilayer(XoppyWidget):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "THETA",
                           label=self.unitLabels()[idx], addSpace=False,
-                          valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                          valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         # widget index 14
@@ -195,7 +195,7 @@ class OWMlultilayer(XoppyWidget):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "THETA_END",
                           label=self.unitLabels()[idx], addSpace=False,
-                          valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                          valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         # widget index 15
@@ -203,7 +203,7 @@ class OWMlultilayer(XoppyWidget):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "THETA_N",
                           label=self.unitLabels()[idx], addSpace=False,
-                          valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                          valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #
@@ -224,7 +224,7 @@ class OWMlultilayer(XoppyWidget):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "ENERGY",
                           label=self.unitLabels()[idx], addSpace=False,
-                          valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                          valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
 
@@ -233,7 +233,7 @@ class OWMlultilayer(XoppyWidget):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "ENERGY_END",
                           label=self.unitLabels()[idx], addSpace=False,
-                          valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                          valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         # widget index 19
@@ -241,7 +241,7 @@ class OWMlultilayer(XoppyWidget):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "ENERGY_N",
                           label=self.unitLabels()[idx], addSpace=False,
-                          valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                          valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
 

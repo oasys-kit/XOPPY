@@ -1,7 +1,7 @@
 import sys
 import numpy
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtGui import QIntValidator, QDoubleValidator
+
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
@@ -60,7 +60,7 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_NPERIODS = oasysgui.lineEdit(box1, self, "NPERIODS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
@@ -68,7 +68,7 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_ULAMBDA = oasysgui.lineEdit(box1, self, "ULAMBDA",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
@@ -76,7 +76,7 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_K = oasysgui.lineEdit(box1, self, "K",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
@@ -84,7 +84,7 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_ENERGY = oasysgui.lineEdit(box1, self, "ENERGY",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
@@ -92,7 +92,7 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "PHOT_ENERGY_MIN",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
@@ -100,7 +100,7 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "PHOT_ENERGY_MAX",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
@@ -108,7 +108,7 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "NPOINTS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
         
@@ -117,7 +117,7 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "NTRAJPOINTS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
@@ -125,7 +125,7 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_CURRENT = oasysgui.lineEdit(box1, self, "CURRENT",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 

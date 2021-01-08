@@ -1,7 +1,6 @@
 import sys
 
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtGui import QIntValidator, QDoubleValidator
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -107,7 +106,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_ELECTRONENERGY = oasysgui.lineEdit(box1, self, "ELECTRONENERGY",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
@@ -115,7 +114,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_ELECTRONENERGYSPREAD = oasysgui.lineEdit(box1, self, "ELECTRONENERGYSPREAD",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
@@ -123,7 +122,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_ELECTRONCURRENT = oasysgui.lineEdit(box1, self, "ELECTRONCURRENT",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 3 
@@ -131,7 +130,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_ELECTRONBEAMSIZEH = oasysgui.lineEdit(box1, self, "ELECTRONBEAMSIZEH",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
@@ -139,7 +138,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_ELECTRONBEAMSIZEV = oasysgui.lineEdit(box1, self, "ELECTRONBEAMSIZEV",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
@@ -147,7 +146,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_ELECTRONBEAMDIVERGENCEH = oasysgui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEH",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
@@ -155,7 +154,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_ELECTRONBEAMDIVERGENCEV = oasysgui.lineEdit(box1, self, "ELECTRONBEAMDIVERGENCEV",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
@@ -163,7 +162,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_PERIODID = oasysgui.lineEdit(box1, self, "PERIODID",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
@@ -171,7 +170,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_NPERIODS = oasysgui.lineEdit(box1, self, "NPERIODS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
 
@@ -180,7 +179,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         self.id_KV = oasysgui.lineEdit(box1, self, "KV",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 9B
@@ -188,7 +187,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         self.id_KH = oasysgui.lineEdit(box1, self, "KH",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 9C
@@ -196,7 +195,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         self.id_KPHASE = oasysgui.lineEdit(box1, self, "KPHASE",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         box = oasysgui.widgetBox(tab_2, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH-15)
@@ -206,7 +205,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "DISTANCE",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         # widget <><><>
@@ -223,7 +222,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "HARMONICNUMBER",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
 
@@ -232,7 +231,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "GAPH",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 12
@@ -240,7 +239,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "GAPV",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 13
@@ -248,7 +247,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "HSLITPOINTS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 14
@@ -256,7 +255,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "VSLITPOINTS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index <><>
@@ -264,7 +263,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "PHOTONENERGYMIN",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index <><>
@@ -272,7 +271,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "PHOTONENERGYMAX",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index <><>
@@ -280,7 +279,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "PHOTONENERGYPOINTS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
 

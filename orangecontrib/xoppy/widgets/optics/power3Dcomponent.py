@@ -10,7 +10,6 @@ import xraylib
 from srxraylib.util.h5_simple_writer import H5SimpleWriter
 
 from PyQt5.QtWidgets import QApplication, QMessageBox, QSizePolicy
-from PyQt5.QtGui import QIntValidator, QDoubleValidator
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -133,7 +132,7 @@ class OWpower3Dcomponent(XoppyWidget):
             else:
                 oasysgui.lineEdit(box1, self, el,
                                   label=self.unitLabels()[idx], addSpace=False,
-                                  valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                                  valueType=float, orientation="horizontal", labelWidth=250)
             self.show_at(self.unitFlags()[idx], box1)
 
 

@@ -1,9 +1,6 @@
 import sys
 import numpy
 
-
-from PyQt5.QtGui import QIntValidator, QDoubleValidator
-
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
@@ -107,7 +104,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_ELECTRONENERGY = oasysgui.lineEdit(box1, self, "ELECTRONENERGY",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
 
@@ -116,7 +113,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         self.id_ELECTRONCURRENT = oasysgui.lineEdit(box1, self, "ELECTRONCURRENT",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
 
@@ -137,7 +134,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         self.id_PERIODID = oasysgui.lineEdit(box1, self, "PERIODID",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 8
@@ -145,7 +142,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         self.id_NPERIODS = oasysgui.lineEdit(box1, self, "NPERIODS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
 
@@ -154,7 +151,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         self.id_KV = oasysgui.lineEdit(box1, self, "KV",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
 
@@ -202,7 +199,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "DISTANCE",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 13
@@ -210,7 +207,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "HSLITPOINTS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 14
@@ -218,7 +215,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "VSLITPOINTS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index <><>
@@ -226,7 +223,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "PHOTONENERGYMIN",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index <><>
@@ -234,7 +231,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "PHOTONENERGYMAX",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
         #widget index <><>
@@ -242,7 +239,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "PHOTONENERGYPOINTS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
 
@@ -272,7 +269,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box)
         oasysgui.lineEdit(box1, self, "NTRAJPOINTS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
 

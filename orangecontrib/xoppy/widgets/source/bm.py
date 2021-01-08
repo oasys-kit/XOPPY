@@ -1,7 +1,6 @@
 import sys
 import numpy
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtGui import QIntValidator, QDoubleValidator
 
 from orangewidget import gui
 from oasys.widgets import gui as oasysgui, congruence
@@ -91,7 +90,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_MACHINE_R_M = oasysgui.lineEdit(box1, self, "MACHINE_R_M",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 4 
@@ -99,7 +98,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_BFIELD_T = oasysgui.lineEdit(box1, self, "BFIELD_T",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
@@ -107,7 +106,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_BEAM_ENERGY_GEV = oasysgui.lineEdit(box1, self, "BEAM_ENERGY_GEV",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 6 
@@ -115,7 +114,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         self.id_CURRENT_A = oasysgui.lineEdit(box1, self, "CURRENT_A",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
@@ -123,7 +122,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "HOR_DIV_MRAD",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
@@ -140,7 +139,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "PHOT_ENERGY_MIN",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
@@ -148,7 +147,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "PHOT_ENERGY_MAX",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
@@ -156,7 +155,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "NPOINTS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 12 
@@ -173,7 +172,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "PSI_MRAD_PLOT",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 14 
@@ -181,7 +180,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "PSI_MIN",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 15 
@@ -189,7 +188,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "PSI_MAX",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=float, validator=QDoubleValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=float, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 16 
@@ -197,7 +196,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "PSI_NPOINTS",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal", labelWidth=250)
+                    valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
 
         #widget index 17
