@@ -81,7 +81,7 @@ class OWxinpro(XoppyWidget):
         box1 = gui.widgetBox(box) 
         oasysgui.lineEdit(box1, self, "MILLER_INDEX_K",
                      label=self.unitLabels()[idx], addSpace=False,
-                    valueType=int orientation="horizontal", labelWidth=250)
+                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 5 
