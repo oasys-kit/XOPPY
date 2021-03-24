@@ -103,7 +103,7 @@ def xoppy_calc_xtube_w(VOLTAGE=100.0,RIPPLE=0.0,AL_FILTER=0.0):
 
 
         if platform.system() == "Windows":
-            command = os.path.join(locations.home_bin(),'tasmip.exe < xoppy.inp')
+            command = "\"" + os.path.join(locations.home_bin(),'tasmip.exe\" < xoppy.inp')
         else:
             command = "'" + os.path.join(locations.home_bin(), 'tasmip') + "' < xoppy.inp"
 

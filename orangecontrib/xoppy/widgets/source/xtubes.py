@@ -88,7 +88,7 @@ def xoppy_calc_xtubes(ITUBE=0,VOLTAGE=30.0):
             f.write("%d\n%f\n"%(ITUBE+1,VOLTAGE))
 
         if platform.system() == "Windows":
-            command = os.path.join(locations.home_bin(),'xtubes.exe < xoppy.inp')
+            command = "\"" + os.path.join(locations.home_bin(),'xtubes.exe\" < xoppy.inp')
         else:
             command = "'" + os.path.join(locations.home_bin(), "xtubes") + "' < xoppy.inp"
 

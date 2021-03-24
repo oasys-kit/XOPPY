@@ -239,7 +239,7 @@ def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,M
 
 
         if platform.system() == "Windows":
-            command = os.path.join(locations.home_bin(),'inpro.exe < xoppy.inp')
+            command = "\"" + os.path.join(locations.home_bin(),'inpro.exe\" < xoppy.inp')
         else:
             command = "'" + os.path.join(locations.home_bin(), 'inpro') + "' < xoppy.inp"
         print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))

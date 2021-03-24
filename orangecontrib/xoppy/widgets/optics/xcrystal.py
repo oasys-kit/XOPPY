@@ -483,7 +483,7 @@ class OWxcrystal(XoppyWidget):
 
 
         if platform.system() == "Windows":
-            command = os.path.join(locations.home_bin(),'diff_pat.exe < xoppy.inp')
+            command = "\"" + os.path.join(locations.home_bin(), 'diff_pat.exe\" < xoppy.inp')
         else:
             command = "'" + os.path.join(locations.home_bin(), 'diff_pat') + "' < xoppy.inp"
         print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))

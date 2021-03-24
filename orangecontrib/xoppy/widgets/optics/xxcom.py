@@ -240,7 +240,7 @@ def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:
             f.close()
 
         if platform.system() == "Windows":
-            command = os.path.join(locations.home_bin(),'xcom.exe < xoppy.inp')
+            command = "\"" + os.path.join(locations.home_bin(),'xcom.exe\" < xoppy.inp')
         else:
             command = "'" + os.path.join(locations.home_bin(),'xcom') + "' < xoppy.inp"
         print("Running command '%s' in directory: %s "%(command,locations.home_bin_run()))

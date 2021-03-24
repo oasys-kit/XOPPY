@@ -365,7 +365,7 @@ class OWxtc(XoppyWidget):
 
 
         if platform.system() == "Windows":
-            command = os.path.join(locations.home_bin(),'tc.exe')
+            command = "\"" + os.path.join(locations.home_bin(),'tc.exe') + "\""
         else:
             command = "'" + os.path.join(locations.home_bin(), 'tc') + "'"
 

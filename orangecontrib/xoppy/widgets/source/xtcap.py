@@ -441,7 +441,7 @@ class OWtcap(XoppyWidget):
 
 
         if platform.system() == "Windows":
-            command = os.path.join(locations.home_bin(),'tcap.exe')
+            command = "\"" + os.path.join(locations.home_bin(),'tcap.exe') + "\""
         else:
             command = "'" + os.path.join(locations.home_bin(), 'tcap') + "'"
 

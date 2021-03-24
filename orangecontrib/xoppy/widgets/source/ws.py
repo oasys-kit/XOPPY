@@ -281,7 +281,7 @@ def xoppy_calc_ws(ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.0,KX=0.0,KY=8.73999977111
 
         
         if platform.system() == "Windows":
-            command = os.path.join(locations.home_bin(),'ws.exe')
+            command = "\"" + os.path.join(locations.home_bin(),'ws.exe') + "\""
         else:
             command = "'" + os.path.join(locations.home_bin(),'ws') + "'"
         print("Running command '%s' in directory: %s \n"%(command, locations.home_bin_run()))
