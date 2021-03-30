@@ -12,6 +12,8 @@ from orangecontrib.xoppy.util.xoppy_xraylib_util import crystal_fh, bragg_calc
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 from xraylib import Crystal_GetCrystalsList
+from orangecontrib.xoppy.util.crystal_shadow import crystal_shadow
+import math
 
 class OWxfh(XoppyWidget):
     name = "Fh"
@@ -34,7 +36,9 @@ class OWxfh(XoppyWidget):
     NPOINTS = Setting(20)
     DUMP_TO_FILE = Setting(0)  # No
     FILE_NAME = Setting("Fh.dat")
-
+#X.J. Yu Singapore Synchrotorn Ligth Source
+    ANISO_SEL = Setting(0)
+#-----------------------------------
     def build_gui(self):
 
         box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
@@ -129,7 +133,15 @@ class OWxfh(XoppyWidget):
         gui.lineEdit(box1, self, "FILE_NAME",
                      label=self.unitLabels()[idx], addSpace=True)
         self.show_at(self.unitFlags()[idx], box1)
-
+#X.J. Yu Singapore Synchrotorn Ligth Source
+        #widget index 14
+        idx += 1 
+        box1 = gui.widgetBox(box) 
+        gui.comboBox(box1, self, "ANISO_SEL",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    items=['ISOTROPIC', 'ANISOTROPIC'],
+                    valueType=int, orientation="horizontal", labelWidth=150)
+        self.show_at(self.unitFlags()[idx], box1) 
 
         gui.rubber(self.controlArea)
 
@@ -137,11 +149,11 @@ class OWxfh(XoppyWidget):
          return ['Crystal:','h miller index','k miller index','l miller index',
                  'Plot:','Temperature factor [see help]:',
                  'From Energy [eV]','To energy [eV]','Number of points',
-                 'Dump to file','File name']
+                 'Dump to file','File name','Temperature factor type']
 
     def unitFlags(self):
          return ['True','True','True','True','True','True','True','True','True',
-                  "True","self.DUMP_TO_FILE == 1"]
+                  "True","self.DUMP_TO_FILE == 1",'True']
 
     def plotOptionList(self):
         return ["Photon energy [eV]",
@@ -222,16 +234,19 @@ class OWxfh(XoppyWidget):
         TEMPER = self.TEMPER
         ENERGY = self.ENERGY
         ENERGY_END = self.ENERGY_END
-        NPOINTS = self.NPOINTS
+        NPOINTS = self.NPOINTS + 1
+        estep = float((ENERGY_END - ENERGY)/(NPOINTS-1)) #X.J.Yu        
 
         descriptor = Crystal_GetCrystalsList()[ILATTICE]
         print("Using crystal descriptor: ",descriptor)
         bragg_dictionary = bragg_calc(descriptor=descriptor,hh=HMILLER,kk=KMILLER,ll=LMILLER,temper=TEMPER,
-                                                emin=ENERGY,emax=ENERGY_END,estep=50.0,fileout=None)
+                                                emin=ENERGY,emax=ENERGY_END,estep=estep,fileout=None)   #50eV, replaced with estep
 
         energy = numpy.linspace(ENERGY,ENERGY_END,NPOINTS)
 
-        out = numpy.zeros((25,NPOINTS))
+        #out = numpy.zeros((25,NPOINTS))
+        #X.J. Yu, slsyxj@nus.edu.sg
+        out = numpy.zeros((len(self.plotOptionList()),NPOINTS))
 
         info = ""
         for i,ienergy in enumerate(energy):
