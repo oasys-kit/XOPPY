@@ -1353,12 +1353,26 @@ def bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=15000.
 
     atom = cryst['atom']
     list_Zatom = [ atom[i]['Zatom'] for i in range(len(atom))]
+    number_of_atoms = len(list_Zatom)
     list_fraction = [ atom[i]['fraction'] for i in range(len(atom))]
+    try:
+        list_charge = [atom[i]['charge'] for i in range(len(atom))]
+    except:
+        list_charge = [0.0] * number_of_atoms
     list_x = [ atom[i]['x'] for i in range(len(atom))]
     list_y = [ atom[i]['y'] for i in range(len(atom))]
     list_z = [ atom[i]['z'] for i in range(len(atom))]
 
-    unique_Zatom = set(list_Zatom)
+    # creates an is that contains Z, occupation and charge, that will
+    # define the different sites.
+    IDs = []
+    number_of_atoms = len(list_Zatom)
+    for i in range(number_of_atoms):
+        IDs.append("Z:%2d-F:%g-C:%g" % (list_Zatom[i],list_fraction[i], list_charge[i]))
+
+    unique_indexes = [IDs.index(x) for x in set(IDs)]
+
+    unique_Zatom = [ list_Zatom[i] for i in unique_indexes]
 
     nbatom = (len(unique_Zatom))
     txt += "# Number of different element-sites in unit cell NBATOM:\n%d \n" % nbatom
@@ -1370,11 +1384,10 @@ def bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=15000.
     txt += "\n"
     output_dictionary["atnum"] = list(unique_Zatom)
 
-    #TODO: manage correctly fraction, the ones in non-representative atoms are ignored.
     txt += "# for each element-site, the occupation factor\n"
     unique_fraction = []
-    for i in range(len(unique_Zatom)):
-        unique_fraction.append(list_fraction[i])
+    for i in range(len(unique_indexes)):
+        unique_fraction.append(list_fraction[unique_indexes[i]])
         txt += "%g "%(unique_fraction[i])
     txt += "\n"
     output_dictionary["fraction"] = unique_fraction
@@ -1382,7 +1395,7 @@ def bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=15000.
 
     txt += "# for each element-site, the temperature factor\n" # temperature parameter
     list_temper = []
-    for i in range(len(unique_Zatom)):
+    for i in range(len(unique_indexes)):
         txt += "%5.3f "%temper
         list_temper.append(temper)
     txt += "\n"
@@ -1393,19 +1406,21 @@ def bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=15000.
     #
     txt += "# for each type of element-site, COOR_NR=G_0\n"
     list_multiplicity = []
-    for z in unique_Zatom:
-        txt += "%d "%list_Zatom.count(z)
-        list_multiplicity.append(list_Zatom.count(z))
+    for i in range(len(unique_indexes)):
+        id = IDs[unique_indexes[i]]
+        txt += "%d "%IDs.count(id)
+        list_multiplicity.append(IDs.count(id))
     txt += "\n"
     output_dictionary["G_0"] = list_multiplicity
 
     txt += "# for each type of element-site, G and G_BAR (both complex)\n"
     list_g = []
     list_g_bar = []
-    for z in unique_Zatom:
+    for i in range(len(unique_indexes)):
+        id = IDs[unique_indexes[i]]
         ga = 0.0 + 0j
-        for i,zz in enumerate(list_Zatom):
-            if zz == z:
+        for i,zz in enumerate(IDs):
+            if zz == id:
                 ga += numpy.exp(2j*numpy.pi*(hh*list_x[i]+kk*list_y[i]+ll*list_z[i]))
         txt += "(%g,%g) \n"%(ga.real,ga.imag)
         txt += "(%g,%g) \n"%(ga.real,-ga.imag)
@@ -1419,32 +1434,30 @@ def bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=15000.
     #
     txt += "# for each type of element-site, the number of f0 coefficients followed by them\n"
     list_f0 = []
-    for zeta in unique_Zatom:
+    for i in range(len(unique_indexes)):
+        zeta = list_Zatom[unique_indexes[i]]
         tmp = f0_xop(zeta)
-        # print(("%g "*11)%(tmp.tolist()))
         txt += ("11 "+"%g "*11+"\n")%(tuple(tmp))
         list_f0.append(tmp.tolist())
     output_dictionary["f0coeff"] = list_f0
 
-    # f.write("# -----------------------------------------------\n")
 
-
-    # zetas = numpy.array([atom[0]["Zatom"],atom[7]["Zatom"]])
     npoint  = int( (emax - emin)/estep + 1 )
     txt += "# The number of energy points NPOINT: \n"
     txt +=  ("%i \n") % npoint
     output_dictionary["npoint"] = npoint
     txt += "# for each energy point, energy, F1(1),F2(1),...,F1(nbatom),F2(nbatom)\n"
     list_energy = []
-    out_f1 = numpy.zeros( (len(unique_Zatom),npoint), dtype=float)
-    out_f2 = numpy.zeros( (len(unique_Zatom),npoint), dtype=float)
-    out_fcompton = numpy.zeros( (len(unique_Zatom),npoint), dtype=complex)
+    out_f1 = numpy.zeros( (len(unique_indexes),npoint), dtype=float)
+    out_f2 = numpy.zeros( (len(unique_indexes),npoint), dtype=float)
+    out_fcompton = numpy.zeros( (len(unique_indexes),npoint), dtype=complex)
     for i in range(npoint):
         energy = (emin+estep*i)
         txt += ("%20.11e \n") % (energy)
         list_energy.append(energy)
 
-        for j,zeta in enumerate(unique_Zatom):
+        for j in range(len(unique_indexes)):
+            zeta = list_Zatom[unique_indexes[j]]
             f1a = xraylib.Fi(int(zeta),energy*1e-3)
             f2a = -xraylib.Fii(int(zeta),energy*1e-3) # TODO: check the sign!!
             txt +=  (" %20.11e %20.11e 1.000 \n")%(f1a, f2a)
@@ -1463,8 +1476,6 @@ def bragg_calc(descriptor="Si",hh=1,kk=1,ll=1,temper=1.0,emin=5000.0,emax=15000.
             print("File written to disk: %s" % fileout)
 
     return output_dictionary
-
-
 
 
 def crystal_fh(input_dictionary,phot_in,theta=None,forceratio=0):
@@ -1491,6 +1502,7 @@ def crystal_fh(input_dictionary,phot_in,theta=None,forceratio=0):
     energy    = numpy.array(input_dictionary["energy"])
     fp        = numpy.array(input_dictionary["f1"])
     fpp       = numpy.array(input_dictionary["f2"])
+    fraction = numpy.array(input_dictionary["fraction"])
 
 
 
@@ -1524,8 +1536,6 @@ def crystal_fh(input_dictionary,phot_in,theta=None,forceratio=0):
             for i in range(icentral):
                 F0[j] += f0coeff[j,i] * numpy.exp(-1.0*f0coeff[j,i+icentral+1]*ratio**2)
 
-            # print("F0: ",F0,xraylib.FF_Rayl(int(atnum[j]),ratio))
-
 
         # ;C
         # ;C Interpolate for the atomic scattering factor.
@@ -1545,7 +1555,6 @@ def crystal_fh(input_dictionary,phot_in,theta=None,forceratio=0):
             (phot - energy[nener]) / (energy[nener+1] - energy[nener])
             F2[j] = fpp[j,nener] + (fpp[j,nener+1] - fpp[j,nener]) * \
             (phot - energy[nener]) / (energy[nener+1] - energy[nener])
-            # print("F1,F2",F1,F2)
 
         r_lam0 = toangstroms * 1e-8 / phot
         for j in range(nbatom):
@@ -1564,15 +1573,15 @@ def crystal_fh(input_dictionary,phot_in,theta=None,forceratio=0):
 
         TEMPER_AVE = 1.0
         for j in range(nbatom):
-            FH  += G[j] *   F[j] * 1.0
-            FHr += G[j] * (F0[j] + F1[j])* 1.0
-            FHi += G[j] *  F2[j] * 1.0
-            F_0 += G_0[j] * ( atnum[j] + F1[j] + 1j * F2[j] ) * 1.0
+            FH  += fraction[j] * (G[j] *   F[j] * 1.0)
+            FHr += fraction[j] * (G[j] * (F0[j] + F1[j])* 1.0)
+            FHi += fraction[j] * (G[j] *  F2[j] * 1.0)
+            F_0 += fraction[j] * (G_0[j] * ( atnum[j] + F1[j] + 1j * F2[j] ) * 1.0)
             TEMPER_AVE *= (temper[j])**(G_0[j]/(G_0.sum()))
 
-            FH_BAR  += (G_BAR[j] * F[j] * 1.0)
-            FH_BARr += (G_BAR[j] * (F0[j]  + F1[j]) *1.0)
-            FH_BARi += (G_BAR[j] *  F2[j] * 1.0)
+            FH_BAR  += fraction[j] * ((G_BAR[j] * F[j] * 1.0))
+            FH_BARr += fraction[j] * ((G_BAR[j] * (F0[j]  + F1[j]) *1.0))
+            FH_BARi += fraction[j] * ((G_BAR[j] *  F2[j] * 1.0))
             # print("TEMPER_AVE: ",TEMPER_AVE)
 
 
@@ -2274,5 +2283,11 @@ if __name__ == "__main__":
     # for el in list1:
     #     print(el)
 
-    print(Refractive_Index_Re("H2O", 12.4 , 1.0), Refractive_Index_Re("Water, Liquid", 12.4, 1.0))
-    print(Refractive_Index_Im("H2O", 12.4 , 1.0), Refractive_Index_Im("Water, Liquid", 12.4, 1.0))
+    # print(Refractive_Index_Re("H2O", 12.4 , 1.0), Refractive_Index_Re("Water, Liquid", 12.4, 1.0))
+    # print(Refractive_Index_Im("H2O", 12.4 , 1.0), Refractive_Index_Im("Water, Liquid", 12.4, 1.0))
+
+    dic2a = bragg_calc(descriptor="Muscovite", hh=1, kk=1, ll=1, temper=1.0, emin=7900.0, emax=8100.0, estep=5.0)
+    dic2b = crystal_fh(dic2a, 8000.0)
+    assert ( numpy.abs(dic2b["F_0"].real - 801.722) < 0.1)
+    assert (numpy.abs(dic2b["F_0"].imag - 13.08712) < 0.011)
+
