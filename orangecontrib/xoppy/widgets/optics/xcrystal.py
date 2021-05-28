@@ -465,13 +465,39 @@ class OWxcrystal(XoppyWidget):
                 if ANISOTROPY == 0:
                     f.write("%g\n"%POISSON)
                 elif ANISOTROPY == 1:
-                    f.write("%d\n"%CRYSTAL_MATERIAL)
+                    # elas%crystalindex =  irint('CrystalIndex: 0,1,2=Si,3=Ge,4=Diamond: ')
+                    if descriptor == "Si":
+                        f.write("0\n")
+                    elif descriptor == "Si2":
+                        f.write("1\n")
+                    elif descriptor == "Si_NIST":
+                        f.write("2\n")
+                    elif descriptor == "Ge":
+                        f.write("3\n")
+                    elif descriptor == "Diamond":
+                        f.write("4\n")
+                    else:
+                        raise Exception("Cannot calculate anisotropy data for %s this crystal. Use Si, Ge, Diamond." % descriptor)
+
                     f.write("%g\n"%ASYMMETRY_ANGLE)
                     f.write("%d\n"%MILLER_INDEX_H)
                     f.write("%d\n"%MILLER_INDEX_K)
                     f.write("%d\n"%MILLER_INDEX_L)
                 elif ANISOTROPY == 2:
-                    f.write("%d\n"%CRYSTAL_MATERIAL)
+                    # elas%crystalindex =  irint('CrystalIndex: 0,1,2=Si,3=Ge,4=Diamond: ')
+                    if descriptor == "Si":
+                        f.write("0\n")
+                    elif descriptor == "Si2":
+                        f.write("1\n")
+                    elif descriptor == "Si_NIST":
+                        f.write("2\n")
+                    elif descriptor == "Ge":
+                        f.write("3\n")
+                    elif descriptor == "Diamond":
+                        f.write("4\n")
+                    else:
+                        raise Exception("Cannot calculate anisotropy data for %s this crystal. Use Si, Ge, Diamond." % descriptor)
+
                     f.write("%g\n"%ASYMMETRY_ANGLE)
                     # TODO: check syntax for CUT: Cut syntax is: valong_X valong_Y valong_Z ; vnorm_X vnorm_Y vnorm_Z ; vperp_x vperp_Y vperp_Z
                     f.write("%s\n"%CUT.split(";")[0])
