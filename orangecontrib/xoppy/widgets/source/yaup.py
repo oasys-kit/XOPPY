@@ -550,63 +550,147 @@ class OWyaup(XoppyWidget):
         return calculation_output
 
     def plot_results(self, calculated_data, progressBarValue=80):
-        pass
-        # if not self.view_type == 0:
-        #     if not calculated_data is None:
-        #         self.view_type_combo.setEnabled(False)
-        #
-        #
-        #         xoppy_data_harmonics = calculated_data.get_content("xoppy_data_harmonics")
-        #
-        #         titles = self.getTitles()
-        #         xtitles = self.getXTitles()
-        #         ytitles = self.getYTitles()
-        #
-        #         progress_bar_step = (100-progressBarValue)/len(titles)
-        #
-        #         for index in range(0, len(titles)):
-        #             x_index, y_index = self.getVariablesToPlot()[index]
-        #             log_x, log_y = self.getLogPlot()[index]
-        #
-        #             if not self.plot_canvas[index] is None:
-        #                 self.plot_canvas[index].clear()
-        #
-        #             try:
-        #                 for h_index in range(0, len(xoppy_data_harmonics)):
-        #
-        #                     self.plot_histo(xoppy_data_harmonics[h_index][1][:, x_index],
-        #                                     xoppy_data_harmonics[h_index][1][:, y_index],
-        #                                     progressBarValue + ((index+1)*progress_bar_step),
-        #                                     tabs_canvas_index=index,
-        #                                     plot_canvas_index=index,
-        #                                     title=titles[index],
-        #                                     xtitle=xtitles[index],
-        #                                     ytitle=ytitles[index],
-        #                                     log_x=log_x,
-        #                                     log_y=log_y,
-        #                                     harmonic=xoppy_data_harmonics[h_index][0],
-        #                                     control=True)
-        #
-        #                 self.plot_canvas[index].addCurve(numpy.zeros(1),
-        #                                                  numpy.array([max(xoppy_data_harmonics[h_index][1][:, y_index])]),
-        #                                                  "Click on curve to highlight it",
-        #                                                  xlabel=xtitles[index], ylabel=ytitles[index],
-        #                                                  symbol='', color='white')
-        #
-        #                 self.plot_canvas[index].setActiveCurve("Click on curve to highlight it")
-        #                 self.plot_canvas[index].getLegendsDockWidget().setFixedHeight(150)
-        #                 self.plot_canvas[index].getLegendsDockWidget().setVisible(True)
-        #
-        #                 self.tabs.setCurrentIndex(index)
-        #             except Exception as e:
-        #                 self.view_type_combo.setEnabled(True)
-        #
-        #                 raise Exception("Data not plottable: bad content\n" + str(e))
-        #
-        #
-        #         self.view_type_combo.setEnabled(True)
-        #     else:
-        #         raise Exception("Empty Data")
+
+        if not self.view_type == 0:
+            if not calculated_data is None:
+                self.view_type_combo.setEnabled(False)
+
+                #
+                #
+                #
+                xoppy_data_bfield = calculated_data.get_content("xoppy_data_bfield")
+
+                self.plot_histo(xoppy_data_bfield[:, 0],
+                                xoppy_data_bfield[:, -1],
+                                progressBarValue + 10,
+                                tabs_canvas_index=0,
+                                plot_canvas_index=0,
+                                title="BFIELD",
+                                xtitle="X coordinate [cm]",
+                                ytitle="Total field intensity [T]",
+                                # log_x=log_x,
+                                # log_y=log_y,
+                                # harmonic=xoppy_data_harmonics[h_index][0],
+                                control=True)
+
+                #
+                #
+                #
+                xoppy_data_traj = calculated_data.get_content("xoppy_data_traj")
+
+                self.plot_histo(xoppy_data_traj[:, 0],
+                                xoppy_data_traj[:, 2],
+                                progressBarValue + 10,
+                                tabs_canvas_index=1,
+                                plot_canvas_index=1,
+                                title="TRAJECTORY",
+                                xtitle="s coordinate [cm]",
+                                ytitle="x [cm]",
+                                # log_x=log_x,
+                                # log_y=log_y,
+                                # harmonic=xoppy_data_harmonics[h_index][0],
+                                control=True)
+
+
+                #
+                #
+                #
+                xoppy_data = calculated_data.get_content("xoppy_data")
+
+
+                self.plot_histo(xoppy_data[:, 0],
+                                xoppy_data[:, -1],
+                                progressBarValue + 30,
+                                tabs_canvas_index=2,
+                                plot_canvas_index=2,
+                                title="FLUX",
+                                xtitle="Photon energy [eV]",
+                                ytitle="Flux XXXX",
+                                # log_x=log_x,
+                                # log_y=log_y,
+                                # harmonic=xoppy_data_harmonics[h_index][0],
+                                control=True)
+
+                self.plot_histo(xoppy_data[:, 0],
+                                xoppy_data[:, -1],
+                                progressBarValue + 40,
+                                tabs_canvas_index=3,
+                                plot_canvas_index=3,
+                                title="FLUX",
+                                xtitle="Photon energy [eV]",
+                                ytitle="Spectral Power [W/eV]",
+                                # log_x=log_x,
+                                # log_y=log_y,
+                                # harmonic=xoppy_data_harmonics[h_index][0],
+                                control=True)
+
+
+                self.plot_histo(xoppy_data[:, 0],
+                                xoppy_data[:, -1],
+                                progressBarValue + 50,
+                                tabs_canvas_index=4,
+                                plot_canvas_index=4,
+                                title="CUMULATED SPECTRAL POWER",
+                                xtitle="Photon energy [eV]",
+                                ytitle="Flux XXXX",
+                                # log_x=log_x,
+                                # log_y=log_y,
+                                # harmonic=xoppy_data_harmonics[h_index][0],
+                                control=True)
+
+
+
+
+
+            #     titles = self.getTitles()
+            #     xtitles = self.getXTitles()
+            #     ytitles = self.getYTitles()
+            #
+            #     progress_bar_step = (100-progressBarValue)/len(titles)
+            #
+            #     for index in range(0, len(titles)):
+            #         x_index, y_index = self.getVariablesToPlot()[index]
+            #         log_x, log_y = self.getLogPlot()[index]
+            #
+            #         if not self.plot_canvas[index] is None:
+            #             self.plot_canvas[index].clear()
+            #
+            #         try:
+            #             for h_index in range(0, len(xoppy_data_harmonics)):
+            #
+            #                 self.plot_histo(xoppy_data_harmonics[h_index][1][:, x_index],
+            #                                 xoppy_data_harmonics[h_index][1][:, y_index],
+            #                                 progressBarValue + ((index+1)*progress_bar_step),
+            #                                 tabs_canvas_index=index,
+            #                                 plot_canvas_index=index,
+            #                                 title=titles[index],
+            #                                 xtitle=xtitles[index],
+            #                                 ytitle=ytitles[index],
+            #                                 log_x=log_x,
+            #                                 log_y=log_y,
+            #                                 harmonic=xoppy_data_harmonics[h_index][0],
+            #                                 control=True)
+            #
+            #             self.plot_canvas[index].addCurve(numpy.zeros(1),
+            #                                              numpy.array([max(xoppy_data_harmonics[h_index][1][:, y_index])]),
+            #                                              "Click on curve to highlight it",
+            #                                              xlabel=xtitles[index], ylabel=ytitles[index],
+            #                                              symbol='', color='white')
+            #
+            #             self.plot_canvas[index].setActiveCurve("Click on curve to highlight it")
+            #             self.plot_canvas[index].getLegendsDockWidget().setFixedHeight(150)
+            #             self.plot_canvas[index].getLegendsDockWidget().setVisible(True)
+            #
+            #             self.tabs.setCurrentIndex(index)
+            #         except Exception as e:
+            #             self.view_type_combo.setEnabled(True)
+            #
+            #             raise Exception("Data not plottable: bad content\n" + str(e))
+            #
+            #
+            #     self.view_type_combo.setEnabled(True)
+            # else:
+            #     raise Exception("Empty Data")
 
     # def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
     #                log_x=False, log_y=False, harmonic=1, color='blue', control=True):
@@ -631,23 +715,24 @@ class OWyaup(XoppyWidget):
 
     def getTitles(self):
         return ["B field", "Trajectory", "Flux", "Spectral power","Cumulated spectral power"]
-
-    def getXTitles(self):
-        return ["s []", "s []", "Energy (eV)", "Energy (eV)", "Energy (eV)"]
-
-    def getYTitles(self):
-        return ["B [T]", "x []", "Flux (photons/s/0.1%bw)","Spectral power [W/eV]","Cumulated power W",]
-
-
-    def getVariablesToPlot(self):
-        return [(1, 2), (1, 3), (1, 4), (1, 5), (1, 6)]
-
-    def getLogPlot(self):
-        return[(False, False), (False, False), (False, False), (False, False), (False, False)]
+    #
+    # def getXTitles(self):
+    #     return ["s []", "s []", "Energy (eV)", "Energy (eV)", "Energy (eV)"]
+    #
+    # def getYTitles(self):
+    #     return ["B [T]", "x []", "Flux (photons/s/0.1%bw)","Spectral power [W/eV]","Cumulated power W",]
+    #
+    # def getVariablesToPlot(self):
+    #     return [(1, 2), (1, 3), (1, 4), (1, 5), (1, 6)]
+    #
+    # def getLogPlot(self):
+    #     return[(False, False), (False, False), (False, False), (False, False), (False, False)]
 
     def xoppy_calc_yaup(self):
 
-        for file in ["bfield.inp","bfield.out","yaup.inp","yaup.out", "u2txt.inp"]:
+        for file in ["bfield.inp","bfield.out","bfield.dat","u2txt_bfield.inp",
+                     "yaup.inp", "yaup*.out","undul.bf",
+                     "u2txt_traj.inp","undul_traj.dat"]:
             try:
                 os.remove(os.path.join(locations.home_bin_run(),file))
             except:
@@ -668,44 +753,61 @@ class OWyaup(XoppyWidget):
                     f.write("%g\n" % (self.GAPTAP))
                 f.write("%s\n" % (self.FILE))
 
-            if platform.system() == "Windows":
-                command = "\"" + os.path.join(locations.home_bin(),'bfield.exe') + "\""
-            else:
-                command = "'" + os.path.join(locations.home_bin(), 'bfield') + "'"
+            self.run_external_binary(binary="bfield", post_command="< bfield.inp > bfield.out", info="Output file: bfield.out")
 
-            command += " < bfield.inp > bfield.out"
 
-            print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
-            print("\n--------------------------------------------------------\n")
-            os.system(command)
-            print("Output file: %s"%("bfield.out"))
-            print("\n--------------------------------------------------------\n")
 
-            with open("u2txt.inp", "wt") as f:
+            with open("u2txt_bfield.inp", "wt") as f:
                 f.write("1\n")
                 f.write("%s\n" % (self.FILE))
                 f.write("bfield.dat\n")
 
-            if platform.system() == "Windows":
-                command = "\"" + os.path.join(locations.home_bin(),'u2txt.exe') + "\""
-            else:
-                command = "'" + os.path.join(locations.home_bin(), 'u2txt') + "'"
+            self.run_external_binary(binary="u2txt", post_command="< u2txt_bfield.inp", info="Output file should be bfield.dat")
 
-            command += " < u2txt.inp"
-
-            print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
-            print("\n--------------------------------------------------------\n")
-            os.system(command)
-            print("Output file should be: %s"%("bfield.dat"))
-            print("\n--------------------------------------------------------\n")
 
 
         elif self.BFIELD_FLAG == 2:
             pass
 
+        input = "\n"
+        input += ";Magnet parameters\n"
+        input += "PERIOD=%g NPER=%d NPTS=%d\n" % (self.PERIOD, self.NPER, self.NPTS)
+        input += "\n"
+        input += ";Photon energy\n"
+        input += "EMIN=%g EMAX=%g NE=%d\n" % (self.EMIN, self.EMAX, self.NENERGY)
+        input += "\n"
+        input += ";Storage ring\n"
+        input += "ENERGY=%g CURRENT=%g\n" % (self.ENERGY, self.CUR)
+        input += " SIGX=%g SIGY=%g\n" % (self.SIGX, self.SIGY)
+        input += "SIGX1=%g SIGY1=%g\n" % (self.SIGX1, self.SIGY1)
+        input += "\n"
+        input += ";Pinhole (mm or mrad)\n"
+        input += "DISTANCE=%g\n" % self.D
+        input += "XPC=%g XPS=%g NXP=%d\n" % (self.XPC, self.XPS, self.NXP)
+        input += "YPC=%g YPS=%g NYP=%d\n" % (self.YPC, self.YPS, self.NYP)
+        input += "\n"
+        input += ";Calculation parameter\n"
+        input += "MODE=%d NSIG=%d   TRAJECTORY=new+keep\n" % (self.MODE, self.NSIG)
+        input += "XSYM=yes  HANNING=%d\n" % self.HANNING
+        input += "\n"
+        input += ";Filenames\n"
+        input += 'BFILE="undul.bf"\n'
+        input += 'TFILE="undul.traj"\n'
+        input += "\n"
+        input += "END\n"
 
         with open("yaup.inp", "wt") as f:
-            f.write("TS called from xoppy\n")
+            f.write(input)
+
+        self.run_external_binary(binary="yaup", post_command="", info="Output file should be XXX")
+
+        with open("u2txt_traj.inp", "wt") as f:
+            f.write("2\n")
+            f.write("%s\n" % (self.TFILE))
+            f.write("undul_traj.dat\n")
+
+        self.run_external_binary(binary="u2txt", post_command="< u2txt_traj.inp",
+                                 info="Output file should be undul_traj.dat")
 
 
 
@@ -771,15 +873,16 @@ class OWyaup(XoppyWidget):
         #     harmonics_data[index][1] = numpy.loadtxt(harmonics_data[index][1])
         #
         # #send exchange
-        # calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
-        #
-        # try:
-        #     calculated_data.add_content("xoppy_data", data)
-        #     calculated_data.add_content("xoppy_data_harmonics", harmonics_data)
-        #     calculated_data.add_content("plot_x_col", 1)
-        #     calculated_data.add_content("plot_y_col", 2)
-        # except:
-        #     pass
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+
+        try:
+            calculated_data.add_content("xoppy_data", numpy.loadtxt("yaup-0.out",skiprows=33))
+            calculated_data.add_content("xoppy_data_bfield", numpy.loadtxt("bfield.dat",skiprows=3))
+            calculated_data.add_content("xoppy_data_traj", numpy.loadtxt("undul_traj.dat",skiprows=2))
+            calculated_data.add_content("plot_x_col", 1)
+            calculated_data.add_content("plot_y_col", 2)
+        except:
+            pass
         # try:
         #     calculated_data.add_content("labels",["Energy (eV) without emittance", "Energy (eV) with emittance",
         #                               "Brilliance (ph/s/mrad^2/mm^2/0.1%bw)","Ky","Total Power (W)","Power density (W/mr^2)"])
@@ -790,8 +893,26 @@ class OWyaup(XoppyWidget):
         # except:
         #     pass
 
-        calculated_data = None
         return calculated_data
+
+    def run_external_binary(self, binary="ls", post_command="", info=""):
+
+        if platform.system() == "Windows":
+            command = "\"" + os.path.join(locations.home_bin(), '%s.exe' % binary) + "\""
+        else:
+            command = "'" + os.path.join(locations.home_bin(), binary) + "'"
+
+        command += " " + post_command # "" < bfield.inp > bfield.out"
+
+        print("Running command '%s' in directory: %s " % (command, locations.home_bin_run()))
+        print("\n--------------------------------------------------------\n")
+        os.system(command)
+        if info != "":
+            print(info) # "Output file: %s" % ("bfield.out"))
+        print("\n--------------------------------------------------------\n")
+
+
+
 
     def receive_syned_data(self, data):
 
@@ -801,7 +922,7 @@ class OWyaup(XoppyWidget):
 
                 self.ENERGY = light_source.get_electron_beam().energy()
                 self.ENERGY_SPREAD = light_source.get_electron_beam()._energy_spread
-                self.CURRENT = 1000.0 * light_source._electron_beam.current()
+                self.CUR = 1000.0 * light_source._electron_beam.current()
 
                 x, xp, y, yp = light_source.get_electron_beam().get_sigmas_all()
 
