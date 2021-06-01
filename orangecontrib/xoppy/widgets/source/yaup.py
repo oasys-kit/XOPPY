@@ -2,6 +2,7 @@ import sys,os
 import numpy
 import platform
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QSizePolicy
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -9,6 +10,8 @@ from oasys.widgets import gui as oasysgui, congruence
 
 from orangecontrib.xoppy.util.xoppy_util import locations
 from oasys.widgets.exchange import DataExchangeObject
+
+from oasys.util.oasys_util import EmittingStream, TTYGrabber
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
@@ -19,16 +22,20 @@ from syned.storage_ring.magnetic_structures.insertion_device import InsertionDev
 import os
 from orangecontrib.xoppy.util.text_window import TextWindow
 
+import scipy.constants as codata
+
+from orangecontrib.xoppy.util.messages import  showCriticalMessage, showConfirmMessage
+
 class OWyaup(XoppyWidget):
-    name = "yaup"
+    name = "Tapered Undulator YAUP"
     id = "orange.widgets.datayaup"
     description = "xoppy application to compute..."
-    icon = "icons/xoppy_yaup.png"
-    author = "create_widget.py"
+    icon = "icons/xoppy_undulator_spectrum.png"
+    author = "srio@esrf.eu"
     maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 8.5
     category = ""
-    keywords = ["xoppy", "yaup"]
+    keywords = ["xoppy", "undulator spectrum", "tapered undulator", "yaup"]
 
     # want_main_area = False
 
@@ -39,19 +46,19 @@ class OWyaup(XoppyWidget):
     EMIN = Setting(3000.0)
     EMAX = Setting(30000.0)
     NENERGY = Setting(100)
-    ENERGY = Setting(6.039999961853027)
-    CUR = Setting(0.100000001490116)
-    SIGX = Setting(0.425999999046326)
-    SIGY = Setting(0.08500000089407)
-    SIGX1 = Setting(0.017000000923872)
-    SIGY1 = Setting(0.008500000461936)
+    ENERGY = Setting(6.04)
+    CUR = Setting(0.1)
+    SIGX = Setting(0.426)
+    SIGY = Setting(0.085)
+    SIGX1 = Setting(0.017)
+    SIGY1 = Setting(0.0085)
     D = Setting(30.0)
     XPC = Setting(0.0)
     YPC = Setting(0.0)
     XPS = Setting(2.0)
     YPS = Setting(2.0)
-    NXP = Setting(0)
-    NYP = Setting(0)
+    NXP = Setting(69)
+    NYP = Setting(69)
     MODE = Setting(4)
     NSIG = Setting(2)
     TRAJECTORY = Setting("new+keep")
@@ -72,7 +79,7 @@ class OWyaup(XoppyWidget):
 
     IMAGNET = Setting(0)
     ITYPE = Setting(0)
-    K = Setting(1.379999995231628)
+    K = Setting(1.38)
     GAP = Setting(2.0)
     GAPTAP = Setting(10.0)
     FILE = Setting("undul.bf")
@@ -86,13 +93,19 @@ class OWyaup(XoppyWidget):
 
     def build_gui(self):
 
-        self.IMAGE_WIDTH = 850
+        self.leftWidgetPart.setSizePolicy(QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding))
+        self.leftWidgetPart.setMaximumWidth(self.CONTROL_AREA_WIDTH + 20)
+        self.leftWidgetPart.updateGeometry()
+
+        # self.IMAGE_WIDTH = 850
 
         # box = oasysgui.widgetBox(self.controlArea, "Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
 
         ##########################
         self.controls_tabs = oasysgui.tabWidget(self.controlArea)
-        box = oasysgui.createTabPage(self.controls_tabs, "Input Parameters")
+        boxB = oasysgui.createTabPage(self.controls_tabs, "B field")
+        box = oasysgui.createTabPage(self.controls_tabs, "Undulator+Ring")
+        boxS = oasysgui.createTabPage(self.controls_tabs, "Settings")
         ##########################
 
 
@@ -103,22 +116,25 @@ class OWyaup(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "TITLE",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 1 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "PERIOD",
-                     label=self.unitLabels()[idx], addSpace=True,
+        self.id_PERIOD = gui.lineEdit(box1, self, "PERIOD",
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=float)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "NPER",
-                     label=self.unitLabels()[idx], addSpace=True,
+        self.id_NPER = gui.lineEdit(box1, self, "NPER",
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=int)
         self.show_at(self.unitFlags()[idx], box1) 
         
@@ -126,7 +142,8 @@ class OWyaup(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NPTS",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=int)
         self.show_at(self.unitFlags()[idx], box1) 
         
@@ -134,7 +151,8 @@ class OWyaup(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "EMIN",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=float)
         self.show_at(self.unitFlags()[idx], box1) 
         
@@ -142,7 +160,8 @@ class OWyaup(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "EMAX",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=float)
         self.show_at(self.unitFlags()[idx], box1) 
         
@@ -150,55 +169,62 @@ class OWyaup(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "NENERGY",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=int)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 7 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "ENERGY",
-                     label=self.unitLabels()[idx], addSpace=True,
+        self.id_ENERGY = gui.lineEdit(box1, self, "ENERGY",
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=float)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 8 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "CUR",
-                     label=self.unitLabels()[idx], addSpace=True,
+        self.id_CUR = gui.lineEdit(box1, self, "CUR",
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=float)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 9 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "SIGX",
-                     label=self.unitLabels()[idx], addSpace=True,
+        self.id_SIGX = gui.lineEdit(box1, self, "SIGX",
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=float)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 10 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "SIGY",
-                     label=self.unitLabels()[idx], addSpace=True,
+        self.id_SIGY = gui.lineEdit(box1, self, "SIGY",
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=float)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 11 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "SIGX1",
-                     label=self.unitLabels()[idx], addSpace=True,
+        self.id_SIGX1 = gui.lineEdit(box1, self, "SIGX1",
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=float)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 12 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        gui.lineEdit(box1, self, "SIGY1",
-                     label=self.unitLabels()[idx], addSpace=True,
+        self.id_SIGY1 = gui.lineEdit(box1, self, "SIGY1",
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=float)
         self.show_at(self.unitFlags()[idx], box1) 
         
@@ -206,7 +232,8 @@ class OWyaup(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "D",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=float)
         self.show_at(self.unitFlags()[idx], box1) 
         
@@ -214,7 +241,8 @@ class OWyaup(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "XPC",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=float)
         self.show_at(self.unitFlags()[idx], box1) 
         
@@ -222,7 +250,8 @@ class OWyaup(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "YPC",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=float)
         self.show_at(self.unitFlags()[idx], box1) 
         
@@ -230,7 +259,8 @@ class OWyaup(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "XPS",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=float)
         self.show_at(self.unitFlags()[idx], box1) 
         
@@ -238,86 +268,104 @@ class OWyaup(XoppyWidget):
         idx += 1 
         box1 = gui.widgetBox(box) 
         gui.lineEdit(box1, self, "YPS",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=float)
         self.show_at(self.unitFlags()[idx], box1) 
-        
+
+        ####################
+        ####################
+        #################### Setting panel
+        ####################
+        ####################
+
         #widget index 18 
         idx += 1 
-        box1 = gui.widgetBox(box) 
+        box1 = gui.widgetBox(boxS)
         gui.lineEdit(box1, self, "NXP",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=int)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 19 
         idx += 1 
-        box1 = gui.widgetBox(box) 
+        box1 = gui.widgetBox(boxS)
         gui.lineEdit(box1, self, "NYP",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=int)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 20 
         idx += 1 
-        box1 = gui.widgetBox(box) 
+        box1 = gui.widgetBox(boxS)
         gui.lineEdit(box1, self, "MODE",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=int)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 21 
         idx += 1 
-        box1 = gui.widgetBox(box) 
+        box1 = gui.widgetBox(boxS)
         gui.lineEdit(box1, self, "NSIG",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=int)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 22 
         idx += 1 
-        box1 = gui.widgetBox(box) 
+        box1 = gui.widgetBox(boxS)
         gui.lineEdit(box1, self, "TRAJECTORY",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 23 
         idx += 1 
-        box1 = gui.widgetBox(box) 
+        box1 = gui.widgetBox(boxS)
         gui.lineEdit(box1, self, "XSYM",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 24 
         idx += 1 
-        box1 = gui.widgetBox(box) 
+        box1 = gui.widgetBox(boxS)
         gui.lineEdit(box1, self, "HANNING",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                     valueType=int)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 25 
         idx += 1 
-        box1 = gui.widgetBox(box) 
+        box1 = gui.widgetBox(boxS)
         gui.lineEdit(box1, self, "BFILE",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True)
         self.show_at(self.unitFlags()[idx], box1) 
         
         #widget index 26 
         idx += 1 
-        box1 = gui.widgetBox(box) 
+        box1 = gui.widgetBox(boxS)
         gui.lineEdit(box1, self, "TFILE",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True)
         self.show_at(self.unitFlags()[idx], box1) 
 
 
         ##########################
-        box = oasysgui.createTabPage(self.controls_tabs, "B field")
+        ##########################
+        ##########################  Bfield Panel
+        ##########################
         ##########################
 
-        # widget index 3
+        # widget index 27
         idx += 1
-        box1 = gui.widgetBox(box)
+        box1 = gui.widgetBox(boxB)
         gui.comboBox(box1, self, "BFIELD_FLAG",
                      label=self.unitLabels()[idx], addSpace=True,
                      items=['from ASCII file', 'from BFIELD preprocessor', 'linear B field'],
@@ -325,87 +373,95 @@ class OWyaup(XoppyWidget):
         self.show_at(self.unitFlags()[idx], box1)
 
 
-        # widget index XX
+        # widget index 28
         idx += 1
-        box1 = gui.widgetBox(box)
+        box1 = gui.widgetBox(boxB)
         gui.lineEdit(box1, self, "BFIELD_ASCIIFILE",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True)
         self.show_at(self.unitFlags()[idx], box1)
 
 
-        # widget index 0
+        # widget index 29
         idx += 1
-        box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "PERIOD_BFIELD",
-                     label=self.unitLabels()[idx], addSpace=True,
+        box1 = gui.widgetBox(boxB)
+        self.id_PERIOD_BFIELD = gui.lineEdit(box1, self, "PERIOD_BFIELD",
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                      valueType=float)
         self.show_at(self.unitFlags()[idx], box1)
 
-        # widget index 1
+        # widget index 30
         idx += 1
-        box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "NPER_BFIELD",
-                     label=self.unitLabels()[idx], addSpace=True,
+        box1 = gui.widgetBox(boxB)
+        self.id_NPER_BFIELD = gui.lineEdit(box1, self, "NPER_BFIELD",
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                      valueType=int)
         self.show_at(self.unitFlags()[idx], box1)
 
-        # widget index 2
+        # widget index 31
         idx += 1
-        box1 = gui.widgetBox(box)
+        box1 = gui.widgetBox(boxB)
         gui.lineEdit(box1, self, "NPTS_BFIELD",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                      valueType=int)
         self.show_at(self.unitFlags()[idx], box1)
 
 
 
-        # widget index 3
+        # widget index 32
         idx += 1
-        box1 = gui.widgetBox(box)
+        box1 = gui.widgetBox(boxB)
         gui.comboBox(box1, self, "IMAGNET",
                      label=self.unitLabels()[idx], addSpace=True,
                      items=['Nd-Fe-B', 'Sm-Co'],
                      valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1)
 
-        # widget index 4
+        # widget index 33
         idx += 1
-        box1 = gui.widgetBox(box)
+        box1 = gui.widgetBox(boxB)
         gui.comboBox(box1, self, "ITYPE",
                      label=self.unitLabels()[idx], addSpace=True,
                      items=['planar undulator', 'tapered undulator'],
                      valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1)
 
-        # widget index 5
+        # widget index 34
         idx += 1
-        box1 = gui.widgetBox(box)
-        gui.lineEdit(box1, self, "K",
-                     label=self.unitLabels()[idx], addSpace=True,
+        box1 = gui.widgetBox(boxB)
+        self.id_K = gui.lineEdit(box1, self, "K",
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                      valueType=float)
         self.show_at(self.unitFlags()[idx], box1)
 
-        # widget index 6
+        # widget index 35
         idx += 1
-        box1 = gui.widgetBox(box)
+        box1 = gui.widgetBox(boxB)
         gui.lineEdit(box1, self, "GAP",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                      valueType=float)
         self.show_at(self.unitFlags()[idx], box1)
 
-        # widget index 7
+        # widget index 36
         idx += 1
-        box1 = gui.widgetBox(box)
+        box1 = gui.widgetBox(boxB)
         gui.lineEdit(box1, self, "GAPTAP",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                      valueType=float)
         self.show_at(self.unitFlags()[idx], box1)
 
-        # widget index 8
+        # widget index 37
         idx += 1
-        box1 = gui.widgetBox(box)
+        box1 = gui.widgetBox(boxB)
         gui.lineEdit(box1, self, "FILE",
-                     label=self.unitLabels()[idx], addSpace=True)
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True)
         self.show_at(self.unitFlags()[idx], box1)
 
         # linear B field
@@ -413,28 +469,30 @@ class OWyaup(XoppyWidget):
         # ITYPE: ['0', 'Magnetic field B [Tesla]', 'Deflection parameter K'], $
         # a1: 0.5, a2: 1.0, FILE: yaupstr.bfile}
 
-        # widget index XX
+        # widget index 38
         idx += 1
-        box1 = gui.widgetBox(box)
+        box1 = gui.widgetBox(boxB)
         gui.comboBox(box1, self, "I2TYPE",
                      label=self.unitLabels()[idx], addSpace=True,
                      items=['Magnetic field B [Tesla]', 'Deflection parameter K'],
                      valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box1)
 
-        # widget index 7
+        # widget index 39
         idx += 1
-        box1 = gui.widgetBox(box)
+        box1 = gui.widgetBox(boxB)
         gui.lineEdit(box1, self, "A1",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                      valueType=float)
         self.show_at(self.unitFlags()[idx], box1)
 
-        # widget index 7
+        # widget index 40
         idx += 1
-        box1 = gui.widgetBox(box)
+        box1 = gui.widgetBox(boxB)
         gui.lineEdit(box1, self, "A2",
-                     label=self.unitLabels()[idx], addSpace=True,
+                     label=self.unitLabels()[idx],
+                     orientation="horizontal", labelWidth=225, addSpace=True,
                      valueType=float)
         self.show_at(self.unitFlags()[idx], box1)
 
@@ -443,8 +501,6 @@ class OWyaup(XoppyWidget):
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         # return ['Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title','Dummy_title']
-
         return [
             # 'TITLE', 'PERIOD', 'NPER', 'NPTS',
             #     'EMIN', 'EMAX', 'NENERGY',
@@ -519,11 +575,8 @@ class OWyaup(XoppyWidget):
                  'self.BFIELD_FLAG == 2','self.BFIELD_FLAG == 2','self.BFIELD_FLAG == 2',]
 
 
-    #def unitNames(self):
-    #     return ['TITLE','PERIOD','NPER','NPTS','EMIN','EMAX','NENERGY','ENERGY','CUR','SIGX','SIGY','SIGX1','SIGY1','D','XPC','YPC','XPS','YPS','NXP','NYP','MODE','NSIG','TRAJECTORY','XSYM','HANNING','BFILE','TFILE']
-
     def check_fields(self):
-        pass
+        pass # TODO later
         # self.ENERGY = congruence.checkStrictlyPositiveNumber(self.ENERGY, "Electron Energy")
         # self.CURRENT = congruence.checkStrictlyPositiveNumber(self.CURRENT, "Current")
         # self.ENERGY_SPREAD = congruence.checkStrictlyPositiveNumber(self.ENERGY_SPREAD, "Energy Spread")
@@ -558,202 +611,135 @@ class OWyaup(XoppyWidget):
                 #
                 #
                 #
-                xoppy_data_bfield = calculated_data.get_content("xoppy_data_bfield")
+                try:
+                    xoppy_data_bfield = calculated_data.get_content("xoppy_data_bfield")
 
-                self.plot_histo(xoppy_data_bfield[:, 0],
-                                xoppy_data_bfield[:, -1],
-                                progressBarValue + 10,
-                                tabs_canvas_index=0,
-                                plot_canvas_index=0,
-                                title="BFIELD",
-                                xtitle="X coordinate [cm]",
-                                ytitle="Total field intensity [T]",
-                                # log_x=log_x,
-                                # log_y=log_y,
-                                # harmonic=xoppy_data_harmonics[h_index][0],
-                                control=True)
+                    self.plot_histo(xoppy_data_bfield[:, 0],
+                                    xoppy_data_bfield[:, -1],
+                                    progressBarValue + 10,
+                                    tabs_canvas_index=0,
+                                    plot_canvas_index=0,
+                                    title="Magnetic Field",
+                                    xtitle="Z coordinate [cm]",
+                                    ytitle="Total field intensity [T]",
+                                    control=True)
+                except:
+                    pass
+                #
+                #
+                #
+                try:
+                    xoppy_data_traj = calculated_data.get_content("xoppy_data_traj")
+
+                    self.plot_histo(xoppy_data_traj[:, 0],
+                                    xoppy_data_traj[:, 2],
+                                    progressBarValue + 10,
+                                    tabs_canvas_index=1,
+                                    plot_canvas_index=1,
+                                    title="Electron Trajectory",
+                                    xtitle="z [cm]",
+                                    ytitle="x [cm]",
+                                    control=True)
+                except:
+                    pass
 
                 #
                 #
                 #
-                xoppy_data_traj = calculated_data.get_content("xoppy_data_traj")
+                try:
 
-                self.plot_histo(xoppy_data_traj[:, 0],
-                                xoppy_data_traj[:, 2],
-                                progressBarValue + 10,
-                                tabs_canvas_index=1,
-                                plot_canvas_index=1,
-                                title="TRAJECTORY",
-                                xtitle="s coordinate [cm]",
-                                ytitle="x [cm]",
-                                # log_x=log_x,
-                                # log_y=log_y,
-                                # harmonic=xoppy_data_harmonics[h_index][0],
-                                control=True)
+                    xoppy_data = calculated_data.get_content("xoppy_data")
 
+                    self.plot_histo(xoppy_data[:, 0],
+                                    xoppy_data[:, 1],
+                                    progressBarValue + 30,
+                                    tabs_canvas_index=2,
+                                    plot_canvas_index=2,
+                                    title="Flux",
+                                    xtitle="Photon energy [eV]",
+                                    ytitle="Flux [photons/s/0.1%bw]",
+                                    control=True)
 
-                #
-                #
-                #
-                xoppy_data = calculated_data.get_content("xoppy_data")
-
-
-                self.plot_histo(xoppy_data[:, 0],
-                                xoppy_data[:, -1],
-                                progressBarValue + 30,
-                                tabs_canvas_index=2,
-                                plot_canvas_index=2,
-                                title="FLUX",
-                                xtitle="Photon energy [eV]",
-                                ytitle="Flux XXXX",
-                                # log_x=log_x,
-                                # log_y=log_y,
-                                # harmonic=xoppy_data_harmonics[h_index][0],
-                                control=True)
-
-                self.plot_histo(xoppy_data[:, 0],
-                                xoppy_data[:, -1],
-                                progressBarValue + 40,
-                                tabs_canvas_index=3,
-                                plot_canvas_index=3,
-                                title="FLUX",
-                                xtitle="Photon energy [eV]",
-                                ytitle="Spectral Power [W/eV]",
-                                # log_x=log_x,
-                                # log_y=log_y,
-                                # harmonic=xoppy_data_harmonics[h_index][0],
-                                control=True)
+                    self.plot_histo(xoppy_data[:, 0],
+                                    xoppy_data[:, 2],
+                                    progressBarValue + 40,
+                                    tabs_canvas_index=3,
+                                    plot_canvas_index=3,
+                                    title="Spectral Power",
+                                    xtitle="Photon energy [eV]",
+                                    ytitle="Spectral Power [W/eV]",
+                                    control=True)
 
 
-                self.plot_histo(xoppy_data[:, 0],
-                                xoppy_data[:, -1],
-                                progressBarValue + 50,
-                                tabs_canvas_index=4,
-                                plot_canvas_index=4,
-                                title="CUMULATED SPECTRAL POWER",
-                                xtitle="Photon energy [eV]",
-                                ytitle="Flux XXXX",
-                                # log_x=log_x,
-                                # log_y=log_y,
-                                # harmonic=xoppy_data_harmonics[h_index][0],
-                                control=True)
-
-
-
-
-
-            #     titles = self.getTitles()
-            #     xtitles = self.getXTitles()
-            #     ytitles = self.getYTitles()
-            #
-            #     progress_bar_step = (100-progressBarValue)/len(titles)
-            #
-            #     for index in range(0, len(titles)):
-            #         x_index, y_index = self.getVariablesToPlot()[index]
-            #         log_x, log_y = self.getLogPlot()[index]
-            #
-            #         if not self.plot_canvas[index] is None:
-            #             self.plot_canvas[index].clear()
-            #
-            #         try:
-            #             for h_index in range(0, len(xoppy_data_harmonics)):
-            #
-            #                 self.plot_histo(xoppy_data_harmonics[h_index][1][:, x_index],
-            #                                 xoppy_data_harmonics[h_index][1][:, y_index],
-            #                                 progressBarValue + ((index+1)*progress_bar_step),
-            #                                 tabs_canvas_index=index,
-            #                                 plot_canvas_index=index,
-            #                                 title=titles[index],
-            #                                 xtitle=xtitles[index],
-            #                                 ytitle=ytitles[index],
-            #                                 log_x=log_x,
-            #                                 log_y=log_y,
-            #                                 harmonic=xoppy_data_harmonics[h_index][0],
-            #                                 control=True)
-            #
-            #             self.plot_canvas[index].addCurve(numpy.zeros(1),
-            #                                              numpy.array([max(xoppy_data_harmonics[h_index][1][:, y_index])]),
-            #                                              "Click on curve to highlight it",
-            #                                              xlabel=xtitles[index], ylabel=ytitles[index],
-            #                                              symbol='', color='white')
-            #
-            #             self.plot_canvas[index].setActiveCurve("Click on curve to highlight it")
-            #             self.plot_canvas[index].getLegendsDockWidget().setFixedHeight(150)
-            #             self.plot_canvas[index].getLegendsDockWidget().setVisible(True)
-            #
-            #             self.tabs.setCurrentIndex(index)
-            #         except Exception as e:
-            #             self.view_type_combo.setEnabled(True)
-            #
-            #             raise Exception("Data not plottable: bad content\n" + str(e))
-            #
-            #
-            #     self.view_type_combo.setEnabled(True)
-            # else:
-            #     raise Exception("Empty Data")
-
-    # def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
-    #                log_x=False, log_y=False, harmonic=1, color='blue', control=True):
-    #     h_title = "Harmonic " + str(harmonic)
-    #
-    #     hex_r = hex(min(255, 128 + harmonic*10))[2:].upper()
-    #     hex_g = hex(min(255, 20 + harmonic*15))[2:].upper()
-    #     hex_b = hex(min(255, harmonic*10))[2:].upper()
-    #     if len(hex_r) == 1: hex_r = "0" + hex_r
-    #     if len(hex_g) == 1: hex_g = "0" + hex_g
-    #     if len(hex_b) == 1: hex_b = "0" + hex_b
-    #
-    #     super().plot_histo(x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, h_title, xtitle, ytitle,
-    #                        log_x, log_y, color="#" + hex_r + hex_g + hex_b, replace=False, control=control)
-    #
-    #     self.plot_canvas[plot_canvas_index].setGraphTitle(title)
-    #     self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
-    #     self.plot_canvas[plot_canvas_index].setDefaultPlotPoints(True)
+                    self.plot_histo(xoppy_data[:, 0],
+                                    xoppy_data[:, 3],
+                                    progressBarValue + 50,
+                                    tabs_canvas_index=4,
+                                    plot_canvas_index=4,
+                                    title="Cumulated Spectral Power",
+                                    xtitle="Photon energy [eV]",
+                                    ytitle="Cumulated Spectral Power [W]",
+                                    control=True)
+                except:
+                    pass
 
     def get_data_exchange_widget_name(self):
         return "YAUP"
 
     def getTitles(self):
         return ["B field", "Trajectory", "Flux", "Spectral power","Cumulated spectral power"]
-    #
-    # def getXTitles(self):
-    #     return ["s []", "s []", "Energy (eV)", "Energy (eV)", "Energy (eV)"]
-    #
-    # def getYTitles(self):
-    #     return ["B [T]", "x []", "Flux (photons/s/0.1%bw)","Spectral power [W/eV]","Cumulated power W",]
-    #
-    # def getVariablesToPlot(self):
-    #     return [(1, 2), (1, 3), (1, 4), (1, 5), (1, 6)]
-    #
-    # def getLogPlot(self):
-    #     return[(False, False), (False, False), (False, False), (False, False), (False, False)]
+
 
     def xoppy_calc_yaup(self):
 
+        self.progressBarInit()
+
+        self.progressBarSet(2)
+
         for file in ["bfield.inp","bfield.out","bfield.dat","u2txt_bfield.inp",
-                     "yaup.inp", "yaup*.out","undul.bf",
+                     "yaup.inp", "yaup-0.out","undul.bf",
                      "u2txt_traj.inp","undul_traj.dat"]:
             try:
                 os.remove(os.path.join(locations.home_bin_run(),file))
             except:
-                pass
+                print("Failed to remove file: %s " %  (os.path.join(locations.home_bin_run(),file)) )
 
         if self.BFIELD_FLAG == 0:
-            pass
+
+            #TODO: test this option...
+            message = ''
+            message += 'This option takes an ASCII file and convert it to YAUP format.'
+            message += 'The text file should be column-formatted, and contain three colums:'
+            message += ' z, B(z), and phi(z), where the z s are equidistant with step '
+            message += ' PERIOD/NPTS. See HELP/YAUP for definitions of PERIOD and NPTS.'
+            message += ' There should be NPTS*NPER+1 lines in the ASCII file.'
+
+            ok = showConfirmMessage(message, "OK?")
+            if not ok: return
+
+            f = open('txt2u.inp', 'w')
+            f.write("%s\n" % (self.BFIELD_ASCIIFILE) )
+            f.write("%s\n" % (self.BFILE))
+            f.write("%g\n" % (self.PERIOD_BFIELD))
+            f.write("%d\n" % (self.PERIOD_BFIELD))
+            f.write("%d\n" % (self.NPTS_BFIELD) )
+            f.close
+
+            self.run_external_binary(binary="txt2u", post_command="< txt2u.inp",
+                                     info="Output file should be: %s" % self.BFILE)
+
         elif self.BFIELD_FLAG == 1:
             with open("bfield.inp", "wt") as f:
                 f.write("%g\n" % (self.PERIOD_BFIELD))
                 f.write("%d\n" % (self.NPER_BFIELD))
                 f.write("%d\n" % (self.NPTS_BFIELD))
-                f.write("%d\n" % (1 + self.IMAGNET))
+                f.write("%d\n" % (1 + self.ITYPE))
                 if self.ITYPE == 0:
                     f.write("%g\n" % (self.K))
                 elif self.ITYPE == 1:
                     f.write("%g\n" % (self.GAP))
                     f.write("%g\n" % (self.GAPTAP))
                 f.write("%s\n" % (self.FILE))
-
-            self.run_external_binary(binary="bfield", post_command="< bfield.inp > bfield.out", info="Output file: bfield.out")
 
 
 
@@ -762,12 +748,61 @@ class OWyaup(XoppyWidget):
                 f.write("%s\n" % (self.FILE))
                 f.write("bfield.dat\n")
 
+            if self.IMAGNET == 0:
+                self.run_external_binary(binary="bfield", post_command="< bfield.inp > bfield.out", info="Output file: bfield.out")
+            elif self.IMAGNET == 1:
+                self.run_external_binary(binary="bfield2", post_command="< bfield.inp > bfield.out", info="Output file: bfield.out")
+
             self.run_external_binary(binary="u2txt", post_command="< u2txt_bfield.inp", info="Output file should be bfield.dat")
 
-
-
         elif self.BFIELD_FLAG == 2:
-            pass
+            n = self.NPER
+            lambdau = self.PERIOD_BFIELD
+            npts_per = self.NPTS_BFIELD
+            if self.ITYPE == 0:
+                b1 = self.A1
+                b2 = self.A2
+            else:
+                b1 = self.A1/0.934/self.PERIOD_BFIELD
+                b2 = self.A2/0.934/self.PERIOD_BFIELD
+
+
+            und_len = lambdau * npts_per
+            z = numpy.arange( n * npts_per + 1) / float( n * npts_per)
+            z *= und_len
+
+            bmod = numpy.arange(n * npts_per + 1) / float( n * npts_per) * (b2 - b1) + b1
+            berr = numpy.arange(n * npts_per + 1) * 0.0
+            bphase = 2.0 * numpy.pi / lambdau * z
+            btot = bmod * numpy.sin(bphase)
+
+
+            f = open("bfield.dat", 'w')
+            f.write('# Columns: z(cm), ampl(tesla), phserr, total(tesla)\n')
+            f.write('# total = ampl * sin ( twopi/period*z + phserr ) \n')
+            f.write('# period= %g; nper= %d; npts=%d \n' % (lambdau, n, npts_per))
+            for i in range(z.size):
+                f.write("%g  %g  %g  %g\n" % (z[i], bmod[i], berr[i], btot[i]))
+            f.close()
+            print("File written to disk: bfield.dat")
+
+            f = open("bfield2.dat", 'w')
+            for i in range(z.size):
+                if i != 0: f.write("\n")
+                f.write("%g  %g  %g" % (z[i], bmod[i], bphase[i]))
+            f.close()
+            print("File written to disk: bfield.dat")
+
+
+            with open("txt2u.inp", "w") as f:
+                f.write("bfield2.dat\n")
+                f.write("%s\n" % self.BFILE)
+                f.write("%g\n" % (self.PERIOD_BFIELD))
+                f.write("%d\n" % (self.NPER_BFIELD))
+                f.write("%d\n" % (self.NPTS_BFIELD))
+
+            self.run_external_binary("txt2u", " < txt2u.inp", "File written to disk should be: %s " % self.BFILE )
+
 
         input = "\n"
         input += ";Magnet parameters\n"
@@ -806,113 +841,78 @@ class OWyaup(XoppyWidget):
             f.write("%s\n" % (self.TFILE))
             f.write("undul_traj.dat\n")
 
+        self.run_external_binary(binary="u2txt", post_command="< u2txt_traj.inp", info="Output file should be undul_traj.dat")
+        #
+        # add spectral power and cumulated power
+        #
+
+        results = numpy.loadtxt("yaup-0.out", skiprows=33)
+        e = results[:,0]
+        f = results[:,1]
+
+        power_in_spectrum = f.sum() * 1e3 * codata.e * (e[1] - e[0])
+        print("\nPower from integral of spectrum: %8.3f W" % (power_in_spectrum))
+        codata_mee = codata.m_e * codata.c ** 2 / codata.e  # electron mass in eV
+        gamma = self.ENERGY * 1e9 / codata_mee
+        ptot = (self.NPER / 6) * codata.value('characteristic impedance of vacuum') * \
+               self.CUR * codata.e * 2 * numpy.pi * codata.c * gamma ** 2 * (self.K ** 2 ) / (self.PERIOD * 1e-2)
+        print("\nTotal power radiated by the undulator with fully opened slits [W]: %g \n" % (ptot))
+        print("\nRatio Power from integral of spectrum over Total emitted power: %5.4f" % (power_in_spectrum / ptot))
+
+        spectral_power = f * codata.e * 1e3
+
+        try:
+            cumulated_power = spectral_power.cumsum() * numpy.abs(e[0] - e[1])
+        except:
+            cumulated_power = 0.0
         self.run_external_binary(binary="u2txt", post_command="< u2txt_traj.inp",
                                  info="Output file should be undul_traj.dat")
 
+        data_to_send = numpy.zeros((results.shape[0], 4))
+        data_to_send[:, 0] = e
+        data_to_send[:, 1] = f
+        data_to_send[:, 2] = spectral_power
+        data_to_send[:, 3] = cumulated_power
 
-
-        # if platform.system() == "Windows":
-        #     command = "\"" + os.path.join(locations.home_bin(),'tc.exe') + "\""
-        # else:
-        #     command = "'" + os.path.join(locations.home_bin(), 'tc') + "'"
-        #
-        #
-        # print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
-        # print("\n--------------------------------------------------------\n")
-        # os.system(command)
-        # print("Output file: %s"%("tc.out"))
-        # print("\n--------------------------------------------------------\n")
-
-        # #
-        # # parse result files to exchange object
-        # #
-        #
-        #
-        # with open("tc.out","r") as f:
-        #     lines = f.readlines()
-        #
-        # # print output file
-        # # for line in lines:
-        # #     print(line, end="")
-        #
-        #
-        # # remove returns
-        # lines = [line[:-1] for line in lines]
-        # harmonics_data = []
-        #
-        # # separate numerical data from text
-        # floatlist = []
-        # harmoniclist = []
-        # txtlist = []
-        # for line in lines:
-        #     try:
-        #         tmp = line.strip()
-        #
-        #         if tmp.startswith("Harmonic"):
-        #             harmonic_number = int(tmp.split("Harmonic")[1].strip())
-        #
-        #             if harmonic_number != self.HARMONIC_FROM:
-        #                 harmonics_data[-1][1] = harmoniclist
-        #                 harmoniclist = []
-        #
-        #             harmonics_data.append([harmonic_number, None])
-        #
-        #         tmp = float(line.strip()[0])
-        #
-        #         floatlist.append(line)
-        #         harmoniclist.append(line)
-        #     except:
-        #         txtlist.append(line)
-        #
-        # harmonics_data[-1][1] = harmoniclist
-        #
-        # data = numpy.loadtxt(floatlist)
-        #
-        # for index in range(0, len(harmonics_data)):
-        #     # print (harmonics_data[index][0], harmonics_data[index][1])
-        #     harmonics_data[index][1] = numpy.loadtxt(harmonics_data[index][1])
-        #
-        # #send exchange
+        # send exchange
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         try:
-            calculated_data.add_content("xoppy_data", numpy.loadtxt("yaup-0.out",skiprows=33))
+            calculated_data.add_content("xoppy_data", data_to_send)
             calculated_data.add_content("xoppy_data_bfield", numpy.loadtxt("bfield.dat",skiprows=3))
             calculated_data.add_content("xoppy_data_traj", numpy.loadtxt("undul_traj.dat",skiprows=2))
-            calculated_data.add_content("plot_x_col", 1)
-            calculated_data.add_content("plot_y_col", 2)
         except:
             pass
-        # try:
-        #     calculated_data.add_content("labels",["Energy (eV) without emittance", "Energy (eV) with emittance",
-        #                               "Brilliance (ph/s/mrad^2/mm^2/0.1%bw)","Ky","Total Power (W)","Power density (W/mr^2)"])
-        # except:
-        #     pass
-        # try:
-        #     calculated_data.add_content("info",txtlist)
-        # except:
-        #     pass
 
         return calculated_data
 
     def run_external_binary(self, binary="ls", post_command="", info=""):
+
+        sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
         if platform.system() == "Windows":
             command = "\"" + os.path.join(locations.home_bin(), '%s.exe' % binary) + "\""
         else:
             command = "'" + os.path.join(locations.home_bin(), binary) + "'"
 
-        command += " " + post_command # "" < bfield.inp > bfield.out"
-
+        command += " " + post_command
         print("Running command '%s' in directory: %s " % (command, locations.home_bin_run()))
         print("\n--------------------------------------------------------\n")
+
+
+        grabber = TTYGrabber()
+        grabber.start()
+
         os.system(command)
+
+        grabber.stop()
+
+        for row in grabber.ttyData:
+            self.writeStdOut("      %s" % (row))
+
         if info != "":
-            print(info) # "Output file: %s" % ("bfield.out"))
+            print(info)
         print("\n--------------------------------------------------------\n")
-
-
-
 
     def receive_syned_data(self, data):
 
@@ -922,7 +922,7 @@ class OWyaup(XoppyWidget):
 
                 self.ENERGY = light_source.get_electron_beam().energy()
                 self.ENERGY_SPREAD = light_source.get_electron_beam()._energy_spread
-                self.CUR = 1000.0 * light_source._electron_beam.current()
+                self.CUR = light_source._electron_beam.current()
 
                 x, xp, y, yp = light_source.get_electron_beam().get_sigmas_all()
 
@@ -931,102 +931,55 @@ class OWyaup(XoppyWidget):
                 self.SIGX1 = 1e3 * xp
                 self.SIGY1 = 1e3 * yp
                 self.PERIOD = 100.0 * light_source.get_magnetic_structure().period_length()
-                self.NP = light_source.get_magnetic_structure().number_of_periods()
+                self.NPER = light_source.get_magnetic_structure().number_of_periods()
 
-                self.EMIN = light_source.get_magnetic_structure().resonance_energy(gamma=light_source.get_electron_beam().gamma())
-                self.EMAX = 5 * self.EMIN
+                # self.EMIN = light_source.get_magnetic_structure().resonance_energy(gamma=light_source.get_electron_beam().gamma())
+                # self.EMAX = 5 * self.EMIN
 
+                self.NPTS_BFIELD = self.NPTS
+                self.NPER_BFIELD = self.NPER
+                self.PERIOD_BFIELD = self.PERIOD
+
+                self.BFIELD_FLAG = 1
+                self.ITYPE = 0
+
+                self.K = light_source.get_magnetic_structure().K_vertical()
                 self.set_enabled(False)
 
             else:
                 self.set_enabled(True)
-                # raise ValueError("Syned data not correct")
         else:
             self.set_enabled(True)
-            # raise ValueError("Syned data not correct")
+
+    def set_enabled(self,value):
+
+        self.id_ENERGY.setEnabled(value)
+        self.id_SIGX.setEnabled(value)
+        self.id_SIGX1.setEnabled(value)
+        self.id_SIGY.setEnabled(value)
+        self.id_SIGY1.setEnabled(value)
+        self.id_CUR.setEnabled(value)
+        self.id_PERIOD.setEnabled(value)
+        self.id_NPER.setEnabled(value)
+        self.id_K.setEnabled(value)
+
+        self.id_NPER_BFIELD.setEnabled(value)
+        self.id_PERIOD_BFIELD.setEnabled(value)
 
 
-
-
-
-
-    #
-    # def receive_syned_data(self, data):
-    #
-    #     if isinstance(data, synedb.Beamline):
-    #         if not data._light_source is None and isinstance(data.get_light_source().get_magnetic_structure(), synedid):
-    #             light_source = data.get_light_source()
-    #
-    #             self.ENERGY = light_source.get_electron_beam().energy()
-    #             self.ENERGY_SPREAD = light_source.get_electron_beam()._energy_spread
-    #             self.CURRENT = 1000.0 * light_source._electron_beam.current()
-    #
-    #             x, xp, y, yp = light_source.get_electron_beam().get_sigmas_all()
-    #
-    #             self.SIGX = 1e3 * x
-    #             self.SIGY = 1e3 * y
-    #             self.SIGX1 = 1e3 * xp
-    #             self.SIGY1 = 1e3 * yp
-    #             self.PERIOD = 100.0 * light_source.get_magnetic_structure().period_length()
-    #             self.NP = light_source.get_magnetic_structure().number_of_periods()
-    #
-    #             self.EMIN = light_source.get_magnetic_structure().resonance_energy(gamma=light_source.get_electron_beam().gamma())
-    #             self.EMAX = 5 * self.EMIN
-    #
-    #             self.set_enabled(False)
-    #
-    #         else:
-    #             self.set_enabled(True)
-    #             # raise ValueError("Syned data not correct")
-    #     else:
-    #         self.set_enabled(True)
-    #         # raise ValueError("Syned data not correct")
-    #
-    #
-    # def compute(self):
-    #     pass
-    #     # fileName = xoppy_calc_yaup(TITLE=self.TITLE,PERIOD=self.PERIOD,NPER=self.NPER,NPTS=self.NPTS,EMIN=self.EMIN,EMAX=self.EMAX,NENERGY=self.NENERGY,ENERGY=self.ENERGY,CUR=self.CUR,SIGX=self.SIGX,SIGY=self.SIGY,SIGX1=self.SIGX1,SIGY1=self.SIGY1,D=self.D,XPC=self.XPC,YPC=self.YPC,XPS=self.XPS,YPS=self.YPS,NXP=self.NXP,NYP=self.NYP,MODE=self.MODE,NSIG=self.NSIG,TRAJECTORY=self.TRAJECTORY,XSYM=self.XSYM,HANNING=self.HANNING,BFILE=self.BFILE,TFILE=self.TFILE)
-    #     # #send specfile
-    #     #
-    #     # if fileName == None:
-    #     #     print("Nothing to send")
-    #     # else:
-    #     #     self.send("xoppy_specfile",fileName)
-    #     #     sf = specfile.Specfile(fileName)
-    #     #     if sf.scanno() == 1:
-    #     #         #load spec file with one scan, # is comment
-    #     #         print("Loading file:  ",fileName)
-    #     #         out = np.loadtxt(fileName)
-    #     #         print("data shape: ",out.shape)
-    #     #         #get labels
-    #     #         txt = open(fileName).readlines()
-    #     #         tmp = [ line.find("#L") for line in txt]
-    #     #         itmp = np.where(np.array(tmp) != (-1))
-    #     #         labels = txt[itmp[0]].replace("#L ","").split("  ")
-    #     #         print("data labels: ",labels)
-    #     #         self.send("xoppy_data",out)
-    #     #     else:
-    #     #         print("File %s contains %d scans. Cannot send it as xoppy_table"%(fileName,sf.scanno()))
 
     def defaults(self):
          self.resetSettings()
          self.compute()
          return
 
-
     def get_help_name(self):
         return 'yaup'
 
     def help1(self):
-
         home_doc = locations.home_doc()
-
         filename1 = os.path.join(home_doc, self.get_help_name() + '.txt')
-
         TextWindow(file=filename1,parent=self)
-
-
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
