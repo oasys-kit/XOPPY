@@ -1,0 +1,1208 @@
+YAUP - Yet Another (Useless) Undulator Program	 
+Version 1.3.3
+
+
+
+MODIFICATION RECORD 	
+
+- 12/92 - Initial version (without FFTs); calculates spectral and
+	angular distributions of the brightness and flux through
+	pinholes.
+- 01/92 - FFT version.
+- 04/92 - Bugs in module EXTRCT and trajectory calculation fixed.
+	Added degree-of-linear-polarization calculations.
+- 06/92 - Add Hanning windows to reduce spectral leakage;
+	expert-user options; power-load calculations.
+- 10/92 - New input-file format.  Life is easy now.(v1.0)
+- 04/93 - Include particle beam sizes. (v1.1) 	
+- 09/93 - Fix a bug in the flux calculations with finite
+	observation distance Some changes in the input file format.
+	(v1.1b)
+- 11/93 - Switch back to double precision variables for temp
+	storage. Increases RAM requirements but improves "inter
+	platform" reproducibility of the results. (v1.2) Check (but do
+	not enforce) L/R symmetry criterion. (v1.2b) More flexible
+	scratch file names. (v1.2c)
+- 12/93 - User-definable scratch file names.  Bug in spline
+	interpolations fixed (INTGRD). Add GNUPLOT and BASENAME. (v1.2d)
+- 04/94 - Fix imsc bug. Rewrite parser routines.  Now compiles and
+	runs on an IBM RISC/6000 cluster. (v1.3)
+- 04/94 - Fix minor output bugs in mode 7.  Fix integration bug in
+	mode 7 (v1.3.1)
+- 07/94 - Some adjustments to the user interface (v 1.3.2)
+- 11/13 - RJD added save statement to routine rzextr to avoid GFORTRAN not saving local variables. (v1.3.3)
+          See CRJD for additional minor changes.
+	  
+	   
+	   
+WRITTEN BY 	
+	Boyan Boyanov
+	Department of Physics 
+	Illinois Institute of Technology 
+	boyan@tmnxt1.iit.edu
+
+REFERENCE 	
+	B. I. Boyanov, G. Bunker, J. M. Lee, and T. I. Morrison
+	"Numerical Modeling of Tapered Undulators"
+	Nucl. Instr. Meth. A339,  596-603, 1994
+
+
+
+DISCLAIMER
+
+\begin{legalese}
+
+This program is freeware (but *NOT* public domain). You may freely 
+copy and redistribute it. Permission is granted to modify the source 
+for your own purposes but NOT to redistribute the modifications without 
+permission of the author. If you use this program while doing scientific 
+research please cite this program in the acknowledgments of any resulting
+publications.
+
+There are absolutely no warranty on this program. The author takes no
+responsibility for any damage caused by this program. The author takes
+no responsibility for time lost if incorrect or misleading results are
+produced by this program. If a warranty is required by law where you
+intend to use this software permission to use this software there is
+revoked.
+
+\end{legalese}
+
+Now that this junk is out of the way let's get on with the fun stuff.
+
+
+
+TABLE OF CONTENTS
+
+Section I .......................  Introduction
+Section II ......................  Compilation Instructions
+Section III .....................  New Features
+Section IV ......................  Input File Format
+Section V .......................  Output File Format
+Section VI ......................  Program Description
+Section VII .....................  Hints and Suggestions (PLEASE READ)
+Section VIII ....................  Data File Formats
+Section IX ......................  "Expert" Options   
+Section X .......................  Further Information
+Appendix A ......................  Program Diagnostics
+Appendix B ......................  Error Messages
+
+
+
+I. INTRODUCTION
+
+	1 yawp or yaup \'yop\ vi
+	[ME yolpen]
+	(14c)
+	1: to make a raucous noise: SQUAWK
+	2: CLAMOR, COMPLAIN
+	yawp-er n 
+
+	2 yawp also yaup n
+	(1824)
+	1: a raucous noise: SQUAWK
+	2: something suggestive of a raucous noise; specif: 
+	   rough vigorous language 
+
+	yawp  (or yaup) vb
+	1  syn    SQUALL 1, caw, ||quawk, squak, squawk
+	2  syn    GRIPE, ||beef, ||bellyache||||bitch, bleat, 
+			 ||blow off, crab, fuss, squawk, yammer
+
+	Webster's Ninth New Collegiate Dictionary
+	Webster's Collegiate Thesaurus
+	First Digital Edition
+	Copyright (c) 1988, 1990
+	NeXT Computer, Inc.,
+	and Merriam-Webster Inc.
+
+
+YAUP (Yet Another (Useless) Undulator Program) is a program that
+calculates radiation patterns (spectral and angular distributions of
+the brightness, the flux through a pinhole, spectral and angular power
+distributions) and polarization properties of tapered and untapered
+undulator radiation. The program has the following capabilities and
+restrictions:
+
+- the magnetic field B within the undulator is assumed to be a
+	vertically-polarized amplitude and/or frequency-modulated
+	sinusoid. The  B-field distribution is read in from an external
+	file. Random and or systematic errors in the magnitude and phase
+	of the field may be included.
+
+- e-beam size and divergence may be included in a first-order
+	approximation as a convolution of the zero-emittance spectrum
+	with the e-beam distribution.
+
+- up-down (vertical) symmetry of the angular distribution of the
+	brightness is always assumed but left-right (horizontal)
+	symmetry of the spectrum may or may not be enforced (see the
+	description of input parameter XSYM in sections IV and VII).
+
+- besides tapered undulators the program may be used to calculate
+	distributions from untapered undulators.  These calculations,
+	however, are inefficient and programs designed specifically for
+	untapered undulators, e.g. URGENT and USER_UNDULATOR, are
+	usually much faster.  We recommend that the program be used for
+	untapered undulators at energies not higher than the fifth
+	harmonic only when field errors have to be accounted for (see
+	section VII).
+
+-  The use of FFTs greatly enhances the performance of the program
+	(in terms of time needed to complete the calculation),
+	especially in the case of calculations in a broad spectral
+	range.
+
+
+
+II.  COMPILATION INSTRUCTIONS
+
+YAUP is written in FORTRAN and uses several non-standard but widely
+available extensions - mainly DO ... END DO and DO WHILE ... END DO
+constructions, COMPLEX*16 data types and its associated intrinsic
+functions, and INCLUDE statements.  It calls no external library
+routines so it should be fairly easily transportable.  With the
+exception of (a large number of) insignificant warnings it passes all
+FTNCHEK tests with flying colors.
+
+As of this writing YAUP has been tested on the following machines:
+
+* NeXTStation (black), Absoft 3.1 compiler (BSD UNIX 4.3)
+* VAX 3100-3600, DEC FORTRAN compiler (VMS 5.1 or later)
+* Macintosh Quadra 610, Language Systems 3.0 compiler (System 7.1)
+* IBM RISC System/6000 cluster, IBM AIX XL Compiler/6000 (IBM AIX 3.2)
+
+The program is distributed as a single module named YAUP.F. The file
+YAUP.INC is an include file that contains definitions of essential
+parameters and common blocks and should be placed in the same
+directory as YAUP.F at the time of compilation.
+
+THE PROGRAM SHOULD BE COMPILED WITH THE STATIC MEMORY OPTION TURNED ON.
+IF YOUR COMPILER IS CASE SENSITIVE IT IS SAFER TO FOLD ALL VARIABLE
+NAMES TO LOWER (OR UPPER) CASE.  BEWARE OF OPTIMIZING COMPILERS - THE
+"OPTIMIZATIONS" MAY LEAD TO IMPROPER EXECUTION AND SHOULD BE AVOIDED
+UNLESS YOU ABSOLUTELY TRUST YOUR COMPILER'S OPTIMIZER.  THE FIRST
+THING YOU SHOULD DO IF YAUP DOES NOT EXECUTE PROPERLY IS TURN OFF ALL
+OPTIMIZATIONS.
+
+A VERY important parameter in YAUP.INC that may need customizing to
+your compiler is LWORD.  YAUP uses unformatted direct-access files to
+store intermediate results and the various FORTRAN compilers handle
+these files in different ways. Generally the value of LWORD should be
+set equal to the number of bytes in the direct-access  storage unit,
+which for most compilers is 1.  The VAX FORTRAN compilers, however,
+use 4-byte portions (words).  SET LWORD TO 4 PRIOR TO COMPILATION IF
+YOU USE VAX FORTRAN OR SOME OTHER COMPILER WITH FUNNY IDEAS ON HOW THE
+RECL LENGTHS SHOULD BE SPECIFIED.   The program is distributed with
+LWORD set to 1.  It should run on any system with this setting but
+the amount of free disk space needed for successful execution may be
+unnecessarily large.
+
+Some compilers (such as the older versions of MacFortran) do not allow
+direct-access records longer than 1024 bytes.  YAUP may not run on
+such systems.
+   	 
+Another possible customization concerns the way your compiler handles
+output string editing.  YAUP prints information on the progress of the
+calculations to the screen and in doing so it uses '+' (overprint)
+character editing. If your compiler interprets the first character of
+the output string as a control character you need not do anything (VAX
+and MPW (LangSys) FORTRAN, for example).  If this is not so, special 
+action may be required (this is the case with many, if not most, Unix
+compilers). Absoft FORTRAN for NeXTStep, for example, requires the 
+statement
+
+ 	OPEN(UNIT=6,ACTION='PRINT')
+
+added to the very beginning of YAUP.F to ensure that the
+screen-directed output is handled properly.  Check your compiler
+manula and inser the appropriate code if necessary.
+
+YAUP needs somewhat large amounts of RAM and free disk space to compile
+and run properly.  At least 8 Mb RAM are needed for compilation on
+most machines, 5-6 Mb of free RAM should be available at runtime, and
+UP TO 260 Mb of free disk space (for temporary data storage) may be
+needed IF THE PROGRAM IS PUSHED TO EXTREMES.  The amount of disk space
+needed depends on the input parameters, but approximately
+2*8*NXP*NYP*NE bytes of disk space will be needed for temporary data
+storage (for a description of NXP, NYP and NE see section IV).  If
+anything, this is a very rough underestimate.
+
+For FORTRAN gurus only: The FORTRAN compiler on AIX machines handles 
+IOSTAT in a very weird fashion.  When an I/O error is encountered, e.g. 
+attempt to read a characted where a number is expected, IOSTAT is not 
+set to a non-zero value, as is the case with most other compilers I 
+have had to deal with.  Instead, an error message is printed to the 
+terminal and the error is ignored. This interferes with YAUP's internal
+error-checking routines.  If someone knows of a fix, e.g. a compiler
+switch, I'd like to hear about it.  Send email to boyan@tmnxt1.iit.edu.
+
+
+
+III. NEW FEATURES
+
+This section describes the new features in YAUP relative to version
+1.2.  Skip this section if this is the first time you are using YAUP.
+
+- The L/R symmetry criterion (see B. I. Boyanov et al., NIM A, Feb
+	1, 1994) is checked, but not enforced.  That means that the
+	program will warn you when you are using XSYM=YES at dangerously
+	high energies, but will not force you to switch to XSYM=NO.
+
+- New keywords: BASENAME, GNUPLOT.  See section IX.
+
+- A serious bug in the spline interpolation procedures has been
+	fixed. The bug caused problems in calculations with large values
+	of NXP and/or NYP only.
+
+- A bug in the I/O routines has been fixed.  (imsc -> imisc
+	conflict)
+
+- The parser routines have been rewritten and are hopefully more
+	robust.  There are no changes in the input file format and the
+	user interface.
+
+- The behavior of the program in MODE 7 has been fixed up.
+
+- NXP and NYP are no longer under user control in MODE 1 and may be
+	set automatically in other modes.
+	
+- The default value of UPDATE is 1 (i.e. UPDATE=0 defaults to UPDATE=1).
+	Use UPDATE=-1 to turn off updating. 
+
+IV. INPUT FILE FORMAT
+
+In the rest of this document keywords and file names are shown
+capitalized.  This is done for clarity and is not required.  If you
+are using YAUP on a system with case-sensitive file names (e.g. UNIX)
+use LOWER CASE for the file names. The case of the keywords is
+irrelevant as the program capitalizes all input internally.
+ 
+Input is read from the file YAUP.INP which is expected to be in the
+current directory.  The input consists of tab, space or
+comma-delimited keywords followed by values. On any given line in the
+input file all text that appears after any of the characters %,!,#,
+or ; is treated as a comment (ignored).
+
+The values are separated from the keywords by one or more spaces, tabs
+equal signs.  A list of valid keywords follows :
+
+	PERIOD, NPER, NPTS
+ 	EMIN, EMAX, NE
+ 	ENERGY, CURRENT, SIGX, SIGY, SIGX1, SIGY1
+ 	DISTANCE, XPC, YPC, XPS, YPS, NXP, NYP
+ 	MODE, NSIG, TRAJECTORY, XSYM, HANNING 	
+	BFILE, TFILE
+	QUIET,END
+
+The order in which the keywords appear in YAUP.INP is not important (as
+long as ALL keywords are defined) but for the sake of clarity they may
+be grouped in the following categories :
+
+
+LINE 1 : specifies the undulator 
+
+-  PERIOD is the magnet period in centimeters (real) 
+-  NPER is the number of periods (integer, 150 max) 
+-  NPTS is the number of points PER PERIOD at which the trajectory
+	is to be calculated (integer, 10 min, 100 max, 40 sugg.). The
+	magnetic-field modulation and phase-error functions (see eq. 1)
+	must then be given at NPTS points per period (NPTS*NPER-1 points
+	total).
+
+
+LINE 2 : defines the photon energy range 
+
+-  EMIN is the photon starting energy in eV (real) 
+-  EMAX is the final photon energy in eV (real) 
+-  NE is the number of points in energy at which the spectrum will
+	be calculated (integer, used in spectral calculations, 500 max)
+
+
+LINE 3 : particle beam parameters 
+
+-  ENERGY is the electron energy in GeV (real) 
+-  CURRENT is the beam current in Amps (real) 
+-  SIGX is the horizontal beam size in mm (real) 
+-  SIGY is the vertical beam size in mm (real)
+-  SIGX1 is the horizontal beam divergence in mrad (real) 
+-  SIGY1 is the vertical beam divergence in mrad (real)
+
+
+LINE 4 :  pinhole size and position 
+
+-  DISTANCE is the distance to the observation point in meters. If
+	=0 then all pinhole sizes (defined below) are assumed to be in
+	angular units (mrad).  Otherwise the pinhole sizes are in
+	millimeters AND ALL BRIGHTNESS/POWER DENSITY DATA IS PER MM^2
+	RATHER THAN PER MRAD^2, E.G. PH/S/MM^2/0.1%BW.
+-  XPC is the horizontal position of the pinhole center in mrad or
+	mm (real)
+-  YPC is the vertical position of the pinhole center in mrad or
+	mm (real)
+-  XPS is the horizontal pinhole size in mrad or mm (real)
+-  YPS is the vertical pinhole size in mrad or mm (real) 
+-  NXP is the number of pinhole subintervals in the horizontal 
+	direction (integer, 100 max)
+-  NYP is the number of pinhole subintervals in the vertical
+	direction (integer, 100 max)
+
+
+LINE 5 : control parameters
+
+-  MODE=0-7 specifies the calculation mode (integer) 
+	MODE=0 - trajectory calculation only. The settings of 
+		all parameters on lines 2-4 are irrelevant in
+		this case.
+ 	MODE=1 - spectrum of the brightness from EMIN to 
+		EMAX at NE points  at position XPC,YPC.  In this 
+		case XPS,YPS, NXP, and NYP are irrelevant (see
+		Section VII).
+ 	MODE=2 - angular distribution of the brightness at 
+		EMIN. In this case EMAX and NE are irrelevant.
+ 	MODE=3 - spectral AND angular distribution of the 
+		brightness.
+ 	MODE=4 - spectrum of the flux through a pinhole at 
+		NE points in the range [EMIN,EMAX].
+ 	MODE=5 - spectral distribution of the radiated power 
+		at XPC,YPC.  In this mode XPS, YPS, NXP and NYP
+		are irrelevant (see Section VII). 
+	MODE=6 - spectral AND angular distribution of the 
+		radiated power.
+ 	MODE=7 - angular distribution of the radiated power 
+		integrated from EMIN to EMAX.  In this case NE 
+		determines the number of energy points at which the 
+		spectrum will be calculated prior to the integration.  
+
+-  NSIG is the number of standard deviations of beam divergence to
+	include in the calculation (integer, max=5). NSIG=0 gives the
+	zero-emittance spectrum (in this case SIGX, SIGY, SIGX1, SIGY1
+	are irrelevant).
+
+-  TRAJECTORY  is a trajectory-calculation flag 
+ 	TRAJECTORY=OLD - read the trajectory from the disk 
+		file specified by the keyword TFILE (see below).
+ 	TRAJECTORY=NEW - read the B-field distribution from a 
+		file specified by the keyword BFILE and calculate 
+		the trajectory  without saving it.
+ 	TRAJECTORY=NEW+KEEP - read the B-field distribution from 
+		a file specified with the keyword BFILE, calculate 
+	 	the trajectory and store it in a file specified by 
+		the keyword TFILE.  
+
+-  XSYM=YES,NO flags whether horizontal symmetry of the spectrum
+	should be enforced (integer). Vertical symmetry is always
+	enforced. XSYM=NO - do not enforce horizontal symmetry XSYM=YES
+	- enforce horizontal symmetry
+
+-  HANNING=0,1,...,NPER/2 is the number of periods at the entrance
+	and exit of the undulator over which a Hanning window will be
+	applied to the solution for the trajectory prior to the FFT.  If
+	HANNING=0 no window will be  applied (default).  USE WITH
+	EXTREME CAUTION.
+
+
+LINE 6 : I/O filename specifications
+
+-  BFILE - when TRAJECTORY=NEW or NEW+KEEP this keyword must
+	specify a complete directory specification of the disk file
+	containing the B-field distribution (<80 chars).  If
+	TRAJECTORY=OLD the value of BFILE is irrelevant and may be
+	omitted.  THE FILE NAME MUST BE ENCLOSED IN DOUBLE QUOTES.
+
+-  TFILE - when TRAJECTORY=OLD or NEW+KEEP this keyword must
+	specify a complete directory specification of the disk file
+	containing the trajectory or to which the trajectory will be
+	written. The maximum length of the filenames is 80 characters.
+	THE FILE NAME MUST BE ENCLOSED IN DOUBLE QUOTES.  If TRAJECTORY
+	= NEW this keyword may be omitted.
+
+NOTE:  unless told otherwise YAUP converts all input to upper case. On
+case-sensitive systems (e.g. UNIX) this may cause problems with the
+interpretation of file names.  In such cases (or any time you want to
+keep the file names case-sensitive and/or want to use file names
+containing blanks) enclose the file names in DOUBLE quotes, e.g.
+BFILE= "/users/myname/myfile.b"
+
+
+LINE 7: Miscellaneous keywords
+
+- QUIET=YES,NO - when YAUP encounters a word that it does not
+	recognize it will complain loudly.  You may prevent it from
+	doing so by using the QUIET flag.  By default QUIET is set to
+	NO. Setting QUIET=YES will cause all unrecognized keywords to be
+	ignored.  It is your responsibility to avoid all typos and
+	accidental occurrences of text containing keywords.  It is
+	probably a good idea to set QUIET=NO (default) and comment out
+	all additional text in YAUP.INP
+
+- END - all input following the keyword END is ignored
+
+
+EXAMPLE 1.  Here is a sample input file
+
+---------------------YAUP.INP begins here------------------- 
+;Magnet parameters
+period=3.3      NPER = 75       npts=20
+
+#Photon energy
+Emin=4000.  eMax = 6000.        nE=300  ;you may mix cases as you wish
+
+%Storage ring
+ENERGY=7.0              CURRENT=0.1     
+SIGX=0.308              SIGY=0.085
+SIGX1=0.024             SIGY1=0.009 
+
+!Pinhole (mm or mrad)
+DisTaNcE = 50. ; all pinhole sizes are in mm now, 
+               ; case of keyword does not matter
+XPC=0.000       XPS=2.000       NXP=50    ; this text is ignored
+YPC=0.000       YPS=2.000       NYP=50
+
+%Calculation parameters
+MODE=4          NSIG=2  TRAJECTORY=NEW  
+XSYM=yes        HANNING=0
+
+;Filenames
+BFILE = "test.b"
+;TFILE = "test.trj" 
+
+END
+
+Note that four types of comment characters are allowed, even in the
+middle of a line.  You may put anything your heart desires after an
+END statement without using any comment characters, just like this
+text.
+---------------------YAUP.INP ends here-------------------
+
+In this case TRAJECTORY=NEW (calculate without saving), so there is no
+need to specify TFILE.  Note that comments may appear anywhere in the
+input file and that empty lines are ignored. Care must be taken to
+avoid comments which are identical to keywords when QUIET=YES.
+
+
+EXAMPLE 2. Another input file
+
+---------------------YAUP.INP begins here------------------- 
+
+;Magnet parameters
+PERIOD=3.3      NPER = 75       NPTS=20
+
+;Photon energy
+EMIN=4000.  EMAX = 6000.        NE=300
+
+;Storage ring
+ENERGY=7.0              CURRENT=0.1     
+SIGX=0.308              SIGY=0.085
+SIGX1=0.024             SIGY1=0.009 
+
+;Pinhole (mm or mrad)
+DISTANCE = 0.  ; all pinhole sizes are now in mrad
+XPC=0.000       XPS=0.000       NXP=0  
+YPC=0.000       YPS=0.100       NYP=50
+
+;Calculation parameters
+MODE=2          NSIG=2  trajectory=NEW+KEEP  
+XSYM=yes        HANNING=0
+
+;Filenames
+BFILE = "test.b"
+TFILE = "test.trj" 
+
+---------------------YAUP.INP ends here-------------------
+
+Here TRAJECTORY=NEW+KEEP (calculate and save) so both input (for the
+B-field) and output (for the trajectory) filenames must be specified. 
+The same is true if MODE=0 regardless of the setting of TRAJECTORY 
+Note that you may omit the END keyword when you don't need it.
+
+
+EXAMPLE 3. Yet another sample input file.
+
+-------------------YAUP.INP begins here------------------- 
+
+;Magnet parameters
+PERIOD=3.3      NPER = 75       NPTS=20
+
+;Photon energy
+EMIN=4000.  EMAX = 6000.        NE=300
+
+;Storage ring
+ENERGY=7.0              CURRENT=0.1     
+SIGX=0.308              SIGY=0.085
+SIGX1=0.024             SIGY1=0.009 
+
+;Pinhole (mm or mrad)
+DISTANCE = 50.
+XPC=0.000       XPS=0.100       NXP=50  
+YPC=0.000       YPS=0.100       NYP=50
+
+;Calculation parameters
+MODE=4          NSIG=2  TRAJECTORY=old  
+XSYM=yes        HANNING=0
+
+;Filenames
+BFILE = "testbri"
+TFILE = "test.trj" 
+
+---------------------YAUP.INP ends here-------------------
+
+
+EXAMPLE 4. A bad example
+
+-------------------YAUP.INP begins here------------------- 
+QUIET=yes
+
+Magnet parameters - this will not cause an error
+PERIOD=3.3      NPER = 75       NPTS=20
+
+;Photon energy
+EMIN=4000.  EMAX = 6000.        NE=300
+
+QUIET=no
+Storage ring - this text will make YAUP complain
+ENERGY=7.0              CURRENT=0.1     
+SIGX=0.308              SIGY=0.085
+SIGX1=0.024             SIGY1=0.009 
+
+;Pinhole (mm)
+DISTANCE = 50.
+XPC=0.000       XPS=0.000       NXP=0  
+YPC=0.000       YPS=0.100       NYP=0
+
+;Calculation parameters
+MODE=1          NSIG=2  TRAJECTORY=old  
+XSYM=yes        HANNING=0
+
+; MODE=1 so YPS does not matter
+
+;Filenames
+BFILE = "test.b"
+TFILE = "test.trj" 
+
+---------------------YAUP.INP ends here-------------------
+
+In this example QUIET is initially set to YES so the line "Magnet
+parameters..." will be ignored.  Later in the file, however, QUIET is
+set back to NO and the line "Storage..." will cause the program to
+complain.
+
+Extensive error checking of the input stream is performed but it is
+mostly for syntax errors and missing keywords.  Obvious errors like
+negative ENERGY or variables out of bounds will be reported but no
+other attempt is made to see if the input data makes any sense.
+
+
+
+V. OUTPUT FILE FORMAT
+
+All results are written to a file called YAUP-N.OUT where N is an
+integer from 0 to 9.  Initially the program tries to open a file
+called YAUP-0.OUT.  If the file already exists in the current
+directory the program attempts to open the file YAUP-1.OUT and so on,
+until a unique file name YAUP-N.OUT if found.  If the files YAUP-0.OUT
+through YAUP-9.OUT already exist the program terminates with the
+error message
+
+*************
+opnout:: cannot open an output file  
+please delete all yaup-*.* files
+*************
+
+You will have to manually delete at least one of the YAUP-*.OUT files
+before attempting to restart the program.  This inconvenience is
+intended to protect the results of lengthy calculations from
+accidental deletion (you can tell that I did that many times, can't
+you :-)).
+
+The output file is straight ASCII and may be plotted with the program
+of your choice.
+   
+
+
+VI. PROGRAM DESCRIPTION
+
+The program assumes that the tapered undulator is a periodic array of
+magnets with alternating poles and a magnet gap that varies along the
+undulator axis z in a user-specified fashion.  Thus the magnet field
+within the undulator is some amplitude-modulated sinusoid :
+
+Btot(z)=B(z)*sin(2*pi/L*z+phi(z)).	(1)
+
+Here Btot is the total field, z is the longitudinal coordinate (along
+the undulator axis), L is the undulator period and phi(z) accounts for
+any phase errors that may be present in the field (amplitude errors
+should be included in B(z)).
+
+The user specifies the function B(z) (in tesla) and phi(z) (in
+radians).  The  equations of motion are solved numerically subject to
+the boundary condition that the transverse displacement at z=0 and
+z=N*L is zero (no beam steering).  Zero beam divergence is assumed in
+these calculations.
+
+Once the trajectory is available it is used to calculate the energy
+radiated by a single electron traversing that trajectory in a
+user-specified angular and energy range.  In order to minimize the
+computation time the program tries to use certain symmetries of the
+spectrum to reduce the angular range to the possible minimum.  It is
+therefore very likely that the angular range of the actual
+calculations (printed on the screen) will differ significantly from
+the angular range requested by the user, but as long as the FINAL
+results are in the requested range this should be no cause for alarm.
+
+As mentioned earlier beam emittance may be accounted for in a first
+order approximation by convoluting the zero emittance spectrum with
+the e-beam velocity distribution.  Up to five standard deviations of
+beam divergence may be included in the calculations at this time
+which should be more than enough for all practical purposes.
+
+
+
+VII. HINTS AND SUGGESTIONS (PLEASE, PLEASE READ)
+
+If a pinhole covers both positive and negative angles the program may
+not calculate the brightness over the requested angular range but will
+rather use the allowed reflection symmetries of the spectrum to
+minimize the angular range of the calculations.  In such case there
+will be APPROXIMATELY (see below) NXP/2 and NYP/2 points in the
+minimal angular range.  Any adjustments to the input parameters are
+written to the output file so that the values saved there reflect the
+ACTUAL parameters used in the calculations.
+
+The parameter XSYM flags whether to assume reflection symmetry of the
+spectrum with respect to the vertical (yz) plane.  This is a valid
+symmetry for untapered undulators (if no field errors are present). In
+every other case the presence or absence of this symmetry should be
+verified (calculate an angular distribution of the brightness at
+several energies with XSYM=NO for an on-axis pinhole and compare the
+results for positive and negative x-angles) and XSYM=YES should be
+used whenever possible. For an approximate analytical criterion see
+the reference cited at the beginning of this document.  This criterion
+is checked internally and whenever it is not satisfied and XSYM is set
+to YES the program will issue a warning message:
+
+************************************************ 
+*EMAX may be too high.  Consider using XSYM=NO.*
+************************************************
+
+In order to calculate the convolutions with the beam divergence
+efficiently (NSIG>0, all modes), the step sizes for the brightness
+calculations and the sampling of the e-beam distribution have to be
+identical and fixed.  Since the number of sampling points for the
+particle beam distribution is limited to 78 in each direction, some
+minor adjustment of the step and pinhole sizes may be needed.  The
+program performs all necessary  adjustments to NXP, NYP, XPS and YPS
+automatically and saves them in the output file.  The values written
+to the output file are the ones used in the calculation.
+
+Since the user-requested pinhole must be covered in an integer number
+of steps minor adjustments to the pinhole sizes may also be
+necessary.  This is done automatically and all changes are recorded in
+the output file.
+
+To account properly for beam emittance (NSIG>0) the program needs a
+"sufficiently dense" angular/spatial mesh of points.  This is
+especially true for calculations involving untapered undulators and
+tapered undulators with a small amount of taper, where the
+zero-emittance spectrum is a rapidly oscillating function of the angle
+between the observation direction and the undulator axis.  An
+angular/spatial mesh may be considered "sufficiently dense" if
+doubling the number of points in angle in the X and/or Y directions
+(i.e. NXP and NYP) leaves spectrum reasonably unchanged.
+Insufficiently dense angular/spatial mesh will result in spurious
+oscillations in the calculated spectra.
+
+Usually NSIG=2 will do a decent job and NPTS=40 is more than enough.
+Unnecessarily large values for these parameters will slow down the
+execution of the program considerably and may lead to insufficient
+averaging (and smoothing) of the zero- emittance spectrum.
+
+If NXP and/or NYP=0,1 and XPS and/or YPS>0, the stepsize for the 
+angular-distribution calculations is chosen internally.  It is
+highly recommended that you set NXP and NYP to zero when MODE=2,3,4,6.
+Note that when MODE=1,5 XPS and YPS are forced to zero and the angular 
+stepsize is ALWAYS controlled internally (if NSIG>0).
+
+It is a good idea to leave a blank line at the end of the input file.
+If this is not done the program may respond with an error message on
+some systems.
+
+Only minor error checking of the input stream is performed.  If
+inconsistent input parameters are given the results produced by the
+program (if any) most likely will make no sense.  It is the user's
+responsibility to ensure that the input is "reasonable" and the output
+behaves "as expected" to certain changes of the input parameters. THIS
+IS NOT A COMMERCIAL PRODUCT AND IS NOT DESIGNED TO BE "FOOL-PROOF".
+
+As mentioned in the introduction, it is not recommended to use this
+program for calculations of untapered undulators.  URGENT will handle
+such devices much more efficiently. Programs such as URGENT, however,
+cannot account for field errors or fringe fields of any kind.  If this
+is what you want, YAUP may be used to do the calculations but it must
+be kept in mind that the zero-emittance spectrum of untapered
+undulators is a  wildly oscillating function of the angles (both
+horizontal and vertical) and in some cases the convolution with the
+beam emittance may not  provide sufficient "statistics" to wash out
+these oscillations unless the stepsize is sufficiently small (this is
+especially true for large values of NSIG and/or XPS/YPS when 
+MODE=2,3,4,6). In such cases it is HIGHLY desirable that you set 
+NXP=NYP=0 and NSIG=2 whenever possible.  If you insist on using
+your own NXP/NYP, please run YAUP once with NXP=NYP=0 and note the 
+step sizes (in both the X and Y directions) that the program chooses.  
+We recommend that the step sizes for all subsequent calculations with 
+this configuration (i.e. number of poles, magnet period, beam energy, 
+AND photon energy range) does not exceed these values more than two 
+times whenever possible.
+
+Use HANNING *very* cautiously.  When in doubt use HANNING=0.  Whenever
+HANNING>0 *always* inspect the trajectory visually.
+
+When interrupted the program leaves the internal files YAUP.CFG,
+YAUP.S0, and YAUP.S1 on the disk.  These files must be removed
+manually before restarting the program. For more info see section IX.
+
+In some cases the program will terminate with an error message
+suggesting that you use certain values of NCRIT and/or MFFT. (see
+section IX).  Under normal operation (i.e. when you are not abusing
+the program) they will not be encountered. If you use the suggested
+values the program will probably produce results but you should be 
+** VERY VERY ** SUSPICIOUS of them.
+
+
+
+VIII. DATA FILE FORMATS
+
+The B-field file should be written in double precision to an
+unformatted FORTRAN file as follows :
+
+	IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+	.
+	.
+	.
+ 	NPTST=NPER*NPTS+1
+	DZ=PERIOD/NPTS
+	BMIN=1.D30
+	DO I=1,NPTST
+	   Z=(I-1)*DZ
+	   < calculate B(z) and phi(z) >
+	   IF (B(I).LT.BMIN) BMIN=B(I)
+	END DO 	
+	OPEN(1, FILE=filename, STATUS='UNKNOWN',FORM='UNFORMATTED')
+ 	WRITE (1) PERIOD, NPER, NPTS,BMIN
+	WRITE(1) ( B(I), PHI(I), I=1,NPTST )
+	CLOSE(1)
+	.
+	.
+	.
+	
+In the above code NPTST is the total number of points at which the
+trajectory will be calculated, PERIOD is the undulator period (in cm)
+), and B (in tesla) and PHI are the values of the modulating function
+and the phase errors (as defined by eq.(1)) at points Z=(I-1)*DZ,
+I=1,NPTST, DZ=PERIOD/NPTS. BMIN is the minimum value of B(I),
+I=1,...,NPTST.  The values of PERIOD, NPER and NPTS in the B-field
+file and YAUP.INP must be the same or the program will terminate with
+an error message.
+
+A program called BFIELD.F is distributed with YAUP.F. BFIELD.F is a
+standalone module that generates a B-field file for an undulator with
+a linearly tapered gap in a format acceptable to YAUP.  The user must
+specify the gap GZMIN at Z=Zmin=0 and the amount of gap taper
+DG=(GZMAX-GZMIN)/GZMIN (either positive or negative).  The program
+interpolates the gap linearly between GZMIN and GZMAX.  The field
+strength dependence is specific to the proposed APS undulators but the
+user may modify this section of the program according to his/her
+specific needs.  Zero phase errors are assumed. See the file BFIELD.F
+for more details.
+
+The format of the trajectory file is similar to that of the B-field
+file.  YAUP uses the following code to save the trajectory (when
+ITRAJ=SAVE or MODE=0) :
+
+	IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+	.
+	.
+	.
+	KMIN=0.934*PERIOD*BMIN
+ 	EFUND=949.*ENERGY**2/(PERIOD*(1.D0+KMIN**2/2.D0))	
+	OPEN(1, FILE=filename,STATUS='UNKNOWN',FORM='UNFORMATTED')
+ 	WRITE(1) PERIOD,NPER,NPTS,ENERGY,EFUND
+ 	WRITE(1) ( CT(I),X(I),BETAX(I),BETAZ(I), I=1,NPTST ) 
+	CLOSE(1) 	 
+	.
+	.
+	.
+	
+where PERIOD,NPER,NPTS,and NPTS are as before, ENERGY is the electron
+energy in GeV, EFUND is the on-axis fundamental energy (in eV) of  a
+untapered undulator with K=KMIN=0.934*PERIOD*BMIN, and CT (in
+centimeters), X (in cm), BETAX, and BETAZ are the usual quantities as
+a function of the longitudinal coordinate Z=(I-1)*DZ, I=1,NPTST.
+Contact the authors at the addresses given at the end of this document
+if you need a program that converts the trajectory and B-field files
+back to ASCII format and vice-versa.
+
+
+
+IX. "EXPERT" options.
+
+This section deals with somewhat technical questions that concern
+primarily the fine-tuning of the program execution.  It is intended
+for "expert" users.  The use of the capabilities described here is
+strictly optional.  If you intend to use the program as a black box
+you probably do not need to read what follows.
+
+The execution of YAUP is controlled by a number of parameters: STATUS,
+UPDATE, RESOLUTION, NCRIT, MFFT, BW, and GNUPLOT.  The most
+time-consuming portion of the program is the calculation of the
+zero-emittance Stoke's coefficients S0 and S1. The values of these
+coefficients as a function of energy and angle are written to two
+files named YAUP.S0 and YAUP.S1 (defaults).  The status of the current
+job is saved in the "status file" YAUP.CFG. If the program is
+interrupted at any time, these three files (and the ORIGINAL YAUP.INP)
+may be used to continue the calculations from the point of
+interruption instead of starting from scratch. The default location
+of these files is the current directory.  If you would prefer to have
+them in a scratch directory (e.g. /tmp on UNIX systems) or rename
+them altogether, you may do so through the use of the BASENAME keyword
+(see below).  On some systems you can avoid counting these files
+against your disk quota by doing this.
+
+- BASENAME="filespec", if present, determines the basename of all
+	output files produced by YAUP. Here "filespec" is a file
+	specification (enclosed in double quotes as usual) such that
+	"filespec.txt" is a valid file name.  Examples of valid
+	filespec's are "/tmp/yaup" (UNIX), "c:\tmp\yaup1" (DOS),
+	"[.junk]yaup2" (VMS), "HD20:junk:yaup3" (Mac). If a basename is
+	given program output will be directed to the file
+	"filespec-n.out" (instead of YAUP-n.OUT), the Stokes'
+	coefficients will be written to "filespec.s0" and "filespec.s1"
+	(instead of YAUP.S0 and YAUP.S1), and the configuration file
+	name will be "filespec.cfg" (instead of YAUP.CFG). This is
+	particularly useful if you want to run several YAUP (batch) jobs
+	in the same directory. Note, however, that input is ALWAYS read
+	from YAUP.INP.
+ 
+- The handling of YAUP.S0, YAUP.S1 and YAUP.CFG (which will be
+	jointly referred to as "temporary files") is controlled by the
+	STATUS keyword:
+
+	STATUS=NEW - start a new job.  Delete all temporary files 
+		when done.
+	STATUS=NEW+KEEP - start a new job. Keep all temporary files 
+		when done.
+	STATUS=OLD - continue an interrupted job from the point of
+		interruption.  All temporary files must already exist on 
+		disk and are deleted at the end of the job.
+	STATUS=OLD+KEEP - continue an interrupted job from the point of
+		interruption.  All temporary files must already exist on 
+		disk and are saved at the end of the job.
+
+If the files were intentionally saved (with STATUS=%%%+KEEP), program
+execution will resume with the 2D convolution with the beam emittance.
+You may use this option to calculate the flux through a pinhole once
+you have calculated the spectral and angular distributions of the
+brightness in the pinhole (and vice versa).  If the file YAUP.INP
+differs in any way (besides the values of MODE, TRAJECTORY, STATUS, and
+UPDATE) from the original, the program will terminate with the message
+
+*************
+status:: invalid checksum found in "yaup.cfg"
+cannot continue
+*************
+ 
+If STATUS=NEW or NEW+KEEP and any of the files YAUP.S0, YAUP.S1, and
+YAUP.CFG already exist in the current  directory the program will
+terminate with an error message.  You will be expected to delete these
+files manually.
+
+- UPDATE controls the frequency with which the temporary files are
+	updated (i.e. closed and then reopened).  If UPDATE>=0 the actual
+	frequency of the updates will depend on the input parameters
+	but approximately every UPDATE*NYP points the files will be
+	closed and then reopened. In the special case NXP/NYP=0 (see 
+	section VII) the program will calculate the values of NXP/NYP
+	internally and will update the temporary files every UPDATE*NYP 
+	points. When UPDATE<0 an update is forced only once - when the
+	zero-emittance calculations are completed (there may be other 
+	unforced updates but that depends on the amount of temporary 
+	data and the size of the file buffers on your system). A small
+	(positive) value of UPDATE will force frequent updates and will
+	minimize the data loss in case of a power failure or unintended
+	interruption but will slow down program execution somewhat. 
+	Obviously the highest update frequency corresponds to UPDATE=1.
+	UPDATE=0 defaults to UPDATE=1.
+
+
+- RESOLUTION controls the internal scaling of the angular/spatial
+	stepsize when  NXP/NYP=0 (see section VII). The program calculates 
+	the angular width ANGW of the zero-emittance first-harmonic lobe 
+	of an untapered undulator with the same hardware parameters tuned 
+	to EMAX and sets the angular stepsize to ANGW/RESOLUTION. The 
+	default is RESOLUTION=6.
+
+- In order to avoid power-aliasing problems YAUP will try to
+	increase the sampling rate of the function that is FFTd until
+	the Nyquist energy is at least ECRIT=NCRIT/2*EFUND+EMAX eV,
+	where NCRIT is a parameter currently set to 20 and EFUND is
+	defined in section VIII. The spurious contributions to the
+	spectrum at any energy E the will then come from energies not
+	lower than E+NCRIT*EFUND. By default NCRIT=20.  This means that
+	for untapered undulator calculations the power aliasing
+	contributions will come from harmonics at least 20 orders higher
+	than the highest harmonic in the energy range of interest.  In
+	plain English, if you are calculating the undulator spectrum in
+	an energy range containing the fifth, sixth, and seventh
+	harmonic, the power aliasing contributions will come at most
+	from the 27th harmonic.
+
+- To account for the beam emittance the program convolutes the
+	angular distribution of the brightness at each energy with the
+	electron divergence/spatial distribution. Since the energy
+	stepsize in energy of the FFTd spectrum varies with the
+	observation direction the spectrum must be interpolated so as
+	to find the values of the zero- emittance brightness at the
+	user-requested energies. Typically the zero-emittance spectrum
+	of the brightness is a sinc-like oscillating function of energy
+	and a good interpolation will be possible only if the energy
+	mesh is "sufficiently dense". The program controls the energy
+	stepsize of the FFT internally (it has nothing to do with the
+	user-specified energy stepsize as determined from EMIN, EMAX,
+	and NE).  The choice for an energy stepsize is  based on the
+	values the parameters MFFT and NCRIT and is adjusted so that
+	there will be approximately MFFT points per oscillation in the
+	spectrum.  MFFT must be chosen so that a sufficient number of
+	points is available to perform the interpolation described
+	above. The default value is 8.  Anything less than 4 seems
+	unacceptable (to me). MFFT MUST BE A POWER OF 2. THE PROGRAM
+	DOES NOT CHECK THAT.
+
+- BW is the bandwidth of the results.  The defaults is BW=0.001
+	(e.g. ph/s/0.1% BW(/mrad^2 or /mm^2))
+
+- GNUPLOT=XLINES,YLINES,NONE allows formatting of the output file
+	for GNUPLOT compatibility. When plotting Z=F(X,Y) 3D data
+	GNUPLOT requires that each set of lines in the input file that
+	defines a contour in the XY plane be separated from the
+	preceding and following sets by a blank line.  Obviously this
+	option is useful only when calculating 2D distributions. 
+	
+	XLINES - a blank line will be left after every NXP*NYP lines. 
+	YLINES - a blank line will be left after every NYP lines 
+	NONE - no additional formatting is performed.  This is equivalent 
+		to omitting the GNUPLOT keyword.
+	       
+In some cases the program will terminate with an error messages
+suggesting that you use certain values of NCRIT and/or MFFT. Under
+normal operation (i.e. when you are not abusing the program) they will
+not be encountered. If you use the suggested values the program will
+probably produce results but you should be ** VERY VERY ** SUSPICIOUS
+of them.
+
+
+EXAMPLE 5.  A demo YAUP.INP that uses the expert options.
+ 
+---------------------YAUP.INP begins here-------------------
+
+;Magnet parameters
+PERIOD=3.3      NPER = 75       NPTS=20
+
+;Photon energy
+EMIN=3000.  EMAX = 600000.        NE=300
+
+;Storage ring
+ENERGY=7.0              CURRENT=0.1     
+SIGX=0.308              SIGY=0.085
+SIGX1=0.024             SIGY1=0.009 
+
+;Pinhole (mm or mrad)
+DISTANCE = 0.
+XPC=0.050       XPS=.100       NXP=50  
+YPC=0.030       YPS=.100       NYP=50
+
+;Calculation parameters
+MODE=4          NSIG=2  TRAJECTORY=old  
+XSYM=yes		HANNING=0
+
+;Filenames
+BFILE = "planar-1.76-bf"
+TFILE = "planar-1.76-trj" 
+BASENAME = "/tmp/hello"
+
+;END
+
+;Advanced keywords
+STATUS=old+keep		UPDATE=2          RESOLUTION=12
+NCRIT=25          	MFFT=0            BW=0.01
+---------------------YAUP.INP ends here-------------------
+
+In this hypothetical input file STATUS=old+save, UPDATE=2,
+RESOLUTION=12, NCRIT=25, MFFT1=8 (default), and BW=0.01 (1%BW). 
+Setting any parameter equal to zero signals the program to use the
+defaults (as defined in the parameter descriptions above). Here
+BASENAME="/tmp/hello" so output will be written to /tmp/hello-0.out
+and the temporary files will be /tmp/hello.s0, /tmp/hello.s1, and
+/tmp/hello.cfg
+
+
+
+X. Further information
+
+You may copy and distribute this program freely as well as modify it
+for your purposes but you may NOT distribute hacked copies.  Instead
+send all constructive comments to the me and I (bib) will try to
+incorporate them into future releases (if any).  Your work will be
+properly credited. Also see the disclaimer in the beginning of this
+document. To  request your own copy send Email to:
+
+  	   boyan@tmnxt1.iit.edu   
+	   boyaboy@karl.iit.edu          
+	   boyaboy@iitvax        (Bitnet) 
+
+or contact
+
+	   Boyan Boyanov 
+	   Department of Physics 
+	   Illinois Institute of Technology 
+	   Chicago,IL 60616 USA
+
+	   phone   (312) 567-3398    
+	   fax     (312) 567-3396
+
+This is the only way you are sure to have the latest (and hopefully the
+least buggy) version of the program as well as any future upgrades.
+
+Please direct all bug reports, suggestions for improvements, and
+requests for further assistance (preferably via Email) to the above
+addresses.  Do not be afraid to complain.  The program satisfies my
+own needs in its present form and unless I receive substantial
+feedback I will make no effort to change/improve anything.
+
+
+
+XI. Acknowledgments
+
+Some parts of this program  as well as this document itself have drawn
+heavily from URGENT (R. Walker and B. Diviacco) and its supporting
+documentation.  The author is greatly indebted to R. Walker
+(Synchrotrone Trieste) for kindly giving his permission for this.
+Thanks are due to Pathikrit Bandyopadhyay for thoroughly abusing the
+code :-). The development of this program was supported in part by a gift
+from Amoco Corporation.
+
+To those of you who had the patience to read through this entire piece
+of crap - thank you. Let me know if it was worth the effort.
+
+
+
+
+APPENDIX A. Program diagnostics
+
+Several diagnostic files are provided with the program:
+	testbf.txt - sample b-field configuration
+	txt2u.f - program to convert taper33.txt into binary format
+	yaup.inp - sample input file
+	yaup-0.out - output generated with yaup.inp and testbf.txt
+	
+To perform program diagnostics:
+
+1) Compile txt2u.f.  The same precautions should be used when 
+compiling TXT2U as when compiling yaup, i.e. use static allocation,
+fold all variables to lower/upper case, and do not optimize.
+
+2) Run txt2u with the following input:
+
+------------------------------------------------------------
+txt2u - convert text b-field files to YAUP format.
+
+Input file name ? testbf.txt
+Output file name ? test.bf
+Magnet period (cm) ? 3.3
+Number of periods ? 75
+Number of points per period ? 40
+
+Working...
+Done.
+------------------------------------------------------------
+
+
+TXT2U should create a b-field file called test.bf
+
+3) Run YAUP with the provided YAUP.INP.  This should produce the
+following output on your screen
+
+------------------------------------------------------------
+
+YAUP 1.3.1 - Yet Another (Useless) Undulator Program
+Last modified on APR-13-94
+Send bug reports to boyan@tmnxt1.iit.edu
+
+------------------------------------------------------------
+
+Reading B-field distribution (in tesla) from file test.bf
+Writing output to yaup-0.out
+
+------------------------------------------------------------
+
+Beginning calculation of electron trajectory as a function
+of the longitudinal  coordinate. The total undulator length
+is  247.5 centimeters.
+
+    Pass #     z(m)     % done        error (cm)
+      3       2.474     100.0        2.249587E-03
+
+Trajectory calculations completed.
+Error after the final pass (cm) :   -7.657119E-11 ( 0.00 % )
+Initial betax                   :    9.092205E-05
+Final   betax                   :    7.673175E-05
+
+------------------------------------------------------------
+
+Beginning zero-emittance brightness calculations.
+emin =   7000.0   emax =  10000.0   ne = 201
+xmin =   -.0480   xmax =   0.0000   nx =  30
+ymin =   -.0180   ymax =   0.0000   ny =  12
+
+   x (mrad/mm)  y (mrad/mm)  % done
+     0.0000       0.0000      100.0                                  
+
+------------------------------------------------------------
+
+Convoluting with the beam divergence.
+
+energy (eV)            % done
+    10000.              100
+
+------------------------------------------------------------
+
+This calculation takes about 10 minutes on a 25 MHz 68040 NeXTStation.
+If the output file (e.g. YAUP-1.OUT) does not reproduce the provided
+YAUP-0.OUT with sufficient accuracy (1-2 % at the very least) you may 
+need to make some adjustments. Send DETAILED email to boyan@tmnxt1.iit.edu, 
+and I will try to help you solve the problem.
+
+
+
+
+APPENDIX B. Error messages.
+
+Some nice day when I have nothing better to do I'll describe all error
+messages here.  Don't count on it though :-).
+
+
+07/94 Chicago bib
+
+
+A program called BFIELD.F is distributed with YAUP.F. BFIELD.F is a
+standalone module that generates a B-field file for an undulator with
+a linearly tapered gap in a format acceptable to YAUP.  The user must
+specify the gap GZMIN at Z=Zmin=0 and the amount of gap taper
+DG=(GZMAX-GZMIN)/GZMIN (either positive or negative).  The program
+interpolates the gap linearly between GZMIN and GZMAX.  The field
+strength dependence is specific to the proposed APS undulators but the
+user may modify this section of the program according to his/her
+specific needs.  Zero phase errors are assumed. See the file BFIELD.F
+for more details.
+
+
+
