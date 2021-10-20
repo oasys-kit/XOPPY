@@ -54,6 +54,8 @@ class OWpower3Dcomponent(XoppyWidget):
     EL1_DEN = Setting("?")
     EL1_HGAP = Setting(1000.0)
     EL1_VGAP = Setting(1000.0)
+    EL1_HGAPCENTER = Setting(0.0)
+    EL1_VGAPCENTER = Setting(0.0)
     EL1_HMAG = Setting(1.0)
     EL1_VMAG = Setting(1.0)
     EL1_HROT = Setting(0.0)
@@ -113,7 +115,7 @@ class OWpower3Dcomponent(XoppyWidget):
 
 
         list_w = ["EL1_THI", "EL1_ANG", "EL1_DEF", "EL1_ROU", "EL1_DEN",
-                  "EL1_HGAP", "EL1_VGAP", "EL1_HMAG", "EL1_VMAG",
+                  "EL1_HGAP", "EL1_VGAP", "EL1_HGAPCENTER", "EL1_VGAPCENTER", "EL1_HMAG", "EL1_VMAG",
                   "EL1_HROT", "EL1_VROT"]
 
         for el in list_w:
@@ -190,6 +192,8 @@ class OWpower3Dcomponent(XoppyWidget):
         labels.append('Density [g/cm^3]')
         labels.append('H Size/Gap [mm]')
         labels.append('V Size/Gap [mm]')
+        labels.append('H Center/Gap [mm]')
+        labels.append('V Center/Gap [mm]')
         labels.append('H Magnification')
         labels.append('V Magnification')
         labels.append('Rotation angle around V axis [deg]')
@@ -214,6 +218,8 @@ class OWpower3Dcomponent(XoppyWidget):
         flags.append('self.EL1_FLAG  <=  1')   # density
         flags.append('self.EL1_FLAG  <=  2')   # gap
         flags.append('self.EL1_FLAG  <=  2')   # gap
+        flags.append('self.EL1_FLAG  <=  2')   # gap center
+        flags.append('self.EL1_FLAG  <=  2')   # gap center
         flags.append('self.EL1_FLAG  ==  3')   # magnification
         flags.append('self.EL1_FLAG  ==  3')   # magnification
         flags.append('self.EL1_FLAG  in (0, 4)')   # rotation
@@ -298,28 +304,32 @@ class OWpower3Dcomponent(XoppyWidget):
 
     def check_fields(self):
 
-        self.EL1_FOR = congruence.checkEmptyString(self.EL1_FOR, "1st oe formula")
+        self.EL1_FOR = congruence.checkEmptyString(self.EL1_FOR, "OE formula")
 
         if self.EL1_FLAG == 0: # filter
-            self.EL1_THI = congruence.checkStrictlyPositiveNumber(self.EL1_THI, "1st oe filter thickness")
-            self.EL1_HROT = congruence.checkNumber(self.EL1_HROT, "1st oe rotation H")
-            self.EL1_VROT = congruence.checkNumber(self.EL1_VROT, "1st oe rotation V")
+            self.EL1_THI = congruence.checkStrictlyPositiveNumber(self.EL1_THI, "OE filter thickness")
+            self.EL1_HROT = congruence.checkNumber(self.EL1_HROT, "OE rotation H")
+            self.EL1_VROT = congruence.checkNumber(self.EL1_VROT, "OE rotation V")
         elif self.EL1_FLAG == 1: # mirror
-            self.EL1_ANG = congruence.checkStrictlyPositiveNumber(self.EL1_ANG, "1st oe mirror angle")
-            self.EL1_ROU = congruence.checkPositiveNumber(self.EL1_ROU, "1st oe mirror roughness")
-            self.EL1_HROT = congruence.checkNumber(self.EL1_HROT, "1st oe rotation H")
-            self.EL1_VROT = congruence.checkNumber(self.EL1_VROT, "1st oe rotation V")
-            self.EL1_HGAP = congruence.checkStrictlyPositiveNumber(self.EL1_HGAP, "1st oe H gap")
-            self.EL1_VGAP = congruence.checkPositiveNumber(self.EL1_VGAP, "1st oe V Gap")
+            self.EL1_ANG = congruence.checkStrictlyPositiveNumber(self.EL1_ANG, "OE mirror angle")
+            self.EL1_ROU = congruence.checkPositiveNumber(self.EL1_ROU, "OE mirror roughness")
+            self.EL1_HROT = congruence.checkNumber(self.EL1_HROT, "OE rotation H")
+            self.EL1_VROT = congruence.checkNumber(self.EL1_VROT, "OE rotation V")
+            self.EL1_HGAP = congruence.checkStrictlyPositiveNumber(self.EL1_HGAP, "OE H gap")
+            self.EL1_VGAP = congruence.checkPositiveNumber(self.EL1_VGAP, "OE V Gap")
+            self.EL1_HGAPCENTER = congruence.checkPositiveNumber(self.EL1_HGAPCENTER, "OE H gap Center")
+            self.EL1_VGAPCENTER = congruence.checkPositiveNumber(self.EL1_VGAPCENTER, "OE V Gap Center")
         elif self.EL1_FLAG == 2: # aperture
-            self.EL1_HGAP = congruence.checkStrictlyPositiveNumber(self.EL1_HGAP, "1st oe H gap")
-            self.EL1_VGAP = congruence.checkPositiveNumber(self.EL1_VGAP, "1st oe V Gap")
+            self.EL1_HGAP = congruence.checkStrictlyPositiveNumber(self.EL1_HGAP, "OE H gap")
+            self.EL1_VGAP = congruence.checkPositiveNumber(self.EL1_VGAP, "OE V Gap")
+            self.EL1_HGAPCENTER = congruence.checkPositiveNumber(self.EL1_HGAPCENTER, "OE H gap Center")
+            self.EL1_VGAPCENTER = congruence.checkPositiveNumber(self.EL1_VGAPCENTER, "OE V Gap Center")
         elif self.EL1_FLAG == 3: # magnifier
-            self.EL1_HMAG = congruence.checkStrictlyPositiveNumber(self.EL1_HMAG, "1st oe H magnification")
-            self.EL1_VMAG = congruence.checkPositiveNumber(self.EL1_VMAG, "1st oe V magnification")
+            self.EL1_HMAG = congruence.checkStrictlyPositiveNumber(self.EL1_HMAG, "OE H magnification")
+            self.EL1_VMAG = congruence.checkPositiveNumber(self.EL1_VMAG, "OE V magnification")
         elif self.EL1_FLAG == 4: # rotation
-            self.EL1_HROT = congruence.checkNumber(self.EL1_HROT, "1st oe rotation H")
-            self.EL1_VROT = congruence.checkNumber(self.EL1_VROT, "1st oe rotation V")
+            self.EL1_HROT = congruence.checkNumber(self.EL1_HROT, "OE rotation H")
+            self.EL1_VROT = congruence.checkNumber(self.EL1_VROT, "OE rotation V")
 
     def do_xoppy_calculation(self):
         return self.xoppy_calc_power3Dcomponent()
@@ -588,6 +598,8 @@ class OWpower3Dcomponent(XoppyWidget):
         flags     = self.EL1_FLAG
         hgap = self.EL1_HGAP
         vgap = self.EL1_VGAP
+        hgapcenter = self.EL1_HGAPCENTER
+        vgapcenter = self.EL1_VGAPCENTER
         hmag = self.EL1_HMAG
         vmag = self.EL1_VMAG
         hrot = self.EL1_HROT
@@ -637,6 +649,8 @@ class OWpower3Dcomponent(XoppyWidget):
             txt += '      thickness [mm] : %f \n'%(thick)
             txt += '      H gap [mm]: %f \n'%(hgap)
             txt += '      V gap [mm]: %f \n'%(vgap)
+            txt += '      H gap center [mm]: %f \n'%(hgapcenter)
+            txt += '      V gap center [mm]: %f \n'%(vgapcenter)
             txt += '      H rotation angle [deg]: %f \n'%(hrot)
             txt += '      V rotation angle [deg]: %f \n'%(vrot)
         elif flags == 1:
@@ -649,6 +663,8 @@ class OWpower3Dcomponent(XoppyWidget):
             txt += '      *****   oe  [Aperture] *************\n'
             txt += '      H gap [mm]: %f \n'%(hgap)
             txt += '      V gap [mm]: %f \n'%(vgap)
+            txt += '      H gap center [mm]: %f \n'%(hgapcenter)
+            txt += '      V gap center [mm]: %f \n'%(vgapcenter)
         elif flags == 3:
             txt += '      *****   oe  [Magnifier] *************\n'
             txt += '      H magnification: %f \n'%(hmag)
@@ -675,10 +691,10 @@ class OWpower3Dcomponent(XoppyWidget):
             V = v / numpy.cos(vrot * numpy.pi / 180)
 
             # aperture
-            h_indices_bad = numpy.where(numpy.abs(H) > 0.5*hgap)
+            h_indices_bad = numpy.where(numpy.abs(H - hgapcenter) > (0.5*hgap))
             if len(h_indices_bad) > 0:
                 transmittance[:, h_indices_bad, :] = 0.0
-            v_indices_bad = numpy.where(numpy.abs(V) > 0.5*vgap)
+            v_indices_bad = numpy.where(numpy.abs(V - vgapcenter) > (0.5*vgap))
             if len(v_indices_bad) > 0:
                 transmittance[:, :, v_indices_bad] = 0.0
 
@@ -718,20 +734,20 @@ class OWpower3Dcomponent(XoppyWidget):
             # size
             absorbance = 1.0 - transmittance
 
-            h_indices_bad = numpy.where(numpy.abs(H) > 0.5*hgap)
+            h_indices_bad = numpy.where(numpy.abs(H - hgapcenter) > (0.5*hgap))
             if len(h_indices_bad) > 0:
                 transmittance[:, h_indices_bad, :] = 0.0
                 absorbance[:, h_indices_bad, :] = 0.0
-            v_indices_bad = numpy.where(numpy.abs(V) > 0.5*vgap)
+            v_indices_bad = numpy.where(numpy.abs(V - vgapcenter) > (0.5*vgap))
             if len(v_indices_bad) > 0:
                 transmittance[:, :, v_indices_bad] = 0.0
                 absorbance[:, :, v_indices_bad] = 0.0
 
         elif flags == 2:  # aperture
-            h_indices_bad = numpy.where(numpy.abs(H) > 0.5*hgap)
+            h_indices_bad = numpy.where(numpy.abs(H - hgapcenter) > (0.5*hgap))
             if len(h_indices_bad) > 0:
                 transmittance[:, h_indices_bad, :] = 0.0
-            v_indices_bad = numpy.where(numpy.abs(V) > 0.5*vgap)
+            v_indices_bad = numpy.where(numpy.abs(V - vgapcenter) > (0.5*vgap))
             if len(v_indices_bad) > 0:
                 transmittance[:, :, v_indices_bad] = 0.0
 
