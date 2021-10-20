@@ -1,6 +1,4 @@
-import sys, os, numpy, platform
-import orangecanvas.resources as resources
-from PyQt5 import QtGui, QtCore
+import sys, os, numpy, platform, six
 
 try:
     import matplotlib
@@ -14,61 +12,53 @@ except ImportError:
 
 
 import xraylib
+import scipy.constants as codata
 
-from oasys.widgets import gui
-from orangecontrib.xoppy.util.text_window import TextWindow
+def package_dirname(package):
+    """Return the directory path where package is located.
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPlainTextEdit
-
-class EmittingStream(QtCore.QObject):
-    textWritten = QtCore.pyqtSignal(str)
-
-    def write(self, text):
-        self.textWritten.emit(str(text))
+    """
+    if isinstance(package, six.string_types):
+        package = __import__(package, fromlist=[""])
+    filename = package.__file__
+    dirname = os.path.dirname(filename)
+    return dirname
 
 class locations:
     @classmethod
     def home_bin(cls):
         if platform.system() == "Windows":
-            return resources.package_dirname("orangecontrib.xoppy.util") + "\\bin\windows\\"
+            return package_dirname("orangecontrib.xoppy.util") + "\\bin\windows\\"
         else:
-            return resources.package_dirname("orangecontrib.xoppy.util") + "/bin/" + str(sys.platform) + "/"
+            return package_dirname("orangecontrib.xoppy.util") + "/bin/" + str(sys.platform) + "/"
 
     @classmethod
     def home_doc(cls):
         if platform.system() == "Windows":
-            return resources.package_dirname("orangecontrib.xoppy.util") + "\doc_txt/"
+            return package_dirname("orangecontrib.xoppy.util") + "\doc_txt/"
         else:
-            return resources.package_dirname("orangecontrib.xoppy.util") + "/doc_txt/"
+            return package_dirname("orangecontrib.xoppy.util") + "/doc_txt/"
 
     @classmethod
     def home_data(cls):
         if platform.system() == "Windows":
-            return resources.package_dirname("orangecontrib.xoppy.util") + "\data/"
+            return package_dirname("orangecontrib.xoppy.util") + "\data/"
         else:
-            return resources.package_dirname("orangecontrib.xoppy.util") + "/data/"
+            return package_dirname("orangecontrib.xoppy.util") + "/data/"
 
     @classmethod
     def home_bin_run(cls):
-        #return resources.package_dirname("orangecontrib.xoppy.util") + "/bin_run/"
         return os.getcwd()
 
-def xoppy_doc(app):
-    home_doc = locations.home_doc()
 
-    filename1 = os.path.join(home_doc,app+'.txt')
-
-    o = TextWindow()
-    o.set_file(filename1)
-
-
+# TODO: to be removed, only used in xcrystal
 class XoppyPhysics:
 
     ######################################
     # FROM NIST
-    codata_h = numpy.array(6.62606957e-34)
-    codata_ec = numpy.array(1.602176565e-19)
-    codata_c = numpy.array(299792458.0)
+    codata_h  = codata.h # numpy.array(6.62606957e-34)
+    codata_ec = codata.e # numpy.array(1.602176565e-19)
+    codata_c  = codata.c # numpy.array(299792458.0)
     ######################################
 
     A2EV = (codata_h*codata_c/codata_ec)*1e+10
@@ -96,22 +86,3 @@ class XoppyPhysics:
                 return 0.0
         except:
             return 0.0
-
-class XoppyGui:
-
-    @classmethod
-    def combobox_text(cls, widget, master, value, box=None, label=None, labelWidth=None,
-             orientation='vertical', items=(), callback=None,
-             sendSelectedValue=False, valueType=str,
-             control2attributeDict=None, emptyString=None, editable=False, selectedValue = None,
-             **misc):
-
-        combo = gui.comboBox(widget, master, value, box=box, label=label, labelWidth=labelWidth, orientation=orientation,
-                                  items=items, callback=callback, sendSelectedValue=sendSelectedValue, valueType=valueType,
-                                  control2attributeDict=control2attributeDict, emptyString=emptyString, editable=editable, **misc)
-        try:
-            combo.setCurrentIndex(items.index(selectedValue))
-        except:
-            pass
-
-        return combo

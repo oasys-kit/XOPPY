@@ -501,7 +501,7 @@ class XoppyWidget(widget.OWWidget):
     def help1(self):
 
         import os
-        from orangecontrib.xoppy.util.text_window import TextWindow
+        from orangecontrib.xoppy.widgets.gui.text_window import TextWindow
         from orangecontrib.xoppy.util.xoppy_util import locations
 
         home_doc = locations.home_doc()

@@ -10,7 +10,7 @@ from oasys.widgets import gui as oasysgui
 
 import xraylib
 
-from orangecontrib.xoppy.util import xoppy_util
+from orangecontrib.xoppy.widgets.gui.xoppy_util import EmittingStream, xoppy_doc
 
 class OWxraylib_widget(widget.OWWidget):
     name = "Xraylib"
@@ -175,7 +175,7 @@ class OWxraylib_widget(widget.OWWidget):
         self.setStatusMessage("Running XRAYLIB")
 
         try:
-            sys.stdout = xoppy_util.EmittingStream(textWritten=self.writeStdOut)
+            sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
             xoppy_calc_xraylib_widget(FUNCTION=self.FUNCTION,ELEMENT=self.ELEMENT,ELEMENTORCOMPOUND=self.ELEMENTORCOMPOUND,COMPOUND=self.COMPOUND,TRANSITION_IUPAC_OR_SIEGBAHN=self.TRANSITION_IUPAC_OR_SIEGBAHN,TRANSITION_IUPAC_TO=self.TRANSITION_IUPAC_TO,TRANSITION_IUPAC_FROM=self.TRANSITION_IUPAC_FROM,TRANSITION_SIEGBAHN=self.TRANSITION_SIEGBAHN,SHELL=self.SHELL,ENERGY=self.ENERGY)
 
@@ -192,7 +192,7 @@ class OWxraylib_widget(widget.OWWidget):
          self.resetSettings()
 
     def help1(self):
-        xoppy_util.xoppy_doc('xraylib_widget')
+        xoppy_doc('xraylib_widget')
 
     def writeStdOut(self, text):
         cursor = self.xoppy_output.textCursor()
