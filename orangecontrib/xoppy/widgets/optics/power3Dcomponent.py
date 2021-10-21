@@ -317,13 +317,13 @@ class OWpower3Dcomponent(XoppyWidget):
             self.EL1_VROT = congruence.checkNumber(self.EL1_VROT, "OE rotation V")
             self.EL1_HGAP = congruence.checkStrictlyPositiveNumber(self.EL1_HGAP, "OE H gap")
             self.EL1_VGAP = congruence.checkPositiveNumber(self.EL1_VGAP, "OE V Gap")
-            self.EL1_HGAPCENTER = congruence.checkPositiveNumber(self.EL1_HGAPCENTER, "OE H gap Center")
-            self.EL1_VGAPCENTER = congruence.checkPositiveNumber(self.EL1_VGAPCENTER, "OE V Gap Center")
+            self.EL1_HGAPCENTER = congruence.checkNumber(self.EL1_HGAPCENTER, "OE H gap Center")
+            self.EL1_VGAPCENTER = congruence.checkNumber(self.EL1_VGAPCENTER, "OE V Gap Center")
         elif self.EL1_FLAG == 2: # aperture
             self.EL1_HGAP = congruence.checkStrictlyPositiveNumber(self.EL1_HGAP, "OE H gap")
             self.EL1_VGAP = congruence.checkPositiveNumber(self.EL1_VGAP, "OE V Gap")
-            self.EL1_HGAPCENTER = congruence.checkPositiveNumber(self.EL1_HGAPCENTER, "OE H gap Center")
-            self.EL1_VGAPCENTER = congruence.checkPositiveNumber(self.EL1_VGAPCENTER, "OE V Gap Center")
+            self.EL1_HGAPCENTER = congruence.checkNumber(self.EL1_HGAPCENTER, "OE H gap Center")
+            self.EL1_VGAPCENTER = congruence.checkNumber(self.EL1_VGAPCENTER, "OE V Gap Center")
         elif self.EL1_FLAG == 3: # magnifier
             self.EL1_HMAG = congruence.checkStrictlyPositiveNumber(self.EL1_HMAG, "OE H magnification")
             self.EL1_VMAG = congruence.checkPositiveNumber(self.EL1_VMAG, "OE V magnification")
