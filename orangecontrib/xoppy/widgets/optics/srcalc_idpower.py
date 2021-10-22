@@ -25,7 +25,7 @@ import scipy.constants as codata
 
 from silx.gui.plot import Plot2D
 
-from orangecontrib.xoppy.util.messages import  showCriticalMessage
+from orangecontrib.xoppy.widgets.gui.messages import  showCriticalMessage
 from orangecontrib.xoppy.util.srcalc.srcalc import  load_srcalc_output_file, ray_tracing
 from orangecontrib.xoppy.util.srcalc.srcalc import  compute_power_density_footprint, compute_power_density_image
 from orangecontrib.xoppy.util.srcalc.srcalc import  trapezoidal_rule_2d, trapezoidal_rule_2d_1darrays
