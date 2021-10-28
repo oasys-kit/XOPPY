@@ -20,11 +20,11 @@ import syned.beamline.beamline as synedb
 from syned.storage_ring.magnetic_structures.insertion_device import InsertionDevice as synedid
 
 import os
-from orangecontrib.xoppy.util.text_window import TextWindow
+from orangecontrib.xoppy.widgets.gui.text_window import TextWindow
+from orangecontrib.xoppy.widgets.gui.messages import showConfirmMessage
 
 import scipy.constants as codata
 
-from orangecontrib.xoppy.util.messages import  showCriticalMessage, showConfirmMessage
 
 class OWyaup(XoppyWidget):
     name = "Tapered Undulator YAUP"
