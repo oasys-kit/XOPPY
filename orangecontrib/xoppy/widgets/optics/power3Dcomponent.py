@@ -56,6 +56,7 @@ class OWpower3Dcomponent(XoppyWidget):
     EL1_VGAP = Setting(1000.0)
     EL1_HGAPCENTER = Setting(0.0)
     EL1_VGAPCENTER = Setting(0.0)
+    EL1_SLIT_CROP = Setting(0)
     EL1_HMAG = Setting(1.0)
     EL1_VMAG = Setting(1.0)
     EL1_HROT = Setting(0.0)
@@ -71,7 +72,14 @@ class OWpower3Dcomponent(XoppyWidget):
         self.leftWidgetPart.setMaximumWidth(self.CONTROL_AREA_WIDTH + 20)
         self.leftWidgetPart.updateGeometry()
 
-        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical",width=self.CONTROL_AREA_WIDTH-10)
+        ###########
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+        tab_1 = oasysgui.createTabPage(tabs_setting, "Input Parameters")
+        tab_2 = oasysgui.createTabPage(tabs_setting, "Send Settings")
+        ###########
+
+        box = oasysgui.widgetBox(tab_1, self.name + " Input Parameters", orientation="vertical",width=self.CONTROL_AREA_WIDTH-10)
 
         idx = -1
         box11 = gui.widgetBox(box, "Input beam")
@@ -115,7 +123,7 @@ class OWpower3Dcomponent(XoppyWidget):
 
 
         list_w = ["EL1_THI", "EL1_ANG", "EL1_DEF", "EL1_ROU", "EL1_DEN",
-                  "EL1_HGAP", "EL1_VGAP", "EL1_HGAPCENTER", "EL1_VGAPCENTER", "EL1_HMAG", "EL1_VMAG",
+                  "EL1_HGAP", "EL1_VGAP", "EL1_HGAPCENTER", "EL1_VGAPCENTER","EL1_SLIT_CROP", "EL1_HMAG", "EL1_VMAG",
                   "EL1_HROT", "EL1_VROT"]
 
         for el in list_w:
@@ -131,6 +139,12 @@ class OWpower3Dcomponent(XoppyWidget):
                 oasysgui.lineEdit(box1, self, el,
                                   label=self.unitLabels()[idx], addSpace=False,
                                   valueType=str, orientation="horizontal", labelWidth=250)
+            if el == "EL1_SLIT_CROP":
+                gui.comboBox(box1, self, el,
+                             label=self.unitLabels()[idx], addSpace=False,
+                             items=['No',
+                                    'Yes'],
+                             valueType=int, orientation="horizontal", labelWidth=250)
             else:
                 oasysgui.lineEdit(box1, self, el,
                                   label=self.unitLabels()[idx], addSpace=False,
@@ -138,7 +152,7 @@ class OWpower3Dcomponent(XoppyWidget):
             self.show_at(self.unitFlags()[idx], box1)
 
 
-        box = gui.widgetBox(box, "Presentation")
+        box = gui.widgetBox(tab_1, "Presentation")
         #widget index 41
         idx += 1
         box1 = gui.widgetBox(box)
@@ -153,6 +167,7 @@ class OWpower3Dcomponent(XoppyWidget):
                     valueType=int, orientation="horizontal", labelWidth=100, callback=self.replot_results)
         self.show_at(self.unitFlags()[idx], box1)
 
+        box = gui.widgetBox(tab_2, "Files")
         #widget index 42
         idx += 1
         box1 = gui.widgetBox(box)
@@ -194,6 +209,7 @@ class OWpower3Dcomponent(XoppyWidget):
         labels.append('V Size/Gap [mm]')
         labels.append('H Center/Gap [mm]')
         labels.append('V Center/Gap [mm]')
+        labels.append('Crop beam before being sent')
         labels.append('H Magnification')
         labels.append('V Magnification')
         labels.append('Rotation angle around V axis [deg]')
@@ -220,6 +236,7 @@ class OWpower3Dcomponent(XoppyWidget):
         flags.append('self.EL1_FLAG  <=  2')   # gap
         flags.append('self.EL1_FLAG  <=  2')   # gap center
         flags.append('self.EL1_FLAG  <=  2')   # gap center
+        flags.append('self.EL1_FLAG  ==  2')   # slit crop
         flags.append('self.EL1_FLAG  ==  3')   # magnification
         flags.append('self.EL1_FLAG  ==  3')   # magnification
         flags.append('self.EL1_FLAG  in (0, 4)')   # rotation
@@ -354,8 +371,19 @@ class OWpower3Dcomponent(XoppyWidget):
         p_transmitted = p * transmittance / (h[0] / h0[0]) / (v[0] / v0[0])
 
         data_to_send = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+        if (self.EL1_SLIT_CROP == 1 and self.EL1_FLAG == 2):
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>> CROPPING...")
+            h_d = numpy.where(numpy.abs(h - self.EL1_HGAPCENTER) <= (0.5 * self.EL1_HGAP)) [0]
+            v_d = numpy.where(numpy.abs(v - self.EL1_VGAPCENTER) <= (0.5 * self.EL1_VGAP)) [0]
+            print(h_d,v_d)
+            data_to_send.add_content("xoppy_data", [p_transmitted[:,h_d[0]:(h_d[-1]),v_d[0]:(v_d[-1]),],
+                                                    e,
+                                                    h[h_d[0]:(h_d[-1])],
+                                                    v[v_d[0]:(v_d[-1])],
+                                                    ])
+        else:
+            data_to_send.add_content("xoppy_data", [p_transmitted, e, h, v])
 
-        data_to_send.add_content("xoppy_data", [p_transmitted, e, h, v])
         data_to_send.add_content("xoppy_transmittivity", calculation_output)
         data_to_send.add_content("xoppy_code", "power3Dcomponent")
 
@@ -582,6 +610,7 @@ class OWpower3Dcomponent(XoppyWidget):
             except:
                 pass
 
+    # TODO: put it in util?
     def xoppy_calc_power3Dcomponent(self):
 
         #
@@ -783,6 +812,7 @@ class OWpower3Dcomponent(XoppyWidget):
 
         return calculated_data
 
+    # TODO: put it in util?
     def info_total_power(self, p, e, v, h, transmittance, absorbance):
         txt = ""
         txt += "\n\n\n"
@@ -806,6 +836,7 @@ class OWpower3Dcomponent(XoppyWidget):
 
         return txt
 
+    # TODO: put it in util?
     def xoppy_write_txt(self, calculated_data, method="3columns"):
 
         p0, e0, h0, v0 = self.input_beam.get_content("xoppy_data")
@@ -846,6 +877,7 @@ class OWpower3Dcomponent(XoppyWidget):
 
         print("File written to disk: %s" % self.FILE_NAME)
 
+    # TODO: put it in util?
     def xoppy_write_h5file(self,calculated_data):
 
         p0, e0, h0, v0 = self.input_beam.get_content("xoppy_data")
@@ -962,6 +994,7 @@ class OWpower3Dcomponent(XoppyWidget):
 
         print("File written to disk: %s" % self.FILE_NAME)
 
+# TODO: put it in util?
 def integral_2d(data2D,h=None,v=None, method=0):
     if h is None:
         h = numpy.arange(data2D.shape[0])
@@ -976,7 +1009,7 @@ def integral_2d(data2D,h=None,v=None, method=0):
 
     return totPower2
 
-
+# TODO: put it in util?
 def integral_3d(data3D, e=None, h=None, v=None, method=0):
     if e is None:
         e = numpy.arange(data3D.shape[0])
@@ -1030,9 +1063,9 @@ if __name__ == "__main__":
     h5_parameters["DISTANCE"] = 30.0
     h5_parameters["HSLITPOINTS"] = 500
     h5_parameters["VSLITPOINTS"] = 500
-    h5_parameters["PHOTONENERGYMIN"] = 100.0
-    h5_parameters["PHOTONENERGYMAX"] = 100100.0
-    h5_parameters["PHOTONENERGYPOINTS"] = 101
+    h5_parameters["PHOTONENERGYMIN"] = 29000.0 # 100.0
+    h5_parameters["PHOTONENERGYMAX"] = 39000.0 # 100100.0
+    h5_parameters["PHOTONENERGYPOINTS"] = 2
     h5_parameters["SHIFT_X_FLAG"] = 0
     h5_parameters["SHIFT_X_VALUE"] = 0.0
     h5_parameters["SHIFT_BETAX_FLAG"] = 0
@@ -1064,6 +1097,7 @@ if __name__ == "__main__":
         h5_initialize=True,
         h5_parameters=h5_parameters,
     )
+    print(p.shape)
     received_data = DataExchangeObject("XOPPY", "WIGGLER_RADIATION")
     received_data.add_content("xoppy_data", [p, e, h, v])
     # received_data.add_content("xoppy_code", code)
@@ -1072,6 +1106,16 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     w = OWpower3Dcomponent()
     w.acceptExchangeData(received_data)
+
+    w.EL1_FLAG = 2  # 0=Filter 1=Mirror 2 = Aperture 3 magnifier
+    w.EL1_HGAP = 100.0
+    w.EL1_VGAP = 3.0
+    w.EL1_HGAPCENTER = 0.0
+    w.EL1_VGAPCENTER = 0.0
+    w.PLOT_SETS = 3
+
+
+
     w.show()
     app.exec()
     w.saveSettings()
