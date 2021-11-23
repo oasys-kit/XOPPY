@@ -25,8 +25,9 @@ from orangecontrib.xoppy.util.xoppy_xraylib_util import reflectivity_fresnel
 from orangecontrib.xoppy.util.xoppy_xraylib_util import nist_compound_list, density
 
 
-
-
+# from scipy.interpolate import interp2d, RectBivariateSpline
+from orangecontrib.xoppy.util.power3d import integral_2d, integral_3d, info_total_power, extract_data_from_h5file
+from orangecontrib.xoppy.util.power3d import power3Dcomponent, apply_transmittance_to_incident_beam
 
 
 class OWpower3Dcomponent(XoppyWidget):
@@ -56,7 +57,6 @@ class OWpower3Dcomponent(XoppyWidget):
     EL1_VGAP = Setting(1000.0)
     EL1_HGAPCENTER = Setting(0.0)
     EL1_VGAPCENTER = Setting(0.0)
-    EL1_SLIT_CROP = Setting(0)
     EL1_HMAG = Setting(1.0)
     EL1_VMAG = Setting(1.0)
     EL1_HROT = Setting(0.0)
@@ -65,6 +65,13 @@ class OWpower3Dcomponent(XoppyWidget):
     PLOT_SETS = Setting(1)
     FILE_DUMP = Setting(0)
     FILE_NAME = Setting("power3Dcomponent.h5")
+    EL1_SLIT_CROP = Setting(0)
+    INTERPOLATION_FLAG = Setting(0)
+    INTERPOLATION_FACTOR_H = Setting(1.0)
+    INTERPOLATION_FACTOR_V = Setting(1.0)
+
+    def __init__(self):
+        super().__init__(show_script_tab=True)
 
     def build_gui(self):
 
@@ -123,7 +130,8 @@ class OWpower3Dcomponent(XoppyWidget):
 
 
         list_w = ["EL1_THI", "EL1_ANG", "EL1_DEF", "EL1_ROU", "EL1_DEN",
-                  "EL1_HGAP", "EL1_VGAP", "EL1_HGAPCENTER", "EL1_VGAPCENTER","EL1_SLIT_CROP", "EL1_HMAG", "EL1_VMAG",
+                  "EL1_HGAP", "EL1_VGAP", "EL1_HGAPCENTER", "EL1_VGAPCENTER",
+                  "EL1_HMAG", "EL1_VMAG",
                   "EL1_HROT", "EL1_VROT"]
 
         for el in list_w:
@@ -139,12 +147,6 @@ class OWpower3Dcomponent(XoppyWidget):
                 oasysgui.lineEdit(box1, self, el,
                                   label=self.unitLabels()[idx], addSpace=False,
                                   valueType=str, orientation="horizontal", labelWidth=250)
-            if el == "EL1_SLIT_CROP":
-                gui.comboBox(box1, self, el,
-                             label=self.unitLabels()[idx], addSpace=False,
-                             items=['No',
-                                    'Yes'],
-                             valueType=int, orientation="horizontal", labelWidth=250)
             else:
                 oasysgui.lineEdit(box1, self, el,
                                   label=self.unitLabels()[idx], addSpace=False,
@@ -186,10 +188,49 @@ class OWpower3Dcomponent(XoppyWidget):
         oasysgui.lineEdit(box1, self, "FILE_NAME",
                      label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=150)
         self.show_at(self.unitFlags()[idx], box1)
-
-        #
-        #
         self.visibility_input_file()
+
+        box = gui.widgetBox(tab_2, "Send beam")
+        #widget index 12
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.separator(box1, height=7)
+        gui.comboBox(box1, self, "EL1_SLIT_CROP",
+                     label=self.unitLabels()[idx], addSpace=False,
+                     items=['No',
+                            'Yes'],
+                     valueType=int, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index XX
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.separator(box1, height=7)
+        gui.comboBox(box1, self, "INTERPOLATION_FLAG",
+                     label=self.unitLabels()[idx], addSpace=False,
+                     items=['No',
+                            'Yes'],
+                     valueType=int, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index XX
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.separator(box1, height=7)
+        oasysgui.lineEdit(box1, self, "INTERPOLATION_FACTOR_H",
+                          label=self.unitLabels()[idx], addSpace=False,
+                          valueType=float, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index XX
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.separator(box1, height=7)
+        oasysgui.lineEdit(box1, self, "INTERPOLATION_FACTOR_V",
+                          label=self.unitLabels()[idx], addSpace=False,
+                          valueType=float, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
 
     def set_EL_FLAG(self):
         self.initializeTabs()
@@ -209,7 +250,6 @@ class OWpower3Dcomponent(XoppyWidget):
         labels.append('V Size/Gap [mm]')
         labels.append('H Center/Gap [mm]')
         labels.append('V Center/Gap [mm]')
-        labels.append('Crop beam before being sent')
         labels.append('H Magnification')
         labels.append('V Magnification')
         labels.append('Rotation angle around V axis [deg]')
@@ -218,6 +258,10 @@ class OWpower3Dcomponent(XoppyWidget):
         labels.append("Plot")
         labels.append("Write output file")
         labels.append("File name")
+        labels.append('Crop beam before being sent')
+        labels.append('Interpolate output radiation?')
+        labels.append('Interpolate H factor (default=1.0)')
+        labels.append('Interpolate V factor (default=1.0)')
 
         return labels
 
@@ -236,7 +280,6 @@ class OWpower3Dcomponent(XoppyWidget):
         flags.append('self.EL1_FLAG  <=  2')   # gap
         flags.append('self.EL1_FLAG  <=  2')   # gap center
         flags.append('self.EL1_FLAG  <=  2')   # gap center
-        flags.append('self.EL1_FLAG  ==  2')   # slit crop
         flags.append('self.EL1_FLAG  ==  3')   # magnification
         flags.append('self.EL1_FLAG  ==  3')   # magnification
         flags.append('self.EL1_FLAG  in (0, 4)')   # rotation
@@ -244,6 +287,10 @@ class OWpower3Dcomponent(XoppyWidget):
         flags.append("True")
         flags.append("True")
         flags.append('self.FILE_DUMP >= 1')
+        flags.append('self.EL1_FLAG  ==  2')   # slit crop
+        flags.append('True')   # interpolate flag
+        flags.append('self.INTERPOLATION_FLAG  ==  1')   # interpolate factor H
+        flags.append('self.INTERPOLATION_FLAG  ==  1')   # interpolate factor V
         return flags
 
     def get_help_name(self):
@@ -276,7 +323,7 @@ class OWpower3Dcomponent(XoppyWidget):
 
     def load_input_file(self):
 
-        e, h, v, p, code = self.extract_data_from_h5file(self.INPUT_BEAM_FILE, "XOPPY_RADIATION")
+        e, h, v, p, code = extract_data_from_h5file(self.INPUT_BEAM_FILE, "XOPPY_RADIATION")
 
         received_data = DataExchangeObject("XOPPY", "POWER3DCOMPONENT")
         received_data.add_content("xoppy_data", [p, e, h, v])
@@ -284,40 +331,6 @@ class OWpower3Dcomponent(XoppyWidget):
         self.input_beam = received_data
 
         print("Input beam read from file %s \n\n"%self.INPUT_BEAM_FILE)
-
-    # copied from undulator radiation ... TODO: put it in util?
-    def extract_data_from_h5file(self, file_h5, subtitle):
-
-        hf = h5py.File(file_h5, 'r')
-
-        if not subtitle in hf:
-            raise Exception("XOPPY_RADIATION not found in h5 file %s"%file_h5)
-
-        try:
-            p = hf[subtitle + "/Radiation/stack_data"][:]
-            e = hf[subtitle + "/Radiation/axis0"][:]
-            h = hf[subtitle + "/Radiation/axis1"][:]
-            v = hf[subtitle + "/Radiation/axis2"][:]
-        except:
-            raise Exception("Error reading h5 file %s \n"%file_h5 + "\n" + str(e))
-
-        code = "unknown"
-
-        try:
-            if hf[subtitle + "/parameters/METHOD"].value == 0:
-                code = 'US'
-            elif hf[subtitle + "/parameters/METHOD"].value == 1:
-                code = 'URGENT'
-            elif hf[subtitle + "/parameters/METHOD"].value == 2:
-                code = 'SRW'
-            elif hf[subtitle + "/parameters/METHOD"].value == 3:
-                code = 'pySRU'
-        except:
-            pass
-
-        hf.close()
-
-        return e, h, v, p, code
 
     def check_fields(self):
 
@@ -349,42 +362,156 @@ class OWpower3Dcomponent(XoppyWidget):
             self.EL1_VROT = congruence.checkNumber(self.EL1_VROT, "OE rotation V")
 
     def do_xoppy_calculation(self):
-        return self.xoppy_calc_power3Dcomponent()
 
-    # TODO THIS TO SEND DATA
+        if self.INPUT_BEAM_FROM == 1:
+            self.load_input_file()
 
+        p0, e0, h0, v0 = self.input_beam.get_content("xoppy_data")
+
+        transmittance, absorbance, E, H, V, txt = power3Dcomponent(
+                                                              e0, h0, v0,
+                                                              substance=self.EL1_FOR,
+                                                              thick=self.EL1_THI,
+                                                              angle=self.EL1_ANG,
+                                                              defection=self.EL1_DEF,
+                                                              dens=self.EL1_DEN,
+                                                              roughness=self.EL1_ROU,
+                                                              flags=self.EL1_FLAG,
+                                                              hgap=self.EL1_HGAP,
+                                                              vgap=self.EL1_VGAP,
+                                                              hgapcenter=self.EL1_HGAPCENTER,
+                                                              vgapcenter=self.EL1_VGAPCENTER,
+                                                              hmag=self.EL1_HMAG,
+                                                              vmag=self.EL1_VMAG,
+                                                              hrot=self.EL1_HROT,
+                                                              vrot=self.EL1_VROT,
+                                                              )
+
+        txt += info_total_power(p0, e0, v0, h0, transmittance, absorbance, EL1_FLAG=self.EL1_FLAG)
+        print(txt)
+
+        calculated_data = (transmittance, absorbance, E, H, V)
+
+        if self.FILE_DUMP == 0:
+            pass
+        elif self.FILE_DUMP == 1:
+            self.xoppy_write_h5file(calculated_data)
+        elif self.FILE_DUMP == 2:
+            self.xoppy_write_txt(calculated_data, method="3columns")
+        elif self.FILE_DUMP == 3:
+            self.xoppy_write_txt(calculated_data, method="matrix")
+
+
+#######################
+        dict_parameters = {}
+            # "ELECTRONENERGY": self.ELECTRONENERGY,
+        if isinstance(self.EL1_DEN, str):
+            dens = "'"+self.EL1_DEN+"'"
+        else:
+            dens = "%g" % self.EL1_DEN
+
+        # write python script
+        dict_parameters = {
+                "emin" : e[0],
+                "emax" : e[-1],
+                "epoints" : e.size,
+                "hmin" : h[0],
+                "hmax" : h[-1],
+                "hpoints" : h.size,
+                "vmin" : v[0],
+                "vmax" : v[-1],
+                "vpoints" : v.size,
+                "EL1_FOR" : "'"+self.EL1_FOR+"'",
+                "EL1_THI" : self.EL1_THI,
+                "EL1_ANG" : self.EL1_ANG,
+                "EL1_DEF" : self.EL1_DEF,
+                "EL1_DEN" : dens,
+                "EL1_ROU" : self.EL1_ROU,
+                "EL1_FLAG" : self.EL1_FLAG,
+                "EL1_HGAP" : self.EL1_HGAP,
+                "EL1_VGAP" : self.EL1_VGAP,
+                "EL1_HGAPCENTER" : self.EL1_HGAPCENTER,
+                "EL1_VGAPCENTER" : self.EL1_VGAPCENTER,
+                "EL1_HMAG" : self.EL1_HMAG,
+                "EL1_VMAG" : self.EL1_VMAG,
+                "EL1_HROT" : self.EL1_HROT,
+                "EL1_VROT" : self.EL1_VROT,
+            }
+        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
+        # self.xoppy_script.set_code(self.script_template())
+
+#######################
+        return calculated_data
+
+
+    def script_template(self):
+        return """
+#
+# script to make the calculations (created by XOPPY:power3Dcomponent)
+#
+
+import numpy
+from orangecontrib.xoppy.util.power3d import power3Dcomponent, apply_transmittance_to_incident_beam
+
+transmittance, absorbance, E, H, V, txt = power3Dcomponent(
+                numpy.linspace({emin},{emax},{epoints}), # energy in eV
+                numpy.linspace({hmin},{hmax},{hpoints}), # h in mm
+                numpy.linspace({vmin},{vmax},{vpoints}), # v in mm
+                substance={EL1_FOR},
+                thick={EL1_THI},
+                angle={EL1_ANG},
+                defection={EL1_DEF},
+                dens={EL1_DEN},
+                roughness={EL1_ROU},
+                flags={EL1_FLAG},
+                hgap={EL1_HGAP},
+                vgap={EL1_VGAP},
+                hgapcenter={EL1_HGAPCENTER},
+                vgapcenter={EL1_VGAPCENTER},
+                hmag={EL1_HMAG},
+                vmag={EL1_VMAG},
+                hrot={EL1_HROT},
+                vrot={EL1_VROT},
+                )
+
+# e, h, v, p, traj = xoppy_calc_wiggler_radiation(
+#         ELECTRONENERGY           = h5_parameters["ELECTRONENERGY"]         ,
+
+
+# example plot
+from srxraylib.plot.gol import plot_image
+plot_image(transmittance[0,:,:],H,V,title="Transmittance at E=%g eV" % ({emin}),xtitle="H [mm]",ytitle="V [mm]",aspect='auto')
+ 
+#
+# end script
+#
+"""
+
+
+    # TO SEND DATA
     def extract_data_from_xoppy_output(self, calculation_output):
 
         transmittance, absorbance, E, H, V = calculation_output
         p0, e0, h0, v0 = self.input_beam.get_content("xoppy_data")
-        p = p0.copy()
-        e = e0.copy()
-        h = h0.copy()
-        v = v0.copy()
 
-        # coordinates to send: the same as incident beam (perpendicular to the optical axis)
-        # except for the magnifier
-        if self.EL1_FLAG ==  3: # magnifier  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-            h *= self.EL1_HMAG
-            v *= self.EL1_VMAG
+        p_transmitted, e, h, v = apply_transmittance_to_incident_beam(transmittance, p0, e0, h0, v0,
+                                          flags = self.EL1_FLAG,
+                                          hgap = self.EL1_HGAP,
+                                          vgap = self.EL1_VGAP,
+                                          hgapcenter = self.EL1_HGAPCENTER,
+                                          vgapcenter = self.EL1_VGAPCENTER,
+                                          hmag = self.EL1_HMAG,
+                                          vmag = self.EL1_VMAG,
+                                          interpolation_flag = self.INTERPOLATION_FLAG,
+                                          interpolation_factor_h = self.INTERPOLATION_FACTOR_H,
+                                          interpolation_factor_v = self.INTERPOLATION_FACTOR_V,
+                                          slit_crop = self.EL1_SLIT_CROP,
+                                        )
 
-        p_transmitted = p * transmittance / (h[0] / h0[0]) / (v[0] / v0[0])
 
         data_to_send = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
-        if (self.EL1_SLIT_CROP == 1 and self.EL1_FLAG == 2):
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>> CROPPING...")
-            h_d = numpy.where(numpy.abs(h - self.EL1_HGAPCENTER) <= (0.5 * self.EL1_HGAP)) [0]
-            v_d = numpy.where(numpy.abs(v - self.EL1_VGAPCENTER) <= (0.5 * self.EL1_VGAP)) [0]
-            print(h_d,v_d)
-            data_to_send.add_content("xoppy_data", [p_transmitted[:,h_d[0]:(h_d[-1]),v_d[0]:(v_d[-1]),],
-                                                    e,
-                                                    h[h_d[0]:(h_d[-1])],
-                                                    v[v_d[0]:(v_d[-1])],
-                                                    ])
-        else:
-            data_to_send.add_content("xoppy_data", [p_transmitted, e, h, v])
-
-        data_to_send.add_content("xoppy_transmittivity", calculation_output)
+        data_to_send.add_content("xoppy_data", [p_transmitted, e, h, v])
+        data_to_send.add_content("xoppy_transmittivity", calculation_output) # TODO: review this part for crop+interp
         data_to_send.add_content("xoppy_code", "power3Dcomponent")
 
         self.output_beam = data_to_send
@@ -610,231 +737,233 @@ class OWpower3Dcomponent(XoppyWidget):
             except:
                 pass
 
-    # TODO: put it in util?
-    def xoppy_calc_power3Dcomponent(self):
+#     # TODO: put it in util?
+#     def xoppy_calc_power3Dcomponent(self):
+#
+#         #
+#         # important: the transmittivity calculated here is referred on axes perp to the beam
+#         # therefore they do not include geometrical corrections for correct integral
+#         #
+#
+#         # substance = self.EL1_FOR
+#         # thick     = self.EL1_THI
+#         # angle     = self.EL1_ANG
+#         # defection = self.EL1_DEF
+#         # dens      = self.EL1_DEN
+#         # roughness = self.EL1_ROU
+#         # flags     = self.EL1_FLAG
+#         # hgap = self.EL1_HGAP
+#         # vgap = self.EL1_VGAP
+#         # hgapcenter = self.EL1_HGAPCENTER
+#         # vgapcenter = self.EL1_VGAPCENTER
+#         # hmag = self.EL1_HMAG
+#         # vmag = self.EL1_VMAG
+#         # hrot = self.EL1_HROT
+#         # vrot = self.EL1_VROT
+#
+#
+#
+#         if self.INPUT_BEAM_FROM == 1:
+#             self.load_input_file()
+#
+#         p0, e0, h0, v0 = self.input_beam.get_content("xoppy_data")
+# ###########################
+#
+#         transmittance, absorbance, E, H, V = power3Dcomponent(p0, e0, h0, v0,
+#                     substance=self.EL1_FOR,
+#                     thick = self.EL1_THI,
+#                     angle = self.EL1_ANG,
+#                     defection = self.EL1_DEF,
+#                     dens = self.EL1_DEN,
+#                     roughness = self.EL1_ROU,
+#                     flags = self.EL1_FLAG,
+#                     hgap = self.EL1_HGAP,
+#                     vgap = self.EL1_VGAP,
+#                     hgapcenter = self.EL1_HGAPCENTER,
+#                     vgapcenter = self.EL1_VGAPCENTER,
+#                     hmag = self.EL1_HMAG,
+#                     vmag = self.EL1_VMAG,
+#                     hrot = self.EL1_HROT,
+#                     vrot = self.EL1_VROT,
+#         )
+#
+# ############################
+#
+#         # p = p0.copy()
+#         # e = e0.copy()
+#         # h = h0.copy()
+#         # v = v0.copy()
+#         #
+#         # transmittance = numpy.ones_like(p)
+#         # E =  e.copy()
+#         # H =  h.copy()
+#         # V =  v.copy()
+#         #
+#         # # initialize results
+#         #
+#         # #
+#         # # get undefined densities
+#         # #
+#         # if flags <= 1:
+#         #     try:  # apply written value
+#         #         rho = float(dens)
+#         #     except:   # in case of ?
+#         #         # grabber = TTYGrabber()
+#         #         # grabber.start()
+#         #         rho = density(substance)
+#         #         # grabber.stop()
+#         #         # for row in grabber.ttyData:
+#         #         #     self.writeStdOut(row)
+#         #         print("Density for %s: %g g/cm3"%(substance,rho))
+#         #     dens = rho
+#         #
+#         #
+#         # txt = ""
+#         #
+#         # if flags == 0:
+#         #     txt += '      *****   oe  [Filter] *************\n'
+#         #     txt += '      Material: %s\n'%(substance)
+#         #     txt += '      Density [g/cm^3]: %f \n'%(dens)
+#         #     txt += '      thickness [mm] : %f \n'%(thick)
+#         #     txt += '      H gap [mm]: %f \n'%(hgap)
+#         #     txt += '      V gap [mm]: %f \n'%(vgap)
+#         #     txt += '      H gap center [mm]: %f \n'%(hgapcenter)
+#         #     txt += '      V gap center [mm]: %f \n'%(vgapcenter)
+#         #     txt += '      H rotation angle [deg]: %f \n'%(hrot)
+#         #     txt += '      V rotation angle [deg]: %f \n'%(vrot)
+#         # elif flags == 1:
+#         #     txt += '      *****   oe  [Mirror] *************\n'
+#         #     txt += '      Material: %s\n'%(substance)
+#         #     txt += '      Density [g/cm^3]: %f \n'%(dens)
+#         #     txt += '      grazing angle [mrad]: %f \n'%(angle)
+#         #     txt += '      roughness [A]: %f \n'%(roughness)
+#         # elif flags == 2:
+#         #     txt += '      *****   oe  [Aperture] *************\n'
+#         #     txt += '      H gap [mm]: %f \n'%(hgap)
+#         #     txt += '      V gap [mm]: %f \n'%(vgap)
+#         #     txt += '      H gap center [mm]: %f \n'%(hgapcenter)
+#         #     txt += '      V gap center [mm]: %f \n'%(vgapcenter)
+#         # elif flags == 3:
+#         #     txt += '      *****   oe  [Magnifier] *************\n'
+#         #     txt += '      H magnification: %f \n'%(hmag)
+#         #     txt += '      V magnification: %f \n'%(vmag)
+#         # elif flags == 4:
+#         #     txt += '      *****   oe  [Screen rotated] *************\n'
+#         #     txt += '      H rotation angle [deg]: %f \n'%(hrot)
+#         #     txt += '      V rotation angle [deg]: %f \n'%(vrot)
+#         #
+#         #
+#         # if flags == 0: # filter
+#         #     grabber = TTYGrabber()
+#         #     grabber.start()
+#         #     for j,energy in enumerate(e):
+#         #         tmp = xraylib.CS_Total_CP(substance,energy/1000.0)
+#         #         transmittance[j,:,:] = numpy.exp(-tmp*dens*(thick/10.0))
+#         #
+#         #     grabber.stop()
+#         #     for row in grabber.ttyData:
+#         #         self.writeStdOut(row)
+#         #
+#         #     # rotation
+#         #     H = h / numpy.cos(hrot * numpy.pi / 180)
+#         #     V = v / numpy.cos(vrot * numpy.pi / 180)
+#         #
+#         #     # aperture
+#         #     h_indices_bad = numpy.where(numpy.abs(H - hgapcenter) > (0.5*hgap))
+#         #     if len(h_indices_bad) > 0:
+#         #         transmittance[:, h_indices_bad, :] = 0.0
+#         #     v_indices_bad = numpy.where(numpy.abs(V - vgapcenter) > (0.5*vgap))
+#         #     if len(v_indices_bad) > 0:
+#         #         transmittance[:, :, v_indices_bad] = 0.0
+#         #
+#         #     absorbance = 1.0 - transmittance
+#         #
+#         # elif flags == 1: # mirror
+#         #     tmp = numpy.zeros(e.size)
+#         #
+#         #     for j,energy in enumerate(e):
+#         #         tmp[j] = xraylib.Refractive_Index_Re(substance,energy/1000.0,dens)
+#         #
+#         #     if tmp[0] == 0.0:
+#         #         raise Exception("Probably the substrance %s is wrong"%substance)
+#         #
+#         #     delta = 1.0 - tmp
+#         #     beta = numpy.zeros(e.size)
+#         #
+#         #     for j,energy in enumerate(e):
+#         #         beta[j] = xraylib.Refractive_Index_Im(substance,energy/1000.0,dens)
+#         #
+#         #     try:
+#         #         (rs,rp,runp) = reflectivity_fresnel(refraction_index_beta=beta,refraction_index_delta=delta,\
+#         #                                     grazing_angle_mrad=angle,roughness_rms_A=roughness,\
+#         #                                     photon_energy_ev=e)
+#         #     except:
+#         #         raise Exception("Failed to run reflectivity_fresnel")
+#         #
+#         #     for j,energy in enumerate(e):
+#         #         transmittance[j,:,:] = rs[j]
+#         #
+#         #     # rotation
+#         #     if defection == 0: # horizontally deflecting
+#         #         H = h / numpy.sin(angle * 1e-3)
+#         #     elif defection == 1: # vertically deflecting
+#         #         V = v / numpy.sin(angle * 1e-3)
+#         #
+#         #     # size
+#         #     absorbance = 1.0 - transmittance
+#         #
+#         #     h_indices_bad = numpy.where(numpy.abs(H - hgapcenter) > (0.5*hgap))
+#         #     if len(h_indices_bad) > 0:
+#         #         transmittance[:, h_indices_bad, :] = 0.0
+#         #         absorbance[:, h_indices_bad, :] = 0.0
+#         #     v_indices_bad = numpy.where(numpy.abs(V - vgapcenter) > (0.5*vgap))
+#         #     if len(v_indices_bad) > 0:
+#         #         transmittance[:, :, v_indices_bad] = 0.0
+#         #         absorbance[:, :, v_indices_bad] = 0.0
+#         #
+#         # elif flags == 2:  # aperture
+#         #     h_indices_bad = numpy.where(numpy.abs(H - hgapcenter) > (0.5*hgap))
+#         #     if len(h_indices_bad) > 0:
+#         #         transmittance[:, h_indices_bad, :] = 0.0
+#         #     v_indices_bad = numpy.where(numpy.abs(V - vgapcenter) > (0.5*vgap))
+#         #     if len(v_indices_bad) > 0:
+#         #         transmittance[:, :, v_indices_bad] = 0.0
+#         #
+#         #     absorbance = 1.0 - transmittance
+#         #
+#         # elif flags == 3:  # magnifier
+#         #     H = h * hmag
+#         #     V = v * vmag
+#         #
+#         #     absorbance = 1.0 - transmittance
+#         #
+#         # elif flags == 4:  # rotation screen
+#         #     # transmittance[:, :, :] = numpy.cos(hrot * numpy.pi / 180) * numpy.cos(vrot * numpy.pi / 180)
+#         #     H = h / numpy.cos(hrot * numpy.pi / 180)
+#         #     V = v / numpy.cos(vrot * numpy.pi / 180)
+#         #
+#         #     absorbance = 1.0 - transmittance
+#         #
+#         # txt += info_total_power(p, e, v, h, transmittance, absorbance, EL1_FLAG=flags)
+#         #
+#         # print(txt)
+#
+#
+# #####################################
+#
+#         calculated_data = (transmittance, absorbance, E, H, V)
+#
+#         if self.FILE_DUMP == 0:
+#             pass
+#         elif self.FILE_DUMP == 1:
+#             self.xoppy_write_h5file(calculated_data)
+#         elif self.FILE_DUMP == 2:
+#             self.xoppy_write_txt(calculated_data, method="3columns")
+#         elif self.FILE_DUMP == 3:
+#             self.xoppy_write_txt(calculated_data, method="matrix")
+#
+#         return calculated_data
 
-        #
-        # important: the transmittivity calculated here is referred on axes perp to the beam
-        # therefore they do not include geometrical corrections for correct integral
-        #
-
-        substance = self.EL1_FOR
-        thick     = self.EL1_THI
-        angle     = self.EL1_ANG
-        defection = self.EL1_DEF
-        dens      = self.EL1_DEN
-        roughness = self.EL1_ROU
-        flags     = self.EL1_FLAG
-        hgap = self.EL1_HGAP
-        vgap = self.EL1_VGAP
-        hgapcenter = self.EL1_HGAPCENTER
-        vgapcenter = self.EL1_VGAPCENTER
-        hmag = self.EL1_HMAG
-        vmag = self.EL1_VMAG
-        hrot = self.EL1_HROT
-        vrot = self.EL1_VROT
-
-
-        if self.INPUT_BEAM_FROM == 1:
-            self.load_input_file()
-
-        p0, e0, h0, v0 = self.input_beam.get_content("xoppy_data")
-
-        p = p0.copy()
-        e = e0.copy()
-        h = h0.copy()
-        v = v0.copy()
-
-        transmittance = numpy.ones_like(p)
-        E =  e.copy()
-        H =  h.copy()
-        V =  v.copy()
-
-        # initialize results
-
-        #
-        # get undefined densities
-        #
-        if flags <= 1:
-            try:  # apply written value
-                rho = float(dens)
-            except:   # in case of ?
-                # grabber = TTYGrabber()
-                # grabber.start()
-                rho = density(substance)
-                # grabber.stop()
-                # for row in grabber.ttyData:
-                #     self.writeStdOut(row)
-                print("Density for %s: %g g/cm3"%(substance,rho))
-            dens = rho
-
-
-        txt = ""
-
-        if flags == 0:
-            txt += '      *****   oe  [Filter] *************\n'
-            txt += '      Material: %s\n'%(substance)
-            txt += '      Density [g/cm^3]: %f \n'%(dens)
-            txt += '      thickness [mm] : %f \n'%(thick)
-            txt += '      H gap [mm]: %f \n'%(hgap)
-            txt += '      V gap [mm]: %f \n'%(vgap)
-            txt += '      H gap center [mm]: %f \n'%(hgapcenter)
-            txt += '      V gap center [mm]: %f \n'%(vgapcenter)
-            txt += '      H rotation angle [deg]: %f \n'%(hrot)
-            txt += '      V rotation angle [deg]: %f \n'%(vrot)
-        elif flags == 1:
-            txt += '      *****   oe  [Mirror] *************\n'
-            txt += '      Material: %s\n'%(substance)
-            txt += '      Density [g/cm^3]: %f \n'%(dens)
-            txt += '      grazing angle [mrad]: %f \n'%(angle)
-            txt += '      roughness [A]: %f \n'%(roughness)
-        elif flags == 2:
-            txt += '      *****   oe  [Aperture] *************\n'
-            txt += '      H gap [mm]: %f \n'%(hgap)
-            txt += '      V gap [mm]: %f \n'%(vgap)
-            txt += '      H gap center [mm]: %f \n'%(hgapcenter)
-            txt += '      V gap center [mm]: %f \n'%(vgapcenter)
-        elif flags == 3:
-            txt += '      *****   oe  [Magnifier] *************\n'
-            txt += '      H magnification: %f \n'%(hmag)
-            txt += '      V magnification: %f \n'%(vmag)
-        elif flags == 4:
-            txt += '      *****   oe  [Screen rotated] *************\n'
-            txt += '      H rotation angle [deg]: %f \n'%(hrot)
-            txt += '      V rotation angle [deg]: %f \n'%(vrot)
-
-
-        if flags == 0: # filter
-            grabber = TTYGrabber()
-            grabber.start()
-            for j,energy in enumerate(e):
-                tmp = xraylib.CS_Total_CP(substance,energy/1000.0)
-                transmittance[j,:,:] = numpy.exp(-tmp*dens*(thick/10.0))
-
-            grabber.stop()
-            for row in grabber.ttyData:
-                self.writeStdOut(row)
-
-            # rotation
-            H = h / numpy.cos(hrot * numpy.pi / 180)
-            V = v / numpy.cos(vrot * numpy.pi / 180)
-
-            # aperture
-            h_indices_bad = numpy.where(numpy.abs(H - hgapcenter) > (0.5*hgap))
-            if len(h_indices_bad) > 0:
-                transmittance[:, h_indices_bad, :] = 0.0
-            v_indices_bad = numpy.where(numpy.abs(V - vgapcenter) > (0.5*vgap))
-            if len(v_indices_bad) > 0:
-                transmittance[:, :, v_indices_bad] = 0.0
-
-            absorbance = 1.0 - transmittance
-
-        elif flags == 1: # mirror
-            tmp = numpy.zeros(e.size)
-
-            for j,energy in enumerate(e):
-                tmp[j] = xraylib.Refractive_Index_Re(substance,energy/1000.0,dens)
-
-            if tmp[0] == 0.0:
-                raise Exception("Probably the substrance %s is wrong"%substance)
-
-            delta = 1.0 - tmp
-            beta = numpy.zeros(e.size)
-
-            for j,energy in enumerate(e):
-                beta[j] = xraylib.Refractive_Index_Im(substance,energy/1000.0,dens)
-
-            try:
-                (rs,rp,runp) = reflectivity_fresnel(refraction_index_beta=beta,refraction_index_delta=delta,\
-                                            grazing_angle_mrad=angle,roughness_rms_A=roughness,\
-                                            photon_energy_ev=e)
-            except:
-                raise Exception("Failed to run reflectivity_fresnel")
-
-            for j,energy in enumerate(e):
-                transmittance[j,:,:] = rs[j]
-
-            # rotation
-            if defection == 0: # horizontally deflecting
-                H = h / numpy.sin(self.EL1_ANG * 1e-3)
-            elif defection == 1: # vertically deflecting
-                V = v / numpy.sin(self.EL1_ANG * 1e-3)
-
-            # size
-            absorbance = 1.0 - transmittance
-
-            h_indices_bad = numpy.where(numpy.abs(H - hgapcenter) > (0.5*hgap))
-            if len(h_indices_bad) > 0:
-                transmittance[:, h_indices_bad, :] = 0.0
-                absorbance[:, h_indices_bad, :] = 0.0
-            v_indices_bad = numpy.where(numpy.abs(V - vgapcenter) > (0.5*vgap))
-            if len(v_indices_bad) > 0:
-                transmittance[:, :, v_indices_bad] = 0.0
-                absorbance[:, :, v_indices_bad] = 0.0
-
-        elif flags == 2:  # aperture
-            h_indices_bad = numpy.where(numpy.abs(H - hgapcenter) > (0.5*hgap))
-            if len(h_indices_bad) > 0:
-                transmittance[:, h_indices_bad, :] = 0.0
-            v_indices_bad = numpy.where(numpy.abs(V - vgapcenter) > (0.5*vgap))
-            if len(v_indices_bad) > 0:
-                transmittance[:, :, v_indices_bad] = 0.0
-
-            absorbance = 1.0 - transmittance
-
-        elif flags == 3:  # magnifier
-            H = h * hmag
-            V = v * vmag
-
-            absorbance = 1.0 - transmittance
-
-        elif flags == 4:  # rotation screen
-            # transmittance[:, :, :] = numpy.cos(hrot * numpy.pi / 180) * numpy.cos(vrot * numpy.pi / 180)
-            H = h / numpy.cos(hrot * numpy.pi / 180)
-            V = v / numpy.cos(vrot * numpy.pi / 180)
-
-            absorbance = 1.0 - transmittance
-
-        txt += self.info_total_power(p, e, v, h, transmittance, absorbance)
-
-        print(txt)
-
-        calculated_data = (transmittance, absorbance, E, H, V)
-
-        if self.FILE_DUMP == 0:
-            pass
-        elif self.FILE_DUMP == 1:
-            self.xoppy_write_h5file(calculated_data)
-        elif self.FILE_DUMP == 2:
-            self.xoppy_write_txt(calculated_data, method="3columns")
-        elif self.FILE_DUMP == 3:
-            self.xoppy_write_txt(calculated_data, method="matrix")
-
-        return calculated_data
-
-    # TODO: put it in util?
-    def info_total_power(self, p, e, v, h, transmittance, absorbance):
-        txt = ""
-        txt += "\n\n\n"
-        power_input = integral_3d(p, e, h, v, method=0) * codata.e * 1e3
-        txt += '      Input beam power: %f W\n'%(power_input)
-
-        power_transmitted = integral_3d(p * transmittance, e, h, v, method=0) * codata.e * 1e3
-        power_absorbed = integral_3d(p * absorbance, e, h, v, method=0) * codata.e * 1e3
-
-        power_lost = power_input - ( power_transmitted +  power_absorbed)
-        if numpy.abs( power_lost ) > 1e-9:
-            txt += '      Beam power not considered (removed by o.e. acceptance): %6.3f W (accepted: %6.3f W)\n' % \
-                   (power_lost, power_input - power_lost)
-
-        txt += '      Beam power absorbed by optical element: %6.3f W\n' % power_absorbed
-
-        if self.EL1_FLAG == 1:
-            txt += '      Beam power reflected after optical element: %6.3f W\n' % power_transmitted
-        else:
-            txt += '      Beam power transmitted after optical element: %6.3f W\n' % power_transmitted
-
-        return txt
 
     # TODO: put it in util?
     def xoppy_write_txt(self, calculated_data, method="3columns"):
@@ -900,7 +1029,7 @@ class OWpower3Dcomponent(XoppyWidget):
         try:
             h5w = H5SimpleWriter.initialize_file(self.FILE_NAME, creator="power3Dcomponent.py")
             txt = "\n\n\n"
-            txt += self.info_total_power(p, e, v, h, transmittance, absorbance)
+            txt += info_total_power(p, e, v, h, transmittance, absorbance, EL1_FLAG=self.EL1_FLAG)
             h5w.add_key("info", txt, entry_name=None)
         except:
             print("ERROR writing h5 file (info)")
@@ -994,39 +1123,7 @@ class OWpower3Dcomponent(XoppyWidget):
 
         print("File written to disk: %s" % self.FILE_NAME)
 
-# TODO: put it in util?
-def integral_2d(data2D,h=None,v=None, method=0):
-    if h is None:
-        h = numpy.arange(data2D.shape[0])
-    if v is None:
-        v = numpy.arange(data2D.shape[1])
 
-    if method == 0:
-        totPower2 = numpy.trapz(data2D, v, axis=1)
-        totPower2 = numpy.trapz(totPower2, h, axis=0)
-    else:
-        totPower2 = data2D.sum() * (h[1] - h[0]) * (v[1] - v[0])
-
-    return totPower2
-
-# TODO: put it in util?
-def integral_3d(data3D, e=None, h=None, v=None, method=0):
-    if e is None:
-        e = numpy.arange(data3D.shape[0])
-    if h is None:
-        h = numpy.arange(data3D.shape[1])
-    if v is None:
-        v = numpy.arange(data3D.shape[2])
-
-    if method == 0:
-
-        totPower2 = numpy.trapz(data3D, v, axis=2)
-        totPower2 = numpy.trapz(totPower2, h, axis=1)
-        totPower2 = numpy.trapz(totPower2, e, axis=0)
-    else:
-        totPower2 = data3D.sum() * (e[1] - e[0]) * (h[1] - h[0]) * (v[1] - v[0])
-
-    return totPower2
 
 if __name__ == "__main__":
 
