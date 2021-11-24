@@ -2,12 +2,8 @@ import sys
 import os
 
 import numpy
-import h5py
 
 import scipy.constants as codata
-import xraylib
-
-from srxraylib.util.h5_simple_writer import H5SimpleWriter
 
 from PyQt5.QtWidgets import QApplication, QMessageBox, QSizePolicy
 
@@ -18,19 +14,20 @@ from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 from oasys.widgets.gui import ConfirmDialog
 
-from oasys.util.oasys_util import TTYGrabber
-
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-from orangecontrib.xoppy.util.xoppy_xraylib_util import reflectivity_fresnel
-from orangecontrib.xoppy.util.xoppy_xraylib_util import nist_compound_list, density
 
+from orangecontrib.xoppy.util.power3d import integral_2d, integral_3d, info_total_power
+from orangecontrib.xoppy.util.power3d import calculate_component_absorbance_and_transmittance, apply_transmittance_to_incident_beam
+from orangecontrib.xoppy.util.power3d import load_radiation_from_h5file, write_radiation_to_h5file, write_txt_file, write_h5_file
 
-# from scipy.interpolate import interp2d, RectBivariateSpline
-from orangecontrib.xoppy.util.power3d import integral_2d, integral_3d, info_total_power, extract_data_from_h5file
-from orangecontrib.xoppy.util.power3d import power3Dcomponent, apply_transmittance_to_incident_beam
+from syned.widget.widget_decorator import WidgetDecorator
+from syned.beamline.optical_elements.absorbers.filter import Filter
+from syned.beamline.optical_elements.absorbers.slit import Slit
+from syned.beamline.optical_elements.mirrors.mirror import Mirror
+from syned.beamline.beamline import Beamline
+from syned.beamline.shape import Rectangle
 
-
-class OWpower3Dcomponent(XoppyWidget):
+class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
     name = "Power3Dcomponent"
     id = "orange.widgets.datapower3D"
     description = "Power (vs Energy and spatial coordinates) Absorbed and Transmitted or Reflected by Optical Elements"
@@ -41,7 +38,8 @@ class OWpower3Dcomponent(XoppyWidget):
 
     inputs = [{"name": "ExchangeData",
                "type": DataExchangeObject,
-               "handler": "acceptExchangeData" } ]
+               "handler": "acceptExchangeData" },
+              WidgetDecorator.syned_input_data()[0]]
 
     INPUT_BEAM_FROM = Setting(0)
     INPUT_BEAM_FILE = Setting("undulator_radiation.h5")
@@ -63,6 +61,9 @@ class OWpower3Dcomponent(XoppyWidget):
     EL1_VROT = Setting(0.0)
 
     PLOT_SETS = Setting(1)
+
+    FILE_INPUT_FLAG = Setting(0)
+    FILE_INPUT_NAME = Setting("power3Dcomponent_in.h5")
     FILE_DUMP = Setting(0)
     FILE_NAME = Setting("power3Dcomponent.h5")
     EL1_SLIT_CROP = Setting(0)
@@ -169,8 +170,34 @@ class OWpower3Dcomponent(XoppyWidget):
                     valueType=int, orientation="horizontal", labelWidth=100, callback=self.replot_results)
         self.show_at(self.unitFlags()[idx], box1)
 
+        ##
         box = gui.widgetBox(tab_2, "Files")
-        #widget index 42
+        #################
+
+        #widget index xx
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.separator(box1, height=7)
+        gui.comboBox(box1, self, "FILE_INPUT_FLAG",
+                     label=self.unitLabels()[idx], addSpace=False,
+                    items=['No', 'Yes (hdf5)'],
+                    valueType=int, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index xx
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.separator(box1, height=7)
+        oasysgui.lineEdit(box1, self, "FILE_INPUT_NAME",
+                     label=self.unitLabels()[idx], addSpace=False, orientation="horizontal", labelWidth=150)
+        self.show_at(self.unitFlags()[idx], box1)
+        # self.visibility_input_file()
+
+
+        #################
+
+
+        #widget index xx
         idx += 1
         box1 = gui.widgetBox(box)
         gui.separator(box1, height=7)
@@ -181,7 +208,7 @@ class OWpower3Dcomponent(XoppyWidget):
                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-        #widget index 11
+        #widget index xx
         idx += 1
         box1 = gui.widgetBox(box)
         gui.separator(box1, height=7)
@@ -190,6 +217,8 @@ class OWpower3Dcomponent(XoppyWidget):
         self.show_at(self.unitFlags()[idx], box1)
         self.visibility_input_file()
 
+
+        ##
         box = gui.widgetBox(tab_2, "Send beam")
         #widget index 12
         idx += 1
@@ -256,6 +285,8 @@ class OWpower3Dcomponent(XoppyWidget):
         labels.append('Rotation angle around H axis [deg]')
 
         labels.append("Plot")
+        labels.append("Write input beam [h5 for script]")
+        labels.append("Input beam filename [.h5]")
         labels.append("Write output file")
         labels.append("File name")
         labels.append('Crop beam before being sent')
@@ -284,7 +315,9 @@ class OWpower3Dcomponent(XoppyWidget):
         flags.append('self.EL1_FLAG  ==  3')   # magnification
         flags.append('self.EL1_FLAG  in (0, 4)')   # rotation
         flags.append('self.EL1_FLAG  in (0, 4)')   # rotation
+        flags.append("True")  # plot
         flags.append("True")
+        flags.append('self.FILE_INPUT_FLAG >= 1')
         flags.append("True")
         flags.append('self.FILE_DUMP >= 1')
         flags.append('self.EL1_FLAG  ==  2')   # slit crop
@@ -323,7 +356,7 @@ class OWpower3Dcomponent(XoppyWidget):
 
     def load_input_file(self):
 
-        e, h, v, p, code = extract_data_from_h5file(self.INPUT_BEAM_FILE, "XOPPY_RADIATION")
+        e, h, v, p, code = load_radiation_from_h5file(self.INPUT_BEAM_FILE, "XOPPY_RADIATION")
 
         received_data = DataExchangeObject("XOPPY", "POWER3DCOMPONENT")
         received_data.add_content("xoppy_data", [p, e, h, v])
@@ -361,6 +394,26 @@ class OWpower3Dcomponent(XoppyWidget):
             self.EL1_HROT = congruence.checkNumber(self.EL1_HROT, "OE rotation H")
             self.EL1_VROT = congruence.checkNumber(self.EL1_VROT, "OE rotation V")
 
+        if self.FILE_DUMP == 1:
+            if (os.path.splitext(self.FILE_NAME))[-1] not in [".h5",".H5",".hdf5",".HDF5"]:
+                filename_alternative = (os.path.splitext(self.FILE_NAME))[0] + ".h5"
+                tmp = ConfirmDialog.confirmed(self,
+                                          message="Invalid file extension in output file: \n%s\nIt must be: .h5, .H5, .hdf5, .HDF5\nChange to: %s ?"%(self.FILE_NAME,filename_alternative),
+                                          title="Invalid file extension")
+                if tmp == False: return
+                self.FILE_NAME = filename_alternative
+        elif (self.FILE_DUMP == 2 or self.FILE_DUMP == 3): # (x,y, absorption) or matrix
+            if (os.path.splitext(self.FILE_NAME))[-1] not in [".txt", ".dat", ".TXT", ".DAT"]:
+                filename_alternative = (os.path.splitext(self.FILE_NAME))[0] + ".txt"
+                tmp = ConfirmDialog.confirmed(self,
+                                              message="Invalid file extension in output file: \n%s\nIt must be: .txt, .dat, .TXT, .DAT\nChange to: %s ?" % (
+                                              self.FILE_NAME, filename_alternative),
+                                              title="Invalid file extension")
+                if tmp == False: return
+                self.FILE_NAME = filename_alternative
+
+
+
     def do_xoppy_calculation(self):
 
         if self.INPUT_BEAM_FROM == 1:
@@ -368,7 +421,16 @@ class OWpower3Dcomponent(XoppyWidget):
 
         p0, e0, h0, v0 = self.input_beam.get_content("xoppy_data")
 
-        transmittance, absorbance, E, H, V, txt = power3Dcomponent(
+        if self.FILE_INPUT_FLAG:
+            write_radiation_to_h5file(e0, h0, v0, p0,
+                                   creator="power3Dcomponent.py",
+                                   h5_file=self.FILE_INPUT_NAME,
+                                   h5_entry_name="XOPPY_RADIATION",
+                                   h5_initialize=True,
+                                   h5_parameters=None,
+                                   )
+
+        transmittance, absorbance, E, H, V, txt = calculate_component_absorbance_and_transmittance(
                                                               e0, h0, v0,
                                                               substance=self.EL1_FOR,
                                                               thick=self.EL1_THI,
@@ -395,16 +457,16 @@ class OWpower3Dcomponent(XoppyWidget):
         if self.FILE_DUMP == 0:
             pass
         elif self.FILE_DUMP == 1:
-            self.xoppy_write_h5file(calculated_data)
+            write_h5_file(calculated_data, self.input_beam.get_content("xoppy_data"), filename=self.FILE_NAME,
+                          EL1_FLAG=self.EL1_FLAG, EL1_HMAG=self.EL1_HMAG, EL1_VMAG=self.EL1_VMAG)
         elif self.FILE_DUMP == 2:
-            self.xoppy_write_txt(calculated_data, method="3columns")
+            write_txt_file(calculated_data, self.input_beam.get_content("xoppy_data"),
+                           filename=self.FILE_NAME, method="3columns")
         elif self.FILE_DUMP == 3:
-            self.xoppy_write_txt(calculated_data, method="matrix")
+            write_txt_file(calculated_data, self.input_beam.get_content("xoppy_data"),
+                           filename=self.FILE_NAME, method="matrix")
 
 
-#######################
-        dict_parameters = {}
-            # "ELECTRONENERGY": self.ELECTRONENERGY,
         if isinstance(self.EL1_DEN, str):
             dens = "'"+self.EL1_DEN+"'"
         else:
@@ -412,15 +474,15 @@ class OWpower3Dcomponent(XoppyWidget):
 
         # write python script
         dict_parameters = {
-                "emin" : e[0],
-                "emax" : e[-1],
-                "epoints" : e.size,
-                "hmin" : h[0],
-                "hmax" : h[-1],
-                "hpoints" : h.size,
-                "vmin" : v[0],
-                "vmax" : v[-1],
-                "vpoints" : v.size,
+                "emin" : E[0],
+                "emax" : E[-1],
+                "epoints" : E.size,
+                "hmin" : H[0],
+                "hmax" : H[-1],
+                "hpoints" : H.size,
+                "vmin" : V[0],
+                "vmax" : V[-1],
+                "vpoints" : V.size,
                 "EL1_FOR" : "'"+self.EL1_FOR+"'",
                 "EL1_THI" : self.EL1_THI,
                 "EL1_ANG" : self.EL1_ANG,
@@ -436,11 +498,14 @@ class OWpower3Dcomponent(XoppyWidget):
                 "EL1_VMAG" : self.EL1_VMAG,
                 "EL1_HROT" : self.EL1_HROT,
                 "EL1_VROT" : self.EL1_VROT,
+                "FILE_INPUT_NAME": "'"+self.FILE_INPUT_NAME+"'",
+                "INTERPOLATION_FLAG" : self.INTERPOLATION_FLAG,
+                "INTERPOLATION_FACTOR_H" : self.INTERPOLATION_FACTOR_H,
+                "INTERPOLATION_FACTOR_V" : self.INTERPOLATION_FACTOR_V,
+                "EL1_SLIT_CROP" : self.EL1_SLIT_CROP,
             }
         self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
-        # self.xoppy_script.set_code(self.script_template())
 
-#######################
         return calculated_data
 
 
@@ -451,9 +516,16 @@ class OWpower3Dcomponent(XoppyWidget):
 #
 
 import numpy
-from orangecontrib.xoppy.util.power3d import power3Dcomponent, apply_transmittance_to_incident_beam
+import scipy.constants as codata
+from orangecontrib.xoppy.util.power3d import calculate_component_absorbance_and_transmittance
+from orangecontrib.xoppy.util.power3d import apply_transmittance_to_incident_beam
+from orangecontrib.xoppy.util.power3d import integral_2d
+from orangecontrib.xoppy.util.power3d import load_radiation_from_h5file
 
-transmittance, absorbance, E, H, V, txt = power3Dcomponent(
+#
+# compute transmittance
+#
+transmittance, absorbance, E, H, V, txt = calculate_component_absorbance_and_transmittance(
                 numpy.linspace({emin},{emax},{epoints}), # energy in eV
                 numpy.linspace({hmin},{hmax},{hpoints}), # h in mm
                 numpy.linspace({vmin},{vmax},{vpoints}), # v in mm
@@ -474,19 +546,64 @@ transmittance, absorbance, E, H, V, txt = power3Dcomponent(
                 vrot={EL1_VROT},
                 )
 
-# e, h, v, p, traj = xoppy_calc_wiggler_radiation(
-#         ELECTRONENERGY           = h5_parameters["ELECTRONENERGY"]         ,
 
+#
+# apply transmittance to incident beam that **IS READ FROM FILE** 
+# To write this file, activate the "Write output file" in "Send Settings" tab
+#
 
-# example plot
+e0, h0, v0, f0, code = load_radiation_from_h5file({FILE_INPUT_NAME}, "XOPPY_RADIATION")
+
+f_transmitted, e, h, v = apply_transmittance_to_incident_beam(transmittance, f0, e0, h0, v0,
+                                  flags = {EL1_FLAG},
+                                  hgap = {EL1_HGAP},
+                                  vgap = {EL1_VGAP},
+                                  hgapcenter = {EL1_HGAPCENTER},
+                                  vgapcenter = {EL1_VGAPCENTER},
+                                  hmag = {EL1_HMAG},
+                                  vmag = {EL1_VMAG},
+                                  interpolation_flag     = {INTERPOLATION_FLAG},
+                                  interpolation_factor_h = {INTERPOLATION_FACTOR_H},
+                                  interpolation_factor_v = {INTERPOLATION_FACTOR_V},
+                                  slit_crop = {EL1_SLIT_CROP},
+                                )
+
+f_absorbed = f0 * absorbance / (H[0] / h0[0]) / (V[0] / v0[0])
+
+#                       
+# example plots
+#
 from srxraylib.plot.gol import plot_image
-plot_image(transmittance[0,:,:],H,V,title="Transmittance at E=%g eV" % ({emin}),xtitle="H [mm]",ytitle="V [mm]",aspect='auto')
- 
+
+# transmitted/reflected beam
+
+spectral_power_transmitted = f_transmitted * codata.e * 1e3     
+plot_image(spectral_power_transmitted[0,:,:],h,v,title="Transmitted Spectral Power Density [W/eV/mm2] at E=%g eV" % ({emin}),xtitle="H [mm]",ytitle="V [mm]",aspect='auto')
+
+power_density_transmitted = numpy.trapz(spectral_power_transmitted, e, axis=0)
+power_density_integral = integral_2d(power_density_transmitted, h, v)
+plot_image(power_density_transmitted, h, v,
+                 xtitle='H [mm] (normal to beam)',
+                 ytitle='V [mm] (normal to beam)',
+                 title='Power Density [W/mm^2]. Integral: %6.3f W'%power_density_integral,aspect='auto')
+
+# local absorption 
+
+spectral_power_density_absorbed = f_absorbed * codata.e * 1e3
+
+plot_image(spectral_power_density_absorbed[0,:,:],H,V,title="Absorbed Spectral Power Density [W/eV/mm2] at E=%g eV" % ({emin}),xtitle="H [mm]",ytitle="V [mm]",aspect='auto')
+
+power_density_absorbed = numpy.trapz(spectral_power_density_absorbed, E, axis=0)
+power_density_integral = integral_2d(power_density_absorbed, H, V)
+plot_image(power_density_absorbed, H, V,
+                 xtitle='H [mm] (o.e. coordinates)',
+                 ytitle='V [mm] (o.e. coordinates)',
+                 title='Absorbed Power Density [W/mm^2]. Integral: %6.3f W'%power_density_integral,aspect='auto')
+                                               
 #
 # end script
 #
 """
-
 
     # TO SEND DATA
     def extract_data_from_xoppy_output(self, calculation_output):
@@ -518,9 +635,6 @@ plot_image(transmittance[0,:,:],H,V,title="Transmittance at E=%g eV" % ({emin}),
 
         return data_to_send
 
-
-    # def extract_data_from_xoppy_output(self, calculation_output):
-    #     return calculation_output
 
     def get_data_exchange_widget_name(self):
         return "POWER3DCOMPONENT"
@@ -737,392 +851,41 @@ plot_image(transmittance[0,:,:],H,V,title="Transmittance at E=%g eV" % ({emin}),
             except:
                 pass
 
-#     # TODO: put it in util?
-#     def xoppy_calc_power3Dcomponent(self):
-#
-#         #
-#         # important: the transmittivity calculated here is referred on axes perp to the beam
-#         # therefore they do not include geometrical corrections for correct integral
-#         #
-#
-#         # substance = self.EL1_FOR
-#         # thick     = self.EL1_THI
-#         # angle     = self.EL1_ANG
-#         # defection = self.EL1_DEF
-#         # dens      = self.EL1_DEN
-#         # roughness = self.EL1_ROU
-#         # flags     = self.EL1_FLAG
-#         # hgap = self.EL1_HGAP
-#         # vgap = self.EL1_VGAP
-#         # hgapcenter = self.EL1_HGAPCENTER
-#         # vgapcenter = self.EL1_VGAPCENTER
-#         # hmag = self.EL1_HMAG
-#         # vmag = self.EL1_VMAG
-#         # hrot = self.EL1_HROT
-#         # vrot = self.EL1_VROT
-#
-#
-#
-#         if self.INPUT_BEAM_FROM == 1:
-#             self.load_input_file()
-#
-#         p0, e0, h0, v0 = self.input_beam.get_content("xoppy_data")
-# ###########################
-#
-#         transmittance, absorbance, E, H, V = power3Dcomponent(p0, e0, h0, v0,
-#                     substance=self.EL1_FOR,
-#                     thick = self.EL1_THI,
-#                     angle = self.EL1_ANG,
-#                     defection = self.EL1_DEF,
-#                     dens = self.EL1_DEN,
-#                     roughness = self.EL1_ROU,
-#                     flags = self.EL1_FLAG,
-#                     hgap = self.EL1_HGAP,
-#                     vgap = self.EL1_VGAP,
-#                     hgapcenter = self.EL1_HGAPCENTER,
-#                     vgapcenter = self.EL1_VGAPCENTER,
-#                     hmag = self.EL1_HMAG,
-#                     vmag = self.EL1_VMAG,
-#                     hrot = self.EL1_HROT,
-#                     vrot = self.EL1_VROT,
-#         )
-#
-# ############################
-#
-#         # p = p0.copy()
-#         # e = e0.copy()
-#         # h = h0.copy()
-#         # v = v0.copy()
-#         #
-#         # transmittance = numpy.ones_like(p)
-#         # E =  e.copy()
-#         # H =  h.copy()
-#         # V =  v.copy()
-#         #
-#         # # initialize results
-#         #
-#         # #
-#         # # get undefined densities
-#         # #
-#         # if flags <= 1:
-#         #     try:  # apply written value
-#         #         rho = float(dens)
-#         #     except:   # in case of ?
-#         #         # grabber = TTYGrabber()
-#         #         # grabber.start()
-#         #         rho = density(substance)
-#         #         # grabber.stop()
-#         #         # for row in grabber.ttyData:
-#         #         #     self.writeStdOut(row)
-#         #         print("Density for %s: %g g/cm3"%(substance,rho))
-#         #     dens = rho
-#         #
-#         #
-#         # txt = ""
-#         #
-#         # if flags == 0:
-#         #     txt += '      *****   oe  [Filter] *************\n'
-#         #     txt += '      Material: %s\n'%(substance)
-#         #     txt += '      Density [g/cm^3]: %f \n'%(dens)
-#         #     txt += '      thickness [mm] : %f \n'%(thick)
-#         #     txt += '      H gap [mm]: %f \n'%(hgap)
-#         #     txt += '      V gap [mm]: %f \n'%(vgap)
-#         #     txt += '      H gap center [mm]: %f \n'%(hgapcenter)
-#         #     txt += '      V gap center [mm]: %f \n'%(vgapcenter)
-#         #     txt += '      H rotation angle [deg]: %f \n'%(hrot)
-#         #     txt += '      V rotation angle [deg]: %f \n'%(vrot)
-#         # elif flags == 1:
-#         #     txt += '      *****   oe  [Mirror] *************\n'
-#         #     txt += '      Material: %s\n'%(substance)
-#         #     txt += '      Density [g/cm^3]: %f \n'%(dens)
-#         #     txt += '      grazing angle [mrad]: %f \n'%(angle)
-#         #     txt += '      roughness [A]: %f \n'%(roughness)
-#         # elif flags == 2:
-#         #     txt += '      *****   oe  [Aperture] *************\n'
-#         #     txt += '      H gap [mm]: %f \n'%(hgap)
-#         #     txt += '      V gap [mm]: %f \n'%(vgap)
-#         #     txt += '      H gap center [mm]: %f \n'%(hgapcenter)
-#         #     txt += '      V gap center [mm]: %f \n'%(vgapcenter)
-#         # elif flags == 3:
-#         #     txt += '      *****   oe  [Magnifier] *************\n'
-#         #     txt += '      H magnification: %f \n'%(hmag)
-#         #     txt += '      V magnification: %f \n'%(vmag)
-#         # elif flags == 4:
-#         #     txt += '      *****   oe  [Screen rotated] *************\n'
-#         #     txt += '      H rotation angle [deg]: %f \n'%(hrot)
-#         #     txt += '      V rotation angle [deg]: %f \n'%(vrot)
-#         #
-#         #
-#         # if flags == 0: # filter
-#         #     grabber = TTYGrabber()
-#         #     grabber.start()
-#         #     for j,energy in enumerate(e):
-#         #         tmp = xraylib.CS_Total_CP(substance,energy/1000.0)
-#         #         transmittance[j,:,:] = numpy.exp(-tmp*dens*(thick/10.0))
-#         #
-#         #     grabber.stop()
-#         #     for row in grabber.ttyData:
-#         #         self.writeStdOut(row)
-#         #
-#         #     # rotation
-#         #     H = h / numpy.cos(hrot * numpy.pi / 180)
-#         #     V = v / numpy.cos(vrot * numpy.pi / 180)
-#         #
-#         #     # aperture
-#         #     h_indices_bad = numpy.where(numpy.abs(H - hgapcenter) > (0.5*hgap))
-#         #     if len(h_indices_bad) > 0:
-#         #         transmittance[:, h_indices_bad, :] = 0.0
-#         #     v_indices_bad = numpy.where(numpy.abs(V - vgapcenter) > (0.5*vgap))
-#         #     if len(v_indices_bad) > 0:
-#         #         transmittance[:, :, v_indices_bad] = 0.0
-#         #
-#         #     absorbance = 1.0 - transmittance
-#         #
-#         # elif flags == 1: # mirror
-#         #     tmp = numpy.zeros(e.size)
-#         #
-#         #     for j,energy in enumerate(e):
-#         #         tmp[j] = xraylib.Refractive_Index_Re(substance,energy/1000.0,dens)
-#         #
-#         #     if tmp[0] == 0.0:
-#         #         raise Exception("Probably the substrance %s is wrong"%substance)
-#         #
-#         #     delta = 1.0 - tmp
-#         #     beta = numpy.zeros(e.size)
-#         #
-#         #     for j,energy in enumerate(e):
-#         #         beta[j] = xraylib.Refractive_Index_Im(substance,energy/1000.0,dens)
-#         #
-#         #     try:
-#         #         (rs,rp,runp) = reflectivity_fresnel(refraction_index_beta=beta,refraction_index_delta=delta,\
-#         #                                     grazing_angle_mrad=angle,roughness_rms_A=roughness,\
-#         #                                     photon_energy_ev=e)
-#         #     except:
-#         #         raise Exception("Failed to run reflectivity_fresnel")
-#         #
-#         #     for j,energy in enumerate(e):
-#         #         transmittance[j,:,:] = rs[j]
-#         #
-#         #     # rotation
-#         #     if defection == 0: # horizontally deflecting
-#         #         H = h / numpy.sin(angle * 1e-3)
-#         #     elif defection == 1: # vertically deflecting
-#         #         V = v / numpy.sin(angle * 1e-3)
-#         #
-#         #     # size
-#         #     absorbance = 1.0 - transmittance
-#         #
-#         #     h_indices_bad = numpy.where(numpy.abs(H - hgapcenter) > (0.5*hgap))
-#         #     if len(h_indices_bad) > 0:
-#         #         transmittance[:, h_indices_bad, :] = 0.0
-#         #         absorbance[:, h_indices_bad, :] = 0.0
-#         #     v_indices_bad = numpy.where(numpy.abs(V - vgapcenter) > (0.5*vgap))
-#         #     if len(v_indices_bad) > 0:
-#         #         transmittance[:, :, v_indices_bad] = 0.0
-#         #         absorbance[:, :, v_indices_bad] = 0.0
-#         #
-#         # elif flags == 2:  # aperture
-#         #     h_indices_bad = numpy.where(numpy.abs(H - hgapcenter) > (0.5*hgap))
-#         #     if len(h_indices_bad) > 0:
-#         #         transmittance[:, h_indices_bad, :] = 0.0
-#         #     v_indices_bad = numpy.where(numpy.abs(V - vgapcenter) > (0.5*vgap))
-#         #     if len(v_indices_bad) > 0:
-#         #         transmittance[:, :, v_indices_bad] = 0.0
-#         #
-#         #     absorbance = 1.0 - transmittance
-#         #
-#         # elif flags == 3:  # magnifier
-#         #     H = h * hmag
-#         #     V = v * vmag
-#         #
-#         #     absorbance = 1.0 - transmittance
-#         #
-#         # elif flags == 4:  # rotation screen
-#         #     # transmittance[:, :, :] = numpy.cos(hrot * numpy.pi / 180) * numpy.cos(vrot * numpy.pi / 180)
-#         #     H = h / numpy.cos(hrot * numpy.pi / 180)
-#         #     V = v / numpy.cos(vrot * numpy.pi / 180)
-#         #
-#         #     absorbance = 1.0 - transmittance
-#         #
-#         # txt += info_total_power(p, e, v, h, transmittance, absorbance, EL1_FLAG=flags)
-#         #
-#         # print(txt)
-#
-#
-# #####################################
-#
-#         calculated_data = (transmittance, absorbance, E, H, V)
-#
-#         if self.FILE_DUMP == 0:
-#             pass
-#         elif self.FILE_DUMP == 1:
-#             self.xoppy_write_h5file(calculated_data)
-#         elif self.FILE_DUMP == 2:
-#             self.xoppy_write_txt(calculated_data, method="3columns")
-#         elif self.FILE_DUMP == 3:
-#             self.xoppy_write_txt(calculated_data, method="matrix")
-#
-#         return calculated_data
+    def receive_syned_data(self, data):
+        if not data is None:
+            if isinstance(data, Beamline):
+                n = data.get_beamline_elements_number()
+                oe = data.get_beamline_element_at(n - 1).get_optical_element()
+                coor = data.get_beamline_element_at(n - 1).get_coordinates()
+
+                try:
+                    boundary = oe.get_boundary_shape()
+                    if isinstance(boundary, Rectangle):
+                        x_left, x_right, y_bottom, y_top = boundary.get_boundaries()
+                        self.EL1_HGAPCENTER = numpy.round(0.5 * (x_right + x_left) * 1e3, 4)
+                        self.EL1_VGAPCENTER = numpy.round(0.5 * (y_top + y_bottom) * 1e3, 4)
+                        self.EL1_HGAP = numpy.round((x_right - x_left) * 1e3, 4)
+                        self.EL1_VGAP = numpy.round((y_top - y_bottom) * 1e3, 4)
+                except:
+                    pass
+
+                if isinstance(oe, Filter):
+                    self.EL1_FLAG = 0
+                    self.EL1_FOR = oe.get_material()
+                    self.EL1_THI = oe.get_thickness() * 1e3
+                elif isinstance(oe, Mirror):
+                    self.EL1_FLAG = 1
+                    if oe._coating is not None:
+                        self.EL1_FOR = oe._coating
+                    self.EL1_ANG = numpy.round( (numpy.pi / 2 - coor.angle_radial()) * 1e3, 4)
+                elif isinstance(oe, Slit):
+                    self.EL1_FLAG = 2
+                else:
+                    raise ValueError("Syned optical element not valid")
 
 
-    # TODO: put it in util?
-    def xoppy_write_txt(self, calculated_data, method="3columns"):
-
-        p0, e0, h0, v0 = self.input_beam.get_content("xoppy_data")
-        p = p0.copy()
-        p_spectral_power = p * codata.e * 1e3
-        transmittance, absorbance, E, H, V = calculated_data
-
-        if (os.path.splitext(self.FILE_NAME))[-1] not in [".txt",".dat",".TXT",".DAT"]:
-            filename_alternative = (os.path.splitext(self.FILE_NAME))[0] + ".txt"
-            tmp = ConfirmDialog.confirmed(self,
-                                      message="Invalid file extension in output file: \n%s\nIt must be: .txt, .dat, .TXT, .DAT\nChange to: %s ?"%(self.FILE_NAME,filename_alternative),
-                                      title="Invalid file extension")
-            if tmp == False: return
-            self.FILE_NAME = filename_alternative
-
-        absorbed3d = p_spectral_power * absorbance / (H[0] / h0[0]) / (V[0] / v0[0])
-        absorbed2d = numpy.trapz(absorbed3d, E, axis=0)
-
-        f = open(self.FILE_NAME, 'w')
-        if method == "3columns":
-            for i in range(H.size):
-                for j in range(V.size):
-                    f.write("%g  %g  %g\n" % (H[i]*1e-3, V[i]*1e-3, absorbed2d[i,j]*1e6))
-        elif method == "matrix":
-            f.write("%10.5g" % 0)
-            for i in range(H.size):
-                f.write(", %10.5g" % (H[i] * 1e-3))
-            f.write("\n")
-
-            for j in range(V.size):
-                    f.write("%10.5g" % (V[j] * 1e-3))
-                    for i in range(H.size):
-                        f.write(", %10.5g" % (absorbed2d[i,j] * 1e6))
-                    f.write("\n")
-        else:
-            raise Exception("File type not understood.")
-        f.close()
-
-        print("File written to disk: %s" % self.FILE_NAME)
-
-    # TODO: put it in util?
-    def xoppy_write_h5file(self,calculated_data):
-
-        p0, e0, h0, v0 = self.input_beam.get_content("xoppy_data")
-        p = p0.copy()
-        e = e0.copy()
-        h = h0.copy()
-        v = v0.copy()
-        code = self.input_beam.get_content("xoppy_code")
-        p_spectral_power = p * codata.e * 1e3
-        transmittance, absorbance, E, H, V = calculated_data
-
-        if (os.path.splitext(self.FILE_NAME))[-1] not in [".h5",".H5",".hdf5",".HDF5"]:
-            filename_alternative = (os.path.splitext(self.FILE_NAME))[0] + ".h5"
-            tmp = ConfirmDialog.confirmed(self,
-                                      message="Invalid file extension in output file: \n%s\nIt must be: .h5, .H5, .hdf5, .HDF5\nChange to: %s ?"%(self.FILE_NAME,filename_alternative),
-                                      title="Invalid file extension")
-            if tmp == False: return
-            self.FILE_NAME = filename_alternative
-
-        try:
-            h5w = H5SimpleWriter.initialize_file(self.FILE_NAME, creator="power3Dcomponent.py")
-            txt = "\n\n\n"
-            txt += info_total_power(p, e, v, h, transmittance, absorbance, EL1_FLAG=self.EL1_FLAG)
-            h5w.add_key("info", txt, entry_name=None)
-        except:
-            print("ERROR writing h5 file (info)")
-
-
-        try:
-            #
-            # source
-            #
-            entry_name = "source"
-
-            h5w.create_entry(entry_name, nx_default=None)
-
-            h5w.add_stack(e, h, v, p, stack_name="Radiation stack", entry_name=entry_name,
-                          title_0="Photon energy [eV]",
-                          title_1="X [mm] (normal to beam)",
-                          title_2="Y [mm] (normal to beam)")
-
-            h5w.add_image(numpy.trapz(p_spectral_power, E, axis=0) , H, V,
-                          image_name="Power Density", entry_name=entry_name,
-                          title_x="X [mm] (normal to beam)",
-                          title_y="Y [mm] (normal to beam)")
-
-            h5w.add_dataset(E, numpy.trapz(numpy.trapz(p_spectral_power, v, axis=2), h, axis=1),
-                            entry_name=entry_name, dataset_name="Spectral power",
-                            title_x="Photon Energy [eV]",
-                            title_y="Spectral density [W/eV]")
-
-        except:
-            print("ERROR writing h5 file (source)")
-
-        try:
-            #
-            # optical element
-            #
-            entry_name = "optical_element"
-
-            h5w.create_entry(entry_name, nx_default=None)
-
-            h5w.add_stack(E, H, V, transmittance, stack_name="Transmittance stack", entry_name=entry_name,
-                          title_0="Photon energy [eV]",
-                          title_1="X [mm] (o.e. coordinates)",
-                          title_2="Y [mm] (o.e. coordinates)")
-
-            absorbed = p_spectral_power * absorbance / (H[0] / h0[0]) / (V[0] / v0[0])
-            h5w.add_image(numpy.trapz(absorbed, E, axis=0), H, V,
-                          image_name="Absorbed Power Density on Element", entry_name=entry_name,
-                          title_x="X [mm] (o.e. coordinates)",
-                          title_y="Y [mm] (o.e. coordinates)")
-
-            h5w.add_dataset(E, numpy.trapz(numpy.trapz(absorbed, v, axis=2), h, axis=1),
-                            entry_name=entry_name, dataset_name="Absorbed Spectral Power",
-                            title_x="Photon Energy [eV]",
-                            title_y="Spectral density [W/eV]")
-
-            #
-            # transmitted
-            #
-
-            # coordinates to send: the same as incident beam (perpendicular to the optical axis)
-            # except for the magnifier
-            if self.EL1_FLAG == 3:  # magnifier <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                h *= self.EL1_HMAG
-                v *= self.EL1_VMAG
-
-            transmitted = p_spectral_power * transmittance / (h[0] / h0[0]) / (v[0] / v0[0])
-            h5w.add_image(numpy.trapz(transmitted, E, axis=0), h, v,
-                          image_name="Transmitted Power Density on Element", entry_name=entry_name,
-                          title_x="X [mm] (normal to beam)",
-                          title_y="Y [mm] (normal to beam)")
-
-            h5w.add_dataset(E, numpy.trapz(numpy.trapz(transmitted, v, axis=2), h, axis=1),
-                            entry_name=entry_name, dataset_name="Transmitted Spectral Power",
-                            title_x="Photon Energy [eV]",
-                            title_y="Spectral density [W/eV]")
-        except:
-            print("ERROR writing h5 file (optical element)")
-
-        try:
-            h5_entry_name = "XOPPY_RADIATION"
-
-            h5w.create_entry(h5_entry_name,nx_default=None)
-            h5w.add_stack(e, h, v, transmitted,stack_name="Radiation",entry_name=h5_entry_name,
-                title_0="Photon energy [eV]",
-                title_1="X gap [mm]",
-                title_2="Y gap [mm]")
-        except:
-            print("ERROR writing h5 file (adding XOPPY_RADIATION)")
-
-
-
-        print("File written to disk: %s" % self.FILE_NAME)
-
+            else:
+                raise ValueError("Syned data not correct")
 
 
 if __name__ == "__main__":
