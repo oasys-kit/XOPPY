@@ -226,9 +226,8 @@ def interface_reflectivity(alpha,gamma,theta1):
 
     # ;** Computes now the polarization ratio
 
-
-    ratio1 = 4 * rho**2 * (rho * numpy.sin(theta1) - numpy.cos(theta1))**2 + gamma**2 * numpy.sin(theta1)**2
-    ratio2 = 4 * rho**2 * (rho * numpy.sin(theta1) + numpy.cos(theta1))**2 + gamma**2 * numpy.sin(theta1)**2
+    ratio1 = 4 * rho**2 * (rho * numpy.sin(theta1) - numpy.cos(theta1) ** 2)**2 + gamma**2 * numpy.sin(theta1)**2
+    ratio2 = 4 * rho**2 * (rho * numpy.sin(theta1) + numpy.cos(theta1) ** 2)**2 + gamma**2 * numpy.sin(theta1)**2
     ratio = ratio1 / ratio2
 
     rp = rs * ratio
@@ -334,6 +333,9 @@ def f1f2_calc(descriptor, energy, theta=3.0e-3, F=0, density=None, rough=0.0, ve
            F=9  returns p-polarized reflectivity
            F=10  returns unpolarized reflectivity
            F=11  returns delta/betaf
+           F=12  returns delta calculated with F1
+           F=13  returns beta calculated with F2
+
     :param density: the density to be used for some calculations. If None, get it from xraylib
     :param rough: the roughness RMS in Angstroms for reflectivity calculations
     :return: a numpy array with results
@@ -395,7 +397,7 @@ def f1f2_calc(descriptor, energy, theta=3.0e-3, F=0, density=None, rough=0.0, ve
             out[i] = (1e0-xraylib.Refractive_Index_Re(symbol,1e-3*ienergy,density))
             out[i] /= xraylib.Refractive_Index_Im(symbol,1e-3*ienergy,density)
 
-    if F >= 8 and F <=10: # reflectivities
+    if (F >= 8 and F <=10) or (F >= 12 and F <=13): # reflectivities
         atwt = xraylib.AtomicWeight(Z)
         avogadro = codata.Avogadro
         toangstroms = codata.h * codata.c / codata.e * 1e10
@@ -421,13 +423,16 @@ def f1f2_calc(descriptor, energy, theta=3.0e-3, F=0, density=None, rough=0.0, ve
             debyewaller = numpy.exp( -( 4.0 * numpy.pi * numpy.sin(theta) * rough / wavelength)**2)
         else:
             debyewaller = 1.0
-
         if F == 8:   # returns s-polarized reflectivity
             out = rs * debyewaller
         elif F == 9: # returns p-polarized reflectivity
             out = rp * debyewaller
         elif F == 10: # returns unpolarized reflectivity
             out = runp * debyewaller
+        elif F == 12: # returns delta as calculated from f1
+            out = alpha / 2
+        elif F == 13: # returns beta as calculated from f2
+            out = gamma / 2
 
     return out
 
