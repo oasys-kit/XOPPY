@@ -1,4 +1,0 @@
-['Moderator temperature [K]','Spectrum','Max flux (fast) [n/cm2/s]','Max flux (epithermal) [n/cm2/s]','Max flux (thermal) [n/cm2/s]','Number of points ']
-['True','True','self.ZONE  ==  2','self.ZONE  ==  1','self.ZONE  ==  0','True']
-['TEMPERATURE','ZONE','MAXFLUX_F','MAXFLUX_EPI','MAXFLUX_TH','NPOINTS']
-['1','1','w(1) EQ 2','w(1) EQ 1','w(1) EQ 0','1']

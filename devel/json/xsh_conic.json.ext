@@ -1,4 +1,0 @@
-['p [cm] ','q [cm]','grazing angle [mrad]','conic type','invert convexity','cylindrical symmetry','cyl axis [deg, from Y]','Surface width (X) [cm]','Surface length (Y) [cm]','Number of points in X','Number of points in Y','Modify surface','File name']
-['True','True','True','True','True','True','True','True','True','True','True','True','True']
-['P','Q','THETA','TYPE','CONVEX','CYL','CYLANGLE','WIDTH','LENGTH','NX','NY','SAG','FILE']
-['True','True','True','True','True','True','True','True','True','True','True','True','True']
