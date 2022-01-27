@@ -13,7 +13,7 @@ import scipy.constants as codata
 import xraylib
 from dabax.dabax_xraylib import DabaxXraylib
 
-from xoppylib.crystals.tools import run_diff_pat
+from xoppylib.crystals.tools import run_diff_pat, bragg_calc2
 
 class OWxcrystal(XoppyWidget):
     name = "CRYSTAL"
@@ -414,14 +414,49 @@ class OWxcrystal(XoppyWidget):
                 raise Exception("Descriptor not found in material constants database")
 
         #
-        # calculate
+        # run bragg_calc (preprocessor) and create file xcrystal.bra
         #
-        bragg_dictionary = run_diff_pat(
-            CRYSTAL_DESCRIPTOR = descriptor,
-            MILLER_INDEX_H = self.MILLER_INDEX_H,
-            MILLER_INDEX_K = self.MILLER_INDEX_K,
-            MILLER_INDEX_L = self.MILLER_INDEX_L,
-            TEMPER = self.TEMPER,
+
+        # for file in ["xcrystal.bra"]:
+        #     try:
+        #         os.remove(os.path.join(locations.home_bin_run(), file))
+        #     except:
+        #         pass
+
+        if self.SCAN == 3:  # energy scan
+            emin = self.SCANFROM - 1
+            emax = self.SCANTO + 1
+        else:
+            emin = self.ENERGY - 100.0
+            emax = self.ENERGY + 100.0
+
+        estep = (emax - emin) / self.SCANPOINTS
+        preprocessor_file = "xcrystal.bra"
+
+        print("Using crystal descriptor: ", descriptor)
+
+        bragg_dictionary = bragg_calc2(
+            descriptor=descriptor,
+            hh = self.MILLER_INDEX_H,
+            kk = self.MILLER_INDEX_K,
+            ll = self.MILLER_INDEX_L,
+            temper = float(self.TEMPER),
+            emin=emin,
+            emax=emax,
+            estep=estep,
+            ANISO_SEL=0,
+            fileout=preprocessor_file,
+            do_not_prototype=0,  # 0=use site groups (recommended), 1=use all individual sites
+            verbose=False,
+            material_constants_library=material_constants_library,
+        )
+
+        #
+        # run external (fortran) diff_pat
+        #
+        run_diff_pat(
+            bragg_dictionary,
+            preprocessor_file=preprocessor_file,
             MOSAIC = self.MOSAIC,
             GEOMETRY = self.GEOMETRY,
             SCAN = self.SCAN,
@@ -439,7 +474,6 @@ class OWxcrystal(XoppyWidget):
             POISSON = self.POISSON,
             CUT = self.CUT,
             FILECOMPLIANCE = self.FILECOMPLIANCE,
-            material_constants_library=material_constants_library,
             )
 
 
@@ -448,12 +482,9 @@ class OWxcrystal(XoppyWidget):
         for line in txt_info:
             print(line,end="")
 
-
-
-        #
-        # display script
         #
         # write python script
+        #
         if isinstance(material_constants_library, DabaxXraylib):
             material_constants_library_txt = "DabaxXraylib()"
         else:
@@ -483,7 +514,11 @@ class OWxcrystal(XoppyWidget):
             'POISSON': self.POISSON,
             'CUT': self.CUT,
             'FILECOMPLIANCE': self.FILECOMPLIANCE,
-            'material_constants_library_txt': material_constants_library_txt}
+            'material_constants_library_txt': material_constants_library_txt,
+            'emin': emin,
+            'emax': emax,
+            'estep': estep,
+            'preprocessor_file': preprocessor_file}
 
         self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
 
@@ -546,23 +581,39 @@ class OWxcrystal(XoppyWidget):
     def script_template(self):
         return """
 #
-# script to make the calculations (created by XOPPY:crystal)
+# script to calculate crystal diffraction profiles (created by XOPPY:crystal)
 #
 
 import numpy
-from xoppylib.crystals.tools import run_diff_pat
+from xoppylib.crystals.tools import bragg_calc2, run_diff_pat
 import xraylib
 from dabax.dabax_xraylib import DabaxXraylib
 
 #
-# compute (note that some parameters are not in use)
+# run bragg_calc (preprocessor) and create file xcrystal.bra
 #
-bragg_dict = run_diff_pat(
-    CRYSTAL_DESCRIPTOR = "{CRYSTAL_DESCRIPTOR}", 
-    MILLER_INDEX_H     = {MILLER_INDEX_H}, 
-    MILLER_INDEX_K     = {MILLER_INDEX_K}, 
-    MILLER_INDEX_L     = {MILLER_INDEX_L}, 
-    TEMPER             = {TEMPER}, 
+bragg_dictionary = bragg_calc2(
+    descriptor = "{CRYSTAL_DESCRIPTOR}",
+    hh         = {MILLER_INDEX_H}, 
+    kk         = {MILLER_INDEX_K}, 
+    ll         = {MILLER_INDEX_L}, 
+    temper     = {TEMPER}, 
+    emin       = {emin},
+    emax       = {emax},
+    estep      = {estep},
+    ANISO_SEL  = 0,
+    fileout    = "{preprocessor_file}",
+    do_not_prototype = 0,  # 0=use site groups (recommended), 1=use all individual sites
+    verbose = False,
+    material_constants_library = {material_constants_library_txt},
+    )
+
+#
+# run external (fortran) diff_pat (note that some parameters may not be used)
+#
+run_diff_pat( 
+    bragg_dictionary,
+    preprocessor_file = "{preprocessor_file}",
     MOSAIC             = {MOSAIC}, 
     GEOMETRY           = {GEOMETRY}, 
     SCAN               = {SCAN}, 
@@ -580,7 +631,6 @@ bragg_dict = run_diff_pat(
     POISSON            = {POISSON}, 
     CUT                = "{CUT}",
     FILECOMPLIANCE     = "{FILECOMPLIANCE}", 
-    material_constants_library={material_constants_library_txt},
     )
 
 #                       
@@ -594,177 +644,10 @@ plot(data[:,0], data[:,-1])
 # end script
 #
 """
-#
-#
-#
 
-# import sys
-# import os
-# import platform
-# from xoppylib.xoppy_util import locations
-# from xoppylib.crystals.tools import bragg_calc, bragg_calc2
 #
-# def run_diff_pat(
-#     CRYSTAL_DESCRIPTOR = "Si",
-#     MILLER_INDEX_H   = 1,
-#     MILLER_INDEX_K   = 1,
-#     MILLER_INDEX_L   = 1,
-#     TEMPER           = 1.0,
-#     MOSAIC           = 0,
-#     GEOMETRY         = 0,
-#     SCAN             = 2,
-#     UNIT             = 1,
-#     SCANFROM         = -100,
-#     SCANTO           = 100,
-#     SCANPOINTS       = 200,
-#     ENERGY           = 8000.0,
-#     ASYMMETRY_ANGLE  = 0.0,
-#     THICKNESS        = 0.7,
-#     MOSAIC_FWHM      = 0.1,
-#     RSAG             = 125.0,
-#     RMER             = 1290.0,
-#     ANISOTROPY       = 0,
-#     POISSON          = 0.22,
-#     CUT              = "2 -1 -1 ; 1 1 1 ; 0 0 0",
-#     FILECOMPLIANCE   = "mycompliance.dat",
-#     material_constants_library=None,
-#     ):
 #
-#     #####################################################################################
 #
-#     for file in ["diff_pat.dat", "diff_pat.gle", "diff_pat.par", "diff_pat.xop", "xcrystal.bra"]:
-#         try:
-#             os.remove(os.path.join(locations.home_bin_run(), file))
-#         except:
-#             pass
-#
-#     if (GEOMETRY == 1) or (GEOMETRY == 3):
-#         if ASYMMETRY_ANGLE == 0.0:
-#             print(
-#                 "xoppy_calc_xcrystal: WARNING: In xcrystal the asymmetry angle is the angle between Bragg planes and crystal surface," +
-#                 "in BOTH Bragg and Laue geometries.")
-#
-#     descriptor = CRYSTAL_DESCRIPTOR
-#
-#     if SCAN == 3:  # energy scan
-#         emin = SCANFROM - 1
-#         emax = SCANTO + 1
-#     else:
-#         emin = ENERGY - 100.0
-#         emax = ENERGY + 100.0
-#
-#     print("Using crystal descriptor: ", descriptor)
-#
-#     print(">>>>>>>>>>>>>>>>>>>>> CALLING bragg_calc2",
-#           descriptor, MILLER_INDEX_H, MILLER_INDEX_K, MILLER_INDEX_L,
-#           TEMPER, emin, emax, 5.0, material_constants_library)
-#     bragg_dictionary = bragg_calc2(descriptor=descriptor,
-#                                   hh=MILLER_INDEX_H, kk=MILLER_INDEX_K, ll=MILLER_INDEX_L,
-#                                   temper=float(TEMPER),
-#                                   emin=emin, emax=emax, estep=5.0, fileout="xcrystal.bra",
-#                                   material_constants_library=material_constants_library,
-#                                   )
-#     print(">>>>>>>>>>>>>>>>>>>>> BACK..... bragg_calc2")
-#
-#     with open("xoppy.inp", "wt") as f:
-#         f.write("xcrystal.bra\n")
-#         f.write("%d\n" % MOSAIC)
-#         f.write("%d\n" % GEOMETRY)
-#
-#         if MOSAIC == 1:
-#             f.write("%g\n" % MOSAIC_FWHM)
-#             f.write("%g\n" % THICKNESS)
-#         else:
-#             f.write("%g\n" % THICKNESS)
-#             f.write("%g\n" % ASYMMETRY_ANGLE)
-#
-#         scan_flag = 1 + SCAN
-#
-#         f.write("%d\n" % scan_flag)
-#
-#         f.write("%19.9f\n" % ENERGY)
-#
-#         if scan_flag <= 3:
-#             f.write("%d\n" % UNIT)
-#
-#         f.write("%g\n" % SCANFROM)
-#         f.write("%g\n" % SCANTO)
-#         f.write("%d\n" % SCANPOINTS)
-#
-#         if MOSAIC > 1:  # bent
-#             f.write("%g\n" % RSAG)
-#             f.write("%g\n" % RMER)
-#             f.write("0\n")
-#
-#             if ((descriptor == "Si") or (descriptor == "Si2") or (descriptor == "Si_NIST") or (
-#                     descriptor == "Ge") or descriptor == "Diamond"):
-#                 pass
-#             else:  # not Si,Ge,Diamond
-#                 if ((ANISOTROPY == 1) or (ANISOTROPY == 2)):
-#                     raise Exception(
-#                         "Anisotropy data not available for this crystal. Either use isotropic or use external compliance file. Please change and run again'")
-#
-#             f.write("%d\n" % ANISOTROPY)
-#
-#             if ANISOTROPY == 0:
-#                 f.write("%g\n" % POISSON)
-#             elif ANISOTROPY == 1:
-#                 # elas%crystalindex =  irint('CrystalIndex: 0,1,2=Si,3=Ge,4=Diamond: ')
-#                 if descriptor == "Si":
-#                     f.write("0\n")
-#                 elif descriptor == "Si2":
-#                     f.write("1\n")
-#                 elif descriptor == "Si_NIST":
-#                     f.write("2\n")
-#                 elif descriptor == "Ge":
-#                     f.write("3\n")
-#                 elif descriptor == "Diamond":
-#                     f.write("4\n")
-#                 else:
-#                     raise Exception(
-#                         "Cannot calculate anisotropy data for %s this crystal. Use Si, Ge, Diamond." % descriptor)
-#
-#                 f.write("%g\n" % ASYMMETRY_ANGLE)
-#                 f.write("%d\n" % MILLER_INDEX_H)
-#                 f.write("%d\n" % MILLER_INDEX_K)
-#                 f.write("%d\n" % MILLER_INDEX_L)
-#             elif ANISOTROPY == 2:
-#                 # elas%crystalindex =  irint('CrystalIndex: 0,1,2=Si,3=Ge,4=Diamond: ')
-#                 if descriptor == "Si":
-#                     f.write("0\n")
-#                 elif descriptor == "Si2":
-#                     f.write("1\n")
-#                 elif descriptor == "Si_NIST":
-#                     f.write("2\n")
-#                 elif descriptor == "Ge":
-#                     f.write("3\n")
-#                 elif descriptor == "Diamond":
-#                     f.write("4\n")
-#                 else:
-#                     raise Exception(
-#                         "Cannot calculate anisotropy data for %s this crystal. Use Si, Ge, Diamond." % descriptor)
-#
-#                 f.write("%g\n" % ASYMMETRY_ANGLE)
-#                 # TODO: check syntax for CUT: Cut syntax is: valong_X valong_Y valong_Z ; vnorm_X vnorm_Y vnorm_Z ; vperp_x vperp_Y vperp_Z
-#                 f.write("%s\n" % CUT.split(";")[0])
-#                 f.write("%s\n" % CUT.split(";")[1])
-#                 f.write("%s\n" % CUT.split(";")[2])
-#             elif ANISOTROPY == 3:
-#                 f.write("%s\n" % FILECOMPLIANCE)
-#
-#     if platform.system() == "Windows":
-#         command = "\"" + os.path.join(locations.home_bin(), 'diff_pat.exe\" < xoppy.inp')
-#     else:
-#         command = "'" + os.path.join(locations.home_bin(), 'diff_pat') + "' < xoppy.inp"
-#     print("Running command '%s' in directory: %s " % (command, locations.home_bin_run()))
-#     print("\n--------------------------------------------------------\n")
-#     os.system(command)
-#     print("\n--------------------------------------------------------\n")
-#
-#     return bragg_dictionary
-#     #####################################################################################
-
-
 if __name__ == "__main__":
     import sys
     from PyQt5.QtWidgets import QApplication
