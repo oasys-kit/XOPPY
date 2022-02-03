@@ -44,6 +44,7 @@ INSTALL_REQUIRES = (
     'oasys-srwpy',
     'pySRU',
     'srxraylib>=1.0.30',  # remove when oasys1 requires at least this version
+    'xoppylib',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
