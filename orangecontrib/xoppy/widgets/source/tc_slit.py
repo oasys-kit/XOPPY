@@ -12,7 +12,7 @@ from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-from orangecontrib.xoppy.util import srundplug
+from xoppylib import srundplug
 
 from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
@@ -486,7 +486,7 @@ class OWtc_slit(XoppyWidget):
 # script to make the calculations (created by XOPPY:tc_slit)
 #
 from collections import OrderedDict
-from orangecontrib.xoppy.util import srundplug
+from xoppylib import srundplug
 
 
 bl = OrderedDict()

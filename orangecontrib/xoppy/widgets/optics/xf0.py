@@ -10,7 +10,7 @@ from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-from orangecontrib.xoppy.util.xoppy_xraylib_util import f0_calc, nist_compound_list
+from xoppylib.xoppy_xraylib_util import f0_calc, nist_compound_list
 
 class OWxf0(XoppyWidget):
     name = "F0"

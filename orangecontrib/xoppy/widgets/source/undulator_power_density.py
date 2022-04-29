@@ -8,7 +8,7 @@ from oasys.widgets.exchange import DataExchangeObject
 from collections import OrderedDict
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_power_density
+from xoppylib.xoppy_undulators import xoppy_calc_undulator_power_density
 
 from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
@@ -455,7 +455,7 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
 #
 # script to make the calculations (created by XOPPY:undulator_spectrum)
 #
-from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_power_density
+from xoppylib.xoppy_undulators import xoppy_calc_undulator_power_density
 
 h5_parameters = dict()
 h5_parameters["ELECTRONENERGY"]=           {ELECTRONENERGY}

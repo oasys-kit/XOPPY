@@ -502,7 +502,7 @@ class XoppyWidget(widget.OWWidget):
 
         import os
         from orangecontrib.xoppy.widgets.gui.text_window import TextWindow
-        from orangecontrib.xoppy.util.xoppy_util import locations
+        from xoppylib.xoppy_util import locations
 
         home_doc = locations.home_doc()
         filename1 = os.path.join(home_doc, self.get_help_name() + '.txt')

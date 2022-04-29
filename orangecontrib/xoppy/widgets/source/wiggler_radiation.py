@@ -7,7 +7,7 @@ from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-from orangecontrib.xoppy.util.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation, create_magnetic_field_for_bending_magnet
+from xoppylib.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation, create_magnetic_field_for_bending_magnet
 
 from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
@@ -716,7 +716,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
 # script to make the calculations (created by XOPPY:wiggler_radiation)
 #
 
-from orangecontrib.xoppy.util.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation
+from xoppylib.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation
 
 h5_parameters = dict()
 h5_parameters["ELECTRONENERGY"]          = {ELECTRONENERGY}

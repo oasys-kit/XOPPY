@@ -7,8 +7,8 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
-from orangecontrib.xoppy.util.xoppy_xraylib_util import f1f2_calc, f1f2_calc_mix, f1f2_calc_nist
-from orangecontrib.xoppy.util.xoppy_xraylib_util import nist_compound_list, density_element, density_nist
+from xoppylib.xoppy_xraylib_util import f1f2_calc, f1f2_calc_mix, f1f2_calc_nist
+from xoppylib.xoppy_xraylib_util import nist_compound_list, density_element, density_nist
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 

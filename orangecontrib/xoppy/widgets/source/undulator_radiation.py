@@ -8,7 +8,7 @@ from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_radiation
+from xoppylib.xoppy_undulators import xoppy_calc_undulator_radiation
 
 from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
@@ -637,7 +637,7 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
 #
 # script to make the calculations (created by XOPPY:undulator_radiation)
 #
-from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_radiation
+from xoppylib.xoppy_undulators import xoppy_calc_undulator_radiation
 
 h5_parameters = dict()
 h5_parameters["ELECTRONENERGY"]          = {ELECTRONENERGY}

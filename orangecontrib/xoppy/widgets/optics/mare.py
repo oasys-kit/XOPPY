@@ -7,7 +7,7 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
-from orangecontrib.xoppy.util.xoppy_xraylib_util import mare_calc
+from xoppylib.xoppy_xraylib_util import mare_calc
 from xraylib import Crystal_GetCrystalsList
 
 from orangecontrib.xoppy.util.script.python_script import PythonConsole

@@ -13,7 +13,7 @@ except ImportError:
 
 from oasys.widgets import gui
 from orangecontrib.xoppy.widgets.gui.text_window import TextWindow
-from orangecontrib.xoppy.util.xoppy_util import locations
+from xoppylib.xoppy_util import locations
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPlainTextEdit
 

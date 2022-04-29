@@ -8,7 +8,7 @@ from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-from orangecontrib.xoppy.util.xoppy_bm_wiggler import xoppy_calc_wigg
+from xoppylib.xoppy_bm_wiggler import xoppy_calc_wigg
 
 from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
@@ -223,7 +223,7 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
 #
 # script to make the calculations (created by XOPPY:wiggler)
 #
-from orangecontrib.xoppy.util.xoppy_bm_wiggler import xoppy_calc_wigg
+from xoppylib.xoppy_bm_wiggler import xoppy_calc_wigg
 energy, flux, spectral_power, cumulated_power =  xoppy_calc_wigg(
     FIELD={FIELD},
     NPERIODS={NPERIODS},

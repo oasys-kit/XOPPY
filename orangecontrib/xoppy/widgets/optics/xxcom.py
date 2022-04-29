@@ -6,7 +6,7 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 
-from orangecontrib.xoppy.util.xoppy_util import locations
+from xoppylib.xoppy_util import locations
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 class OWxxcom(XoppyWidget):

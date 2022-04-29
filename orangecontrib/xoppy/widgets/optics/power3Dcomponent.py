@@ -16,9 +16,9 @@ from oasys.widgets.gui import ConfirmDialog
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-from orangecontrib.xoppy.util.power3d import integral_2d, integral_3d, info_total_power
-from orangecontrib.xoppy.util.power3d import calculate_component_absorbance_and_transmittance, apply_transmittance_to_incident_beam
-from orangecontrib.xoppy.util.power3d import load_radiation_from_h5file, write_radiation_to_h5file, write_txt_file, write_h5_file
+from xoppylib.power3d import integral_2d, integral_3d, info_total_power
+from xoppylib.power3d import calculate_component_absorbance_and_transmittance, apply_transmittance_to_incident_beam
+from xoppylib.power3d import load_radiation_from_h5file, write_radiation_to_h5file, write_txt_file, write_h5_file
 
 from syned.widget.widget_decorator import WidgetDecorator
 from syned.beamline.optical_elements.absorbers.filter import Filter
@@ -517,10 +517,10 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
 
 import numpy
 import scipy.constants as codata
-from orangecontrib.xoppy.util.power3d import calculate_component_absorbance_and_transmittance
-from orangecontrib.xoppy.util.power3d import apply_transmittance_to_incident_beam
-from orangecontrib.xoppy.util.power3d import integral_2d
-from orangecontrib.xoppy.util.power3d import load_radiation_from_h5file
+from xoppylib.power3d import calculate_component_absorbance_and_transmittance
+from xoppylib.power3d import apply_transmittance_to_incident_beam
+from xoppylib.power3d import integral_2d
+from xoppylib.power3d import load_radiation_from_h5file
 
 #
 # compute transmittance
@@ -891,7 +891,7 @@ plot_image(power_density_absorbed, H, V,
 if __name__ == "__main__":
 
     # # create unulator_radiation xoppy exchange data
-    # from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_radiation
+    # from xoppylib.xoppy_undulators import xoppy_calc_undulator_radiation
     # from oasys.widgets.exchange import DataExchangeObject
     #
     # e, h, v, p, code = xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
@@ -909,7 +909,7 @@ if __name__ == "__main__":
     # received_data.add_content("xoppy_code", code)
 
     # create wiggler_radiation xoppy exchange data
-    from orangecontrib.xoppy.util.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation
+    from xoppylib.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation
 
     h5_parameters = dict()
     h5_parameters["ELECTRONENERGY"] = 3.0

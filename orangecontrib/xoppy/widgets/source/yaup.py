@@ -8,7 +8,7 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 
-from orangecontrib.xoppy.util.xoppy_util import locations
+from xoppylib.xoppy_util import locations
 from oasys.widgets.exchange import DataExchangeObject
 
 from oasys.util.oasys_util import EmittingStream, TTYGrabber

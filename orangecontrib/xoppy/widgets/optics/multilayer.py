@@ -9,8 +9,8 @@ from oasys.widgets.exchange import DataExchangeObject
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 # from shadow4.physical_models.mlayer.mlayer import MLayer
-from orangecontrib.xoppy.util.mlayer import MLayer
-from orangecontrib.xoppy.util.xoppy_xraylib_util import density
+from xoppylib.mlayer import MLayer
+from xoppylib.xoppy_xraylib_util import density
 
 class OWMlultilayer(XoppyWidget):
     name = "Multilayer"
@@ -523,7 +523,7 @@ class OWMlultilayer(XoppyWidget):
 
     def script_template(self):
         return """
-from orangecontrib.xoppy.util.mlayer import MLayer
+from xoppylib.mlayer import MLayer
 
 out = MLayer.initialize_from_bilayer_stack(
     material_S="{material_S}", density_S={density_S}, roughness_S={roughness_S},
