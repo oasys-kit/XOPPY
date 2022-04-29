@@ -598,9 +598,10 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
 
 
         # write python script
-        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
+        script = self.script_template().format_map(dict_parameters)
+        self.xoppy_script.set_code(script)
 
-        return xoppy_calc_undulator_radiation(
+        e, h, v, p, code = xoppy_calc_undulator_radiation(
                 ELECTRONENERGY           = self.ELECTRONENERGY,
                 ELECTRONENERGYSPREAD     = self.ELECTRONENERGYSPREAD,
                 ELECTRONCURRENT          = self.ELECTRONCURRENT,
@@ -630,6 +631,8 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                 h5_initialize            = True,
                 h5_parameters            = dict_parameters,
         )
+
+        return e, h, v, p, code, script
 
 
     def script_template(self):
@@ -665,7 +668,7 @@ h5_parameters["PHOTONENERGYMAX"]         = {PHOTONENERGYMAX}
 h5_parameters["PHOTONENERGYPOINTS"]      = {PHOTONENERGYPOINTS}
 h5_parameters["USEEMITTANCES"]           = {USEEMITTANCES}
 
-e, h, v, p, code = xoppy_calc_undulator_radiation(
+energy, horizontal, vertical, flux3D, code = xoppy_calc_undulator_radiation(
         ELECTRONENERGY           = h5_parameters["ELECTRONENERGY"]         ,
         ELECTRONENERGYSPREAD     = h5_parameters["ELECTRONENERGYSPREAD"]   ,
         ELECTRONCURRENT          = h5_parameters["ELECTRONCURRENT"]        ,
@@ -698,19 +701,20 @@ e, h, v, p, code = xoppy_calc_undulator_radiation(
 
 # example plot
 from srxraylib.plot.gol import plot_image
-plot_image(p[0],h,v,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%({PHOTONENERGYMIN}),xtitle="H [mm]",ytitle="V [mm]")
+plot_image(flux3D[0],horizontal,vertical,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%({PHOTONENERGYMIN}),xtitle="H [mm]",ytitle="V [mm]")
 #
 # end script
 #
 """
 
     def extract_data_from_xoppy_output(self, calculation_output):
-        e, h, v, p, code = calculation_output
+        e, h, v, p, code, script = calculation_output
 
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         calculated_data.add_content("xoppy_data", [p, e, h, v])
         calculated_data.add_content("xoppy_code", code)
+        calculated_data.add_content("xoppy_script", script)
 
         return calculated_data
 

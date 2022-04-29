@@ -346,9 +346,10 @@ class OWbm(XoppyWidget, WidgetDecorator):
             "FILE_DUMP"       : self.FILE_DUMP,
             }
 
-        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
+        script = self.script_template().format_map(dict_parameters)
+        self.xoppy_script.set_code(script)
 
-        return a6_T, fm, a, energy_ev
+        return a6_T, fm, a, energy_ev, script
 
 
 
@@ -359,14 +360,17 @@ class OWbm(XoppyWidget, WidgetDecorator):
 #
 from xoppylib.xoppy_bm_wiggler import xoppy_calc_bm
 
+# for sull description of inputs and outputs see https://github.com/oasys-kit/xoppylib/blob/main/xoppylib/xoppy_bm_wiggler.py
 # TYPE_CALC: 
 # 0: 'Energy or Power spectra'
 # 1: 'Angular distribution (all wavelengths)'
 # 2: 'Angular distribution (one wavelength)'
 # 3: '2D flux and power (angular,energy) distribution'
 #
-a6_T, fm, a, energy_ev =  xoppy_calc_bm(
-    TYPE_CALC={TYPE_CALC},
+TYPE_CALC={TYPE_CALC}
+VER_DIV={VER_DIV}
+a6_T, fm, a, energy =  xoppy_calc_bm(
+    TYPE_CALC=TYPE_CALC,
     MACHINE_NAME="{MACHINE_NAME}",
     RB_CHOICE={RB_CHOICE},
     MACHINE_R_M={MACHINE_R_M},
@@ -374,7 +378,7 @@ a6_T, fm, a, energy_ev =  xoppy_calc_bm(
     BEAM_ENERGY_GEV={BEAM_ENERGY_GEV},
     CURRENT_A={CURRENT_A},
     HOR_DIV_MRAD={HOR_DIV_MRAD},
-    VER_DIV={VER_DIV},
+    VER_DIV=VER_DIV,
     PHOT_ENERGY_MIN={PHOT_ENERGY_MIN},
     PHOT_ENERGY_MAX={PHOT_ENERGY_MAX},
     NPOINTS={NPOINTS},
@@ -384,6 +388,21 @@ a6_T, fm, a, energy_ev =  xoppy_calc_bm(
     PSI_MAX={PSI_MAX},
     PSI_NPOINTS={PSI_NPOINTS},
     FILE_DUMP=True) # writes output to bm.spec
+    
+# example plot
+
+if TYPE_CALC == 0 and VER_DIV in [0,2]:
+    from srxraylib.plot.gol import plot
+    spectral_power = a6_T[:,6]
+    flux = a6_T[:,5]
+    plot(energy,flux,ytitle="Flux [photons/s/o.1%bw]",xtitle="Poton energy [eV]",title="Wiggler Flux",
+        xlog=True,ylog=True,show=False)
+    plot(energy,spectral_power,ytitle="Power [W/eV]",xtitle="Poton energy [eV]",title="Wiggler Spectral Power",
+        xlog=True,ylog=True,show=True)
+    #plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [eV]",title="Wiggler Cumulated Power",
+    #    xlog=False,ylog=False,show=True)
+    
+    
 #
 # end script
 #
@@ -397,11 +416,12 @@ a6_T, fm, a, energy_ev =  xoppy_calc_bm(
         return "BM"
 
     def extract_data_from_xoppy_output(self, calculation_output):
-        data, fm, a, energy_ev = calculation_output
+        data, fm, a, energy_ev, script = calculation_output
         
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
         calculated_data.add_content("xoppy_data",  data)
         calculated_data.add_content("xoppy_data_3D",  [fm, a, energy_ev])
+        calculated_data.add_content("xoppy_script", script)
 
         return calculated_data
 

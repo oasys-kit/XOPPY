@@ -24,34 +24,34 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
     category = ""
     keywords = ["xoppy", "undulator_power_density"]
 
-    USEEMITTANCES=Setting(1)
-    ELECTRONENERGY = Setting(6.04)
-    ELECTRONENERGYSPREAD = Setting(0.001)
-    ELECTRONCURRENT = Setting(0.2)
-    ELECTRONBEAMSIZEH = Setting(0.000395)
-    ELECTRONBEAMSIZEV = Setting(9.9e-06)
+    USEEMITTANCES           = Setting(1)
+    ELECTRONENERGY          = Setting(6.04)
+    ELECTRONENERGYSPREAD    = Setting(0.001)
+    ELECTRONCURRENT         = Setting(0.2)
+    ELECTRONBEAMSIZEH       = Setting(0.000395)
+    ELECTRONBEAMSIZEV       = Setting(9.9e-06)
     ELECTRONBEAMDIVERGENCEH = Setting(1.05e-05)
     ELECTRONBEAMDIVERGENCEV = Setting(3.9e-06)
-    PERIODID = Setting(0.018)
-    NPERIODS = Setting(222)
-    KV = Setting(1.68)
-    KH = Setting(0.0)
-    KPHASE = Setting(0.0)
-    DISTANCE = Setting(30.0)
-    GAPH = Setting(0.01)
-    GAPV = Setting(0.01)
-    HSLITPOINTS = Setting(41)
-    VSLITPOINTS = Setting(41)
-    METHOD = Setting(2)
-    MASK_FLAG=Setting(0)
-    MASK_ROT_H_DEG=Setting(0.0)
-    MASK_ROT_V_DEG=Setting(0.0)
-    MASK_H_MIN=Setting(-1000.0)
-    MASK_H_MAX=Setting( 1000.0)
-    MASK_V_MIN=Setting(-1000.0)
-    MASK_V_MAX=Setting( 1000.0)
+    PERIODID                = Setting(0.018)
+    NPERIODS                = Setting(222)
+    KV                      = Setting(1.68)
+    KH                      = Setting(0.0)
+    KPHASE                  = Setting(0.0)
+    DISTANCE                = Setting(30.0)
+    GAPH                    = Setting(0.01)
+    GAPV                    = Setting(0.01)
+    HSLITPOINTS             = Setting(41)
+    VSLITPOINTS             = Setting(41)
+    METHOD                  = Setting(2)
+    MASK_FLAG               = Setting(0)
+    MASK_ROT_H_DEG          = Setting(0.0)
+    MASK_ROT_V_DEG          = Setting(0.0)
+    MASK_H_MIN              = Setting(-1000.0)
+    MASK_H_MAX              = Setting( 1000.0)
+    MASK_V_MIN              = Setting(-1000.0)
+    MASK_V_MAX              = Setting( 1000.0)
+    H5_FILE_DUMP            = Setting(0)
 
-    H5_FILE_DUMP=Setting(0)
     inputs = WidgetDecorator.syned_input_data()
 
     def __init__(self):
@@ -77,9 +77,7 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
         #widget index 0 
         idx += 1 
         box1 = gui.widgetBox(box) 
-        # self.id_ELECTRONENERGY = oasysgui.lineEdit(box1, self, "ELECTRONENERGY",
-        #              label=self.unitLabels()[idx], addSpace=False,
-        #             valueType=float, orientation="horizontal", labelWidth=250)
+
         self.id_ELECTRONENERGY = oasysgui.lineEdit(box1, self, "ELECTRONENERGY",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=float, orientation="horizontal", labelWidth=250)
@@ -343,9 +341,6 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
             congruence.checkLessOrEqualThan(self.VSLITPOINTS, 51, "Number of slit mesh points for URGENT "," 51")
 
 
-        # if sys.platform == 'linux' and self.METHOD == 2:
-        #     raise Exception("SRW calculation code not supported under Linux")
-
     def plot_results(self, calculated_data, progressBarValue=80):
         if not self.view_type == 0:
             if not calculated_data is None:
@@ -446,9 +441,10 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
                                                    h5_parameters=h5_parameters,
                                                    )
 
-        self.xoppy_script.set_code(self.script_template().format_map(h5_parameters))
+        script = self.script_template().format_map(h5_parameters)
+        self.xoppy_script.set_code(script)
 
-        return h, v, p, code
+        return h, v, p, code, script
 
     def script_template(self):
         return """
@@ -486,7 +482,7 @@ h5_parameters["MASK_V_MIN"]=               {MASK_V_MIN}
 h5_parameters["MASK_V_MAX"]=               {MASK_V_MAX}
 
         
-h, v, p, code = xoppy_calc_undulator_power_density(
+horizontal, vertical, power_density, code = xoppy_calc_undulator_power_density(
     ELECTRONENERGY           =  h5_parameters["ELECTRONENERGY"],
     ELECTRONENERGYSPREAD     =  h5_parameters["ELECTRONENERGYSPREAD"],
     ELECTRONCURRENT          =  h5_parameters["ELECTRONCURRENT"],
@@ -520,7 +516,7 @@ h, v, p, code = xoppy_calc_undulator_power_density(
     )
 # example plot
 from srxraylib.plot.gol import plot_image
-plot_image(p,h,v,xtitle="H [mm]",ytitle="V [mm]",title="Power density W/mm2")
+plot_image(power_density,horizontal,vertical,xtitle="H [mm]",ytitle="V [mm]",title="Power density W/mm2")
 #
 # end script
 #
@@ -528,12 +524,13 @@ plot_image(p,h,v,xtitle="H [mm]",ytitle="V [mm]",title="Power density W/mm2")
 
 
     def extract_data_from_xoppy_output(self, calculation_output):
-        h, v, p, code = calculation_output
+        h, v, p, code, script = calculation_output
 
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         calculated_data.add_content("xoppy_data", [h, v, p])
         calculated_data.add_content("xoppy_code",  code)
+        calculated_data.add_content("xoppy_script", script)
 
         return calculated_data
 

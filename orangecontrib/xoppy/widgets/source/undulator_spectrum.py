@@ -354,11 +354,11 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
         }
 
 
-        # print(self.script_template().format_map(dict_parameters))
+        script = self.script_template().format_map(dict_parameters)
 
-        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
+        self.xoppy_script.set_code(script)
 
-        return energy, flux, spectral_power, cumulated_power
+        return energy, flux, spectral_power, cumulated_power, script
 
     def script_template(self):
         return """
@@ -403,7 +403,7 @@ plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [e
 """
 
     def extract_data_from_xoppy_output(self, calculation_output):
-        e, f, sp, csp = calculation_output
+        e, f, sp, csp, script = calculation_output
 
         data = numpy.zeros((len(e), 4))
         data[:, 0] = numpy.array(e)
@@ -413,6 +413,8 @@ plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [e
 
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
         calculated_data.add_content("xoppy_data", data)
+        calculated_data.add_content("xoppy_script", script)
+
 
         return calculated_data
 

@@ -259,7 +259,7 @@ class OWtc_slit(XoppyWidget):
     def extract_data_from_xoppy_output(self, calculation_output):
 
 
-        K_scan,harmonics,P_scan,energy_values_at_flux_peak,flux_values = calculation_output
+        K_scan,harmonics,P_scan,energy_values_at_flux_peak,flux_values,script = calculation_output
 
         harmonics_data = []
 
@@ -283,6 +283,7 @@ class OWtc_slit(XoppyWidget):
             calculated_data.add_content("xoppy_data_harmonics", harmonics_data)
             calculated_data.add_content("plot_x_col", 1)
             calculated_data.add_content("plot_y_col", 2)
+            calculated_data.add_content("xoppy_script", script)
         except:
             pass
         try:
@@ -475,10 +476,11 @@ class OWtc_slit(XoppyWidget):
             'code'                    : code,
             }
 
-        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
+        script = self.script_template().format_map(dict_parameters)
+        self.xoppy_script.set_code(script)
 
 
-        return K_scan,harmonics,power_array,energy_values_at_flux_peak,flux_values
+        return K_scan,harmonics,power_array,energy_values_at_flux_peak,flux_values,script
 
     def script_template(self):
         return """
