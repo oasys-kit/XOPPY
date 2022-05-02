@@ -10,6 +10,7 @@ from oasys.widgets import gui as oasysgui, congruence
 from xoppylib.xoppy_util import locations
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+from xoppylib.xoppy_run_binaries import xoppy_calc_inpro
 
 class OWxinpro(XoppyWidget):
     name = "INPRO"
@@ -34,6 +35,8 @@ class OWxinpro(XoppyWidget):
     XFROM = Setting(-50.0)
     XTO = Setting(50.0)
 
+    def __init__(self):
+        super().__init__(show_script_tab=True)
 
     def build_gui(self):
 
@@ -179,7 +182,86 @@ class OWxinpro(XoppyWidget):
 
 
     def do_xoppy_calculation(self):
-        return xoppy_calc_xinpro(CRYSTAL_MATERIAL=self.CRYSTAL_MATERIAL,MODE=self.MODE,ENERGY=self.ENERGY,MILLER_INDEX_H=self.MILLER_INDEX_H,MILLER_INDEX_K=self.MILLER_INDEX_K,MILLER_INDEX_L=self.MILLER_INDEX_L,ASYMMETRY_ANGLE=self.ASYMMETRY_ANGLE,THICKNESS=self.THICKNESS,TEMPERATURE=self.TEMPERATURE,NPOINTS=self.NPOINTS,SCALE=self.SCALE,XFROM=self.XFROM,XTO=self.XTO)
+        out_file = xoppy_calc_inpro(
+            CRYSTAL_MATERIAL = self.CRYSTAL_MATERIAL,
+            MODE             = self.MODE,
+            ENERGY           = self.ENERGY,
+            MILLER_INDEX_H   = self.MILLER_INDEX_H,
+            MILLER_INDEX_K   = self.MILLER_INDEX_K,
+            MILLER_INDEX_L   = self.MILLER_INDEX_L,
+            ASYMMETRY_ANGLE  = self.ASYMMETRY_ANGLE,
+            THICKNESS        = self.THICKNESS,
+            TEMPERATURE      = self.TEMPERATURE,
+            NPOINTS          = self.NPOINTS,
+            SCALE            = self.SCALE,
+            XFROM            = self.XFROM,
+            XTO              = self.XTO,
+        )
+
+        dict_parameters = {
+            "CRYSTAL_MATERIAL" : self.CRYSTAL_MATERIAL,
+            "MODE"             : self.MODE,
+            "ENERGY"           : self.ENERGY,
+            "MILLER_INDEX_H"   : self.MILLER_INDEX_H,
+            "MILLER_INDEX_K"   : self.MILLER_INDEX_K,
+            "MILLER_INDEX_L"   : self.MILLER_INDEX_L,
+            "ASYMMETRY_ANGLE"  : self.ASYMMETRY_ANGLE,
+            "THICKNESS"        : self.THICKNESS,
+            "TEMPERATURE"      : self.TEMPERATURE,
+            "NPOINTS"          : self.NPOINTS,
+            "SCALE"            : self.SCALE,
+            "XFROM"            : self.XFROM,
+            "XTO"              : self.XTO,
+        }
+
+        script = self.script_template().format_map(dict_parameters)
+
+        self.xoppy_script.set_code(script)
+
+        return out_file
+
+    def script_template(self):
+        return """
+#
+# script to make the calculations (created by XOPPY:inpro)
+#
+from xoppylib.xoppy_run_binaries import xoppy_calc_inpro
+
+out_file =  xoppy_calc_inpro(
+            CRYSTAL_MATERIAL = {CRYSTAL_MATERIAL},
+            MODE             = {MODE},
+            ENERGY           = {ENERGY},
+            MILLER_INDEX_H   = {MILLER_INDEX_H},
+            MILLER_INDEX_K   = {MILLER_INDEX_K},
+            MILLER_INDEX_L   = {MILLER_INDEX_L},
+            ASYMMETRY_ANGLE  = {ASYMMETRY_ANGLE},
+            THICKNESS        = {THICKNESS},
+            TEMPERATURE      = {TEMPERATURE},
+            NPOINTS          = {NPOINTS},
+            SCALE            = {SCALE},
+            XFROM            = {XFROM},
+            XTO              = {XTO},
+        )
+
+#
+# example plot
+#
+import numpy
+from srxraylib.plot.gol import plot
+
+data = numpy.loadtxt(out_file)
+angle = data[:,0]
+reflectivity_s = data[:,1]
+reflectivity_p = data[:,2]
+
+plot(angle,reflectivity_s,angle,reflectivity_p,
+    xtitle="Theta-ThetaB [arcsec]",ytitle="Reflectivity",title="inpro crystal reflectivity",
+    legend=["s-polarized reflectivity","p-polarized reflectivity"],xlog=False,ylog=False,show=True)
+
+#
+# end script
+#
+"""
 
     def get_data_exchange_widget_name(self):
         return "XINPRO"
@@ -202,74 +284,74 @@ class OWxinpro(XoppyWidget):
     def getLogPlot(self):
         return [(False, False), (False, False)]
 
-def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,MILLER_INDEX_K=1,MILLER_INDEX_L=1,\
-                      ASYMMETRY_ANGLE=0.0,THICKNESS=500.0,TEMPERATURE=300.0,NPOINTS=100,SCALE=0,XFROM=-50.0,XTO=50.0):
-    print("Inside xoppy_calc_xinpro. ")
-
-    try:
-        with open("xoppy.inp", "wt") as f:
-            f.write("%s\n"% (os.path.join(locations.home_data(), "inpro" + os.sep)))
-            if MODE == 0:
-                f.write("+1\n")
-            elif MODE == 1:
-                f.write("-1\n")
-            elif MODE == 2:
-                f.write("+2\n")
-            elif MODE == 3:
-                f.write("-1\n")
-            else:
-                f.write("ERROR!!\n")
-
-            f.write("%f\n%d\n"%(THICKNESS,CRYSTAL_MATERIAL+1))
-            f.write("%s\n%f\n"%("EV",ENERGY))
-            f.write("%d\n%d\n%d\n"%(MILLER_INDEX_H,MILLER_INDEX_K,MILLER_INDEX_L))
-            f.write("%f\n%f\n%s\n"%(ASYMMETRY_ANGLE,TEMPERATURE, "inpro.dat"))
-            if SCALE == 0:
-                f.write("1\n")
-            else:
-                f.write("%d\n%f\n%f\n"%(2,XFROM,XTO))
-            f.write("%d\n"%(NPOINTS))
-
-
-        for file in ["inpro.par","inpro.dat","inpro.spec"]:
-            try:
-                os.remove(os.path.join(locations.home_bin_run(),file))
-            except:
-                pass
-
-
-        if platform.system() == "Windows":
-            command = "\"" + os.path.join(locations.home_bin(),'inpro.exe\" < xoppy.inp')
-        else:
-            command = "'" + os.path.join(locations.home_bin(), 'inpro') + "' < xoppy.inp"
-        print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
-        print("\n--------------------------------------------------------\n")
-        os.system(command)
-        print("\n--------------------------------------------------------\n")
-
-        #add SPEC header
-        txt = open("inpro.dat").read()
-        outFile = "inpro.spec"
-
-        f = open(outFile,"w")
-        f.write("#F inpro.spec\n")
-        f.write("\n")
-        f.write("#S 1 inpro results\n")
-        f.write("#N 3\n")
-        f.write("#L Theta-TetaB  s-polarized reflectivity  p-polarized reflectivity\n")
-        f.write(txt)
-        f.close()
-        print("File written to disk: inpro.dat, inpro.par, inpro.spec")
-
-        #show calculated parameters in standard output
-        txt_info = open("inpro.par").read()
-        for line in txt_info:
-            print(line,end="")
-
-
-        return outFile
-    except Exception as e:
-        raise e
+# def xoppy_calc_xinpro(CRYSTAL_MATERIAL=0,MODE=0,ENERGY=8000.0,MILLER_INDEX_H=1,MILLER_INDEX_K=1,MILLER_INDEX_L=1,\
+#                       ASYMMETRY_ANGLE=0.0,THICKNESS=500.0,TEMPERATURE=300.0,NPOINTS=100,SCALE=0,XFROM=-50.0,XTO=50.0):
+#     print("Inside xoppy_calc_xinpro. ")
+#
+#     try:
+#         with open("xoppy.inp", "wt") as f:
+#             f.write("%s\n"% (os.path.join(locations.home_data(), "inpro" + os.sep)))
+#             if MODE == 0:
+#                 f.write("+1\n")
+#             elif MODE == 1:
+#                 f.write("-1\n")
+#             elif MODE == 2:
+#                 f.write("+2\n")
+#             elif MODE == 3:
+#                 f.write("-1\n")
+#             else:
+#                 f.write("ERROR!!\n")
+#
+#             f.write("%f\n%d\n"%(THICKNESS,CRYSTAL_MATERIAL+1))
+#             f.write("%s\n%f\n"%("EV",ENERGY))
+#             f.write("%d\n%d\n%d\n"%(MILLER_INDEX_H,MILLER_INDEX_K,MILLER_INDEX_L))
+#             f.write("%f\n%f\n%s\n"%(ASYMMETRY_ANGLE,TEMPERATURE, "inpro.dat"))
+#             if SCALE == 0:
+#                 f.write("1\n")
+#             else:
+#                 f.write("%d\n%f\n%f\n"%(2,XFROM,XTO))
+#             f.write("%d\n"%(NPOINTS))
+#
+#
+#         for file in ["inpro.par","inpro.dat","inpro.spec"]:
+#             try:
+#                 os.remove(os.path.join(locations.home_bin_run(),file))
+#             except:
+#                 pass
+#
+#
+#         if platform.system() == "Windows":
+#             command = "\"" + os.path.join(locations.home_bin(),'inpro.exe\" < xoppy.inp')
+#         else:
+#             command = "'" + os.path.join(locations.home_bin(), 'inpro') + "' < xoppy.inp"
+#         print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
+#         print("\n--------------------------------------------------------\n")
+#         os.system(command)
+#         print("\n--------------------------------------------------------\n")
+#
+#         #add SPEC header
+#         txt = open("inpro.dat").read()
+#         outFile = "inpro.spec"
+#
+#         f = open(outFile,"w")
+#         f.write("#F inpro.spec\n")
+#         f.write("\n")
+#         f.write("#S 1 inpro results\n")
+#         f.write("#N 3\n")
+#         f.write("#L Theta-TetaB  s-polarized reflectivity  p-polarized reflectivity\n")
+#         f.write(txt)
+#         f.close()
+#         print("File written to disk: inpro.dat, inpro.par, inpro.spec")
+#
+#         #show calculated parameters in standard output
+#         txt_info = open("inpro.par").read()
+#         for line in txt_info:
+#             print(line,end="")
+#
+#
+#         return outFile
+#     except Exception as e:
+#         raise e
 
 
 
