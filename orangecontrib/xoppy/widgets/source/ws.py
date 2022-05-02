@@ -295,13 +295,13 @@ spectral_power = data[:,2]
 cumulated_power = data[:,3]
 
 plot(energy,flux,
-    xtitle="Poton energy [eV]",ytitle="Flux [photons/s/0.1%bw]",title="WS Flux",
+    xtitle="Photon energy [eV]",ytitle="Flux [photons/s/0.1%bw]",title="WS Flux",
     xlog=True,ylog=True,show=False)
 plot(energy,spectral_power,
-    xtitle="Poton energy [eV]",ytitle="Power [W/eV]",title="WS Spectral Power",
+    xtitle="Photon energy [eV]",ytitle="Power [W/eV]",title="WS Spectral Power",
     xlog=True,ylog=True,show=False)
 plot(energy,cumulated_power,
-    xtitle="Poton energy [eV]",ytitle="Cumulated Power [W]",title="WS Cumulated Power",
+    xtitle="Photon energy [eV]",ytitle="Cumulated Power [W]",title="WS Cumulated Power",
     xlog=False,ylog=False,show=True)
     
 #

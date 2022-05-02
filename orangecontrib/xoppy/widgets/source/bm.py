@@ -397,13 +397,13 @@ if TYPE_CALC == 0 and VER_DIV in [0,2]:
     spectral_power = a6_T[:,6]
     flux = a6_T[:,5]
     plot(energy,flux,
-        xtitle="Poton energy [eV]",ytitle="Flux [photons/s/o.1%bw]",title="Wiggler Flux",
+        xtitle="Photon energy [eV]",ytitle="Flux [photons/s/o.1%bw]",title="Wiggler Flux",
         xlog=True,ylog=True,show=False)
     plot(energy,spectral_power,
-        xtitle="Poton energy [eV]",ytitle="Power [W/eV]",title="Wiggler Spectral Power",
+        xtitle="Photon energy [eV]",ytitle="Power [W/eV]",title="Wiggler Spectral Power",
         xlog=True,ylog=True,show=True)
     #plot(energy,cumulated_power,
-    #   xtitle="Poton energy [eV]",ytitle="Cumulated Power [W]",title="Wiggler Cumulated Power",
+    #   xtitle="Photon energy [eV]",ytitle="Cumulated Power [W]",title="Wiggler Cumulated Power",
     #   xlog=False,ylog=False,show=True)
     
     

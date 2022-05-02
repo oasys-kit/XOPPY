@@ -396,13 +396,13 @@ energy, flux, spectral_power, cumulated_power = xoppy_calc_undulator_spectrum(
 from srxraylib.plot.gol import plot
 
 plot(energy,flux,
-    xtitle="Poton energy [eV]",ytitle="Flux [photons/s/o.1%bw]",title="Undulator Flux",
+    xtitle="Photon energy [eV]",ytitle="Flux [photons/s/o.1%bw]",title="Undulator Flux",
     xlog=False,ylog=False,show=False)
 plot(energy,spectral_power,
-    xtitle="Poton energy [eV]",ytitle="Power [W/eV]",title="Undulator Spectral Power",
+    xtitle="Photon energy [eV]",ytitle="Power [W/eV]",title="Undulator Spectral Power",
     xlog=False,ylog=False,show=False)
 plot(energy,cumulated_power,
-    xtitle="Poton energy [eV]",ytitle="Cumulated Power [W]",title="Undulator Cumulated Power",
+    xtitle="Photon energy [eV]",ytitle="Cumulated Power [W]",title="Undulator Cumulated Power",
     xlog=False,ylog=False,show=True)
 #
 # end script
