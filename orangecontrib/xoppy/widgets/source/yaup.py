@@ -597,12 +597,40 @@ class OWyaup(XoppyWidget):
         # self.NEKS  = congruence.checkPositiveNumber(self.NEKS , "Neks OR % Helicity")
 
     def do_xoppy_calculation(self):
-        return self.xoppy_calc_yaup()
+        e,f,spectral_power,cumulated_power =  self.xoppy_calc_yaup()
+        script = ''
+        return e,f,spectral_power,cumulated_power,script
+
 
     def extract_data_from_xoppy_output(self, calculation_output):
-        return calculation_output
+        e, f, spectral_power, cumulated_power,script = calculation_output
+
+        # send exchange
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+
+        data_to_send = numpy.zeros((e.size, 4))
+        data_to_send[:, 0] = e
+        data_to_send[:, 1] = f
+        data_to_send[:, 2] = spectral_power
+        data_to_send[:, 3] = cumulated_power
+        # try:
+        calculated_data.add_content("xoppy_data", data_to_send)
+        calculated_data.add_content("xoppy_data_bfield", numpy.loadtxt("bfield.dat",skiprows=3))
+        calculated_data.add_content("xoppy_data_traj", numpy.loadtxt("undul_traj.dat",skiprows=2))
+        # except:
+        #     pass
+
+        return calculated_data
+
+
+    # def extract_data_from_xoppy_output(self, calculation_output):
+    #     return calculation_output
 
     def plot_results(self, calculated_data, progressBarValue=80):
+
+        print(">>>>>> calculated_data: ", calculated_data)
+        xoppy_data_bfield = calculated_data.get_content("xoppy_data_bfield")
+        print(">>>>> xoppy_data_bfield", xoppy_data_bfield)
 
         if not self.view_type == 0:
             if not calculated_data is None:
@@ -868,23 +896,26 @@ class OWyaup(XoppyWidget):
         self.run_external_binary(binary="u2txt", post_command="< u2txt_traj.inp",
                                  info="Output file should be undul_traj.dat")
 
-        data_to_send = numpy.zeros((results.shape[0], 4))
-        data_to_send[:, 0] = e
-        data_to_send[:, 1] = f
-        data_to_send[:, 2] = spectral_power
-        data_to_send[:, 3] = cumulated_power
+        # data_to_send = numpy.zeros((results.shape[0], 4))
+        # data_to_send[:, 0] = e
+        # data_to_send[:, 1] = f
+        # data_to_send[:, 2] = spectral_power
+        # data_to_send[:, 3] = cumulated_power
 
-        # send exchange
-        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
-        try:
-            calculated_data.add_content("xoppy_data", data_to_send)
-            calculated_data.add_content("xoppy_data_bfield", numpy.loadtxt("bfield.dat",skiprows=3))
-            calculated_data.add_content("xoppy_data_traj", numpy.loadtxt("undul_traj.dat",skiprows=2))
-        except:
-            pass
+        return e,f,spectral_power,cumulated_power
 
-        return calculated_data
+        # # send exchange
+        # calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+        #
+        # try:
+        #     calculated_data.add_content("xoppy_data", data_to_send)
+        #     calculated_data.add_content("xoppy_data_bfield", numpy.loadtxt("bfield.dat",skiprows=3))
+        #     calculated_data.add_content("xoppy_data_traj", numpy.loadtxt("undul_traj.dat",skiprows=2))
+        # except:
+        #     pass
+        #
+        # return calculated_data
 
     def run_external_binary(self, binary="ls", post_command="", info=""):
 

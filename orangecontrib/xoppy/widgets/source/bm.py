@@ -388,19 +388,23 @@ a6_T, fm, a, energy =  xoppy_calc_bm(
     PSI_MAX={PSI_MAX},
     PSI_NPOINTS={PSI_NPOINTS},
     FILE_DUMP=True) # writes output to bm.spec
-    
-# example plot
 
+#   
+# example plot
+#
 if TYPE_CALC == 0 and VER_DIV in [0,2]:
     from srxraylib.plot.gol import plot
     spectral_power = a6_T[:,6]
     flux = a6_T[:,5]
-    plot(energy,flux,ytitle="Flux [photons/s/o.1%bw]",xtitle="Poton energy [eV]",title="Wiggler Flux",
+    plot(energy,flux,
+        xtitle="Poton energy [eV]",ytitle="Flux [photons/s/o.1%bw]",title="Wiggler Flux",
         xlog=True,ylog=True,show=False)
-    plot(energy,spectral_power,ytitle="Power [W/eV]",xtitle="Poton energy [eV]",title="Wiggler Spectral Power",
+    plot(energy,spectral_power,
+        xtitle="Poton energy [eV]",ytitle="Power [W/eV]",title="Wiggler Spectral Power",
         xlog=True,ylog=True,show=True)
-    #plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [eV]",title="Wiggler Cumulated Power",
-    #    xlog=False,ylog=False,show=True)
+    #plot(energy,cumulated_power,
+    #   xtitle="Poton energy [eV]",ytitle="Cumulated Power [W]",title="Wiggler Cumulated Power",
+    #   xlog=False,ylog=False,show=True)
     
     
 #
