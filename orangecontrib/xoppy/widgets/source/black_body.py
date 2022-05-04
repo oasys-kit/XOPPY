@@ -161,6 +161,7 @@ plot(energy,spectral_power,
 
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
         calculated_data.add_content("xoppy_data", out_dict["data"])
+        calculated_data.add_content("xoppy_script", script)
 
         return calculated_data
 

@@ -360,7 +360,7 @@ class OWbm(XoppyWidget, WidgetDecorator):
 #
 from xoppylib.xoppy_bm_wiggler import xoppy_calc_bm
 
-# for sull description of inputs and outputs see https://github.com/oasys-kit/xoppylib/blob/main/xoppylib/xoppy_bm_wiggler.py
+# for full description of inputs and outputs see https://github.com/oasys-kit/xoppylib/blob/main/xoppylib/xoppy_bm_wiggler.py
 # TYPE_CALC: 
 # 0: 'Energy or Power spectra'
 # 1: 'Angular distribution (all wavelengths)'
@@ -389,22 +389,26 @@ a6_T, fm, a, energy =  xoppy_calc_bm(
     PSI_NPOINTS={PSI_NPOINTS},
     FILE_DUMP=True) # writes output to bm.spec
 
+# data to pass to power
+if TYPE_CALC == 0 and VER_DIV in [0,2]:
+    flux = a6_T[:,5]
+    spectral_power = a6_T[:,6]
+    cumulated_power = a6_T[:,7]
 #   
 # example plot
 #
 if TYPE_CALC == 0 and VER_DIV in [0,2]:
     from srxraylib.plot.gol import plot
-    spectral_power = a6_T[:,6]
-    flux = a6_T[:,5]
+
     plot(energy,flux,
-        xtitle="Photon energy [eV]",ytitle="Flux [photons/s/o.1%bw]",title="Wiggler Flux",
+        xtitle="Photon energy [eV]",ytitle="Flux [photons/s/o.1%bw]",title="BM Flux",
         xlog=True,ylog=True,show=False)
     plot(energy,spectral_power,
-        xtitle="Photon energy [eV]",ytitle="Power [W/eV]",title="Wiggler Spectral Power",
-        xlog=True,ylog=True,show=True)
-    #plot(energy,cumulated_power,
-    #   xtitle="Photon energy [eV]",ytitle="Cumulated Power [W]",title="Wiggler Cumulated Power",
-    #   xlog=False,ylog=False,show=True)
+        xtitle="Photon energy [eV]",ytitle="Power [W/eV]",title="BM Spectral Power",
+        xlog=True,ylog=True,show=False)
+    plot(energy,cumulated_power,
+      xtitle="Photon energy [eV]",ytitle="Cumulated Power [W]",title="BM Cumulated Power",
+      xlog=False,ylog=False,show=True)
     
     
 #
@@ -431,7 +435,7 @@ if TYPE_CALC == 0 and VER_DIV in [0,2]:
 
     def getTitles(self):
         if self.TYPE_CALC == 0:
-            return ['E/Ec', 'Flux s-pol/Flux total', 'Flux p-pol/Flux total', 'Flux', 'Spectral Power']
+            return ['E/Ec', 'Flux s-pol/Flux total', 'Flux p-pol/Flux total', 'Flux', 'Spectral Power', 'Cumulated Power']
         elif self.TYPE_CALC == 1:
             return ["Psi[rad]*Gamma", "F", "F s-pol", "F p-pol", "Spectral Power"]
         elif self.TYPE_CALC == 2:
@@ -441,7 +445,7 @@ if TYPE_CALC == 0 and VER_DIV in [0,2]:
 
     def getXTitles(self):
         if self.TYPE_CALC == 0:
-            return ["Energy [eV]", "Energy [eV]", "Energy [eV]", "Energy [eV]", "Energy [eV]"]
+            return ["Energy [eV]", "Energy [eV]", "Energy [eV]", "Energy [eV]", "Energy [eV]", "Energy [eV]"]
         elif self.TYPE_CALC == 1:
             return ["Psi [mrad]", "Psi [mrad]", "Psi [mrad]", "Psi [mrad]", "Psi [mrad]"]
         elif self.TYPE_CALC == 2:
@@ -452,23 +456,23 @@ if TYPE_CALC == 0 and VER_DIV in [0,2]:
     def getYTitles(self):
         if self.TYPE_CALC == 0:
             if self.VER_DIV == 0:
-                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/sec/0.1%bw]', 'Power [Watts/eV]']
+                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/s/0.1%bw]', 'Spectral Power [W/eV]', 'Cumulated Power [W]']
             elif self.VER_DIV == 1:
-                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/sec/0.1%bw/mrad(Psi)]', 'Power[Watts/eV/mrad(Psi)]']
+                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/s/0.1%bw/mrad(Psi)]', 'Spectral Power[W/eV/mrad(Psi)]', 'Cumulated Power [W]/mrad(Psi)']
             elif self.VER_DIV == 2:
-                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/sec/0.1%bw]', 'Power [Watts/eV]']
+                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/s/0.1%bw]', 'Spectral Power [W/eV]', 'Cumulated Power [W]']
             elif self.VER_DIV == 3:
-                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/sec/0.1%bw/mrad(Psi)]', 'Power [Watts/eV/mrad(Psi)]']
+                return ['E/Ec', 'Flux_spol/Flux_total', 'Flux_ppol/Flux_total', 'Flux [Phot/s/0.1%bw/mrad(Psi)]', 'Spectral Power [W/eV/mrad(Psi)]', 'Cumulated Power [W/mrad(Psi)]']
         elif self.TYPE_CALC == 1:
-           return ["Psi[rad]*Gamma", "F", "F s-pol", "F p-pol", "Power [Watts/mrad(Psi)]"]
+           return ["Psi[rad]*Gamma", "F", "F s-pol", "F p-pol", "Spectral Power [W/mrad(Psi)]"]
         elif self.TYPE_CALC == 2:
-           return ["Psi[rad]*Gamma", "F", "F s-pol", "F p-pol", "Flux [Phot/sec/0.1%bw/mrad(Psi)]", "Power [Watts/mrad(Psi)]"]
+           return ["Psi[rad]*Gamma", "F", "F s-pol", "F p-pol", "Flux [Phot/sec/0.1%bw/mrad(Psi)]", "Spectral Power [W/mrad(Psi)]"]
         elif self.TYPE_CALC == 3:
            return []
 
     def getVariablesToPlot(self):
         if self.TYPE_CALC == 0:
-            return [(0, 2), (0, 3), (0, 4), (0, 5), (0, 6)]
+            return [(0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7)]
         elif self.TYPE_CALC == 1:
             return [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5)]
         elif self.TYPE_CALC == 2:
@@ -478,7 +482,7 @@ if TYPE_CALC == 0 and VER_DIV in [0,2]:
 
     def getLogPlot(self):
         if self.TYPE_CALC == 0:
-            return [(True, False), (True, False), (True, False), (True, True), (True, True)]
+            return [(True, False), (True, False), (True, False), (True, True), (True, True), (False, False)]
         elif self.TYPE_CALC == 1:
             return [(False, False), (False, False), (False, False), (False, False), (False, False)]
         elif self.TYPE_CALC == 2:

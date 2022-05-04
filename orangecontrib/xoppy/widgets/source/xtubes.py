@@ -5,7 +5,6 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 
-from xoppylib.xoppy_util import locations
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 from xoppylib.xoppy_run_binaries import xoppy_calc_xtubes
@@ -78,6 +77,8 @@ class OWxtubes(XoppyWidget):
 #
 # script to make the calculations (created by XOPPY:xtubes)
 #
+import numpy
+import scipy.constants as codata
 from xoppylib.xoppy_run_binaries import xoppy_calc_xtubes
 
 out_file =  xoppy_calc_xtubes(
@@ -85,20 +86,28 @@ out_file =  xoppy_calc_xtubes(
         VOLTAGE = {VOLTAGE},
         )
 
+# data to pass to power
+data = numpy.loadtxt(out_file)
+energy = data[:,0]
+flux = data[:,1] # for units, see discussion in 'help'
+spectral_power = flux / 0.5e-3 * energy * codata.e # W/eV/mA/mm^2(@?m) 
+cumulated_power = spectral_power.cumsum() * numpy.abs(energy[1]-energy[0]) # W/mA/mm^2(@1m)
+
 #
 # example plot
 #
-import numpy
 from srxraylib.plot.gol import plot
 
-data = numpy.loadtxt(out_file)
-energy = data[:,0]
-fluence = data[:,1]
-
-plot(energy,fluence,
-    xtitle="Photon energy [eV]",ytitle="Fluence [photons/sec/mm^2/0.5keV(bw)/mA]",title="xtubes Fluence",
+plot(energy,flux,
+    xtitle="Photon energy [eV]",ytitle="Fluence [photons/s/mm^2/0.5keV(bw)/mA]",title="xtubes Fluence",
     xlog=False,ylog=False,show=True)
-
+plot(energy,spectral_power,
+    xtitle="Photon energy [eV]",ytitle="Spectral Power [W/eV/mA/mm^2(@?m) ]",title="xtube_w Spectral Power",
+    xlog=False,ylog=False,show=False)
+plot(energy,cumulated_power,
+    xtitle="Photon energy [eV]",ytitle="Cumylated Power [W/mA/mm^2(@?m) ]",title="xtube_w Cumulated Power",
+    xlog=False,ylog=False,show=True)
+    
 #
 # end script
 #
@@ -113,6 +122,7 @@ plot(energy,fluence,
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
         calculated_data.add_content("xoppy_specfile", spec_file_name)
         calculated_data.add_content("xoppy_data", out)
+        calculated_data.add_content("xoppy_script", script)
 
         return calculated_data
 

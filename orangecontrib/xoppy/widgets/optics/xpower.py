@@ -1,4 +1,3 @@
-import sys
 import numpy
 from PyQt5.QtWidgets import QApplication, QMessageBox, QSizePolicy
 
@@ -6,7 +5,9 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
-from xoppylib.xoppy_xraylib_util import xpower_calc
+
+from xoppylib.power.xoppy_calc_xpower import xoppy_calc_xpower
+# from xoppylib.xoppy_xraylib_util import xpower_calc
 
 from oasys.widgets.exchange import DataExchangeObject
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
@@ -64,6 +65,12 @@ class OWxpower(XoppyWidget):
     PLOT_SETS = Setting(2)
     FILE_DUMP = 0
 
+    input_spectrum = None
+    input_script = None
+
+    def __init__(self):
+        super().__init__(show_script_tab=True)
+
     def build_gui(self):
 
         self.leftWidgetPart.setSizePolicy(QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding))
@@ -105,17 +112,7 @@ class OWxpower(XoppyWidget):
         oasysgui.lineEdit(box1, self, "ENER_N",
                      label=self.unitLabels()[idx], addSpace=False,
                     valueType=int, orientation="horizontal", labelWidth=250)
-        self.show_at(self.unitFlags()[idx], box1) 
-        
-        # #widget index 9
-        # idx += 1
-        # box1 = gui.widgetBox(box)
-        #
-        # file_box = oasysgui.widgetBox(box1, "", addSpace=False, orientation="horizontal", height=25)
-        #
-        # self.le_file = oasysgui.lineEdit(file_box, self, "SOURCE_FILE",
-        #              label=self.unitLabels()[idx], addSpace=False, orientation="horizontal")
-        # self.show_at(self.unitFlags()[idx], box1)
+        self.show_at(self.unitFlags()[idx], box1)
 
         #widget index 9 ***********   File Browser ******************
         idx += 1
@@ -402,7 +399,7 @@ class OWxpower(XoppyWidget):
                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
-        self.input_spectrum = None
+        # self.input_spectrum = None
 
     def select_input_file(self):
         self.file_id.setText(oasysgui.selectFileFromDialog(self, self.SOURCE_FILE,
@@ -453,6 +450,7 @@ class OWxpower(XoppyWidget):
     def acceptExchangeData(self, exchangeData):
 
         self.input_spectrum = None
+        self.input_script = None
         self.SOURCE = 0
         # self.box_source.setCurrentIndex(self.SOURCE)
 
@@ -472,7 +470,7 @@ class OWxpower(XoppyWidget):
                             no_bandwidth = True
                             index_flux = 6
                         else:
-                            raise Exception("Xoppy result is not an Flux vs Energy distribution integrated in Psi")
+                            raise Exception("Xoppy result is not a Flux vs Energy distribution integrated in Psi")
                     elif exchangeData.get_widget_name() =="XWIGGLER" :
                         # self.SOURCE_FILE = "xoppy_xwiggler_flux"
                         no_bandwidth = True
@@ -529,18 +527,16 @@ class OWxpower(XoppyWidget):
 
                         self.input_spectrum = numpy.vstack((spectrum[:,0],spectrum[:,index_flux]))
 
+                    try:
+                        self.input_script = exchangeData.get_content("xoppy_script")
+                    except:
+                        self.input_script = None
+
                     self.process_showers()
                     self.compute()
 
         except Exception as exception:
-            QMessageBox.critical(self, "Error",
-                                       str(exception),
-                QMessageBox.Ok)
-
-            #raise exception
-
-
-
+            QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
     def check_fields(self):
 
@@ -614,10 +610,175 @@ class OWxpower(XoppyWidget):
                 self.EL5_DEN = str(congruence.checkStrictlyPositiveNumber(float(congruence.checkNumber(self.EL5_DEN, "5th oe density")), "5th oe density"))
 
     def do_xoppy_calculation(self):
-        return self.xoppy_calc_xpower()
+
+        if self.SOURCE == 0:
+            if self.input_spectrum is None:
+                raise Exception("No input beam")
+            else:
+                energies = self.input_spectrum[0,:].copy()
+                source = self.input_spectrum[1,:].copy()
+            if self.input_script is None:
+                script_previous = '#\n# >> MISSING SCRIPT TO CREATE (energy, spectral_power) <<\n#\n'
+            else:
+                script_previous = self.input_script
+        elif self.SOURCE == 1:
+            energies = numpy.linspace(self.ENER_MIN,self.ENER_MAX,self.ENER_N)
+            source = numpy.ones(energies.size)
+            tmp = numpy.vstack( (energies,source))
+            self.input_spectrum = source
+            script_previous = "import numpy\nenergy = numpy.linspace(%g,%g,%d)\nspectral_power = numpy.ones(%d)\n" % \
+                        (self.ENER_MIN,self.ENER_MAX,self.ENER_N,self.ENER_N)
+        elif self.SOURCE == 2:
+            if self.SOURCE == 2: source_file = self.SOURCE_FILE
+            try:
+                tmp = numpy.loadtxt(source_file)
+                energies = tmp[:,0]
+                source = tmp[:,1]
+                self.input_spectrum = source
+                script_previous = "import numpy\tmp = numpy.loadtxt(%s)\nenergy = tmp[:,0], spectral_power = tmp[:,1]\n" % \
+                                (source_file)
+            except:
+                print("Error loading file %s "%(source_file))
+                raise
+
+        # substance = [self.EL1_FOR,self.EL2_FOR,self.EL3_FOR,self.EL4_FOR,self.EL5_FOR]
+        # thick     = numpy.array( (self.EL1_THI,self.EL2_THI,self.EL3_THI,self.EL4_THI,self.EL5_THI))
+        # angle     = numpy.array( (self.EL1_ANG,self.EL2_ANG,self.EL3_ANG,self.EL4_ANG,self.EL5_ANG))
+        # dens      = [self.EL1_DEN,self.EL2_DEN,self.EL3_DEN,self.EL4_DEN,self.EL5_DEN]
+        # roughness = numpy.array( (self.EL1_ROU,self.EL2_ROU,self.EL3_ROU,self.EL4_ROU,self.EL5_ROU))
+        # flags     = numpy.array( (self.EL1_FLAG,self.EL2_FLAG,self.EL3_FLAG,self.EL4_FLAG,self.EL5_FLAG))
+
+        substance = [self.EL1_FOR,  self.EL2_FOR,  self.EL3_FOR,  self.EL4_FOR,  self.EL5_FOR]  # str
+        thick     = [self.EL1_THI,  self.EL2_THI,  self.EL3_THI,  self.EL4_THI,  self.EL5_THI]  # float
+        angle     = [self.EL1_ANG,  self.EL2_ANG,  self.EL3_ANG,  self.EL4_ANG,  self.EL5_ANG]  # float
+        dens      = [self.EL1_DEN,  self.EL2_DEN,  self.EL3_DEN,  self.EL4_DEN,  self.EL5_DEN]  # str
+        roughness = [self.EL1_ROU,  self.EL2_ROU,  self.EL3_ROU,  self.EL4_ROU,  self.EL5_ROU]  # float
+        flags     = [self.EL1_FLAG, self.EL2_FLAG, self.EL3_FLAG, self.EL4_FLAG, self.EL5_FLAG] # int
+
+        # this is for creating script
+        substance_str = "["
+        thick_str = "["
+        angle_str = "["
+        dens_str = "["
+        roughness_str = "["
+        flags_str = "["
+        for i in range(self.NELEMENTS):
+            substance_str += "'%s'," % (substance[i])
+            thick_str     += "%g," % (thick[i])
+            angle_str     += "%g," % (angle[i])
+            dens_str      += "'%s'," % (dens[i])
+            roughness_str += "%g," % (roughness[i])
+            flags_str     += "%d," % (flags[i])
+        substance_str += "]"
+        thick_str += "]"
+        angle_str += "]"
+        dens_str += "]"
+        roughness_str += "]"
+        flags_str += "]"
+
+        out_dictionary = xoppy_calc_xpower(
+                                                energies,
+                                                source,
+                                                substance = substance,
+                                                thick     = thick    ,
+                                                angle     = angle    ,
+                                                dens      = dens     ,
+                                                roughness = roughness,
+                                                flags     = flags    ,
+                                                NELEMENTS = self.NELEMENTS,
+                                                FILE_DUMP = self.FILE_DUMP,
+                                                )
+
+        print(out_dictionary["info"])
+
+        dict_parameters = {
+            "substance" : substance_str,
+            "thick"     : thick_str,
+            "angle"     : angle_str,
+            "dens"      : dens_str,
+            "roughness" : roughness_str,
+            "flags"     : flags_str,
+            "NELEMENTS" : self.NELEMENTS,
+            "FILE_DUMP" : self.FILE_DUMP,
+        }
+
+        script_element = self.script_template().format_map(dict_parameters)
+
+        script = script_previous + script_element
+
+        self.xoppy_script.set_code(script)
+
+        return  out_dictionary, script
+
+    def script_template(self):
+        return """
+
+#
+# script to make the calculations (created by XOPPY:xpower)
+#
+
+import numpy
+from xoppylib.power.xoppy_calc_xpower import xoppy_calc_xpower
+
+out_dictionary = xoppy_calc_xpower(
+        energy,
+        spectral_power,
+        substance = {substance},
+        thick     = {thick},
+        angle     = {angle},
+        dens      = {dens},
+        roughness = {roughness},
+        flags     = {flags},
+        NELEMENTS = {NELEMENTS},
+        FILE_DUMP = {FILE_DUMP},
+        )
+
+
+# data to pass
+energy = out_dictionary["data"][0,:]
+spectral_power = out_dictionary["data"][-1,:]
+
+#                       
+# example plots
+#
+from srxraylib.plot.gol import plot
+plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
+    out_dictionary["data"][0,:], out_dictionary["data"][-1,:],
+    xtitle=out_dictionary["labels"][0],
+    legend=[out_dictionary["labels"][1],out_dictionary["labels"][-1]],
+    title='Spectral Power [W/eV]')
+ 
+#
+# end script
+#
+"""
+
+
 
     def extract_data_from_xoppy_output(self, calculation_output):
-        return calculation_output
+
+        out_dictionary, script = calculation_output
+
+        # send exchange
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+
+        try:
+            calculated_data.add_content("xoppy_data", out_dictionary["data"].T)
+            calculated_data.add_content("plot_x_col", 0)
+            calculated_data.add_content("plot_y_col", -1)
+        except:
+            pass
+        try:
+            # print(out_dictionary["labels"])
+            calculated_data.add_content("labels", out_dictionary["labels"])
+        except:
+            pass
+        try:
+            calculated_data.add_content("info", out_dictionary["info"])
+        except:
+            pass
+
+        return calculated_data
 
 
     def get_data_exchange_widget_name(self):
@@ -795,132 +956,55 @@ class OWxpower(XoppyWidget):
 
         return logplot
 
-    def xoppy_calc_xpower(self):
-
-        #
-        # prepare input for xpower_calc
-        # Note that the input for xpower_calc accepts any number of elements.
-        #
-
-        substance = [self.EL1_FOR,self.EL2_FOR,self.EL3_FOR,self.EL4_FOR,self.EL5_FOR]
-        thick     = numpy.array( (self.EL1_THI,self.EL2_THI,self.EL3_THI,self.EL4_THI,self.EL5_THI))
-        angle     = numpy.array( (self.EL1_ANG,self.EL2_ANG,self.EL3_ANG,self.EL4_ANG,self.EL5_ANG))
-        dens      = [self.EL1_DEN,self.EL2_DEN,self.EL3_DEN,self.EL4_DEN,self.EL5_DEN]
-        roughness = numpy.array( (self.EL1_ROU,self.EL2_ROU,self.EL3_ROU,self.EL4_ROU,self.EL5_ROU))
-        flags     = numpy.array( (self.EL1_FLAG,self.EL2_FLAG,self.EL3_FLAG,self.EL4_FLAG,self.EL5_FLAG))
-
-        substance = substance[0:self.NELEMENTS+1]
-        thick = thick[0:self.NELEMENTS+1]
-        angle = angle[0:self.NELEMENTS+1]
-        dens = dens[0:self.NELEMENTS+1]
-        roughness = roughness[0:self.NELEMENTS+1]
-        flags = flags[0:self.NELEMENTS+1]
-
-
-        if self.SOURCE == 0:
-            # energies = numpy.arange(0,500)
-            # elefactor = numpy.log10(10000.0 / 30.0) / 300.0
-            # energies = 10.0 * 10**(energies * elefactor)
-            # source = numpy.ones(energies.size)
-            # tmp = numpy.vstack( (energies,source))
-            if self.input_spectrum is None:
-                raise Exception("No input beam")
-            else:
-                energies = self.input_spectrum[0,:].copy()
-                source = self.input_spectrum[1,:].copy()
-        elif self.SOURCE == 1:
-            energies = numpy.linspace(self.ENER_MIN,self.ENER_MAX,self.ENER_N)
-            source = numpy.ones(energies.size)
-            tmp = numpy.vstack( (energies,source))
-            self.input_spectrum = source
-        elif self.SOURCE == 2:
-            if self.SOURCE == 2: source_file = self.SOURCE_FILE
-            # if self.SOURCE == 3: source_file = "SRCOMPE"
-            # if self.SOURCE == 4: source_file = "SRCOMPF"
-            try:
-                tmp = numpy.loadtxt(source_file)
-                energies = tmp[:,0]
-                source = tmp[:,1]
-                self.input_spectrum = source
-            except:
-                print("Error loading file %s "%(source_file))
-                raise
-
-        if self.FILE_DUMP == 0:
-            output_file = None
-        else:
-            output_file = "power.spec"
-        out_dictionary = xpower_calc(energies=energies,source=source,substance=substance,
-                                     flags=flags,dens=dens,thick=thick,angle=angle,roughness=roughness,output_file=output_file)
-
-
-        try:
-            print(out_dictionary["info"])
-        except:
-            pass
-        #send exchange
-        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
-
-        try:
-            calculated_data.add_content("xoppy_data", out_dictionary["data"].T)
-            calculated_data.add_content("plot_x_col",0)
-            calculated_data.add_content("plot_y_col",-1)
-        except:
-            pass
-        try:
-            # print(out_dictionary["labels"])
-            calculated_data.add_content("labels", out_dictionary["labels"])
-        except:
-            pass
-        try:
-            calculated_data.add_content("info",out_dictionary["info"])
-        except:
-            pass
-
-        return calculated_data
-
-
 if __name__ == "__main__":
+    import sys
+    input_type = 0
+
+    if input_type == 1:
+        from oasys.widgets.exchange import DataExchangeObject
+        input_data_type = "POWER"
+
+        if input_data_type == "POWER":
+            # create fake UNDULATOR_FLUX xoppy exchange data
+            e = numpy.linspace(1000.0, 10000.0, 100)
+            source = e/10
+            received_data = DataExchangeObject("XOPPY", "POWER")
+            received_data.add_content("xoppy_data", numpy.vstack((e,e,source)).T)
+            received_data.add_content("xoppy_code", "US")
+
+        elif input_data_type == "POWER3D":
+            # create unulator_radiation xoppy exchange data
+            from xoppylib.xoppy_undulators import xoppy_calc_undulator_radiation
+
+            e, h, v, p, code = xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
+                                               ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
+                                               ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
+                                               PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,
+                                               SETRESONANCE=0,HARMONICNUMBER=1,
+                                               GAPH=0.001,GAPV=0.001,\
+                                               HSLITPOINTS=41,VSLITPOINTS=41,METHOD=0,
+                                               PHOTONENERGYMIN=7000,PHOTONENERGYMAX=8100,PHOTONENERGYPOINTS=20,
+                                               USEEMITTANCES=1)
+            received_data = DataExchangeObject("XOPPY", "POWER3D")
+            received_data = DataExchangeObject("XOPPY", "UNDULATOR_RADIATION")
+            received_data.add_content("xoppy_data", [p, e, h, v])
+            received_data.add_content("xoppy_code", code)
 
 
-    from oasys.widgets.exchange import DataExchangeObject
 
 
+        app = QApplication(sys.argv)
+        w = OWxpower()
+        w.acceptExchangeData(received_data)
+        w.show()
+        app.exec()
+        w.saveSettings()
 
-    input_data_type = "POWER"
+    else:
+        app = QApplication(sys.argv)
+        w = OWxpower()
+        w.SOURCE = 1
+        w.show()
+        app.exec()
+        w.saveSettings()
 
-    if input_data_type == "POWER":
-        # create fake UNDULATOR_FLUX xoppy exchange data
-        e = numpy.linspace(1000.0, 10000.0, 100)
-        source = e/10
-        received_data = DataExchangeObject("XOPPY", "POWER")
-        received_data.add_content("xoppy_data", numpy.vstack((e,e,source)).T)
-        received_data.add_content("xoppy_code", "US")
-
-    elif input_data_type == "POWER3D":
-        # create unulator_radiation xoppy exchange data
-        from xoppylib.xoppy_undulators import xoppy_calc_undulator_radiation
-
-        e, h, v, p, code = xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
-                                           ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\
-                                           ELECTRONBEAMDIVERGENCEH=1.05e-05,ELECTRONBEAMDIVERGENCEV=3.9e-06,\
-                                           PERIODID=0.018,NPERIODS=222,KV=1.68,DISTANCE=30.0,
-                                           SETRESONANCE=0,HARMONICNUMBER=1,
-                                           GAPH=0.001,GAPV=0.001,\
-                                           HSLITPOINTS=41,VSLITPOINTS=41,METHOD=0,
-                                           PHOTONENERGYMIN=7000,PHOTONENERGYMAX=8100,PHOTONENERGYPOINTS=20,
-                                           USEEMITTANCES=1)
-        received_data = DataExchangeObject("XOPPY", "POWER3D")
-        received_data = DataExchangeObject("XOPPY", "UNDULATOR_RADIATION")
-        received_data.add_content("xoppy_data", [p, e, h, v])
-        received_data.add_content("xoppy_code", code)
-
-
-
-
-    app = QApplication(sys.argv)
-    w = OWxpower()
-    w.acceptExchangeData(received_data)
-    w.show()
-    app.exec()
-    w.saveSettings()

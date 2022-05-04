@@ -3,8 +3,10 @@ from PyQt5.QtWidgets import QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
+from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+
 
 import numpy
 import scipy.constants as codata
@@ -254,13 +256,14 @@ class OWws(XoppyWidget,WidgetDecorator):
 
         self.xoppy_script.set_code(script)
 
-        return outFile
+        return outFile, script
 
     def script_template(self):
         return """
 #
 # script to make the calculations (created by XOPPY:WS)
 #
+import numpy
 from xoppylib.xoppy_run_binaries import xoppy_calc_ws
 
 out_file =  xoppy_calc_ws(
@@ -282,18 +285,17 @@ out_file =  xoppy_calc_ws(
         NYP    = {NYP},
         )
 
-#
-# example plot
-#
-import numpy
-from srxraylib.plot.gol import plot
-
+# data to pass to power
 data = numpy.loadtxt(out_file)
 energy = data[:,0]
 flux = data[:,1]
 spectral_power = data[:,2]
 cumulated_power = data[:,3]
 
+#
+# example plot
+#
+from srxraylib.plot.gol import plot
 plot(energy,flux,
     xtitle="Photon energy [eV]",ytitle="Flux [photons/s/0.1%bw]",title="WS Flux",
     xlog=True,ylog=True,show=False)
@@ -308,6 +310,18 @@ plot(energy,cumulated_power,
 # end script
 #
 """
+    def extract_data_from_xoppy_output(self, calculation_output):
+
+        spec_file_name, script = calculation_output
+        out = numpy.loadtxt(spec_file_name)
+        if len(out) == 0: raise Exception("Calculation gave no results (empty data)")
+
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+        calculated_data.add_content("xoppy_specfile", spec_file_name)
+        calculated_data.add_content("xoppy_data", out)
+        calculated_data.add_content("xoppy_script", script)
+
+        return calculated_data
 
     def get_data_exchange_widget_name(self):
         return "WS"
