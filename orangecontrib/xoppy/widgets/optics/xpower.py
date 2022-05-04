@@ -86,7 +86,7 @@ class OWxpower(XoppyWidget):
         box1 = gui.widgetBox(box) 
         self.box_source = gui.comboBox(box1, self, "SOURCE",
                      label=self.unitLabels()[idx], addSpace=False,
-                    items=['From Oasys wire', 'Normalized to 1', 'From external file.                '],
+                    items=['From Oasys wire', 'Normalized to 1 W/eV', 'From external file (eV, W/eV)', 'From external file (eV, phot/s/.1%bw)'],
                     valueType=int, orientation="horizontal", labelWidth=150)
         self.show_at(self.unitFlags()[idx], box1)
         
@@ -432,7 +432,7 @@ class OWxpower(XoppyWidget):
                  'self.SOURCE  ==  1',
                  'self.SOURCE  ==  1',
                  'self.SOURCE  ==  1',
-                 'self.SOURCE  ==  2',
+                 'self.SOURCE  >  1',
                  'True',
                  'self.NELEMENTS  >=  0',' self.NELEMENTS  >=  0','self.EL1_FLAG  ==  0  and  self.NELEMENTS  >=  0','self.EL1_FLAG  !=  0  and  self.NELEMENTS  >=  0','self.EL1_FLAG  !=  0  and  self.NELEMENTS  >=  0',' self.NELEMENTS  >=  0',
                  'self.NELEMENTS  >=  1',' self.NELEMENTS  >=  1','self.EL2_FLAG  ==  0  and  self.NELEMENTS  >=  1','self.EL2_FLAG  !=  0  and  self.NELEMENTS  >=  1','self.EL2_FLAG  !=  0  and  self.NELEMENTS  >=  1',' self.NELEMENTS  >=  1',
@@ -452,7 +452,6 @@ class OWxpower(XoppyWidget):
         self.input_spectrum = None
         self.input_script = None
         self.SOURCE = 0
-        # self.box_source.setCurrentIndex(self.SOURCE)
 
         try:
             if not exchangeData is None:
@@ -628,14 +627,26 @@ class OWxpower(XoppyWidget):
             self.input_spectrum = source
             script_previous = "import numpy\nenergy = numpy.linspace(%g,%g,%d)\nspectral_power = numpy.ones(%d)\n" % \
                         (self.ENER_MIN,self.ENER_MAX,self.ENER_N,self.ENER_N)
-        elif self.SOURCE == 2:
-            if self.SOURCE == 2: source_file = self.SOURCE_FILE
+        elif self.SOURCE == 2:  # file contains energy_eV and spectral power (W/eV)
+            source_file = self.SOURCE_FILE
             try:
                 tmp = numpy.loadtxt(source_file)
                 energies = tmp[:,0]
                 source = tmp[:,1]
                 self.input_spectrum = source
-                script_previous = "import numpy\tmp = numpy.loadtxt(%s)\nenergy = tmp[:,0], spectral_power = tmp[:,1]\n" % \
+                script_previous = "import numpy\ntmp = numpy.loadtxt(%s)\nenergy = tmp[:,0]\nspectral_power = tmp[:,1]\n" % \
+                                (source_file)
+            except:
+                print("Error loading file %s "%(source_file))
+                raise
+        elif self.SOURCE == 3:  # file contains energy_eV and flux (ph/s/0.1%bw
+            source_file = self.SOURCE_FILE
+            try:
+                tmp = numpy.loadtxt(source_file)
+                energies = tmp[:,0]
+                source = tmp[:,1] * (codata.e * 1e3)
+                self.input_spectrum = source
+                script_previous = "import numpy\nimport scipy.constants as codata\ntmp = numpy.loadtxt(%s)\nenergy = tmp[:,0]\nspectral_power = tmp[:,1] / (codata.e * 1e3)\n" % \
                                 (source_file)
             except:
                 print("Error loading file %s "%(source_file))
@@ -868,10 +879,13 @@ plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
     def getYTitles(self):
         ytitles = []
 
-        if self.SOURCE == 0:
-            if self.do_plot_intensity(): ytitles.append("Spectral Power [W/eV]")
+
+        if self.SOURCE == 1:
+            unit_str = '[a.u]'
         else:
-            if self.do_plot_intensity(): ytitles.append("Spectral Power [a.u.]")
+            unit_str = '[W/eV]'
+
+        if self.do_plot_intensity(): ytitles.append("Spectral Power %s" % unit_str )
 
 
         for oe_n in range(1, self.NELEMENTS+2):
@@ -882,24 +896,19 @@ plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Mu cm^-1")
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Transmitivity")
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Absorption")
-                if self.SOURCE == 0:
-                    if self.do_plot_intensity(): ytitles.append("Absorbed Spectral power [W/eV]")
-                    if self.do_plot_intensity(): ytitles.append("Spectral power [W/eV]")
-                else:
-                    if self.do_plot_intensity(): ytitles.append("Absorbed Spectral power [a.u.]")
-                    if self.do_plot_intensity(): ytitles.append("Spectral power [a.u.]")
+
+                if self.do_plot_intensity(): ytitles.append("Absorbed Spectral power %s" % unit_str)
+                if self.do_plot_intensity(): ytitles.append(         "Spectral power %s" % unit_str)
+
             else: # MIRROR
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] 1-Re[n]=delta")
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Im[n]=beta")
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] delta/beta")
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Reflectivity-s")
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Transmitivity")
-                if self.SOURCE == 0:
-                    if self.do_plot_intensity(): ytitles.append("Absorbed Spectral power [W/eV]")
-                    if self.do_plot_intensity(): ytitles.append("Spectral power [W/eV]")
-                else:
-                    if self.do_plot_intensity(): ytitles.append("Absorbed Spectral power [a.u.]")
-                    if self.do_plot_intensity(): ytitles.append("Spectral power [a.u.]")
+
+                if self.do_plot_intensity(): ytitles.append("Absorbed Spectral power %s" % unit_str)
+                if self.do_plot_intensity(): ytitles.append(         "Spectral power %s" % unit_str)
 
         return ytitles
 
