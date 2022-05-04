@@ -465,7 +465,7 @@ class OWxpower(XoppyWidget):
                     elif exchangeData.get_widget_name() == "BM" :
                         if exchangeData.get_content("is_log_plot") == 1:
                             raise Exception("Logaritmic X scale of Xoppy Energy distribution not supported")
-                        if exchangeData.get_content("calculation_type") == 0 and exchangeData.get_content("psi") == 0:
+                        if exchangeData.get_content("calculation_type") == 0 and exchangeData.get_content("psi") in [0,2]:
                             # self.SOURCE_FILE = "xoppy_bm_flux"
                             no_bandwidth = True
                             index_flux = 6
@@ -662,7 +662,7 @@ class OWxpower(XoppyWidget):
         dens_str = "["
         roughness_str = "["
         flags_str = "["
-        for i in range(self.NELEMENTS):
+        for i in range(self.NELEMENTS+1):
             substance_str += "'%s'," % (substance[i])
             thick_str     += "%g," % (thick[i])
             angle_str     += "%g," % (angle[i])
@@ -685,7 +685,7 @@ class OWxpower(XoppyWidget):
                                                 dens      = dens     ,
                                                 roughness = roughness,
                                                 flags     = flags    ,
-                                                NELEMENTS = self.NELEMENTS,
+                                                NELEMENTS = self.NELEMENTS + 1,
                                                 FILE_DUMP = self.FILE_DUMP,
                                                 )
 
@@ -698,7 +698,7 @@ class OWxpower(XoppyWidget):
             "dens"      : dens_str,
             "roughness" : roughness_str,
             "flags"     : flags_str,
-            "NELEMENTS" : self.NELEMENTS,
+            "NELEMENTS" : self.NELEMENTS + 1,
             "FILE_DUMP" : self.FILE_DUMP,
         }
 
@@ -724,11 +724,11 @@ out_dictionary = xoppy_calc_xpower(
         energy,
         spectral_power,
         substance = {substance},
-        thick     = {thick},
-        angle     = {angle},
+        thick     = {thick}, # in mm (for filters)
+        angle     = {angle}, # in mrad (for mirrors)
         dens      = {dens},
-        roughness = {roughness},
-        flags     = {flags},
+        roughness = {roughness}, # in A (for mirrors)
+        flags     = {flags}, # 0=Filter, 1=Mirror
         NELEMENTS = {NELEMENTS},
         FILE_DUMP = {FILE_DUMP},
         )
@@ -822,6 +822,7 @@ plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Mu")
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Transmitivity")
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Absorption")
+                if self.do_plot_intensity(): titles.append("Spectral power absorbed in oe " + str(oe_n))
                 if self.do_plot_intensity(): titles.append("Spectral power after oe " + str(oe_n))
 
 
@@ -831,6 +832,7 @@ plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] delta/beta")
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Reflectivity-s")
                 if self.do_plot_local(): titles.append("[oe " + str(oe_n) + "] Absorption")
+                if self.do_plot_intensity(): titles.append("Spectral power absorbed in oe " + str(oe_n))
                 if self.do_plot_intensity(): titles.append("Spectral power after oe " + str(oe_n))
 
 
@@ -851,12 +853,14 @@ plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
                 if self.do_plot_local(): xtitles.append("Photon Energy [eV]")
                 if self.do_plot_local(): xtitles.append("Photon Energy [eV]")
                 if self.do_plot_intensity(): xtitles.append("Photon Energy [eV]")
+                if self.do_plot_intensity(): xtitles.append("Photon Energy [eV]")
             else: # MIRROR
                 if self.do_plot_local(): xtitles.append("Photon Energy [eV]")
                 if self.do_plot_local(): xtitles.append("Photon Energy [eV]")
                 if self.do_plot_local(): xtitles.append("Photon Energy [eV]")
                 if self.do_plot_local(): xtitles.append("Photon Energy [eV]")
                 if self.do_plot_local(): xtitles.append("Photon Energy [eV]")
+                if self.do_plot_intensity(): xtitles.append("Photon Energy [eV]")
                 if self.do_plot_intensity(): xtitles.append("Photon Energy [eV]")
 
         return xtitles
@@ -879,8 +883,10 @@ plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Transmitivity")
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Absorption")
                 if self.SOURCE == 0:
+                    if self.do_plot_intensity(): ytitles.append("Absorbed Spectral power [W/eV]")
                     if self.do_plot_intensity(): ytitles.append("Spectral power [W/eV]")
                 else:
+                    if self.do_plot_intensity(): ytitles.append("Absorbed Spectral power [a.u.]")
                     if self.do_plot_intensity(): ytitles.append("Spectral power [a.u.]")
             else: # MIRROR
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] 1-Re[n]=delta")
@@ -889,8 +895,10 @@ plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Reflectivity-s")
                 if self.do_plot_local(): ytitles.append("[oe " + str(oe_n) + "] Transmitivity")
                 if self.SOURCE == 0:
+                    if self.do_plot_intensity(): ytitles.append("Absorbed Spectral power [W/eV]")
                     if self.do_plot_intensity(): ytitles.append("Spectral power [W/eV]")
                 else:
+                    if self.do_plot_intensity(): ytitles.append("Absorbed Spectral power [a.u.]")
                     if self.do_plot_intensity(): ytitles.append("Spectral power [a.u.]")
 
         return ytitles
@@ -910,9 +918,9 @@ plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
                 kind_previous = self.getKind(oe_n-1)
 
                 if kind_previous == 0: # FILTER
-                    shift += 5
-                else:
                     shift += 6
+                else:
+                    shift += 7
 
             if kind == 0: # FILTER
                 if self.do_plot_local(): variables.append((0, 2+shift))
@@ -920,6 +928,7 @@ plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
                 if self.do_plot_local(): variables.append((0, 4+shift))
                 if self.do_plot_local(): variables.append((0, 5+shift))
                 if self.do_plot_intensity(): variables.append((0, 6+shift))
+                if self.do_plot_intensity(): variables.append((0, 7+shift))
             else:
                 if self.do_plot_local(): variables.append((0, 2+shift))
                 if self.do_plot_local(): variables.append((0, 3+shift))
@@ -927,6 +936,7 @@ plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
                 if self.do_plot_local(): variables.append((0, 5+shift))
                 if self.do_plot_local(): variables.append((0, 6+shift))
                 if self.do_plot_intensity(): variables.append((0, 7+shift))
+                if self.do_plot_intensity(): variables.append((0, 8+shift))
 
         return variables
 
@@ -946,12 +956,14 @@ plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
                 if self.do_plot_local(): logplot.append((False, False))
                 if self.do_plot_local(): logplot.append((False, False))
                 if self.do_plot_intensity(): logplot.append((False, False))
+                if self.do_plot_intensity(): logplot.append((False, False))
             else: # MIRROR
                 if self.do_plot_local(): logplot.append((False, True))
                 if self.do_plot_local(): logplot.append((False, True))
                 if self.do_plot_local(): logplot.append((False, False))
                 if self.do_plot_local(): logplot.append((False, False))
                 if self.do_plot_local(): logplot.append((False, False))
+                if self.do_plot_intensity(): logplot.append((False, False))
                 if self.do_plot_intensity(): logplot.append((False, False))
 
         return logplot

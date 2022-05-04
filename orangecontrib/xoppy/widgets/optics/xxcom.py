@@ -266,8 +266,6 @@ plot(energy_in_MeV,total,
         return [(True, True), (True, True), (True, True), (True, True), (True, True), (True, True), (True, True)]
 
 
-
-
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
