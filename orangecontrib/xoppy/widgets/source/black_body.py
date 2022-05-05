@@ -9,7 +9,7 @@ from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-from xoppylib.xoppy_run_binaries import xoppy_calc_black_body
+from xoppylib.sources.xoppy_calc_black_body import xoppy_calc_black_body
 
 class OWblack_body(XoppyWidget):
     name = "Black Body"
@@ -120,7 +120,7 @@ class OWblack_body(XoppyWidget):
 #
 # script to make the calculations (created by XOPPY:black_body)
 #
-from xoppylib.xoppy_run_binaries import xoppy_calc_black_body
+from xoppylib.sources.xoppy_calc_black_body import xoppy_calc_black_body
 
 out_dict =  xoppy_calc_black_body(
         TITLE       = "{TITLE}",
