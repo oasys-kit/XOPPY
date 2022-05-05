@@ -16,9 +16,9 @@ from oasys.widgets.gui import ConfirmDialog
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-from xoppylib.power3d import integral_2d, integral_3d, info_total_power
-from xoppylib.power3d import calculate_component_absorbance_and_transmittance, apply_transmittance_to_incident_beam
-from xoppylib.power3d import load_radiation_from_h5file, write_radiation_to_h5file, write_txt_file, write_h5_file
+from xoppylib.power.power3d import integral_2d, integral_3d, info_total_power
+from xoppylib.power.power3d import calculate_component_absorbance_and_transmittance, apply_transmittance_to_incident_beam
+from xoppylib.power.power3d import load_radiation_from_h5file, write_radiation_to_h5file, write_txt_file, write_h5_file
 
 from syned.widget.widget_decorator import WidgetDecorator
 from syned.beamline.optical_elements.absorbers.filter import Filter
@@ -362,7 +362,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         received_data.add_content("xoppy_data", [p, e, h, v])
         received_data.add_content("xoppy_code", code)
         received_data.add_content("xoppy_script",
-                'from xoppylib.power3d import load_radiation_from_h5file\n' +
+                'from xoppylib.power.power3d import load_radiation_from_h5file\n' +
                 'energy, horizontal, vertical, flux3D, code = load_radiation_from_h5file("%s", "XOPPY_RADIATION")\n\n' %
                 self.INPUT_BEAM_FILE)
         self.input_beam = received_data
@@ -533,8 +533,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
 #
 
 import numpy
-from xoppylib.power3d import calculate_component_absorbance_and_transmittance
-from xoppylib.power3d import apply_transmittance_to_incident_beam
+from xoppylib.power.power3d import calculate_component_absorbance_and_transmittance
+from xoppylib.power.power3d import apply_transmittance_to_incident_beam
 
 # compute local transmittance and absorbance
 e0, h0, v0, f0  = energy, horizontal, vertical, flux3D
@@ -584,7 +584,7 @@ energy, horizontal, vertical, flux3D = e, h, v, f_transmitted
 #
 from srxraylib.plot.gol import plot_image
 import scipy.constants as codata
-from xoppylib.power3d import integral_2d
+from xoppylib.power.power3d import integral_2d
 
 # transmitted/reflected beam
 

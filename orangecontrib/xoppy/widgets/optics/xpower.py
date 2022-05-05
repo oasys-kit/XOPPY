@@ -6,14 +6,16 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
-from xoppylib.power.xoppy_calc_xpower import xoppy_calc_xpower
+from xoppylib.power.xoppy_calc_power import xoppy_calc_power
 # from xoppylib.xoppy_xraylib_util import xpower_calc
 
 from oasys.widgets.exchange import DataExchangeObject
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-
 import scipy.constants as codata
+
+import xraylib
+from dabax.dabax_xraylib import DabaxXraylib
 
 class OWxpower(XoppyWidget):
     name = "POWER"
@@ -64,6 +66,8 @@ class OWxpower(XoppyWidget):
     EL5_DEN = Setting("?")
     PLOT_SETS = Setting(2)
     FILE_DUMP = 0
+
+    MATERIAL_CONSTANT_LIBRARY_FLAG = Setting(0) # not yet interfaced, to be done
 
     input_spectrum = None
     input_script = None
@@ -687,30 +691,42 @@ class OWxpower(XoppyWidget):
         roughness_str += "]"
         flags_str += "]"
 
-        out_dictionary = xoppy_calc_xpower(
-                                                energies,
-                                                source,
-                                                substance = substance,
-                                                thick     = thick    ,
-                                                angle     = angle    ,
-                                                dens      = dens     ,
-                                                roughness = roughness,
-                                                flags     = flags    ,
-                                                NELEMENTS = self.NELEMENTS + 1,
-                                                FILE_DUMP = self.FILE_DUMP,
+
+
+        if self.MATERIAL_CONSTANT_LIBRARY_FLAG == 0:
+            material_constants_library = xraylib
+            material_constants_library_str = "xraylib"
+        else:
+            material_constants_library = DabaxXraylib()
+            material_constants_library_str = 'DabaxXraylib()'
+            print(material_constants_library.info())
+
+        out_dictionary = xoppy_calc_power(
+            energies,
+            source,
+            substance                  = substance,
+            thick                      = thick    ,
+            angle                      = angle    ,
+            dens                       = dens     ,
+            roughness                  = roughness,
+            flags                      = flags    ,
+            NELEMENTS                  = self.NELEMENTS + 1,
+            FILE_DUMP                  = self.FILE_DUMP,
+            material_constants_library = material_constants_library,
                                                 )
 
         print(out_dictionary["info"])
 
         dict_parameters = {
-            "substance" : substance_str,
-            "thick"     : thick_str,
-            "angle"     : angle_str,
-            "dens"      : dens_str,
-            "roughness" : roughness_str,
-            "flags"     : flags_str,
-            "NELEMENTS" : self.NELEMENTS + 1,
-            "FILE_DUMP" : self.FILE_DUMP,
+            "substance"                 : substance_str,
+            "thick"                     : thick_str,
+            "angle"                     : angle_str,
+            "dens"                      : dens_str,
+            "roughness"                 : roughness_str,
+            "flags"                     : flags_str,
+            "NELEMENTS"                 : self.NELEMENTS + 1,
+            "FILE_DUMP"                 : self.FILE_DUMP,
+            "material_constants_library": material_constants_library_str,
         }
 
         script_element = self.script_template().format_map(dict_parameters)
@@ -729,9 +745,11 @@ class OWxpower(XoppyWidget):
 #
 
 import numpy
-from xoppylib.power.xoppy_calc_xpower import xoppy_calc_xpower
+from xoppylib.power.xoppy_calc_power import xoppy_calc_power
+import xraylib
+from dabax.dabax_xraylib import DabaxXraylib
 
-out_dictionary = xoppy_calc_xpower(
+out_dictionary = xoppy_calc_power(
         energy,
         spectral_power,
         substance = {substance},
@@ -742,6 +760,7 @@ out_dictionary = xoppy_calc_xpower(
         flags     = {flags}, # 0=Filter, 1=Mirror
         NELEMENTS = {NELEMENTS},
         FILE_DUMP = {FILE_DUMP},
+        material_constants_library = {material_constants_library},
         )
 
 

@@ -10,7 +10,7 @@ from oasys.widgets.exchange import DataExchangeObject
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 from xoppylib.xoppy_xraylib_util import nist_compound_list
-from xoppylib.scattering_functions.dabax_files import dabax_f0_files
+from dabax.dabax_files import dabax_f0_files
 from xoppylib.scattering_functions.xoppy_calc_f0 import xoppy_calc_f0
 
 import xraylib

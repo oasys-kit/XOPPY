@@ -12,7 +12,7 @@ from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-from xoppylib import srundplug
+from xoppylib.sources.srundplug import tuning_curves_on_slit
 
 from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
@@ -436,7 +436,7 @@ class OWtc_slit(XoppyWidget):
         # for i in range(self.HARMONICS+1):
         #     if i % 2 != 0: harmonics.append(i)
 
-        K_scan,harmonics,power_array, energy_values_at_flux_peak,flux_values = srundplug.tuning_curves_on_slit(bl,
+        K_scan,harmonics,power_array, energy_values_at_flux_peak,flux_values = tuning_curves_on_slit(bl,
                     Kmin=self.KMIN,
                     Kmax=self.KMAX,
                     Kpoints=self.KPOINTS,
@@ -488,7 +488,7 @@ class OWtc_slit(XoppyWidget):
 # script to make the calculations (created by XOPPY:tc_slit)
 #
 from collections import OrderedDict
-from xoppylib import srundplug
+from xoppylib.sources.srundplug import tuning_curves_on_slit
 
 
 bl = OrderedDict()
@@ -509,7 +509,7 @@ bl['gapVcenter']              = 0.0
 
 harmonics = "{HARMONICS}".split(",")
 
-K_scan,harmonics,power_array, energy_values_at_flux_peak,flux_values = srundplug.tuning_curves_on_slit(bl,
+K_scan,harmonics,power_array, energy_values_at_flux_peak,flux_values = tuning_curves_on_slit(bl,
     Kmin={Kmin},
     Kmax={Kmax},
     Kpoints={Kpoints},

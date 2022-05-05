@@ -7,7 +7,7 @@ from oasys.widgets import gui as oasysgui, congruence
 from orangewidget.settings import Setting
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-from xoppylib.xoppy_bm_wiggler import xoppy_calc_bm
+from xoppylib.sources.xoppy_bm_wiggler import xoppy_calc_bm
 
 from oasys.widgets.exchange import DataExchangeObject
 
@@ -358,9 +358,9 @@ class OWbm(XoppyWidget, WidgetDecorator):
 #
 # script to make the calculations (created by XOPPY:bm)
 #
-from xoppylib.xoppy_bm_wiggler import xoppy_calc_bm
+from xoppylib.sources.xoppy_bm_wiggler import xoppy_calc_bm
 
-# for full description of inputs and outputs see https://github.com/oasys-kit/xoppylib/blob/main/xoppylib/xoppy_bm_wiggler.py
+# for full description of inputs and outputs see https://github.com/oasys-kit/xoppylib/blob/main/xoppylib/sources/xoppy_bm_wiggler.py
 # TYPE_CALC: 
 # 0: 'Energy or Power spectra'
 # 1: 'Angular distribution (all wavelengths)'

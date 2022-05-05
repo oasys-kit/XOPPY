@@ -10,6 +10,10 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
 from xoppylib.xoppy_xraylib_util import nist_compound_list, density_element, density_nist
 from xoppylib.scattering_functions.xoppy_calc_f1f2 import xoppy_calc_f1f2
+from dabax.dabax_files import dabax_f1f2_files
+
+import xraylib
+from dabax.dabax_xraylib import DabaxXraylib
 
 
 class OWxf1f2(XoppyWidget):
@@ -38,6 +42,9 @@ class OWxf1f2(XoppyWidget):
     THETAN       = Setting(50)
     DUMP_TO_FILE = Setting(0)  # No
     FILE_NAME    = Setting("f1f2.dat")
+
+    MATERIAL_CONSTANT_LIBRARY_FLAG = Setting(0)
+    DABAX_F1F2_FILE_INDEX = Setting(0)
 
     xtitle = None
     ytitle = None
@@ -194,7 +201,30 @@ class OWxf1f2(XoppyWidget):
                      label=self.unitLabels()[idx], addSpace=True)
         self.show_at(self.unitFlags()[idx], box1)
 
+        #
+        #
+        #
 
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Material Library", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+
+
+        # widget index 17
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "MATERIAL_CONSTANT_LIBRARY_FLAG",
+                     label=self.unitLabels()[idx], addSpace=True,
+                     items=["xraylib [default]", "dabax"],
+                     orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
+        # widget index 18
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "DABAX_F1F2_FILE_INDEX",
+                     label=self.unitLabels()[idx], addSpace=True,
+                     items=dabax_f1f2_files(),
+                     orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
 
         gui.rubber(self.controlArea)
 
@@ -216,7 +246,9 @@ class OWxf1f2(XoppyWidget):
                  'To [mrad]',  #   (self.CALCULATE  ==  0 or (
                  'Number of angular points',  #   (self.CALCULATE  ==  0 or (
                  'Dump to file',
-                 'File name']
+                 'File name',
+                 'Material Library',
+                 'dabax f0 file']
 
 
     def unitFlags(self):
@@ -235,7 +267,9 @@ class OWxf1f2(XoppyWidget):
                  '(self.CALCULATE  == 7 or  self.CALCULATE == 8 or self.CALCULATE  == 9)  &  self.THETAGRID  ==  1',
                  '(self.CALCULATE  == 7 or  self.CALCULATE == 8 or self.CALCULATE  == 9)  &  self.THETAGRID  ==  1',
                  'True',
-                 'self.DUMP_TO_FILE == 1']
+                 'self.DUMP_TO_FILE == 1',
+                 'True',
+                 'self.MATERIAL_CONSTANT_LIBRARY_FLAG == 1']
 
     def get_help_name(self):
         return 'f1f2'
@@ -288,43 +322,54 @@ class OWxf1f2(XoppyWidget):
         print("Using descriptor: %s" % descriptor)
         print("Using density: %6.3f" % density)
 
+
+        if self.MATERIAL_CONSTANT_LIBRARY_FLAG == 0:
+            material_constants_library = xraylib
+            material_constants_library_str = "xraylib"
+        else:
+            material_constants_library = DabaxXraylib(file_f1f2=dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX])
+            material_constants_library_str = 'DabaxXraylib(file_f1f2="%s")' % (dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX])
+            print(material_constants_library.info())
+
         out_dict = xoppy_calc_f1f2(
-            descriptor   = descriptor  ,
-            density      = density     ,
-            MAT_FLAG     = self.MAT_FLAG    ,
-            CALCULATE    = self.CALCULATE   ,
-            GRID         = self.GRID        ,
-            GRIDSTART    = self.GRIDSTART   ,
-            GRIDEND      = self.GRIDEND     ,
-            GRIDN        = self.GRIDN       ,
-            THETAGRID    = self.THETAGRID   ,
-            ROUGH        = self.ROUGH       ,
-            THETA1       = self.THETA1      ,
-            THETA2       = self.THETA2      ,
-            THETAN       = self.THETAN      ,
-            DUMP_TO_FILE = self.DUMP_TO_FILE,
-            FILE_NAME    = self.FILE_NAME   ,
+            descriptor                 = descriptor  ,
+            density                    = density     ,
+            MAT_FLAG                   = self.MAT_FLAG    ,
+            CALCULATE                  = self.CALCULATE   ,
+            GRID                       = self.GRID        ,
+            GRIDSTART                  = self.GRIDSTART   ,
+            GRIDEND                    = self.GRIDEND     ,
+            GRIDN                      = self.GRIDN       ,
+            THETAGRID                  = self.THETAGRID   ,
+            ROUGH                      = self.ROUGH       ,
+            THETA1                     = self.THETA1      ,
+            THETA2                     = self.THETA2      ,
+            THETAN                     = self.THETAN      ,
+            DUMP_TO_FILE               = self.DUMP_TO_FILE,
+            FILE_NAME                  = self.FILE_NAME   ,
+            material_constants_library = material_constants_library,
         )
 
         if "info" in out_dict.keys():
             print(out_dict["info"])
 
         dict_parameters = {
-            "descriptor"   : descriptor  ,
-            "density"      : density     ,
-            "MAT_FLAG"     : self.MAT_FLAG    ,
-            "CALCULATE"    : self.CALCULATE   ,
-            "GRID"         : self.GRID        ,
-            "GRIDSTART"    : self.GRIDSTART   ,
-            "GRIDEND"      : self.GRIDEND     ,
-            "GRIDN"        : self.GRIDN       ,
-            "THETAGRID"    : self.THETAGRID   ,
-            "ROUGH"        : self.ROUGH       ,
-            "THETA1"       : self.THETA1      ,
-            "THETA2"       : self.THETA2      ,
-            "THETAN"       : self.THETAN      ,
-            "DUMP_TO_FILE" : self.DUMP_TO_FILE,
-            "FILE_NAME"    : self.FILE_NAME   ,
+            "descriptor"                 : descriptor  ,
+            "density"                    : density     ,
+            "MAT_FLAG"                   : self.MAT_FLAG    ,
+            "CALCULATE"                  : self.CALCULATE   ,
+            "GRID"                       : self.GRID        ,
+            "GRIDSTART"                  : self.GRIDSTART   ,
+            "GRIDEND"                    : self.GRIDEND     ,
+            "GRIDN"                      : self.GRIDN       ,
+            "THETAGRID"                  : self.THETAGRID   ,
+            "ROUGH"                      : self.ROUGH       ,
+            "THETA1"                     : self.THETA1      ,
+            "THETA2"                     : self.THETA2      ,
+            "THETAN"                     : self.THETAN      ,
+            "DUMP_TO_FILE"               : self.DUMP_TO_FILE,
+            "FILE_NAME"                  : self.FILE_NAME   ,
+            "material_constants_library" : material_constants_library_str,
             }
 
         script = self.script_template().format_map(dict_parameters)
@@ -339,6 +384,9 @@ class OWxf1f2(XoppyWidget):
 # script to make the calculations (created by XOPPY:xf1f2)
 #
 from xoppylib.scattering_functions.xoppy_calc_f1f2 import xoppy_calc_f1f2
+import xraylib
+from dabax.dabax_xraylib import DabaxXraylib
+
 out_dict =  xoppy_calc_f1f2(
         descriptor   = "{descriptor}",
         density      = {density},
@@ -355,6 +403,7 @@ out_dict =  xoppy_calc_f1f2(
         THETAN       = {THETAN},
         DUMP_TO_FILE = {DUMP_TO_FILE},
         FILE_NAME    = "{FILE_NAME}",
+        material_constants_library = {material_constants_library},
     )
 
 #
