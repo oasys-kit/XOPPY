@@ -7,7 +7,6 @@ from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
 from xoppylib.power.xoppy_calc_power import xoppy_calc_power
-# from xoppylib.xoppy_xraylib_util import xpower_calc
 
 from oasys.widgets.exchange import DataExchangeObject
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget

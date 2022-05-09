@@ -9,8 +9,8 @@ from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-from xoppylib.xoppy_xraylib_util import nist_compound_list
 from dabax.dabax_files import dabax_f0_files
+
 from xoppylib.scattering_functions.xoppy_calc_f0 import xoppy_calc_f0
 
 import xraylib
@@ -68,7 +68,7 @@ class OWxf0(XoppyWidget):
         #widget index 3
         idx += 1
         box1 = gui.widgetBox(box)
-        self.nist_list = nist_compound_list()
+        self.nist_list = xraylib.GetCompoundDataNISTList()
         gui.comboBox(box1, self, "NIST_NAME",
                      label=self.unitLabels()[idx], addSpace=False,
                     items=self.nist_list,

@@ -1,20 +1,14 @@
-import sys
-
-from PyQt5.QtWidgets import QApplication, QSizePolicy, QTextEdit, QFileDialog, QMessageBox, QWidget
-
 from orangewidget import gui
 from orangewidget.settings import Setting
+
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
-from xoppylib.xoppy_xraylib_util import mare_calc
-from xraylib import Crystal_GetCrystalsList
-
-from orangecontrib.xoppy.util.script.python_script import PythonConsole
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-
-from PyQt5 import QtWidgets
 from orangecontrib.xoppy.util.python_script import PythonScript
+
+from xoppylib.crystals.mare_calc import mare_calc
+from xraylib import Crystal_GetCrystalsList
 
 class OWmare(XoppyWidget):
     name = "MARE"
@@ -273,6 +267,9 @@ class OWmare(XoppyWidget):
 
 
 if __name__ == "__main__":
+    import sys
+    from PyQt5.QtWidgets import QApplication
+
     app = QApplication(sys.argv)
     w = OWmare()
     w.show()

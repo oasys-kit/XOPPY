@@ -8,7 +8,6 @@ from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-from xoppylib.xoppy_xraylib_util import nist_compound_list, density_element, density_nist
 from xoppylib.scattering_functions.xoppy_calc_f1f2 import xoppy_calc_f1f2
 from dabax.dabax_files import dabax_f1f2_files
 
@@ -79,7 +78,7 @@ class OWxf1f2(XoppyWidget):
         #widget index 5
         idx += 1
         box1 = gui.widgetBox(box)
-        self.nist_list = nist_compound_list()
+        self.nist_list = xraylib.GetCompoundDataNISTList()
         gui.comboBox(box1, self, "NIST_NAME",
                     label=self.unitLabels()[idx], addSpace=False,
                     items=self.nist_list,
@@ -248,7 +247,7 @@ class OWxf1f2(XoppyWidget):
                  'Dump to file',
                  'File name',
                  'Material Library',
-                 'dabax f0 file']
+                 'dabax f1f2 file']
 
 
     def unitFlags(self):
@@ -299,13 +298,24 @@ class OWxf1f2(XoppyWidget):
             self.THETAGRID = 0
 
     def do_xoppy_calculation(self):
+
+        if self.MATERIAL_CONSTANT_LIBRARY_FLAG == 0:
+            material_constants_library = xraylib
+            material_constants_library_str = "xraylib"
+        else:
+            material_constants_library = DabaxXraylib(file_f1f2=dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX])
+            material_constants_library_str = 'DabaxXraylib(file_f1f2="%s")' % (dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX])
+            print(material_constants_library.info())
+
+
         if self.MAT_FLAG == 0: # element
             descriptor = self.DESCRIPTOR
             # density = element_density(DESCRIPTOR)
             try:
                 density = float(self.DENSITY)
             except:
-                density = density_element(self.DESCRIPTOR, verbose=True)
+                Z = material_constants_library.SymbolToAtomicNumber(self.DESCRIPTOR)
+                density = material_constants_library.ElementDensity(Z)
         elif self.MAT_FLAG == 1: # compund
             descriptor = self.DESCRIPTOR
             try:
@@ -317,19 +327,11 @@ class OWxf1f2(XoppyWidget):
             try:
                 density = float(self.DENSITY)
             except:
-                density = density_nist(descriptor, verbose=True)
+                cp = xraylib.GetCompoundDataNISTByIndex(self.NIST_NAME)
+                density = cp["density"]
 
         print("Using descriptor: %s" % descriptor)
         print("Using density: %6.3f" % density)
-
-
-        if self.MATERIAL_CONSTANT_LIBRARY_FLAG == 0:
-            material_constants_library = xraylib
-            material_constants_library_str = "xraylib"
-        else:
-            material_constants_library = DabaxXraylib(file_f1f2=dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX])
-            material_constants_library_str = 'DabaxXraylib(file_f1f2="%s")' % (dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX])
-            print(material_constants_library.info())
 
         out_dict = xoppy_calc_f1f2(
             descriptor                 = descriptor  ,

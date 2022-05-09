@@ -8,9 +8,9 @@ from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-# from shadow4.physical_models.mlayer.mlayer import MLayer
 from xoppylib.mlayer import MLayer
 from xoppylib.xoppy_xraylib_util import density
+from xoppylib.xoppy_xraylib_util import Refractive_Index_Re_Extended_NIST, Refractive_Index_Im_Extended_NIST
 
 class OWMlultilayer(XoppyWidget):
     name = "Multilayer"
