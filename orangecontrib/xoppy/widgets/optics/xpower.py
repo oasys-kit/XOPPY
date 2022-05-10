@@ -690,8 +690,6 @@ class OWxpower(XoppyWidget):
         roughness_str += "]"
         flags_str += "]"
 
-
-
         if self.MATERIAL_CONSTANT_LIBRARY_FLAG == 0:
             material_constants_library = xraylib
             material_constants_library_str = "xraylib"
@@ -709,7 +707,7 @@ class OWxpower(XoppyWidget):
             dens                       = dens     ,
             roughness                  = roughness,
             flags                      = flags    ,
-            NELEMENTS                  = self.NELEMENTS + 1,
+            nelements                  = self.NELEMENTS + 1,
             FILE_DUMP                  = self.FILE_DUMP,
             material_constants_library = material_constants_library,
                                                 )
@@ -723,7 +721,7 @@ class OWxpower(XoppyWidget):
             "dens"                      : dens_str,
             "roughness"                 : roughness_str,
             "flags"                     : flags_str,
-            "NELEMENTS"                 : self.NELEMENTS + 1,
+            "nelements"                 : self.NELEMENTS + 1,
             "FILE_DUMP"                 : self.FILE_DUMP,
             "material_constants_library": material_constants_library_str,
         }
@@ -757,7 +755,7 @@ out_dictionary = xoppy_calc_power(
         dens      = {dens},
         roughness = {roughness}, # in A (for mirrors)
         flags     = {flags}, # 0=Filter, 1=Mirror
-        NELEMENTS = {NELEMENTS},
+        nelements = {nelements},
         FILE_DUMP = {FILE_DUMP},
         material_constants_library = {material_constants_library},
         )
