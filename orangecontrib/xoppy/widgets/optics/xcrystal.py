@@ -309,7 +309,7 @@ class OWxcrystal(XoppyWidget):
                 congruence.checkFile(self.FILECOMPLIANCE)
 
     def get_crystal_list(self):
-        crystal_list_xrl = xraylib.Crystal_GetCrystalsList()
+        crystal_list_xrl = list(xraylib.Crystal_GetCrystalsList())
 
         if self.material_constants_library_flag == 0:
             return crystal_list_xrl
