@@ -793,13 +793,18 @@ plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
 
         try:
             calculated_data.add_content("xoppy_data", out_dictionary["data"].T)
+        except:
+            pass
+        try:
             calculated_data.add_content("plot_x_col", 0)
             calculated_data.add_content("plot_y_col", -1)
+        except:
+            pass
+        try:
             calculated_data.add_content("xoppy_script", script)
         except:
             pass
         try:
-            # print(out_dictionary["labels"])
             calculated_data.add_content("labels", out_dictionary["labels"])
         except:
             pass
