@@ -1,5 +1,4 @@
 import sys
-import numpy
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
 from orangewidget import gui
@@ -7,10 +6,13 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
-from orangecontrib.xoppy.util.xoppy_xraylib_util import f1f2_calc, f1f2_calc_mix, f1f2_calc_nist
-from orangecontrib.xoppy.util.xoppy_xraylib_util import nist_compound_list, density_element, density_nist
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
+from xoppylib.scattering_functions.xoppy_calc_f1f2 import xoppy_calc_f1f2
+from dabax.dabax_files import dabax_f1f2_files
+
+import xraylib
+from dabax.dabax_xraylib import DabaxXraylib
 
 
 class OWxf1f2(XoppyWidget):
@@ -22,26 +24,32 @@ class OWxf1f2(XoppyWidget):
     category = ""
     keywords = ["xoppy", "xf1f2"]
 
-    # DATASETS = Setting(1)
-    MAT_FLAG = Setting(0)
-    DESCRIPTOR = Setting("Si")
-    NIST_NAME = Setting(177)
-    DENSITY = Setting("?")
-    CALCULATE = Setting(1)
-    GRID = Setting(0)
-    GRIDSTART = Setting(5000.0)
-    GRIDEND = Setting(25000.0)
-    GRIDN = Setting(100)
-    THETAGRID = Setting(0)
-    ROUGH = Setting(0.0)
-    THETA1 = Setting(2.0)
-    THETA2 = Setting(5.0)
-    THETAN = Setting(50)
+
+    DESCRIPTOR   = Setting("Si")
+    DENSITY      = Setting("?")
+    MAT_FLAG     = Setting(0)
+    NIST_NAME    = Setting(177)
+    CALCULATE    = Setting(1)
+    GRID         = Setting(0)
+    GRIDSTART    = Setting(5000.0)
+    GRIDEND      = Setting(25000.0)
+    GRIDN        = Setting(100)
+    THETAGRID    = Setting(0)
+    ROUGH        = Setting(0.0)
+    THETA1       = Setting(2.0)
+    THETA2       = Setting(5.0)
+    THETAN       = Setting(50)
     DUMP_TO_FILE = Setting(0)  # No
-    FILE_NAME = Setting("f1f2.dat")
+    FILE_NAME    = Setting("f1f2.dat")
+
+    MATERIAL_CONSTANT_LIBRARY_FLAG = Setting(0)
+    DABAX_F1F2_FILE_INDEX = Setting(0)
 
     xtitle = None
     ytitle = None
+
+    def __init__(self):
+        super().__init__(show_script_tab=True)
 
     def build_gui(self):
 
@@ -70,7 +78,7 @@ class OWxf1f2(XoppyWidget):
         #widget index 5
         idx += 1
         box1 = gui.widgetBox(box)
-        self.nist_list = nist_compound_list()
+        self.nist_list = xraylib.GetCompoundDataNISTList()
         gui.comboBox(box1, self, "NIST_NAME",
                     label=self.unitLabels()[idx], addSpace=False,
                     items=self.nist_list,
@@ -192,7 +200,30 @@ class OWxf1f2(XoppyWidget):
                      label=self.unitLabels()[idx], addSpace=True)
         self.show_at(self.unitFlags()[idx], box1)
 
+        #
+        #
+        #
 
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Material Library", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+
+
+        # widget index 17
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "MATERIAL_CONSTANT_LIBRARY_FLAG",
+                     label=self.unitLabels()[idx], addSpace=True,
+                     items=["xraylib [default]", "dabax"],
+                     orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
+        # widget index 18
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "DABAX_F1F2_FILE_INDEX",
+                     label=self.unitLabels()[idx], addSpace=True,
+                     items=dabax_f1f2_files(),
+                     orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
 
         gui.rubber(self.controlArea)
 
@@ -214,7 +245,9 @@ class OWxf1f2(XoppyWidget):
                  'To [mrad]',  #   (self.CALCULATE  ==  0 or (
                  'Number of angular points',  #   (self.CALCULATE  ==  0 or (
                  'Dump to file',
-                 'File name']
+                 'File name',
+                 'Material Library',
+                 'dabax f1f2 file']
 
 
     def unitFlags(self):
@@ -233,7 +266,9 @@ class OWxf1f2(XoppyWidget):
                  '(self.CALCULATE  == 7 or  self.CALCULATE == 8 or self.CALCULATE  == 9)  &  self.THETAGRID  ==  1',
                  '(self.CALCULATE  == 7 or  self.CALCULATE == 8 or self.CALCULATE  == 9)  &  self.THETAGRID  ==  1',
                  'True',
-                 'self.DUMP_TO_FILE == 1']
+                 'self.DUMP_TO_FILE == 1',
+                 'True',
+                 'self.MATERIAL_CONSTANT_LIBRARY_FLAG == 1']
 
     def get_help_name(self):
         return 'f1f2'
@@ -263,21 +298,179 @@ class OWxf1f2(XoppyWidget):
             self.THETAGRID = 0
 
     def do_xoppy_calculation(self):
-        return self.xoppy_calc_xf1f2()
+
+        if self.MATERIAL_CONSTANT_LIBRARY_FLAG == 0:
+            material_constants_library = xraylib
+            material_constants_library_str = "xraylib"
+        else:
+            material_constants_library = DabaxXraylib(file_f1f2=dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX])
+            material_constants_library_str = 'DabaxXraylib(file_f1f2="%s")' % (dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX])
+            print(material_constants_library.info())
+
+
+        if self.MAT_FLAG == 0: # element
+            descriptor = self.DESCRIPTOR
+            # density = element_density(DESCRIPTOR)
+            try:
+                density = float(self.DENSITY)
+            except:
+                Z = material_constants_library.SymbolToAtomicNumber(self.DESCRIPTOR)
+                density = material_constants_library.ElementDensity(Z)
+        elif self.MAT_FLAG == 1: # compund
+            descriptor = self.DESCRIPTOR
+            try:
+                density = float(self.DENSITY)
+            except:
+                raise Exception("Density must be entered.")
+        elif self.MAT_FLAG == 2: # nist list
+            descriptor = self.nist_list[self.NIST_NAME]
+            try:
+                density = float(self.DENSITY)
+            except:
+                cp = xraylib.GetCompoundDataNISTByIndex(self.NIST_NAME)
+                density = cp["density"]
+
+        print("Using descriptor: %s" % descriptor)
+        print("Using density: %6.3f" % density)
+
+        out_dict = xoppy_calc_f1f2(
+            descriptor                 = descriptor  ,
+            density                    = density     ,
+            MAT_FLAG                   = self.MAT_FLAG    ,
+            CALCULATE                  = self.CALCULATE   ,
+            GRID                       = self.GRID        ,
+            GRIDSTART                  = self.GRIDSTART   ,
+            GRIDEND                    = self.GRIDEND     ,
+            GRIDN                      = self.GRIDN       ,
+            THETAGRID                  = self.THETAGRID   ,
+            ROUGH                      = self.ROUGH       ,
+            THETA1                     = self.THETA1      ,
+            THETA2                     = self.THETA2      ,
+            THETAN                     = self.THETAN      ,
+            DUMP_TO_FILE               = self.DUMP_TO_FILE,
+            FILE_NAME                  = self.FILE_NAME   ,
+            material_constants_library = material_constants_library,
+        )
+
+        if "info" in out_dict.keys():
+            print(out_dict["info"])
+
+        dict_parameters = {
+            "descriptor"                 : descriptor  ,
+            "density"                    : density     ,
+            "MAT_FLAG"                   : self.MAT_FLAG    ,
+            "CALCULATE"                  : self.CALCULATE   ,
+            "GRID"                       : self.GRID        ,
+            "GRIDSTART"                  : self.GRIDSTART   ,
+            "GRIDEND"                    : self.GRIDEND     ,
+            "GRIDN"                      : self.GRIDN       ,
+            "THETAGRID"                  : self.THETAGRID   ,
+            "ROUGH"                      : self.ROUGH       ,
+            "THETA1"                     : self.THETA1      ,
+            "THETA2"                     : self.THETA2      ,
+            "THETAN"                     : self.THETAN      ,
+            "DUMP_TO_FILE"               : self.DUMP_TO_FILE,
+            "FILE_NAME"                  : self.FILE_NAME   ,
+            "material_constants_library" : material_constants_library_str,
+            }
+
+        script = self.script_template().format_map(dict_parameters)
+
+        self.xoppy_script.set_code(script)
+
+        return out_dict
+
+    def script_template(self):
+        return """
+#
+# script to make the calculations (created by XOPPY:xf1f2)
+#
+from xoppylib.scattering_functions.xoppy_calc_f1f2 import xoppy_calc_f1f2
+import xraylib
+from dabax.dabax_xraylib import DabaxXraylib
+
+out_dict =  xoppy_calc_f1f2(
+        descriptor   = "{descriptor}",
+        density      = {density},
+        MAT_FLAG     = {MAT_FLAG},
+        CALCULATE    = {CALCULATE},
+        GRID         = {GRID},
+        GRIDSTART    = {GRIDSTART},
+        GRIDEND      = {GRIDEND},
+        GRIDN        = {GRIDN},
+        THETAGRID    = {THETAGRID},
+        ROUGH        = {ROUGH},
+        THETA1       = {THETA1},
+        THETA2       = {THETA2},
+        THETAN       = {THETAN},
+        DUMP_TO_FILE = {DUMP_TO_FILE},
+        FILE_NAME    = "{FILE_NAME}",
+        material_constants_library = {material_constants_library},
+    )
+
+#
+# example plot
+#
+from srxraylib.plot.gol import plot, plot_image
+try:
+    plot(out_dict["data"][0,:],out_dict["data"][-1,:],
+        xtitle=out_dict["labels"][0],ytitle=out_dict["labels"][1],title="xf1f2",
+        xlog=True,ylog=True,show=True)
+except:
+    plot_image(out_dict["data2D"],out_dict["dataX"],out_dict["dataY"],
+        xtitle='Energy [eV]',ytitle='Theta [mrad]',title='Reflectivity',
+        aspect='auto',show=True)
+#
+# end script
+#
+"""
 
     def extract_data_from_xoppy_output(self, calculation_output):
+
+        out_dict = calculation_output
+
+        #send exchange
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+
         try:
-            calculation_output.get_content("data2D")
+            calculated_data.add_content("xoppy_data", out_dict["data"].T)
+            calculated_data.add_content("plot_x_col", 0)
+            calculated_data.add_content("plot_y_col", -1)
+        except:
+            pass
+
+        try:
+            calculated_data.add_content("labels", out_dict["labels"])
+        except:
+            pass
+
+        try:
+            calculated_data.add_content("info", out_dict["info"])
+        except:
+            pass
+
+        try:
+            calculated_data.add_content("data2D", out_dict["data2D"])
+            calculated_data.add_content("dataX", out_dict["dataX"])
+            calculated_data.add_content("dataY", out_dict["dataY"])
+        except:
+            pass
+
+        #
+        # display single point results
+        #
+        try:
+            calculated_data.get_content("data2D")
         except:
             try:
-                tmp = calculation_output.get_content("xoppy_data")
-                labels = calculation_output.get_content("labels")
+                tmp = calculated_data.get_content("xoppy_data")
+                labels = calculated_data.get_content("labels")
 
                 self.xtitle = labels[0]
                 self.ytitle = labels[1]
 
                 if tmp.shape == (1, 2): # single value calculation
-                    message = calculation_output.get_content("info")
+                    message = calculated_data.get_content("info")
                     QMessageBox.information(self,
                                             "Calculation Result",
                                             "Calculation Result:\n %s"%message,
@@ -286,13 +479,14 @@ class OWxf1f2(XoppyWidget):
             except:
                 QMessageBox.information(self,
                                         "Calculation Result",
-                                        "Calculation Result:\n"+calculation_output.get_content("info"),
+                                        "Calculation Result:\n"+calculated_data.get_content("info"),
                                         QMessageBox.Ok)
 
                 self.xtitle = None
                 self.ytitle = None
 
-        return calculation_output
+        return calculated_data
+
 
     def plot_results(self, calculated_data, progressBarValue=80):
         if not self.view_type == 0:
@@ -315,10 +509,7 @@ class OWxf1f2(XoppyWidget):
                                          ytitle='Theta [mrad]',
                                          title='Reflectivity')
                     except:
-                        try:
-                            self.plot_info(calculated_data.get_content("info") + "\n", progressBarValue, 0, 0)
-                        except:
-                            pass
+                        pass
 
             else:
                 raise Exception("Empty Data")
@@ -355,149 +546,6 @@ class OWxf1f2(XoppyWidget):
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(False)
             self.plot_canvas[plot_canvas_index].setDefaultPlotPoints(True)
 
-
-    def xoppy_calc_xf1f2(self):
-
-        MAT_FLAG   = self.MAT_FLAG
-        # DESCRIPTOR = self.DESCRIPTOR
-        # density    = self.DENSITY
-        CALCULATE  = self.CALCULATE
-        GRID       = self.GRID
-        GRIDSTART  = self.GRIDSTART
-        GRIDEND    = self.GRIDEND
-        GRIDN      = self.GRIDN
-        THETAGRID  = self.THETAGRID
-        ROUGH      = self.ROUGH
-        THETA1     = self.THETA1
-        THETA2     = self.THETA2
-        THETAN     = self.THETAN
-
-        if MAT_FLAG == 0: # element
-            descriptor = self.DESCRIPTOR
-            # density = element_density(DESCRIPTOR)
-            try:
-                density = float(self.DENSITY)
-            except:
-                density = density_element(self.DESCRIPTOR, verbose=True)
-        elif MAT_FLAG == 1: # compund
-            descriptor = self.DESCRIPTOR
-            try:
-                density = float(self.DENSITY)
-            except:
-                raise Exception("Density must be entered.")
-        elif MAT_FLAG == 2: # nist list
-            descriptor = self.nist_list[self.NIST_NAME]
-            try:
-                density = float(self.DENSITY)
-            except:
-                density = density_nist(descriptor, verbose=True)
-
-        print("Using density: %6.3f"%density)
-        if GRID == 0: # standard energy grid
-            energy = numpy.arange(0,500)
-            elefactor = numpy.log10(10000.0 / 30.0) / 300.0
-            energy = 10.0 * 10**(energy * elefactor)
-        elif GRID == 1: # user energy grid
-            if GRIDN == 1:
-                energy = numpy.array([GRIDSTART])
-            else:
-                energy = numpy.linspace(GRIDSTART,GRIDEND,GRIDN)
-        elif GRID == 2: # single energy point
-            energy = numpy.array([GRIDSTART])
-
-        if THETAGRID == 0:
-            theta = numpy.array([THETA1])
-        else:
-            theta = numpy.linspace(THETA1,THETA2,THETAN)
-
-
-        CALCULATE_items=['f1', 'f2', 'delta', 'beta', 'mu [cm^-1]', 'mu [cm^2/g]', 'Cross Section [barn]', 'reflectivity-s', 'reflectivity-p', 'reflectivity-unpol', 'delta/beta ']
-
-        out = numpy.zeros((energy.size,theta.size))
-        for i,itheta in enumerate(theta):
-            if MAT_FLAG == 0: # element
-                tmp = f1f2_calc(descriptor,energy,1e-3*itheta,F=1+CALCULATE,rough=ROUGH,density=density)
-                out[:,i] = tmp
-            elif MAT_FLAG == 1:  # compound
-                tmp = f1f2_calc_mix(descriptor,energy,1e-3*itheta,F=1+CALCULATE,rough=ROUGH,density=density)
-                out[:,i] = tmp
-            elif MAT_FLAG == 2:  # nist list
-                tmp = f1f2_calc_nist(descriptor,energy,1e-3*itheta,F=1+CALCULATE,rough=ROUGH,density=density)
-                out[:,i] = tmp
-
-        if ((energy.size == 1) and (theta.size == 1)):
-            info = "** Single value calculation E=%g eV, theta=%g mrad, Result(F=%d)=%g "%(energy[0],theta[0],1+CALCULATE,out[0,0])
-            labels = ["Energy [eV]",CALCULATE_items[CALCULATE]]
-            tmp = numpy.vstack((energy,out[:,0]))
-            out_dict = {"application":"xoppy","name":"xf12","info":info, "data":tmp,"labels":labels}
-        elif theta.size == 1:
-            tmp = numpy.vstack((energy,out[:,0]))
-            labels = ["Energy [eV]",CALCULATE_items[CALCULATE]]
-            out_dict = {"application":"xoppy","name":"xf12","data":tmp,"labels":labels}
-        elif energy.size == 1:
-            tmp = numpy.vstack((theta,out[0,:]))
-            labels = ["Theta [mrad]",CALCULATE_items[CALCULATE]]
-            out_dict = {"application":"xoppy","name":"xf12","data":tmp,"labels":labels}
-        else:
-            labels = [r"energy[eV]",r"theta [mrad]"]
-            out_dict = {"application":"xoppy","name":"xf12","data2D":out,"dataX":energy,"dataY":theta,"labels":labels}
-
-        #
-        #
-        #
-        if "info" in out_dict.keys():
-            print(out_dict["info"])
-
-        #send exchange
-        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
-
-        try:
-            calculated_data.add_content("xoppy_data", out_dict["data"].T)
-            calculated_data.add_content("plot_x_col", 0)
-            calculated_data.add_content("plot_y_col", -1)
-        except:
-            pass
-
-        try:
-            calculated_data.add_content("labels", out_dict["labels"])
-        except:
-            pass
-
-        try:
-            calculated_data.add_content("info", out_dict["info"])
-        except:
-            pass
-
-        try:
-            calculated_data.add_content("data2D", out_dict["data2D"])
-            calculated_data.add_content("dataX", out_dict["dataX"])
-            calculated_data.add_content("dataY", out_dict["dataY"])
-        except:
-            pass
-
-
-        if self.DUMP_TO_FILE:
-            with open(self.FILE_NAME, "w") as file:
-                try:
-                    file.write("#F %s\n"%self.FILE_NAME)
-                    file.write("\n#S 1 xoppy f1f2 results\n")
-
-                    print("data shape",out_dict["data"].shape)
-                    print("labels: ",out_dict["labels"])
-                    file.write("#N 2\n")
-                    file.write("#L  %s  %s\n"%(out_dict["labels"][0],out_dict["labels"][1]))
-                    out = out_dict["data"]
-                    for j in range(out.shape[1]):
-                        file.write(("%19.12e  "*out.shape[0]+"\n")%tuple(out[i,j] for i in range(out.shape[0])))
-                    file.close()
-                    print("File written to disk: %s \n"%self.FILE_NAME)
-                except:
-                    raise Exception("CrossSec: The data could not be dumped onto the specified file!\n")
-
-
-
-
-        return calculated_data
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

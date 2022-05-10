@@ -1,4 +1,0 @@
-['Magnetic field: ','Number of periods','Wiggler period [m]','K value','Beam energy [GeV]','Min Photon Energy [eV]','Max Photon Energy [eV]','Number of energy points','Energy points spacing','Number of traj points per period','Electron Beam Current [mA]','File with Magnetic Field']
-['True','True','self.FIELD  !=  1','self.FIELD  ==  0','True','True','True','True','True','self.FIELD  !=  1','True','self.FIELD  !=  0']
-['FIELD','NPERIODS','ULAMBDA','K','ENERGY','PHOT_ENERGY_MIN','PHOT_ENERGY_MAX','NPOINTS','LOGPLOT','NTRAJPOINTS','CURRENT','FILE']
-['True','True','self.FIELD  !=  1','self.FIELD  ==  0','True','True','True','True','True','self.FIELD  !=  1','True','self.FIELD  !=  0']

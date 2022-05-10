@@ -1,4 +1,0 @@
-['Type of calculation','Machine name','B from:','Machine Radius [m]','Magnetic Field [T]','Beam energy [GeV]','Beam Current [A]','Horizontal div Theta [mrad]','Psi (vertical div) for energy spectra','Min Photon Energy [eV]','Max Photon Energy [eV]','Number of energy points','Separation between energy points','Max Psi[mrad] for angular plots','Psi min [mrad]','Psi max [mrad]','Number of Psi points']
-['True','True','True','self.RB_CHOICE  ==  0','self.RB_CHOICE  ==  1','True','True','True','True','True','True','True','True','True','self.VER_DIV  >=  2','self.VER_DIV  ==  2','self.VER_DIV  ==  2']
-['TYPE_CALC','MACHINE_NAME','RB_CHOICE','MACHINE_R_M','BFIELD_T','BEAM_ENERGY_GEV','CURRENT_A','HOR_DIV_MRAD','VER_DIV','PHOT_ENERGY_MIN','PHOT_ENERGY_MAX','NPOINTS','LOG_CHOICE','PSI_MRAD_PLOT','PSI_MIN','PSI_MAX','PSI_NPOINTS']
-['1','1','1','w(2) EQ 0','w(2) EQ 1','1','1','1','1','1','1','1','1','1','w(8) GE 2','w(8) EQ 2','w(8) EQ 2']

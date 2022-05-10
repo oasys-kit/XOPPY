@@ -16,9 +16,9 @@ from oasys.widgets.gui import ConfirmDialog
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-from orangecontrib.xoppy.util.power3d import integral_2d, integral_3d, info_total_power
-from orangecontrib.xoppy.util.power3d import calculate_component_absorbance_and_transmittance, apply_transmittance_to_incident_beam
-from orangecontrib.xoppy.util.power3d import load_radiation_from_h5file, write_radiation_to_h5file, write_txt_file, write_h5_file
+from xoppylib.power.power3d import integral_2d, integral_3d, info_total_power
+from xoppylib.power.power3d import calculate_component_absorbance_and_transmittance, apply_transmittance_to_incident_beam
+from xoppylib.power.power3d import load_radiation_from_h5file, write_radiation_to_h5file, write_txt_file, write_h5_file
 
 from syned.widget.widget_decorator import WidgetDecorator
 from syned.beamline.optical_elements.absorbers.filter import Filter
@@ -285,7 +285,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         labels.append('Rotation angle around H axis [deg]')
 
         labels.append("Plot")
-        labels.append("Write input beam [h5 for script]")
+        labels.append("Write input beam")
         labels.append("Input beam filename [.h5]")
         labels.append("Write output file")
         labels.append("File name")
@@ -361,6 +361,10 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         received_data = DataExchangeObject("XOPPY", "POWER3DCOMPONENT")
         received_data.add_content("xoppy_data", [p, e, h, v])
         received_data.add_content("xoppy_code", code)
+        received_data.add_content("xoppy_script",
+                'from xoppylib.power.power3d import load_radiation_from_h5file\n' +
+                'energy, horizontal, vertical, flux3D, code = load_radiation_from_h5file("%s", "XOPPY_RADIATION")\n\n' %
+                self.INPUT_BEAM_FILE)
         self.input_beam = received_data
 
         print("Input beam read from file %s \n\n"%self.INPUT_BEAM_FILE)
@@ -504,31 +508,40 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
                 "INTERPOLATION_FACTOR_V" : self.INTERPOLATION_FACTOR_V,
                 "EL1_SLIT_CROP" : self.EL1_SLIT_CROP,
             }
-        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
 
-        return calculated_data
+
+
+        if self.input_beam is not None:
+            try:
+                script_previous = self.input_beam.get_content("xoppy_script")
+            except:
+                script_previous = '#\n# >> MISSING SCRIPT TO CREATE (energy, horizontal, vertical, flux3D) <<\n#\n'
+
+        script_element = self.script_template().format_map(dict_parameters)
+
+        script = script_previous + script_element
+        self.xoppy_script.set_code(script)
+
+        return transmittance, absorbance, E, H, V, script
 
 
     def script_template(self):
         return """
+
 #
 # script to make the calculations (created by XOPPY:power3Dcomponent)
 #
 
 import numpy
-import scipy.constants as codata
-from orangecontrib.xoppy.util.power3d import calculate_component_absorbance_and_transmittance
-from orangecontrib.xoppy.util.power3d import apply_transmittance_to_incident_beam
-from orangecontrib.xoppy.util.power3d import integral_2d
-from orangecontrib.xoppy.util.power3d import load_radiation_from_h5file
+from xoppylib.power.power3d import calculate_component_absorbance_and_transmittance
+from xoppylib.power.power3d import apply_transmittance_to_incident_beam
 
-#
-# compute transmittance
-#
+# compute local transmittance and absorbance
+e0, h0, v0, f0  = energy, horizontal, vertical, flux3D
 transmittance, absorbance, E, H, V, txt = calculate_component_absorbance_and_transmittance(
-                numpy.linspace({emin},{emax},{epoints}), # energy in eV
-                numpy.linspace({hmin},{hmax},{hpoints}), # h in mm
-                numpy.linspace({vmin},{vmax},{vpoints}), # v in mm
+                e0, # energy in eV
+                h0, # h in mm
+                v0, # v in mm
                 substance={EL1_FOR},
                 thick={EL1_THI},
                 angle={EL1_ANG},
@@ -546,14 +559,7 @@ transmittance, absorbance, E, H, V, txt = calculate_component_absorbance_and_tra
                 vrot={EL1_VROT},
                 )
 
-
-#
-# apply transmittance to incident beam that **IS READ FROM FILE** 
-# To write this file, activate the "Write output file" in "Send Settings" tab
-#
-
-e0, h0, v0, f0, code = load_radiation_from_h5file({FILE_INPUT_NAME}, "XOPPY_RADIATION")
-
+# apply transmittance to incident beam 
 f_transmitted, e, h, v = apply_transmittance_to_incident_beam(transmittance, f0, e0, h0, v0,
                                   flags = {EL1_FLAG},
                                   hgap = {EL1_HGAP},
@@ -570,10 +576,15 @@ f_transmitted, e, h, v = apply_transmittance_to_incident_beam(transmittance, f0,
 
 f_absorbed = f0 * absorbance / (H[0] / h0[0]) / (V[0] / v0[0])
 
+# data to pass
+energy, horizontal, vertical, flux3D = e, h, v, f_transmitted
+
 #                       
 # example plots
 #
 from srxraylib.plot.gol import plot_image
+import scipy.constants as codata
+from xoppylib.power.power3d import integral_2d
 
 # transmitted/reflected beam
 
@@ -608,7 +619,8 @@ plot_image(power_density_absorbed, H, V,
     # TO SEND DATA
     def extract_data_from_xoppy_output(self, calculation_output):
 
-        transmittance, absorbance, E, H, V = calculation_output
+        transmittance, absorbance, E, H, V, script = calculation_output
+
         p0, e0, h0, v0 = self.input_beam.get_content("xoppy_data")
 
         p_transmitted, e, h, v = apply_transmittance_to_incident_beam(transmittance, p0, e0, h0, v0,
@@ -628,8 +640,9 @@ plot_image(power_density_absorbed, H, V,
 
         data_to_send = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
         data_to_send.add_content("xoppy_data", [p_transmitted, e, h, v])
-        data_to_send.add_content("xoppy_transmittivity", calculation_output) # TODO: review this part for crop+interp
+        data_to_send.add_content("xoppy_transmittivity", (transmittance, absorbance, E, H, V) ) # TODO: review this part for crop+interp
         data_to_send.add_content("xoppy_code", "power3Dcomponent")
+        data_to_send.add_content("xoppy_script", script)
 
         self.output_beam = data_to_send
 
@@ -891,7 +904,7 @@ plot_image(power_density_absorbed, H, V,
 if __name__ == "__main__":
 
     # # create unulator_radiation xoppy exchange data
-    # from orangecontrib.xoppy.util.xoppy_undulators import xoppy_calc_undulator_radiation
+    # from xoppylib.xoppy_undulators import xoppy_calc_undulator_radiation
     # from oasys.widgets.exchange import DataExchangeObject
     #
     # e, h, v, p, code = xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
@@ -909,7 +922,7 @@ if __name__ == "__main__":
     # received_data.add_content("xoppy_code", code)
 
     # create wiggler_radiation xoppy exchange data
-    from orangecontrib.xoppy.util.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation
+    from xoppylib.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation
 
     h5_parameters = dict()
     h5_parameters["ELECTRONENERGY"] = 3.0

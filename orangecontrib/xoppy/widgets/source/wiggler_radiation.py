@@ -7,7 +7,7 @@ from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-from orangecontrib.xoppy.util.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation, create_magnetic_field_for_bending_magnet
+from xoppylib.sources.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation, create_magnetic_field_for_bending_magnet
 
 from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
@@ -678,7 +678,8 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
 
 
         # write python script
-        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
+        script = self.script_template().format_map(dict_parameters)
+        self.xoppy_script.set_code(script)
 
         e, h, v, p, traj = xoppy_calc_wiggler_radiation(
                 ELECTRONENERGY           = self.ELECTRONENERGY,
@@ -707,7 +708,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
                 h5_parameters            = dict_parameters,
         )
 
-        return e, h, v, p, traj
+        return e, h, v, p, traj, script
 
 
     def script_template(self):
@@ -716,7 +717,7 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
 # script to make the calculations (created by XOPPY:wiggler_radiation)
 #
 
-from orangecontrib.xoppy.util.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation
+from xoppylib.sources.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation
 
 h5_parameters = dict()
 h5_parameters["ELECTRONENERGY"]          = {ELECTRONENERGY}
@@ -740,7 +741,7 @@ h5_parameters["SHIFT_BETAX_VALUE"]       = {SHIFT_BETAX_VALUE}
 h5_parameters["CONVOLUTION"]             = {CONVOLUTION}
 h5_parameters["PASSEPARTOUT"]            = {PASSEPARTOUT}
 
-e, h, v, p, traj = xoppy_calc_wiggler_radiation(
+energy, horizontal, vertical, flux3D, traj = xoppy_calc_wiggler_radiation(
         ELECTRONENERGY           = h5_parameters["ELECTRONENERGY"]         ,
         ELECTRONCURRENT          = h5_parameters["ELECTRONCURRENT"]        ,
         PERIODID                 = h5_parameters["PERIODID"]               ,
@@ -769,20 +770,21 @@ e, h, v, p, traj = xoppy_calc_wiggler_radiation(
 
 # example plot
 from srxraylib.plot.gol import plot_image
-plot_image(p[0],h,v,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%({PHOTONENERGYMIN}),xtitle="H [mm]",ytitle="V [mm]")
+plot_image(flux3D[0],horizontal,vertical,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%({PHOTONENERGYMIN}),xtitle="H [mm]",ytitle="V [mm]")
 #
 # end script
 #
 """
 
     def extract_data_from_xoppy_output(self, calculation_output):
-        e, h, v, p, traj = calculation_output
+        e, h, v, p, traj, script = calculation_output
 
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         calculated_data.add_content("xoppy_data", [p, e, h, v])
         calculated_data.add_content("xoppy_trajectory", traj)
         calculated_data.add_content("xoppy_code", "srfunc")
+        calculated_data.add_content("xoppy_script", script)
         return calculated_data
 
     def get_data_exchange_widget_name(self):

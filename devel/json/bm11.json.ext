@@ -1,3 +1,0 @@
-["Electron energy [GeV]","Electron current [A]","B from","Magnetic radius [m]","Magnetic field [T]"]
-["True", "True", "True", "self.RB_CHOICE == 0", "self.RB_CHOICE == 1"]
-["BEAM_ENERGY_GEV", "CURRENT_A", "RB_CHOICE", "MACHINE_R_M", "BFIELD_T"]

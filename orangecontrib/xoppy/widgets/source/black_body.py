@@ -9,6 +9,8 @@ from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
+from xoppylib.sources.xoppy_calc_black_body import xoppy_calc_black_body
+
 class OWblack_body(XoppyWidget):
     name = "Black Body"
     id = "orange.widgets.datablack_body"
@@ -23,6 +25,9 @@ class OWblack_body(XoppyWidget):
     E_MIN = Setting(10.0)
     E_MAX = Setting(1000.0)
     NPOINTS = Setting(500)
+
+    def __init__(self):
+        super().__init__(show_script_tab=True)
 
     def build_gui(self):
 
@@ -87,16 +92,76 @@ class OWblack_body(XoppyWidget):
 
 
     def do_xoppy_calculation(self):
-        return self.xoppy_calc_black_body()
+
+        out_dict = xoppy_calc_black_body(
+            TITLE       = self.TITLE,
+            TEMPERATURE = self.TEMPERATURE,
+            E_MIN       = self.E_MIN,
+            E_MAX       = self.E_MAX,
+            NPOINTS     = self.NPOINTS,
+        )
+
+        dict_parameters = {
+            "TITLE"       : self.TITLE,
+            "TEMPERATURE" : self.TEMPERATURE,
+            "E_MIN"       : self.E_MIN,
+            "E_MAX"       : self.E_MAX,
+            "NPOINTS"     : self.NPOINTS,
+        }
+
+        script = self.script_template().format_map(dict_parameters)
+
+        self.xoppy_script.set_code(script)
+
+        return out_dict, script
+
+    def script_template(self):
+        return """
+#
+# script to make the calculations (created by XOPPY:black_body)
+#
+from xoppylib.sources.xoppy_calc_black_body import xoppy_calc_black_body
+
+out_dict =  xoppy_calc_black_body(
+        TITLE       = "{TITLE}",
+        TEMPERATURE = {TEMPERATURE},
+        E_MIN       = {E_MIN},
+        E_MAX       = {E_MAX},
+        NPOINTS     = {NPOINTS},
+        )
+
+#
+# example plot
+#
+import numpy
+from srxraylib.plot.gol import plot
+        
+energy = out_dict["data"][:,0]
+brightness = out_dict["data"][:,2]
+spectral_power = out_dict["data"][:,3]
+
+plot(energy,brightness,
+    xtitle="Photon energy [eV]",ytitle="Brightness [Photons/sec/0.1%bw/mm2/mrad2]",title="black_body brightness",
+    xlog=False,ylog=False,show=False)
+plot(energy,spectral_power,
+    xtitle="Photon energy [eV]",ytitle="Spectral Power [W/eV/mrad2/mm2]",title="black_body Spectral Power",
+    xlog=False,ylog=False,show=True)
+
+
+#
+# end script
+#
+"""
 
     def extract_data_from_xoppy_output(self, calculation_output):
-        out_dict = calculation_output
+        out_dict, script = calculation_output
 
         if "info" in out_dict.keys():
             print(out_dict["info"])
 
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
         calculated_data.add_content("xoppy_data", out_dict["data"])
+        calculated_data.add_content("xoppy_script", script)
 
         return calculated_data
 
@@ -118,58 +183,7 @@ class OWblack_body(XoppyWidget):
     def getLogPlot(self):
         return[(False, False), (False, False)]
 
-# --------------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------------
 
-    def xoppy_calc_black_body(self):
-
-        TITLE = self.TITLE
-        TEMPERATURE = self.TEMPERATURE
-        E_MIN = self.E_MIN
-        E_MAX = self.E_MAX
-        NPOINTS = self.NPOINTS
-        try:
-
-            import scipy.constants as codata
-
-            #
-            # text info
-            #
-            kb = codata.Boltzmann / codata.e # eV/K
-            txt = ' \n'
-            txt += 'Results of Black Body Radiation: Planck distribution\n'
-            txt += 'TITLE: %s'%TITLE
-            txt += ' \n'
-            txt += '-------------------------------------------------------------\n'
-            txt += 'Temperature           = %g K\n'%(TEMPERATURE)
-            txt += 'Minimum photon energy = %g eV\n'%(E_MIN)
-            txt += 'Maximum photon energy = %g eV\n'%(E_MAX)
-            txt += '-------------------------------------------------------------\n'
-            txt += 'Kb*T                = %g eV\n'%(TEMPERATURE*kb)
-            txt += 'Peak at 2.822*Kb*T  = %g eV\n'%(2.822*TEMPERATURE*kb)
-            txt += '-------------------------------------------------------------\n'
-
-            # print(txt)
-
-            #
-            # calculation data
-            #
-            e_ev = numpy.linspace(E_MIN,E_MAX,NPOINTS)
-            e_kt = e_ev/(TEMPERATURE*kb)
-            brightness=3.146e11*(TEMPERATURE*kb)**3*e_kt**3/(numpy.exp(e_kt)-1)
-            a3 = numpy.zeros((4,NPOINTS))
-            a3[0,:] = e_ev
-            a3[1,:] = e_kt
-            a3[2,:] = brightness
-            a3[3,:] = brightness*1e3*codata.e
-
-            labels = ["Photon energy [eV]","Photon energy/(Kb*T)", "Brightness [Photons/sec/mm2/mrad2/0.1%bw]", "Spectral Power [Watts/eV/mrad2/mm2]"]
-
-            return {"application":"xoppy","name":"black_body","data":a3.T,"labels":labels,"info":txt}
-
-
-        except Exception as e:
-            raise e
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -1,4 +1,0 @@
-['datasets:','material','table','formula','density','Calculate (i.e. "all","total","compton")','Energy [eV] grid:','Starting Energy [eV]: ','To: ','Number of points','Units']
-['True','True','self.MAT_FLAG  ==  2','self.MAT_FLAG  <=  1 ','self.MAT_FLAG  ==  1  &  self.UNIT  ==  3','True','True','self.GRID  !=  0','self.GRID  ==  1','self.GRID  ==  1','True']
-['DATASETS','MAT_FLAG','MAT_LIST','DESCRIPTOR','DENSITY','CALCULATE','GRID','GRIDSTART','GRIDEND','GRIDN','UNIT']
-['True','True','self.MAT_FLAG  ==  2','self.MAT_FLAG  <=  1 ','self.MAT_FLAG  ==  1  &  self.UNIT  ==  3','True','True','self.GRID  !=  0','self.GRID  ==  1','self.GRID  ==  1','True']

@@ -1,2 +1,0 @@
-undulator_flux
-undulator_power_density

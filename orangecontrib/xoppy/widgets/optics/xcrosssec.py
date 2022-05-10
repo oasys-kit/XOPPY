@@ -1,5 +1,4 @@
 import sys
-import numpy
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
 from orangewidget import gui
@@ -7,11 +6,13 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
-from orangecontrib.xoppy.util.xoppy_xraylib_util import cross_calc, cross_calc_mix, cross_calc_nist
-from orangecontrib.xoppy.util.xoppy_xraylib_util import nist_compound_list, density_element, density_nist
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
-# import xraylib
+from xoppylib.scattering_functions.xoppy_calc_crosssec import xoppy_calc_crosssec
+from dabax.dabax_files import dabax_crosssec_files
+
+import xraylib
+from dabax.dabax_xraylib import DabaxXraylib
 
 
 class OWxcrosssec(XoppyWidget):
@@ -23,21 +24,28 @@ class OWxcrosssec(XoppyWidget):
     category = ""
     keywords = ["xoppy", "xcrosssec"]
 
-    MAT_FLAG = Setting(2)
-    DESCRIPTOR = Setting("Si")
-    MAT_LIST = Setting(177)
-    DENSITY = Setting("?")
-    CALCULATE = Setting(1)
-    GRID = Setting(0)
-    GRIDSTART = Setting(100.0)
-    GRIDEND = Setting(10000.0)
-    GRIDN = Setting(200)
-    UNIT = Setting(0)
+
+    DESCRIPTOR   = Setting("Si")
+    DENSITY      = Setting("?")
+    MAT_FLAG     = Setting(2)
+    MAT_LIST     = Setting(177)
+    CALCULATE    = Setting(1)
+    GRID         = Setting(0)
+    GRIDSTART    = Setting(100.0)
+    GRIDEND      = Setting(10000.0)
+    GRIDN        = Setting(200)
+    UNIT         = Setting(0)
     DUMP_TO_FILE = Setting(0)  # No
-    FILE_NAME = Setting("CrossSec.dat")
+    FILE_NAME    = Setting("CrossSec.dat")
+
+    MATERIAL_CONSTANT_LIBRARY_FLAG = Setting(0)
+    DABAX_CROSSSEC_FILE_INDEX = Setting(0)
 
     xtitle = None
     ytitle = None
+
+    def __init__(self):
+        super().__init__(show_script_tab=True)
 
     def build_gui(self):
 
@@ -57,7 +65,7 @@ class OWxcrosssec(XoppyWidget):
         #widget index 2 
         idx += 1 
         box1 = gui.widgetBox(box)
-        items = nist_compound_list()
+        items = xraylib.GetCompoundDataNISTList()
         gui.comboBox(box1, self, "MAT_LIST",
                      label=self.unitLabels()[idx], addSpace=False,
                      items=items,
@@ -146,7 +154,30 @@ class OWxcrosssec(XoppyWidget):
                      label=self.unitLabels()[idx], addSpace=True)
         self.show_at(self.unitFlags()[idx], box1)
 
+        #
+        #
+        #
 
+        box = oasysgui.widgetBox(self.controlArea, self.name + " Material Library", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+
+
+        # widget index 13
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "MATERIAL_CONSTANT_LIBRARY_FLAG",
+                     label=self.unitLabels()[idx], addSpace=True,
+                     items=["xraylib [default]", "dabax"],
+                     orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
+
+        # widget index 14
+        idx += 1
+        box1 = gui.widgetBox(box)
+        gui.comboBox(box1, self, "DABAX_CROSSSEC_FILE_INDEX",
+                     label=self.unitLabels()[idx], addSpace=True,
+                     items=dabax_crosssec_files(),
+                     orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box1)
 
 
         gui.rubber(self.controlArea)
@@ -155,13 +186,18 @@ class OWxcrosssec(XoppyWidget):
          return ['material','table','formula','density',
                  'Cross section','Energy [eV] grid:',
                  'Starting Energy [eV]: ','To: ','Number of points','Units',
-                 'Dump to file','File name']
+                 'Dump to file','File name',
+                 'Material Library','dabax crosssec file',
+                 ]
 
     def unitFlags(self):
          return ['True','self.MAT_FLAG  ==  2','self.MAT_FLAG  <=  1 ','True',
                  'True','True',
                  'self.GRID  !=  0','self.GRID  ==  1','self.GRID  ==  1','True',
-                 'True','self.DUMP_TO_FILE == 1']
+                 'True','self.DUMP_TO_FILE == 1',
+                 'True',
+                 'self.MATERIAL_CONSTANT_LIBRARY_FLAG == 1',
+                 ]
 
     def get_help_name(self):
         return 'crosssec'
@@ -179,18 +215,129 @@ class OWxcrosssec(XoppyWidget):
 
 
     def do_xoppy_calculation(self):
-        out_dict = self.xoppy_calc_xcrosssec()
+
+        if self.MATERIAL_CONSTANT_LIBRARY_FLAG == 0:
+            material_constants_library = xraylib
+            material_constants_library_str = "xraylib"
+        else:
+            material_constants_library = DabaxXraylib(file_CrossSec=dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX])
+            material_constants_library_str = 'DabaxXraylib(file_CrossSec="%s")' % (dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX])
+            print(material_constants_library.info())
+
+
+        if self.MAT_FLAG == 0: # element
+            descriptor = self.DESCRIPTOR
+            try:
+                density = float(self.DENSITY)
+            except:
+                Z = material_constants_library.SymbolToAtomicNumber(self.DESCRIPTOR)
+                density = material_constants_library.ElementDensity(Z)
+
+        elif self.MAT_FLAG == 1: # compund
+            descriptor = self.DESCRIPTOR
+            try:
+                density = float(self.DENSITY)
+            except:
+                raise Exception("Density must be entered.")
+        elif self.MAT_FLAG == 2: # nist list
+            descriptor = xraylib.GetCompoundDataNISTList()[self.MAT_LIST]
+            try:
+                density = float(self.DENSITY)
+            except:
+                cp = xraylib.GetCompoundDataNISTByIndex(self.MAT_LIST)
+                density = cp["density"]
+
+        print("using descriptor = %s" % descriptor)
+        print("using density = %g g/cm3" % density)
+
+
+
+        out_dict = xoppy_calc_crosssec(
+                descriptor                 = descriptor  ,
+                density                    = density     ,
+                MAT_FLAG                   = self.MAT_FLAG ,
+                CALCULATE                  = self.CALCULATE,
+                GRID                       = self.GRID     ,
+                GRIDSTART                  = self.GRIDSTART,
+                GRIDEND                    = self.GRIDEND  ,
+                GRIDN                      = self.GRIDN    ,
+                UNIT                       = self.UNIT     ,
+                DUMP_TO_FILE               = self.DUMP_TO_FILE,
+                FILE_NAME                  = self.FILE_NAME   ,
+                material_constants_library = material_constants_library,
+        )
 
         if "info" in out_dict.keys():
             print(out_dict["info"])
 
-        #send exchange
+        dict_parameters = {
+                "descriptor"                 : descriptor  ,
+                "density"                    : density     ,
+                "MAT_FLAG"                   : self.MAT_FLAG ,
+                "CALCULATE"                  : self.CALCULATE,
+                "GRID"                       : self.GRID     ,
+                "GRIDSTART"                  : self.GRIDSTART,
+                "GRIDEND"                    : self.GRIDEND  ,
+                "GRIDN"                      : self.GRIDN    ,
+                "UNIT"                       : self.UNIT     ,
+                "DUMP_TO_FILE"               : self.DUMP_TO_FILE,
+                "FILE_NAME"                  : self.FILE_NAME   ,
+                "material_constants_library" : material_constants_library_str,
+            }
+
+        script = self.script_template().format_map(dict_parameters)
+
+        self.xoppy_script.set_code(script)
+        return out_dict
+
+    def script_template(self):
+        return """
+#
+# script to make the calculations (created by XOPPY:crosssec)
+#
+from xoppylib.scattering_functions.xoppy_calc_crosssec import xoppy_calc_crosssec
+import xraylib
+from dabax.dabax_xraylib import DabaxXraylib
+
+out_dict =  xoppy_calc_crosssec(
+    descriptor   = "{descriptor}",
+    density      = {density},
+    MAT_FLAG     = {MAT_FLAG},
+    CALCULATE    = {CALCULATE},
+    GRID         = {GRID},
+    GRIDSTART    = {GRIDSTART},
+    GRIDEND      = {GRIDEND},
+    GRIDN        = {GRIDN},
+    UNIT         = {UNIT},
+    DUMP_TO_FILE = {DUMP_TO_FILE},
+    FILE_NAME    = "{FILE_NAME}",
+    material_constants_library = {material_constants_library},
+    )
+
+#
+# example plot
+#
+from srxraylib.plot.gol import plot
+
+plot(out_dict["data"][0,:],out_dict["data"][-1,:],
+    xtitle=out_dict["labels"][0],ytitle=out_dict["labels"][1],title="xcrosssec",
+    xlog=True,ylog=True,show=True)
+
+#
+# end script
+#
+"""
+
+    def extract_data_from_xoppy_output(self, calculation_output):
+
+        out_dict = calculation_output
+        # send exchange
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
-        
+
         try:
             calculated_data.add_content("xoppy_data", out_dict["data"].T)
-            calculated_data.add_content("plot_x_col",0)
-            calculated_data.add_content("plot_y_col",-1)
+            calculated_data.add_content("plot_x_col", 0)
+            calculated_data.add_content("plot_y_col", -1)
         except:
             pass
         try:
@@ -198,40 +345,43 @@ class OWxcrosssec(XoppyWidget):
         except:
             pass
         try:
-            calculated_data.add_content("info",out_dict["info"])
+            calculated_data.add_content("info", out_dict["info"])
+        except:
+            pass
+
+
+        #
+        # display single point calculation
+        #
+        try:
+            tmp = calculated_data.get_content("xoppy_data")
+            try:
+                labels = calculated_data.get_content("labels")
+                self.xtitle = labels[0]
+                self.ytitle = labels[1]
+            except:
+                self.xtitle = None
+                self.ytitle = None
+
+            if tmp.shape == (1, 2):  # single value calculation
+
+                QMessageBox.information(self,
+                                        "Calculation Result",
+                                        "Calculation Result:\n"+calculated_data.get_content("info"),
+                                        QMessageBox.Ok)
         except:
             pass
 
         return calculated_data
-
-    def extract_data_from_xoppy_output(self, calculation_output):
-        try:
-            calculation_output.get_content("xoppy_data")
-
-            labels = calculation_output.get_content("labels")
-
-            self.xtitle = labels[0]
-            self.ytitle = labels[1]
-        except:
-            QMessageBox.information(self,
-                                    "Calculation Result",
-                                    "Calculation Result:\n"+calculation_output.get_content("info"),
-                                    QMessageBox.Ok)
-
-            self.xtitle = None
-            self.ytitle = None
-
-        return calculation_output
 
     def plot_results(self, calculated_data, progressBarValue=80):
         self.initializeTabs()
 
         try:
             calculated_data.get_content("xoppy_data")
-
             super().plot_results(calculated_data, progressBarValue)
         except:
-            self.plot_info(calculated_data.get_content("info") + "\n", progressBarValue, 0, 0)
+            pass
 
 
     def get_data_exchange_widget_name(self):
@@ -260,96 +410,6 @@ class OWxcrosssec(XoppyWidget):
 
     def getLogPlot(self):
         return[(True, True)]
-
-
-    def xoppy_calc_xcrosssec(self):
-
-        MAT_FLAG = self.MAT_FLAG
-        MAT_LIST = self.MAT_LIST
-        # DESCRIPTOR = self.DESCRIPTOR
-        # density = self.DENSITY
-        CALCULATE = self.CALCULATE
-        GRID = self.GRID
-        GRIDSTART = self.GRIDSTART
-        GRIDEND = self.GRIDEND
-        GRIDN = self.GRIDN
-        UNIT = self.UNIT
-
-
-        if MAT_FLAG == 0: # element
-            descriptor = self.DESCRIPTOR
-            # density = element_density(DESCRIPTOR)
-            try:
-                density = float(self.DENSITY)
-            except:
-                density = density_element(self.DESCRIPTOR, verbose=True)
-        elif MAT_FLAG == 1: # compund
-            descriptor = self.DESCRIPTOR
-            try:
-                density = float(self.DENSITY)
-            except:
-                raise Exception("Density must be entered.")
-        elif MAT_FLAG == 2: # nist list
-            descriptor = nist_compound_list()[self.MAT_LIST]
-            try:
-                density = float(self.DENSITY)
-            except:
-                density = density_nist(descriptor, verbose=True)
-
-        print("xoppy_calc_xcrosssec: using density = %g g/cm3"%density)
-        if GRID == 0:
-            energy = numpy.arange(0,500)
-            elefactor = numpy.log10(10000.0 / 30.0) / 300.0
-            energy = 10.0 * 10**(energy * elefactor)
-        elif GRID == 1:
-            if GRIDN == 1:
-                energy = numpy.array([GRIDSTART])
-            else:
-                energy = numpy.linspace(GRIDSTART,GRIDEND,GRIDN)
-        elif GRID == 2:
-            energy = numpy.array([GRIDSTART])
-
-        if MAT_FLAG == 0: # element
-            out =  cross_calc(descriptor,energy,calculate=CALCULATE,density=density)
-        elif MAT_FLAG == 1: # compound parse
-            out =  cross_calc_mix(descriptor,energy,calculate=CALCULATE,density=density)
-        elif MAT_FLAG == 2: # NIST compound
-            out =  cross_calc_nist(descriptor,energy,calculate=CALCULATE,density=density)
-
-        calculate_items = ['Total','PhotoElectric','Rayleigh','Compton','Total minus Rayleigh']
-        unit_items = ['barn/atom','cm^2','cm^2/g','cm^-1']
-        if energy.size > 1:
-            tmp_x = out[0,:].copy()
-            tmp_y = out[UNIT+1,:].copy()
-            tmp = numpy.vstack((tmp_x,tmp_y))
-            labels = ["Photon energy [eV]","%s cross section [%s]"%(calculate_items[CALCULATE],unit_items[UNIT])]
-            to_return = {"application":"xoppy","name":"xcrosssec","data":tmp,"labels":labels}
-        else:
-            tmp = None
-            txt = "xoppy_calc_xcrosssec: Calculated %s cross section: %g %s"%(calculate_items[CALCULATE],out[UNIT+1,0],unit_items[UNIT])
-            print(txt)
-            to_return  = {"application":"xoppy","name":"xcrosssec","info":txt}
-
-        if self.DUMP_TO_FILE:
-            with open(self.FILE_NAME, "w") as file:
-                try:
-                    file.write("#F %s\n"%self.FILE_NAME)
-                    file.write("\n#S 1 xoppy CrossSec results\n")
-                    file.write("#N 5\n")
-                    tmp = "#L  Photon energy [eV]"
-                    for unit_item in unit_items:
-                        tmp += "  %s [%s]"%(calculate_items[CALCULATE],unit_item)
-                    tmp += "\n"
-                    file.write(tmp)
-                    for j in range(out.shape[1]):
-                        # file.write("%19.12e  "%energy[j])
-                        file.write(("%19.12e  "*out.shape[0]+"\n")%tuple(out[i,j] for i in range(out.shape[0])))
-                    file.close()
-                    print("File written to disk: %s \n"%self.FILE_NAME)
-                except:
-                    raise Exception("CrossSec: The data could not be dumped onto the specified file!\n")
-
-        return to_return
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

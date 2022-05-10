@@ -8,7 +8,7 @@ from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-from orangecontrib.xoppy.util.xoppy_bm_wiggler import xoppy_calc_wigg
+from xoppylib.sources.xoppy_bm_wiggler import xoppy_calc_wigg
 
 from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
@@ -179,7 +179,7 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
 
 
     def do_xoppy_calculation(self):
-        e, f0, p0, cumulated_power =  xoppy_calc_wigg(
+        e, f0, p0, cumulated_power, traj, traj_info =  xoppy_calc_wigg(
             FIELD=self.FIELD,
             NPERIODS=self.NPERIODS,
             ULAMBDA=self.ULAMBDA,
@@ -206,25 +206,23 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
             "CURRENT"         : self.CURRENT,
             "FILE"            : self.FILE,
             }
-        # print(self.script_template().format_map(dict_parameters))
 
+        script = self.script_template().format_map(dict_parameters)
 
-        # print(self.script_template().format_map(dict_parameters))
-
-        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
+        self.xoppy_script.set_code(script)
 
 
 
 
-        return e, f0, p0 , cumulated_power
+        return e, f0, p0 , cumulated_power, traj, traj_info, script
 
     def script_template(self):
         return """
 #
 # script to make the calculations (created by XOPPY:wiggler)
 #
-from orangecontrib.xoppy.util.xoppy_bm_wiggler import xoppy_calc_wigg
-energy, flux, spectral_power, cumulated_power =  xoppy_calc_wigg(
+from xoppylib.sources.xoppy_bm_wiggler import xoppy_calc_wigg
+energy, flux, spectral_power, cumulated_power, traj, traj_info =  xoppy_calc_wigg(
     FIELD={FIELD},
     NPERIODS={NPERIODS},
     ULAMBDA={ULAMBDA},
@@ -237,13 +235,18 @@ energy, flux, spectral_power, cumulated_power =  xoppy_calc_wigg(
     CURRENT={CURRENT},
     FILE="{FILE}")
 
+#
 # example plot
+#
 from srxraylib.plot.gol import plot
-plot(energy,flux,ytitle="Flux [photons/s/o.1%bw]",xtitle="Poton energy [eV]",title="Wiggler Flux",
+plot(energy,flux,
+    xtitle="Photon energy [eV]",ytitle="Flux [photons/s/o.1%bw]",title="Wiggler Flux",
     xlog=True,ylog=True,show=False)
-plot(energy,spectral_power,ytitle="Power [W/eV]",xtitle="Poton energy [eV]",title="Wiggler Spectral Power",
+plot(energy,spectral_power,
+    xtitle="Photon energy [eV]",ytitle="Power [W/eV]",title="Wiggler Spectral Power",
     xlog=True,ylog=True,show=False)
-plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [eV]",title="Wiggler Cumulated Power",
+plot(energy,cumulated_power,
+    xtitle="Photon energy [eV]",ytitle="Cumulated Power [W]",title="Wiggler Cumulated Power",
     xlog=False,ylog=False,show=True)
 #
 # end script
@@ -253,7 +256,7 @@ plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [e
 
 
     def extract_data_from_xoppy_output(self, calculation_output):
-        e, f, sp, cumulated_power = calculation_output
+        e, f, sp, cumulated_power, traj, traj_info, script = calculation_output
 
         data = numpy.zeros((len(e), 4))
         data[:,0] = numpy.array(e)
@@ -263,6 +266,8 @@ plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [e
 
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
         calculated_data.add_content("xoppy_data", data)
+        calculated_data.add_content("xoppy_traj", traj.T)
+        calculated_data.add_content("xoppy_script", script)
 
         return calculated_data
 
@@ -271,19 +276,23 @@ plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [e
         return "XWIGGLER"
 
     def getTitles(self):
-        return ['Flux', 'Spectral Power', 'Cumulated Power']
+        return ['Flux', 'Spectral Power', 'Cumulated Power', 'e trajectory', 'e velocity', 'B field']
 
     def getXTitles(self):
-        return ["Energy [eV]", "Energy [eV]", "Energy [eV]"]
+        return ["Energy [eV]", "Energy [eV]", "Energy [eV]", "s [m]", "s [m]", "s [m]"]
 
     def getYTitles(self):
-        return ["Flux [Phot/sec/0.1%bw]", "Spectral Power [W/eV]", "Cumulated Power [W]"]
+        return ["Flux [Phot/sec/0.1%bw]", "Spectral Power [W/eV]", "Cumulated Power [W]", "x [m]", "beta_x [m]", "B [T]"]
 
     def getLogPlot(self):
-        return [(True, True), (True, True), (False, False)]
+        return [(True, True), (True, True), (False, False), (False, False), (False, False), (False, False)]
 
     def getVariablesToPlot(self):
-        return [(0, 1), (0, 2), (0,3)]
+        return [(0, 1), (0, 2), (0,3), (1,0), (1,3), (1,7)]
+
+    def getTagToPlot(self):
+        return ["xoppy_data", "xoppy_data", "xoppy_data", "xoppy_traj", "xoppy_traj", "xoppy_traj"]
+
 
     def receive_syned_data(self, data):
 
@@ -321,10 +330,94 @@ plot(energy,cumulated_power,ytitle="Cumulated Power [W]",xtitle="Poton energy [e
                 self.id_K.setEnabled(False)
                 self.id_FIELD.setEnabled(False)
 
+    # extended this method here to also plot data from trajectories
+    def plot_results(self, calculated_data, progressBarValue=80):
+        if not self.view_type == 0:
+            if not calculated_data is None:
+                current_index = self.tabs.currentIndex()
+
+                self.view_type_combo.setEnabled(False)
+
+
+
+                titles = self.getTitles()
+                xtitles = self.getXTitles()
+                ytitles = self.getYTitles()
+                tags = self.getTagToPlot()
+
+                progress_bar_step = (100-progressBarValue)/len(titles)
+
+                for index in range(0, len(titles)):
+
+                    xoppy_data = calculated_data.get_content(tags[index])
+
+                    x_index, y_index = self.getVariablesToPlot()[index]
+                    log_x, log_y = self.getLogPlot()[index]
+
+                    try:
+                        self.plot_histo(xoppy_data[:, x_index],
+                                        xoppy_data[:, y_index],
+                                        progressBarValue + ((index+1)*progress_bar_step),
+                                        tabs_canvas_index=index,
+                                        plot_canvas_index=index,
+                                        title=titles[index],
+                                        xtitle=xtitles[index],
+                                        ytitle=ytitles[index],
+                                        log_x=log_x,
+                                        log_y=log_y)
+
+                        # self.tabs.setCurrentIndex(index)
+                    except Exception as e:
+                        self.view_type_combo.setEnabled(True)
+
+                        raise Exception("Data not plottable: bad content\n" + str(e))
+
+                self.view_type_combo.setEnabled(True)
+
+                try:
+                    self.tabs.setCurrentIndex(current_index)
+                except:
+                    if self.getDefaultPlotTabIndex() == -1:
+                        self.tabs.setCurrentIndex(len(titles) - 1)
+                    else:
+                        self.tabs.setCurrentIndex(self.getDefaultPlotTabIndex())
+
+
+            else:
+                raise Exception("Empty Data")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     w = OWxwiggler()
+
+    # # external:
+    # w.FIELD = 1
+    # w.NPERIODS = 1
+    # w.ENERGY = 6.0
+    # w.PHOT_ENERGY_MIN = 100.0
+    # w.PHOT_ENERGY_MAX = 100100.0
+    # w.NPOINTS = 100
+    # w.NTRAJPOINTS = 101
+    # w.CURRENT = 200.0
+    # w.FILE = "http://ftp.esrf.fr/pub/scisoft/syned/resources/SW_3P.txt"
+
     w.show()
     app.exec()
     w.saveSettings()
+
+
+    # e, f0, p0, cumulated_power = xoppy_calc_wigg(
+    #     FIELD=1,
+    #     NPERIODS=1,
+    #     ULAMBDA=1.0,
+    #     K=1.0,
+    #     ENERGY=6.0,
+    #     PHOT_ENERGY_MIN=100.0,
+    #     PHOT_ENERGY_MAX=100100.0,
+    #     NPOINTS=200,
+    #     NTRAJPOINTS=101,
+    #     CURRENT=200.0,
+    #     FILE="http://ftp.esrf.fr/pub/scisoft/syned/resources/SW_3P.txt")
+
+
+

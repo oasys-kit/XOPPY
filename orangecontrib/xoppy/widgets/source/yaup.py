@@ -8,7 +8,7 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 
-from orangecontrib.xoppy.util.xoppy_util import locations
+from xoppylib.xoppy_util import locations
 from oasys.widgets.exchange import DataExchangeObject
 
 from oasys.util.oasys_util import EmittingStream, TTYGrabber
@@ -24,7 +24,7 @@ from orangecontrib.xoppy.widgets.gui.text_window import TextWindow
 from orangecontrib.xoppy.widgets.gui.messages import showConfirmMessage
 
 import scipy.constants as codata
-
+from xoppylib.xoppy_run_binaries import xoppy_calc_yaup
 
 class OWyaup(XoppyWidget):
     name = "Tapered Undulator YAUP"
@@ -39,57 +39,55 @@ class OWyaup(XoppyWidget):
 
     # want_main_area = False
 
-    TITLE = Setting("YAUP EXAMPLE (ESRF BL-8)")
-    PERIOD = Setting(4.0)
-    NPER = Setting(42)
-    NPTS = Setting(40)
-    EMIN = Setting(3000.0)
-    EMAX = Setting(30000.0)
-    NENERGY = Setting(100)
-    ENERGY = Setting(6.04)
-    CUR = Setting(0.1)
-    SIGX = Setting(0.426)
-    SIGY = Setting(0.085)
-    SIGX1 = Setting(0.017)
-    SIGY1 = Setting(0.0085)
-    D = Setting(30.0)
-    XPC = Setting(0.0)
-    YPC = Setting(0.0)
-    XPS = Setting(2.0)
-    YPS = Setting(2.0)
-    NXP = Setting(69)
-    NYP = Setting(69)
-    MODE = Setting(4)
-    NSIG = Setting(2)
-    TRAJECTORY = Setting("new+keep")
-    XSYM = Setting("yes")
-    HANNING = Setting(0)
-    BFILE = Setting("undul.bf")
-    TFILE = Setting("undul.traj")
-
+    #yaup
+    TITLE            = Setting("YAUP EXAMPLE (ESRF BL-8)")
+    PERIOD           = Setting(4.0)
+    NPER             = Setting(42)
+    NPTS             = Setting(40)
+    EMIN             = Setting(3000.0)
+    EMAX             = Setting(30000.0)
+    NENERGY          = Setting(100)
+    ENERGY           = Setting(6.04)
+    CUR              = Setting(0.1)
+    SIGX             = Setting(0.426)
+    SIGY             = Setting(0.085)
+    SIGX1            = Setting(0.017)
+    SIGY1            = Setting(0.0085)
+    D                = Setting(30.0)
+    XPC              = Setting(0.0)
+    YPC              = Setting(0.0)
+    XPS              = Setting(2.0)
+    YPS              = Setting(2.0)
+    NXP              = Setting(69)
+    NYP              = Setting(69)
+    MODE             = Setting(4)
+    NSIG             = Setting(2)
+    TRAJECTORY       = Setting("new+keep")
+    XSYM             = Setting("yes")
+    HANNING          = Setting(0)
+    BFILE            = Setting("undul.bf")
+    TFILE            = Setting("undul.traj")
     # B field
-
-    BFIELD_FLAG = Setting(1)
-
+    BFIELD_FLAG      = Setting(1)
     BFIELD_ASCIIFILE = Setting("")
+    PERIOD_BFIELD    = Setting(4.0)
+    NPER_BFIELD      = Setting(42)
+    NPTS_BFIELD      = Setting(40)
+    IMAGNET          = Setting(0)
+    ITYPE            = Setting(0)
+    K                = Setting(1.38)
+    GAP              = Setting(2.0)
+    GAPTAP           = Setting(10.0)
+    FILE             = Setting("undul.bf")
+    I2TYPE           = Setting(0)
+    A1               = Setting(0.5)
+    A2               = Setting(1.0)
 
-    PERIOD_BFIELD = Setting(4.0)
-    NPER_BFIELD = Setting(42)
-    NPTS_BFIELD = Setting(40)
-
-    IMAGNET = Setting(0)
-    ITYPE = Setting(0)
-    K = Setting(1.38)
-    GAP = Setting(2.0)
-    GAPTAP = Setting(10.0)
-    FILE = Setting("undul.bf")
-
-    I2TYPE = Setting(0)
-    A1 = Setting(0.5)
-    A2 = Setting(1.0)
 
     inputs = WidgetDecorator.syned_input_data()
 
+    def __init__(self):
+        super().__init__(show_script_tab=True)
 
     def build_gui(self):
 
@@ -597,10 +595,215 @@ class OWyaup(XoppyWidget):
         # self.NEKS  = congruence.checkPositiveNumber(self.NEKS , "Neks OR % Helicity")
 
     def do_xoppy_calculation(self):
-        return self.xoppy_calc_yaup()
+        sys.stdout = EmittingStream(textWritten=self.writeStdOut)
+        grabber = TTYGrabber()
+        grabber.start()
+
+        self.progressBarInit()
+        self.progressBarSet(2)
+
+        e,f,spectral_power,cumulated_power =  xoppy_calc_yaup(
+            #yaup
+            TITLE            = self.TITLE            ,
+            PERIOD           = self.PERIOD           ,
+            NPER             = self.NPER             ,
+            NPTS             = self.NPTS             ,
+            EMIN             = self.EMIN             ,
+            EMAX             = self.EMAX             ,
+            NENERGY          = self.NENERGY          ,
+            ENERGY           = self.ENERGY           ,
+            CUR              = self.CUR              ,
+            SIGX             = self.SIGX             ,
+            SIGY             = self.SIGY             ,
+            SIGX1            = self.SIGX1            ,
+            SIGY1            = self.SIGY1            ,
+            D                = self.D                ,
+            XPC              = self.XPC              ,
+            YPC              = self.YPC              ,
+            XPS              = self.XPS              ,
+            YPS              = self.YPS              ,
+            NXP              = self.NXP              ,
+            NYP              = self.NYP              ,
+            MODE             = self.MODE             ,
+            NSIG             = self.NSIG             ,
+            TRAJECTORY       = self.TRAJECTORY       ,
+            XSYM             = self.XSYM             ,
+            HANNING          = self.HANNING          ,
+            BFILE            = self.BFILE            ,
+            TFILE            = self.TFILE            ,
+            # B field
+            BFIELD_FLAG      = self.BFIELD_FLAG      ,
+            BFIELD_ASCIIFILE = self.BFIELD_ASCIIFILE ,
+            PERIOD_BFIELD    = self.PERIOD_BFIELD    ,
+            NPER_BFIELD      = self.NPER_BFIELD      ,
+            NPTS_BFIELD      = self.NPTS_BFIELD      ,
+            IMAGNET          = self.IMAGNET          ,
+            ITYPE            = self.ITYPE            ,
+            K                = self.K                ,
+            GAP              = self.GAP              ,
+            GAPTAP           = self.GAPTAP           ,
+            FILE             = self.FILE             ,
+            I2TYPE           = self.I2TYPE           ,
+            A1               = self.A1               ,
+            A2               = self.A2               ,
+            )
+
+        grabber.stop()
+        for row in grabber.ttyData:
+            self.writeStdOut("      %s" % (row))
+
+        dict_parameters = {
+            "TITLE"            : self.TITLE            ,
+            "PERIOD"           : self.PERIOD           ,
+            "NPER"             : self.NPER             ,
+            "NPTS"             : self.NPTS             ,
+            "EMIN"             : self.EMIN             ,
+            "EMAX"             : self.EMAX             ,
+            "NENERGY"          : self.NENERGY          ,
+            "ENERGY"           : self.ENERGY           ,
+            "CUR"              : self.CUR              ,
+            "SIGX"             : self.SIGX             ,
+            "SIGY"             : self.SIGY             ,
+            "SIGX1"            : self.SIGX1            ,
+            "SIGY1"            : self.SIGY1            ,
+            "D"                : self.D                ,
+            "XPC"              : self.XPC              ,
+            "YPC"              : self.YPC              ,
+            "XPS"              : self.XPS              ,
+            "YPS"              : self.YPS              ,
+            "NXP"              : self.NXP              ,
+            "NYP"              : self.NYP              ,
+            "MODE"             : self.MODE             ,
+            "NSIG"             : self.NSIG             ,
+            "TRAJECTORY"       : self.TRAJECTORY       ,
+            "XSYM"             : self.XSYM             ,
+            "HANNING"          : self.HANNING          ,
+            "BFILE"            : self.BFILE            ,
+            "TFILE"            : self.TFILE            ,
+            "BFIELD_FLAG"      : self.BFIELD_FLAG      ,
+            "BFIELD_ASCIIFILE" : self.BFIELD_ASCIIFILE ,
+            "PERIOD_BFIELD"    : self.PERIOD_BFIELD    ,
+            "NPER_BFIELD"      : self.NPER_BFIELD      ,
+            "NPTS_BFIELD"      : self.NPTS_BFIELD      ,
+            "IMAGNET"          : self.IMAGNET          ,
+            "ITYPE"            : self.ITYPE            ,
+            "K"                : self.K                ,
+            "GAP"              : self.GAP              ,
+            "GAPTAP"           : self.GAPTAP           ,
+            "FILE"             : self.FILE             ,
+            "I2TYPE"           : self.I2TYPE           ,
+            "A1"               : self.A1               ,
+            "A2"               : self.A2               ,
+        }
+
+        script = self.script_template().format_map(dict_parameters)
+
+        self.xoppy_script.set_code(script)
+
+
+        return e,f,spectral_power,cumulated_power,script
+
+    def script_template(self):
+        return """
+#
+# script to make the calculations (created by XOPPY:YAUP)
+#
+from xoppylib.xoppy_run_binaries import xoppy_calc_yaup
+
+energy, flux, spectral_power, cumulated_power =  xoppy_calc_yaup(
+            #yaup
+            TITLE            = "{TITLE}",
+            PERIOD           = {PERIOD},
+            NPER             = {NPER},
+            NPTS             = {NPTS},
+            EMIN             = {EMIN},
+            EMAX             = {EMAX},
+            NENERGY          = {NENERGY},
+            ENERGY           = {ENERGY},
+            CUR              = {CUR},
+            SIGX             = {SIGX},
+            SIGY             = {SIGY},
+            SIGX1            = {SIGX1},
+            SIGY1            = {SIGY1},
+            D                = {D},
+            XPC              = {XPC},
+            YPC              = {YPC},
+            XPS              = {XPS},
+            YPS              = {YPS},
+            NXP              = {NXP},
+            NYP              = {NYP},
+            MODE             = {MODE},
+            NSIG             = {NSIG},
+            TRAJECTORY       = "{TRAJECTORY}",
+            XSYM             = "{XSYM}",
+            HANNING          = {HANNING},
+            BFILE            = "{BFILE}",
+            TFILE            = "{TFILE}",
+            # B field
+            BFIELD_FLAG      = {BFIELD_FLAG},
+            BFIELD_ASCIIFILE = "{BFIELD_ASCIIFILE}",
+            PERIOD_BFIELD    = {PERIOD_BFIELD},
+            NPER_BFIELD      = {NPER_BFIELD},
+            NPTS_BFIELD      = {NPTS_BFIELD},
+            IMAGNET          = {IMAGNET},
+            ITYPE            = {ITYPE},
+            K                = {K},
+            GAP              = {GAP},
+            GAPTAP           = {GAPTAP},
+            FILE             = "{FILE}",
+            I2TYPE           = {I2TYPE},
+            A1               = {A1},
+            A2               = {A2},
+        )
+
+#
+# example plot
+#
+import numpy
+from srxraylib.plot.gol import plot
+
+bfield = numpy.loadtxt("bfield.dat",skiprows=3)
+traj = numpy.loadtxt("undul_traj.dat",skiprows=2)
+
+plot(bfield[:, 0], bfield[:, -1],
+    title="Magnetic Field", xtitle="Z coordinate [cm]", ytitle="Total field intensity [T]",
+    show=False)
+plot(traj[:, 0],traj[:, 2],
+    title="Electron Trajectory", xtitle="z [cm]", ytitle="x [cm]",
+    show=False)
+    
+plot(energy,flux,
+    xtitle="Photon energy [eV]",ytitle="Flux [photons/s/0.1%bw]",title="WS Flux",
+    xlog=False,ylog=False,show=False)
+plot(energy,spectral_power,
+    xtitle="Photon energy [eV]",ytitle="Power [W/eV]",title="WS Spectral Power",
+    xlog=False,ylog=False,show=False)
+plot(energy,cumulated_power,
+    xtitle="Photon energy [eV]",ytitle="Cumulated Spectral Power [W]",title="WS Cumulated Power",
+    xlog=False,ylog=False,show=True)
+
+#
+# end script
+#
+"""
 
     def extract_data_from_xoppy_output(self, calculation_output):
-        return calculation_output
+        e, f, spectral_power, cumulated_power,script = calculation_output
+
+        # send exchange
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+
+        data_to_send = numpy.zeros((e.size, 4))
+        data_to_send[:, 0] = e
+        data_to_send[:, 1] = f
+        data_to_send[:, 2] = spectral_power
+        data_to_send[:, 3] = cumulated_power
+
+        calculated_data.add_content("xoppy_data", data_to_send)
+        calculated_data.add_content("xoppy_data_bfield", numpy.loadtxt("bfield.dat",skiprows=3))
+        calculated_data.add_content("xoppy_data_traj", numpy.loadtxt("undul_traj.dat",skiprows=2))
+
+        return calculated_data
 
     def plot_results(self, calculated_data, progressBarValue=80):
 
@@ -690,229 +893,203 @@ class OWyaup(XoppyWidget):
         return ["B field", "Trajectory", "Flux", "Spectral power","Cumulated spectral power"]
 
 
-    def xoppy_calc_yaup(self):
-
-        self.progressBarInit()
-
-        self.progressBarSet(2)
-
-        for file in ["bfield.inp","bfield.out","bfield.dat","u2txt_bfield.inp",
-                     "yaup.inp", "yaup-0.out","undul.bf",
-                     "u2txt_traj.inp","undul_traj.dat"]:
-            try:
-                os.remove(os.path.join(locations.home_bin_run(),file))
-            except:
-                print("Failed to remove file: %s " %  (os.path.join(locations.home_bin_run(),file)) )
-
-        if self.BFIELD_FLAG == 0:
-
-            #TODO: test this option...
-            message = ''
-            message += 'This option takes an ASCII file and convert it to YAUP format.'
-            message += 'The text file should be column-formatted, and contain three colums:'
-            message += ' z, B(z), and phi(z), where the z s are equidistant with step '
-            message += ' PERIOD/NPTS. See HELP/YAUP for definitions of PERIOD and NPTS.'
-            message += ' There should be NPTS*NPER+1 lines in the ASCII file.'
-
-            ok = showConfirmMessage(message, "OK?")
-            if not ok: return
-
-            f = open('txt2u.inp', 'w')
-            f.write("%s\n" % (self.BFIELD_ASCIIFILE) )
-            f.write("%s\n" % (self.BFILE))
-            f.write("%g\n" % (self.PERIOD_BFIELD))
-            f.write("%d\n" % (self.PERIOD_BFIELD))
-            f.write("%d\n" % (self.NPTS_BFIELD) )
-            f.close
-
-            self.run_external_binary(binary="txt2u", post_command="< txt2u.inp",
-                                     info="Output file should be: %s" % self.BFILE)
-
-        elif self.BFIELD_FLAG == 1:
-            with open("bfield.inp", "wt") as f:
-                f.write("%g\n" % (self.PERIOD_BFIELD))
-                f.write("%d\n" % (self.NPER_BFIELD))
-                f.write("%d\n" % (self.NPTS_BFIELD))
-                f.write("%d\n" % (1 + self.ITYPE))
-                if self.ITYPE == 0:
-                    f.write("%g\n" % (self.K))
-                elif self.ITYPE == 1:
-                    f.write("%g\n" % (self.GAP))
-                    f.write("%g\n" % (self.GAPTAP))
-                f.write("%s\n" % (self.FILE))
-
-
-
-            with open("u2txt_bfield.inp", "wt") as f:
-                f.write("1\n")
-                f.write("%s\n" % (self.FILE))
-                f.write("bfield.dat\n")
-
-            if self.IMAGNET == 0:
-                self.run_external_binary(binary="bfield", post_command="< bfield.inp > bfield.out", info="Output file: bfield.out")
-            elif self.IMAGNET == 1:
-                self.run_external_binary(binary="bfield2", post_command="< bfield.inp > bfield.out", info="Output file: bfield.out")
-
-            self.run_external_binary(binary="u2txt", post_command="< u2txt_bfield.inp", info="Output file should be bfield.dat")
-
-        elif self.BFIELD_FLAG == 2:
-            n = self.NPER
-            lambdau = self.PERIOD_BFIELD
-            npts_per = self.NPTS_BFIELD
-            if self.ITYPE == 0:
-                b1 = self.A1
-                b2 = self.A2
-            else:
-                b1 = self.A1/0.934/self.PERIOD_BFIELD
-                b2 = self.A2/0.934/self.PERIOD_BFIELD
-
-
-            und_len = lambdau * npts_per
-            z = numpy.arange( n * npts_per + 1) / float( n * npts_per)
-            z *= und_len
-
-            bmod = numpy.arange(n * npts_per + 1) / float( n * npts_per) * (b2 - b1) + b1
-            berr = numpy.arange(n * npts_per + 1) * 0.0
-            bphase = 2.0 * numpy.pi / lambdau * z
-            btot = bmod * numpy.sin(bphase)
-
-
-            f = open("bfield.dat", 'w')
-            f.write('# Columns: z(cm), ampl(tesla), phserr, total(tesla)\n')
-            f.write('# total = ampl * sin ( twopi/period*z + phserr ) \n')
-            f.write('# period= %g; nper= %d; npts=%d \n' % (lambdau, n, npts_per))
-            for i in range(z.size):
-                f.write("%g  %g  %g  %g\n" % (z[i], bmod[i], berr[i], btot[i]))
-            f.close()
-            print("File written to disk: bfield.dat")
-
-            f = open("bfield2.dat", 'w')
-            for i in range(z.size):
-                if i != 0: f.write("\n")
-                f.write("%g  %g  %g" % (z[i], bmod[i], bphase[i]))
-            f.close()
-            print("File written to disk: bfield.dat")
-
-
-            with open("txt2u.inp", "w") as f:
-                f.write("bfield2.dat\n")
-                f.write("%s\n" % self.BFILE)
-                f.write("%g\n" % (self.PERIOD_BFIELD))
-                f.write("%d\n" % (self.NPER_BFIELD))
-                f.write("%d\n" % (self.NPTS_BFIELD))
-
-            self.run_external_binary("txt2u", " < txt2u.inp", "File written to disk should be: %s " % self.BFILE )
-
-
-        input = "\n"
-        input += ";Magnet parameters\n"
-        input += "PERIOD=%g NPER=%d NPTS=%d\n" % (self.PERIOD, self.NPER, self.NPTS)
-        input += "\n"
-        input += ";Photon energy\n"
-        input += "EMIN=%g EMAX=%g NE=%d\n" % (self.EMIN, self.EMAX, self.NENERGY)
-        input += "\n"
-        input += ";Storage ring\n"
-        input += "ENERGY=%g CURRENT=%g\n" % (self.ENERGY, self.CUR)
-        input += " SIGX=%g SIGY=%g\n" % (self.SIGX, self.SIGY)
-        input += "SIGX1=%g SIGY1=%g\n" % (self.SIGX1, self.SIGY1)
-        input += "\n"
-        input += ";Pinhole (mm or mrad)\n"
-        input += "DISTANCE=%g\n" % self.D
-        input += "XPC=%g XPS=%g NXP=%d\n" % (self.XPC, self.XPS, self.NXP)
-        input += "YPC=%g YPS=%g NYP=%d\n" % (self.YPC, self.YPS, self.NYP)
-        input += "\n"
-        input += ";Calculation parameter\n"
-        input += "MODE=%d NSIG=%d   TRAJECTORY=new+keep\n" % (self.MODE, self.NSIG)
-        input += "XSYM=yes  HANNING=%d\n" % self.HANNING
-        input += "\n"
-        input += ";Filenames\n"
-        input += 'BFILE="undul.bf"\n'
-        input += 'TFILE="undul.traj"\n'
-        input += "\n"
-        input += "END\n"
-
-        with open("yaup.inp", "wt") as f:
-            f.write(input)
-
-        self.run_external_binary(binary="yaup", post_command="", info="Output file should be XXX")
-
-        with open("u2txt_traj.inp", "wt") as f:
-            f.write("2\n")
-            f.write("%s\n" % (self.TFILE))
-            f.write("undul_traj.dat\n")
-
-        self.run_external_binary(binary="u2txt", post_command="< u2txt_traj.inp", info="Output file should be undul_traj.dat")
-        #
-        # add spectral power and cumulated power
-        #
-
-        results = numpy.loadtxt("yaup-0.out", skiprows=33)
-        e = results[:,0]
-        f = results[:,1]
-
-        power_in_spectrum = f.sum() * 1e3 * codata.e * (e[1] - e[0])
-        print("\nPower from integral of spectrum: %8.3f W" % (power_in_spectrum))
-        codata_mee = codata.m_e * codata.c ** 2 / codata.e  # electron mass in eV
-        gamma = self.ENERGY * 1e9 / codata_mee
-        ptot = (self.NPER / 6) * codata.value('characteristic impedance of vacuum') * \
-               self.CUR * codata.e * 2 * numpy.pi * codata.c * gamma ** 2 * (self.K ** 2 ) / (self.PERIOD * 1e-2)
-        print("\nTotal power radiated by the undulator with fully opened slits [W]: %g \n" % (ptot))
-        print("\nRatio Power from integral of spectrum over Total emitted power: %5.4f" % (power_in_spectrum / ptot))
-
-        spectral_power = f * codata.e * 1e3
-
-        try:
-            cumulated_power = spectral_power.cumsum() * numpy.abs(e[0] - e[1])
-        except:
-            cumulated_power = 0.0
-        self.run_external_binary(binary="u2txt", post_command="< u2txt_traj.inp",
-                                 info="Output file should be undul_traj.dat")
-
-        data_to_send = numpy.zeros((results.shape[0], 4))
-        data_to_send[:, 0] = e
-        data_to_send[:, 1] = f
-        data_to_send[:, 2] = spectral_power
-        data_to_send[:, 3] = cumulated_power
-
-        # send exchange
-        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
-
-        try:
-            calculated_data.add_content("xoppy_data", data_to_send)
-            calculated_data.add_content("xoppy_data_bfield", numpy.loadtxt("bfield.dat",skiprows=3))
-            calculated_data.add_content("xoppy_data_traj", numpy.loadtxt("undul_traj.dat",skiprows=2))
-        except:
-            pass
-
-        return calculated_data
-
-    def run_external_binary(self, binary="ls", post_command="", info=""):
-
-        sys.stdout = EmittingStream(textWritten=self.writeStdOut)
-
-        if platform.system() == "Windows":
-            command = "\"" + os.path.join(locations.home_bin(), '%s.exe' % binary) + "\""
-        else:
-            command = "'" + os.path.join(locations.home_bin(), binary) + "'"
-
-        command += " " + post_command
-        print("Running command '%s' in directory: %s " % (command, locations.home_bin_run()))
-        print("\n--------------------------------------------------------\n")
+    # def xoppy_calc_yaup(self):
+    #
+    #     self.progressBarInit()
+    #
+    #     self.progressBarSet(2)
+    #
+    #     for file in ["bfield.inp","bfield.out","bfield.dat","u2txt_bfield.inp",
+    #                  "yaup.inp", "yaup-0.out","undul.bf",
+    #                  "u2txt_traj.inp","undul_traj.dat"]:
+    #         try:
+    #             os.remove(os.path.join(locations.home_bin_run(),file))
+    #         except:
+    #             print("Failed to remove file: %s " %  (os.path.join(locations.home_bin_run(),file)) )
+    #
+    #     if self.BFIELD_FLAG == 0:
+    #
+    #         #TODO: test this option...
+    #         message = ''
+    #         message += 'This option takes an ASCII file and convert it to YAUP format.'
+    #         message += 'The text file should be column-formatted, and contain three colums:'
+    #         message += ' z, B(z), and phi(z), where the z s are equidistant with step '
+    #         message += ' PERIOD/NPTS. See HELP/YAUP for definitions of PERIOD and NPTS.'
+    #         message += ' There should be NPTS*NPER+1 lines in the ASCII file.'
+    #
+    #         ok = showConfirmMessage(message, "OK?")
+    #         if not ok: return
+    #
+    #         f = open('txt2u.inp', 'w')
+    #         f.write("%s\n" % (self.BFIELD_ASCIIFILE) )
+    #         f.write("%s\n" % (self.BFILE))
+    #         f.write("%g\n" % (self.PERIOD_BFIELD))
+    #         f.write("%d\n" % (self.PERIOD_BFIELD))
+    #         f.write("%d\n" % (self.NPTS_BFIELD) )
+    #         f.close
+    #
+    #         run_external_binary(binary="txt2u", post_command="< txt2u.inp",
+    #                                  info="Output file should be: %s" % self.BFILE)
+    #
+    #     elif self.BFIELD_FLAG == 1:
+    #         with open("bfield.inp", "wt") as f:
+    #             f.write("%g\n" % (self.PERIOD_BFIELD))
+    #             f.write("%d\n" % (self.NPER_BFIELD))
+    #             f.write("%d\n" % (self.NPTS_BFIELD))
+    #             f.write("%d\n" % (1 + self.ITYPE))
+    #             if self.ITYPE == 0:
+    #                 f.write("%g\n" % (self.K))
+    #             elif self.ITYPE == 1:
+    #                 f.write("%g\n" % (self.GAP))
+    #                 f.write("%g\n" % (self.GAPTAP))
+    #             f.write("%s\n" % (self.FILE))
+    #
+    #
+    #
+    #         with open("u2txt_bfield.inp", "wt") as f:
+    #             f.write("1\n")
+    #             f.write("%s\n" % (self.FILE))
+    #             f.write("bfield.dat\n")
+    #
+    #         if self.IMAGNET == 0:
+    #             run_external_binary(binary="bfield", post_command="< bfield.inp > bfield.out", info="Output file: bfield.out")
+    #         elif self.IMAGNET == 1:
+    #             run_external_binary(binary="bfield2", post_command="< bfield.inp > bfield.out", info="Output file: bfield.out")
+    #
+    #         run_external_binary(binary="u2txt", post_command="< u2txt_bfield.inp", info="Output file should be bfield.dat")
+    #
+    #     elif self.BFIELD_FLAG == 2:
+    #         n = self.NPER
+    #         lambdau = self.PERIOD_BFIELD
+    #         npts_per = self.NPTS_BFIELD
+    #         if self.ITYPE == 0:
+    #             b1 = self.A1
+    #             b2 = self.A2
+    #         else:
+    #             b1 = self.A1/0.934/self.PERIOD_BFIELD
+    #             b2 = self.A2/0.934/self.PERIOD_BFIELD
+    #
+    #
+    #         und_len = lambdau * npts_per
+    #         z = numpy.arange( n * npts_per + 1) / float( n * npts_per)
+    #         z *= und_len
+    #
+    #         bmod = numpy.arange(n * npts_per + 1) / float( n * npts_per) * (b2 - b1) + b1
+    #         berr = numpy.arange(n * npts_per + 1) * 0.0
+    #         bphase = 2.0 * numpy.pi / lambdau * z
+    #         btot = bmod * numpy.sin(bphase)
+    #
+    #
+    #         f = open("bfield.dat", 'w')
+    #         f.write('# Columns: z(cm), ampl(tesla), phserr, total(tesla)\n')
+    #         f.write('# total = ampl * sin ( twopi/period*z + phserr ) \n')
+    #         f.write('# period= %g; nper= %d; npts=%d \n' % (lambdau, n, npts_per))
+    #         for i in range(z.size):
+    #             f.write("%g  %g  %g  %g\n" % (z[i], bmod[i], berr[i], btot[i]))
+    #         f.close()
+    #         print("File written to disk: bfield.dat")
+    #
+    #         f = open("bfield2.dat", 'w')
+    #         for i in range(z.size):
+    #             if i != 0: f.write("\n")
+    #             f.write("%g  %g  %g" % (z[i], bmod[i], bphase[i]))
+    #         f.close()
+    #         print("File written to disk: bfield.dat")
+    #
+    #
+    #         with open("txt2u.inp", "w") as f:
+    #             f.write("bfield2.dat\n")
+    #             f.write("%s\n" % self.BFILE)
+    #             f.write("%g\n" % (self.PERIOD_BFIELD))
+    #             f.write("%d\n" % (self.NPER_BFIELD))
+    #             f.write("%d\n" % (self.NPTS_BFIELD))
+    #
+    #         run_external_binary("txt2u", " < txt2u.inp", "File written to disk should be: %s " % self.BFILE )
+    #
+    #
+    #     input = "\n"
+    #     input += ";Magnet parameters\n"
+    #     input += "PERIOD=%g NPER=%d NPTS=%d\n" % (self.PERIOD, self.NPER, self.NPTS)
+    #     input += "\n"
+    #     input += ";Photon energy\n"
+    #     input += "EMIN=%g EMAX=%g NE=%d\n" % (self.EMIN, self.EMAX, self.NENERGY)
+    #     input += "\n"
+    #     input += ";Storage ring\n"
+    #     input += "ENERGY=%g CURRENT=%g\n" % (self.ENERGY, self.CUR)
+    #     input += " SIGX=%g SIGY=%g\n" % (self.SIGX, self.SIGY)
+    #     input += "SIGX1=%g SIGY1=%g\n" % (self.SIGX1, self.SIGY1)
+    #     input += "\n"
+    #     input += ";Pinhole (mm or mrad)\n"
+    #     input += "DISTANCE=%g\n" % self.D
+    #     input += "XPC=%g XPS=%g NXP=%d\n" % (self.XPC, self.XPS, self.NXP)
+    #     input += "YPC=%g YPS=%g NYP=%d\n" % (self.YPC, self.YPS, self.NYP)
+    #     input += "\n"
+    #     input += ";Calculation parameter\n"
+    #     input += "MODE=%d NSIG=%d   TRAJECTORY=new+keep\n" % (self.MODE, self.NSIG)
+    #     input += "XSYM=yes  HANNING=%d\n" % self.HANNING
+    #     input += "\n"
+    #     input += ";Filenames\n"
+    #     input += 'BFILE="undul.bf"\n'
+    #     input += 'TFILE="undul.traj"\n'
+    #     input += "\n"
+    #     input += "END\n"
+    #
+    #     with open("yaup.inp", "wt") as f:
+    #         f.write(input)
+    #
+    #     run_external_binary(binary="yaup", post_command="", info="Output file should be XXX")
+    #
+    #     with open("u2txt_traj.inp", "wt") as f:
+    #         f.write("2\n")
+    #         f.write("%s\n" % (self.TFILE))
+    #         f.write("undul_traj.dat\n")
+    #
+    #     run_external_binary(binary="u2txt", post_command="< u2txt_traj.inp", info="Output file should be undul_traj.dat")
+    #     #
+    #     # add spectral power and cumulated power
+    #     #
+    #
+    #     results = numpy.loadtxt("yaup-0.out", skiprows=33)
+    #     e = results[:,0]
+    #     f = results[:,1]
+    #
+    #     power_in_spectrum = f.sum() * 1e3 * codata.e * (e[1] - e[0])
+    #     print("\nPower from integral of spectrum: %8.3f W" % (power_in_spectrum))
+    #     codata_mee = codata.m_e * codata.c ** 2 / codata.e  # electron mass in eV
+    #     gamma = self.ENERGY * 1e9 / codata_mee
+    #     ptot = (self.NPER / 6) * codata.value('characteristic impedance of vacuum') * \
+    #            self.CUR * codata.e * 2 * numpy.pi * codata.c * gamma ** 2 * (self.K ** 2 ) / (self.PERIOD * 1e-2)
+    #     print("\nTotal power radiated by the undulator with fully opened slits [W]: %g \n" % (ptot))
+    #     print("\nRatio Power from integral of spectrum over Total emitted power: %5.4f" % (power_in_spectrum / ptot))
+    #
+    #     spectral_power = f * codata.e * 1e3
+    #
+    #     try:
+    #         cumulated_power = spectral_power.cumsum() * numpy.abs(e[0] - e[1])
+    #     except:
+    #         cumulated_power = 0.0
+    #     run_external_binary(binary="u2txt", post_command="< u2txt_traj.inp",
+    #                              info="Output file should be undul_traj.dat")
+    #
+    #     return e,f,spectral_power,cumulated_power
 
 
-        grabber = TTYGrabber()
-        grabber.start()
-
-        os.system(command)
-
-        grabber.stop()
-
-        for row in grabber.ttyData:
-            self.writeStdOut("      %s" % (row))
-
-        if info != "":
-            print(info)
-        print("\n--------------------------------------------------------\n")
+    # def run_external_binary(self, binary="ls", post_command="", info=""):
+    #
+    #     if platform.system() == "Windows":
+    #         command = "\"" + os.path.join(locations.home_bin(), '%s.exe' % binary) + "\""
+    #     else:
+    #         command = "'" + os.path.join(locations.home_bin(), binary) + "'"
+    #
+    #     command += " " + post_command
+    #     print("Running command '%s' in directory: %s " % (command, locations.home_bin_run()))
+    #     print("\n--------------------------------------------------------\n")
+    #
+    #     os.system(command)
+    #
+    #     if info != "":
+    #         print(info)
+    #     print("\n--------------------------------------------------------\n")
 
     def receive_syned_data(self, data):
 
@@ -980,6 +1157,7 @@ class OWyaup(XoppyWidget):
         home_doc = locations.home_doc()
         filename1 = os.path.join(home_doc, self.get_help_name() + '.txt')
         TextWindow(file=filename1,parent=self)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

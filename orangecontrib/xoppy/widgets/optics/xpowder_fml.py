@@ -7,11 +7,11 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 
-from orangecontrib.xoppy.util.xoppy_util import locations
+from xoppylib.xoppy_util import locations
 from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
-
+from xoppylib.xoppy_run_binaries import xoppy_calc_powder_fml
 
 class OWxpowder_fml(XoppyWidget):
     name = "POWDER_FML"
@@ -35,6 +35,9 @@ class OWxpowder_fml(XoppyWidget):
     THMIN = Setting(1.0)
     STEP = Setting(0.05)
     THMAX = Setting(135.0)
+
+    def __init__(self):
+        super().__init__(show_script_tab=True)
 
     def build_gui(self):
 
@@ -168,10 +171,80 @@ class OWxpowder_fml(XoppyWidget):
         congruence.checkGreaterThan(self.THMAX, self.THMIN, "TwoTheta to", "TwoTheta from")
 
     def do_xoppy_calculation(self):
-        return self.xoppy_calc_xpowder_fml()
+        files = xoppy_calc_powder_fml(
+            FILE   = self.FILE  ,
+            TITLE  = self.TITLE ,
+            LAMBDA = self.LAMBDA,
+            JOB    = self.JOB   ,
+            U      = self.U     ,
+            V      = self.V     ,
+            W      = self.W     ,
+            X      = self.X     ,
+            LS     = self.LS    ,
+            THMIN  = self.THMIN ,
+            STEP   = self.STEP  ,
+            THMAX  = self.THMAX ,
+            )
 
-    def extract_data_from_xoppy_output(self, calculation_output):
-        return calculation_output
+        dict_parameters = {
+            "FILE"   : self.FILE  ,
+            "TITLE"  : self.TITLE ,
+            "LAMBDA" : self.LAMBDA,
+            "JOB"    : self.JOB   ,
+            "U"      : self.U     ,
+            "V"      : self.V     ,
+            "W"      : self.W     ,
+            "X"      : self.X     ,
+            "LS"     : self.LS    ,
+            "THMIN"  : self.THMIN ,
+            "STEP"   : self.STEP  ,
+            "THMAX"  : self.THMAX ,
+        }
+
+        script = self.script_template().format_map(dict_parameters)
+
+        self.xoppy_script.set_code(script)
+
+        return files
+
+    def script_template(self):
+        return """
+#
+# script to make the calculations (created by XOPPY:powder_fml)
+#
+from xoppylib.xoppy_run_binaries import xoppy_calc_powder_fml
+
+out_files =  xoppy_calc_powder_fml(
+            FILE   = "{FILE}",
+            TITLE  = "{TITLE}",
+            LAMBDA = {LAMBDA},
+            JOB    = {JOB},
+            U      = {U},
+            V      = {V},
+            W      = {W},
+            X      = {X},
+            LS     = {LS},
+            THMIN  = {THMIN},
+            STEP   = {STEP},
+            THMAX  = {THMAX},
+        )
+
+#
+# example plot
+#
+import numpy
+from srxraylib.plot.gol import plot
+
+data = numpy.loadtxt(out_files[2], skiprows=3)
+
+plot(data[:,0],data[:,-1],
+    xtitle="TwoTheta[Deg]",ytitle="Intensity[a.u.]",title="Powder diffraction crystal_fml",
+    xlog=False,ylog=False,show=True)
+
+#
+# end script
+#
+"""
 
     def get_data_exchange_widget_name(self):
         return "XPOWDER_FML"
@@ -185,46 +258,16 @@ class OWxpowder_fml(XoppyWidget):
     def getYTitles(self):
         return ["Intensity[a.u.]"]
 
-    def xoppy_calc_xpowder_fml(self):
+    def extract_data_from_xoppy_output(self, calculation_output):
 
-        for file in ["xpowder_fml.par","xpowder_fml.ref","xpowder_fml.out"]:
-            try:
-                os.remove(os.path.join(locations.home_bin_run(),file))
-            except:
-                pass
-
-        with open("xoppy.inp", "wt") as f:
-            f.write("%s\n"% (self.FILE))
-            f.write("%s\n"%(self.TITLE))
-            f.write("%g\n"%(self.LAMBDA))
-            f.write("%s\n"%(self.JOB))
-            f.write("%g\n"%(self.U))
-            f.write("%g\n"%(self.V))
-            f.write("%g\n"%(self.W))
-            f.write("%g\n"%(self.X))
-            f.write("%g\n"%(self.LS))
-            f.write("%g\n"%(self.THMIN))
-            f.write("%g\n"%(self.STEP))
-            f.write("%s\n"%(self.THMAX))
-
-        if platform.system() == "Windows":
-            command = "\"" + os.path.join(locations.home_bin(),'xpowder_fml.exe\" < xoppy.inp')
-        else:
-            command = "'" + os.path.join(locations.home_bin(), 'xpowder_fml') + "' < xoppy.inp"
-        print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
-        print("\n--------------------------------------------------------\n")
-        os.system(command)
-        print("\n--------------------------------------------------------\n")
-
-        print("Files written to disk:\n    xpowder_fml.par (text output)\n    xpowder_fml.ref (reflections)\n    xpowder_fml.out (diffractogram)",)
-        #
-        # data = numpy.loadtxt("xpowder_fml.out",skiprows=3).T
+        # files = ["xpowder_fml.par", "xpowder_fml.ref", "xpowder_fml.out"]
+        files = calculation_output
 
         #send exchange
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         try:
-            calculated_data.add_content("xoppy_data", numpy.loadtxt("xpowder_fml.out", skiprows=3))
+            calculated_data.add_content("xoppy_data", numpy.loadtxt(files[2], skiprows=3))
             calculated_data.add_content("plot_x_col",0)
             calculated_data.add_content("plot_y_col",-1)
         except:
@@ -234,7 +277,7 @@ class OWxpowder_fml(XoppyWidget):
         except:
             pass
         try:
-            with open("xpowder_fml.par") as f:
+            with open(files[0]) as f:
                 info = f.readlines()
             info = [line[:-1] for line in info]  # remove "\n"
             calculated_data.add_content("info",info)

@@ -64,7 +64,6 @@ class XoppyWidget(widget.OWWidget):
         self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
         box0 = gui.widgetBox(self.controlArea, "", orientation="horizontal")
-        #widget buttons: compute, set defaults, help
         gui.button(box0, self, "Compute", callback=self.compute)
         gui.button(box0, self, "Defaults", callback=self.defaults)
         gui.button(box0, self, "Help", callback=self.help1)
@@ -103,8 +102,6 @@ class XoppyWidget(widget.OWWidget):
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.xoppy_output)
 
-        # self.xoppy_output.setFixedHeight(600)
-        # self.xoppy_output.setFixedWidth(600)
 
         if show_script_tab:
 
@@ -116,8 +113,6 @@ class XoppyWidget(widget.OWWidget):
             script_box = gui.widgetBox(script_tab, "Python script", addSpace=True, orientation="horizontal")
             script_box.layout().addWidget(self.xoppy_script)
 
-            # self.xoppy_script.setFixedHeight(600)
-            # self.xoppy_script.setFixedWidth(600)
 
         self.current_tab = -1
 
@@ -502,7 +497,7 @@ class XoppyWidget(widget.OWWidget):
 
         import os
         from orangecontrib.xoppy.widgets.gui.text_window import TextWindow
-        from orangecontrib.xoppy.util.xoppy_util import locations
+        from xoppylib.xoppy_util import locations
 
         home_doc = locations.home_doc()
         filename1 = os.path.join(home_doc, self.get_help_name() + '.txt')

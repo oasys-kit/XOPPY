@@ -1,4 +1,3 @@
-import sys, os
 import platform
 from PyQt5.QtWidgets import QApplication
 
@@ -6,8 +5,9 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 
-from orangecontrib.xoppy.util.xoppy_util import locations
+from xoppylib.xoppy_util import locations
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+from xoppylib.xoppy_run_binaries import xoppy_calc_xcom
 
 class OWxxcom(XoppyWidget):
     name = "XCOM"
@@ -27,6 +27,8 @@ class OWxxcom(XoppyWidget):
     GRIDDATA = Setting("0.0804:0.2790:0.6616:1.3685:2.7541")
     ELEMENTOUTPUT = Setting(0)
 
+    def __init__(self):
+        super().__init__(show_script_tab=True)
 
     def build_gui(self):
 
@@ -128,10 +130,73 @@ class OWxxcom(XoppyWidget):
                 congruence.checkFile(self.GRIDDATA)
 
     def do_xoppy_calculation(self):
-        return xoppy_calc_xxcom(NAME=self.NAME,SUBSTANCE=self.SUBSTANCE,DESCRIPTION=self.DESCRIPTION,FRACTION=self.FRACTION,GRID=self.GRID,GRIDINPUT=self.GRIDINPUT,GRIDDATA=self.GRIDDATA,ELEMENTOUTPUT=self.ELEMENTOUTPUT)
+        out_file = xoppy_calc_xcom(
+            NAME          = self.NAME,
+            SUBSTANCE     = self.SUBSTANCE,
+            DESCRIPTION   = self.DESCRIPTION,
+            FRACTION      = self.FRACTION,
+            GRID          = self.GRID,
+            GRIDINPUT     = self.GRIDINPUT,
+            GRIDDATA      = self.GRIDDATA,
+            ELEMENTOUTPUT = self.ELEMENTOUTPUT,
+        )
+
+        dict_parameters = {
+            "NAME"          : self.NAME,
+            "SUBSTANCE"     : self.SUBSTANCE,
+            "DESCRIPTION"   : self.DESCRIPTION,
+            "FRACTION"      : self.FRACTION,
+            "GRID"          : self.GRID,
+            "GRIDINPUT"     : self.GRIDINPUT,
+            "GRIDDATA"      : self.GRIDDATA,
+            "ELEMENTOUTPUT" : self.ELEMENTOUTPUT,
+        }
+
+        script = self.script_template().format_map(dict_parameters)
+
+        self.xoppy_script.set_code(script)
+        return out_file
+
+    def script_template(self):
+        return """
+#
+# script to make the calculations (created by XOPPY:xcom)
+#
+from xoppylib.xoppy_run_binaries import xoppy_calc_xcom
+
+out_file =  xoppy_calc_xcom(
+            NAME          = "{NAME}",
+            SUBSTANCE     = {SUBSTANCE},
+            DESCRIPTION   = "{DESCRIPTION}",
+            FRACTION      = "{FRACTION}",
+            GRID          = {GRID},
+            GRIDINPUT     = {GRIDINPUT},
+            GRIDDATA      = "{GRIDDATA}",
+            ELEMENTOUTPUT = {ELEMENTOUTPUT},
+        )
+
+#
+# example plot
+#
+import numpy
+from srxraylib.plot.gol import plot
+
+data = numpy.loadtxt(out_file)
+energy_in_MeV = data[:,0]
+total = data[:,6]
+
+plot(energy_in_MeV,total,
+    xtitle="Photon energy [MeV]",ytitle="Tot atten with coh scat ",title="XCOM attenuation",
+    xlog=True,ylog=True,show=True)
+
+
+#
+# end script
+#
+"""
 
     def get_data_exchange_widget_name(self):
-        return "XXCOM"
+        return "XCOM"
 
     def getTitles(self):
         return ["Coherent scat",
@@ -200,113 +265,9 @@ class OWxxcom(XoppyWidget):
     def getLogPlot(self):
         return [(True, True), (True, True), (True, True), (True, True), (True, True), (True, True), (True, True)]
 
-# --------------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------------
-
-def xoppy_calc_xxcom(NAME="Pyrex Glass",SUBSTANCE=3,DESCRIPTION="SiO2:B2O3:Na2O:Al2O3:K2O",\
-                     FRACTION="0.807:0.129:0.038:0.022:0.004",GRID=1,GRIDINPUT=0,\
-                     GRIDDATA="0.0804:0.2790:0.6616:1.3685:2.7541",ELEMENTOUTPUT=0):
-    print("Inside xoppy_calc_xxcom. ")
-
-    try:
-        with open("xoppy.inp","wt") as f:
-            f.write(os.path.join(locations.home_data(), 'xcom')+ os.sep + "\n" )
-            f.write( NAME+"\n" )
-            f.write("%d\n"%(1+SUBSTANCE))
-            if (1+SUBSTANCE) != 4:
-                f.write( DESCRIPTION+"\n")
-                if (1+SUBSTANCE) <= 2:
-                    f.write("%d\n"%(1+ELEMENTOUTPUT))
-            else:
-                nn = DESCRIPTION.split(":")
-                mm = FRACTION.split(":")
-                f.write("%d\n"%( len(nn)))
-                for i in range(len(nn)):
-                    f.write(nn[i]+"\n")
-                    f.write(mm[i]+"\n")
-                f.write("1\n")
-            f.write("%d\n"%(1+GRID))
-            if (1+GRID) != 1:
-                f.write("%d\n"%(1+GRIDINPUT))
-                if (1+GRIDINPUT) == 1:
-                    nn = GRIDDATA.split(":")
-                    f.write("%d\n"%( len(nn)))
-                    for i in nn:
-                        f.write(i+"\n")
-                    if (1+GRID) != 1:
-                        f.write("N\n")
-            f.write("xcom.out\n")
-            f.write("1\n")
-            f.close()
-
-        if platform.system() == "Windows":
-            command = "\"" + os.path.join(locations.home_bin(),'xcom.exe\" < xoppy.inp')
-        else:
-            command = "'" + os.path.join(locations.home_bin(),'xcom') + "' < xoppy.inp"
-        print("Running command '%s' in directory: %s "%(command,locations.home_bin_run()))
-        print("\n--------------------------------------------------------\n")
-        os.system(command)
-        print("\n--------------------------------------------------------\n")
-        # write spec file
-
-        if (1+SUBSTANCE) <= 2:
-            if (1+ELEMENTOUTPUT) == 1:
-                titles = "Photon Energy [Mev]  Coherent scat [b/atom]  " \
-                         "Incoherent scat [b/atom]  Photoel abs [b/atom]  " \
-                         "Pair prod in nucl field [b/atom]  Pair prod in elec field [b/atom]  " \
-                         "Tot atten with coh scat [b/atom]  Tot atten w/o coh scat [b/atom]"
-            elif (1+ELEMENTOUTPUT) == 2:
-                titles = "Photon Energy [Mev]  Coherent scat [b/atom]  " \
-                         "Incoherent scat [b/atom]  Photoel abs [b/atom]  " \
-                         "Pair prod in nucl field [b/atom]  Pair prod in elec field [b/atom]  " \
-                         "Tot atten with coh scat [cm2/g]  Tot atten w/o coh scat [cm2/g]"
-            elif (1+ELEMENTOUTPUT) == 3:
-                titles = "Photon Energy [Mev]  Coherent scat [cm2/g]  " \
-                         "Incoherent scat [cm2/g]  Photoel abs [cm2/g]  " \
-                         "Pair prod in nucl field [cm2/g]  Pair prod in elec field [cm2/g]  " \
-                         "Tot atten with coh scat [cm2/g]  Tot atten w/o coh scat [cm2/g]"
-            else:
-                titles = "Photon Energy [Mev]  Coherent scat [cm2/g]  " \
-                         "Incoherent scat [cm2/g]  Photoel abs [cm2/g]  " \
-                         "Pair prod in nucl field [cm2/g]  Pair prod in elec field [cm2/g]  " \
-                         "Tot atten with coh scat [cm2/g]  Tot atten w/o coh scat [cm2/g]"
-        else:
-           titles = "Photon Energy [Mev]  Coherent scat [cm2/g]  " \
-                    "Incoherent scat [cm2/g]  Photoel abs [cm2/g]  " \
-                    "Pair prod in nucl field [cm2/g]  Pair prod in elec field [cm2/g]  " \
-                    "Tot atten with coh scat [cm2/g]  Tot atten w/o coh scat [cm2/g]"
-
-
-        txt = open("xcom.out").readlines()
-
-        # copy to standard output
-        for line in txt:
-            print(line,end="")
-
-        outFile = "xcom.spec"
-
-        f = open(outFile, "w")
-
-        f.write("#F xcom.spec\n")
-        f.write("\n")
-        f.write("#S 1 xcom results\n")
-        f.write("#N 8\n")
-        f.write("#L  "+titles+"\n")
-        for i in txt:
-            tmp = i.strip(" ")
-            if tmp[0].isdigit():
-               f.write(tmp)
-            else:
-               f.write("#UD "+tmp)
-        f.close()
-        print("File written to disk: xcom.spec")
-
-        return outFile
-    except Exception as e:
-        raise e
-
 
 if __name__ == "__main__":
+    import sys
     app = QApplication(sys.argv)
     w = OWxxcom()
     w.show()

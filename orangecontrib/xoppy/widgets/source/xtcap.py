@@ -8,7 +8,7 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 
-from orangecontrib.xoppy.util.xoppy_util import locations
+from xoppylib.xoppy_util import locations
 from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
@@ -16,6 +16,7 @@ from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
 from syned.storage_ring.magnetic_structures.insertion_device import InsertionDevice as synedid
+from xoppylib.xoppy_run_binaries import xoppy_calc_xtcap
 
 class OWtcap(XoppyWidget):
     name = "Aperture Flux TC"
@@ -54,6 +55,9 @@ class OWtcap(XoppyWidget):
     BSL = Setting(0)
 
     inputs = WidgetDecorator.syned_input_data()
+
+    def __init__(self):
+        super().__init__(show_script_tab=True)
 
     def build_gui(self):
 
@@ -319,10 +323,146 @@ class OWtcap(XoppyWidget):
         self.NEKS = congruence.checkStrictlyPositiveNumber(self.NEKS, "Neks OR % Helicity")
 
     def do_xoppy_calculation(self):
-        return self.xoppy_calc_xtcap()
+        data, harmonics_data = xoppy_calc_xtcap(
+            ENERGY        = self.ENERGY       ,
+            CURRENT       = self.CURRENT      ,
+            ENERGY_SPREAD = self.ENERGY_SPREAD,
+            SIGX          = self.SIGX         ,
+            SIGY          = self.SIGY         ,
+            SIGX1         = self.SIGX1        ,
+            SIGY1         = self.SIGY1        ,
+            PERIOD        = self.PERIOD       ,
+            NP            = self.NP           ,
+            EMIN          = self.EMIN         ,
+            EMAX          = self.EMAX         ,
+            N             = self.N            ,
+            DISTANCE      = self.DISTANCE     ,
+            XPS           = self.XPS          ,
+            YPS           = self.YPS          ,
+            XPC           = self.XPC          ,
+            YPC           = self.YPC          ,
+            HARMONIC_FROM = self.HARMONIC_FROM,
+            HARMONIC_TO   = self.HARMONIC_TO  ,
+            HARMONIC_STEP = self.HARMONIC_STEP,
+            HRED          = self.HRED         ,
+            HELICAL       = self.HELICAL      ,
+            NEKS          = self.NEKS         ,
+            METHOD        = self.METHOD       ,
+            BSL           = self.BSL          ,
+        )
 
+        dict_parameters = {
+            "ENERGY"        : self.ENERGY       ,
+            "CURRENT"       : self.CURRENT      ,
+            "ENERGY_SPREAD" : self.ENERGY_SPREAD,
+            "SIGX"          : self.SIGX         ,
+            "SIGY"          : self.SIGY         ,
+            "SIGX1"         : self.SIGX1        ,
+            "SIGY1"         : self.SIGY1        ,
+            "PERIOD"        : self.PERIOD       ,
+            "NP"            : self.NP           ,
+            "EMIN"          : self.EMIN         ,
+            "EMAX"          : self.EMAX         ,
+            "N"             : self.N            ,
+            "DISTANCE"      : self.DISTANCE     ,
+            "XPS"           : self.XPS          ,
+            "YPS"           : self.YPS          ,
+            "XPC"           : self.XPC          ,
+            "YPC"           : self.YPC          ,
+            "HARMONIC_FROM" : self.HARMONIC_FROM,
+            "HARMONIC_TO"   : self.HARMONIC_TO  ,
+            "HARMONIC_STEP" : self.HARMONIC_STEP,
+            "HRED"          : self.HRED         ,
+            "HELICAL"       : self.HELICAL      ,
+            "NEKS"          : self.NEKS         ,
+            "METHOD"        : self.METHOD       ,
+            "BSL"           : self.BSL          ,
+        }
+
+        script = self.script_template().format_map(dict_parameters)
+
+        self.xoppy_script.set_code(script)
+
+        return data, harmonics_data, script
+
+    def script_template(self):
+        return """
+#
+# script to make the calculations (created by XOPPY:XTCAP)
+#
+from xoppylib.xoppy_run_binaries import xoppy_calc_xtcap
+
+data, harmonics_data =  xoppy_calc_xtcap(
+            ENERGY        = {ENERGY},
+            CURRENT       = {CURRENT},
+            ENERGY_SPREAD = {ENERGY_SPREAD},
+            SIGX          = {SIGX},
+            SIGY          = {SIGY},
+            SIGX1         = {SIGX1},
+            SIGY1         = {SIGY1},
+            PERIOD        = {PERIOD},
+            NP            = {NP},
+            EMIN          = {EMIN},
+            EMAX          = {EMAX},
+            N             = {N},
+            DISTANCE      = {DISTANCE},
+            XPS           = {XPS},
+            YPS           = {YPS},
+            XPC           = {XPC},
+            YPC           = {YPC},
+            HARMONIC_FROM = {HARMONIC_FROM},
+            HARMONIC_TO   = {HARMONIC_TO},
+            HARMONIC_STEP = {HARMONIC_STEP},
+            HRED          = {HRED},
+            HELICAL       = {HELICAL},
+            NEKS          = {NEKS},
+            METHOD        = {METHOD},
+            BSL           = {BSL},
+        )
+
+#
+# example plot
+#
+import numpy
+from srxraylib.plot.gol import plot
+# 
+
+# 
+print("Number of harmonics calculated: ",len(harmonics_data))
+
+plot((harmonics_data[0][1])[:,0],
+     (harmonics_data[0][1])[:,1],
+     title="harmonic number = %d" % (harmonics_data[0][0]), xtitle="Energy[eV]", ytitle="Flux" )
+
+#
+# end script
+#
+"""
     def extract_data_from_xoppy_output(self, calculation_output):
-        return calculation_output
+        data, harmonics_data, script = calculation_output
+        # send exchange
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+        try:
+            calculated_data.add_content("xoppy_data", data)
+            calculated_data.add_content("xoppy_data_harmonics", harmonics_data)
+            calculated_data.add_content("plot_x_col", 0)
+            calculated_data.add_content("plot_y_col", 1)
+        except:
+            pass
+
+        try:
+            calculated_data.add_content("labels", ["Energy(eV)", "Flux(ph/s/0.1%bw)", "FWHM(eV)", "Ky",
+                                                   "Ptot(W)", "Pd(W/mm^2)", "IntP(W)"])
+
+        except:
+            pass
+        try:
+            calculated_data.add_content("info", txtlist)
+        except:
+            pass
+
+        return calculated_data
+
 
     def plot_results(self, calculated_data, progressBarValue=80):
         if not self.view_type == 0:
@@ -393,9 +533,6 @@ class OWtcap(XoppyWidget):
         if len(hex_g) == 1: hex_g = "0" + hex_g
         if len(hex_b) == 1: hex_b = "0" + hex_b
 
-        #super().plot_histo(x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, h_title, xtitle, ytitle,
-        #                   log_x, log_y, color="green", replace=False, control=control)
-
         super().plot_histo(x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, h_title, xtitle, ytitle,
                            log_x, log_y, color="#" + hex_r + hex_g + hex_b, replace=False, control=control)
 
@@ -419,122 +556,6 @@ class OWtcap(XoppyWidget):
 
     def getLogPlot(self):
         return[(False, True), (False, False), (False, False), (False, False),(False, False)]
-
-    def xoppy_calc_xtcap(self):
-
-        for file in ["tcap.inp","tcap.out","tcap.log"]:
-            try:
-                os.remove(os.path.join(locations.home_bin_run(),file))
-            except:
-                pass
-
-        with open("tcap.inp", "wt") as f:
-            f.write("TCAP called from xoppy\n")
-            f.write("%10.3f %10.2f %10.6f %s\n"%(self.ENERGY,self.CURRENT,self.ENERGY_SPREAD,"Ring-Energy(GeV) Current(mA) Beam-Energy-Spread"))
-            f.write("%10.4f %10.4f %10.4f %10.4f %s\n"%(self.SIGX,self.SIGY,self.SIGX1,self.SIGY1,"Sx(mm) Sy(mm) Sx1(mrad) Sy1(mrad)"))
-            f.write("%10.3f %d %s\n"%(self.PERIOD,self.NP,"Period(cm) N"))
-            f.write("%10.1f %10.1f %d %s\n"%(self.EMIN,self.EMAX,self.N,"Emin Emax Ne"))
-            f.write("%10.3f %10.3f %10.3f %10.3f %10.3f %d %d %s\n"%(self.DISTANCE,self.XPC,self.YPC,self.XPS,self.YPS,10,10,"d xpc ypc xps yps nxp nyp"))
-            f.write("%d %d %d %d %s\n"%(self.HARMONIC_FROM,self.HARMONIC_TO,self.HARMONIC_STEP,self.HRED,"Hmin Hmax Hstep Hreduction"))
-            f.write("%d %d %d %d %d %s\n"%(self.HELICAL,self.METHOD,1,self.NEKS,self.BSL,"Helical Method Print_K Neks Bsl-Subtr "))
-            f.write("foreground\n")
-
-
-        if platform.system() == "Windows":
-            command = "\"" + os.path.join(locations.home_bin(),'tcap.exe') + "\""
-        else:
-            command = "'" + os.path.join(locations.home_bin(), 'tcap') + "'"
-
-
-        print("Running command '%s' in directory: %s "%(command, locations.home_bin_run()))
-        print("\n--------------------------------------------------------\n")
-        # os.system(command)
-
-        #
-        #   catch the optut and write the output to a log file as well as print it.
-        #
-        retvalue = os.popen(command).read()
-        print(retvalue)
-
-        with open("tcap.log", "wt") as f:
-            f.write(retvalue)
-
-        print("Output file: '%s/tcap.out'"%(os.getcwd()) )
-        print("\n--------------------------------------------------------\n")
-
-        #
-        # parse result files to exchange object
-        #
-
-
-        with open("tcap.out","r") as f:
-            lines = f.readlines()
-
-        # print output file
-        # for line in lines:
-        #     print(line, end="")
-
-
-        # remove returns
-        lines = [line[:-1] for line in lines]
-        harmonics_data = []
-
-        # separate numerical data from text
-        floatlist = []
-        harmoniclist = []
-        txtlist = []
-        for line in lines:
-            try:
-                tmp = line.strip()
-
-                if tmp.startswith("Harmonic"):
- #                   harmonic_number = int(tmp.split("Harmonic")[1].strip())
-                    harmonic_number = int(tmp.split()[1])
-
-                    if harmonic_number != self.HARMONIC_FROM:
-                        harmonics_data[-1][1] = harmoniclist
-                        harmoniclist = []
-
-                    harmonics_data.append([harmonic_number, None])
-
-                tmp = float(line.strip()[0])
-
-                floatlist.append(line)
-                harmoniclist.append(line)
-            except:
-                txtlist.append(line)
-
-        harmonics_data[-1][1] = harmoniclist
-
-        data = numpy.loadtxt(floatlist)
-
-        for index in range(0, len(harmonics_data)):
-            # print (harmonics_data[index][0], harmonics_data[index][1])
-            harmonics_data[index][1] = numpy.loadtxt(harmonics_data[index][1])
-
-        #send exchange
-        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
-
-        try:
-            calculated_data.add_content("xoppy_data", data)
-            calculated_data.add_content("xoppy_data_harmonics", harmonics_data)
-            calculated_data.add_content("plot_x_col", 0)
-            calculated_data.add_content("plot_y_col", 1)
-        except:
-            pass
-
-        try:
-            calculated_data.add_content("labels",["Energy(eV)","Flux(ph/s/0.1%bw)","FWHM(eV)","Ky",   
-                                            "Ptot(W)","Pd(W/mm^2)","IntP(W)"])
-            
-        except:
-            pass
-        try:
-            calculated_data.add_content("info",txtlist)
-        except:
-            pass
-
-        return calculated_data
 
     def receive_syned_data(self, data):
 
@@ -590,6 +611,9 @@ class OWtcap(XoppyWidget):
                 self.id_CURRENT.setEnabled(False)
                 self.id_PERIOD.setEnabled(False)
                 self.id_NP.setEnabled(False)
+
+
+
 
 
 if __name__ == "__main__":

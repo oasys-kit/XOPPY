@@ -1,12 +1,12 @@
-import sys, os, platform
 from PyQt5.QtWidgets import QApplication
 
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
+from oasys.widgets.exchange import DataExchangeObject
 
-from orangecontrib.xoppy.util.xoppy_util import locations
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+
 
 import numpy
 import scipy.constants as codata
@@ -14,6 +14,8 @@ import scipy.constants as codata
 from syned.widget.widget_decorator import WidgetDecorator
 import syned.beamline.beamline as synedb
 import syned.storage_ring.magnetic_structures.insertion_device as synedid
+
+from xoppylib.xoppy_run_binaries import xoppy_calc_ws
 
 class OWws(XoppyWidget,WidgetDecorator):
     name = "WS"
@@ -42,6 +44,9 @@ class OWws(XoppyWidget,WidgetDecorator):
     NYP = Setting(10)
 
     inputs = WidgetDecorator.syned_input_data()
+
+    def __init__(self):
+        super().__init__(show_script_tab=True)
 
     def build_gui(self):
 
@@ -209,7 +214,114 @@ class OWws(XoppyWidget,WidgetDecorator):
         self.NYP = congruence.checkStrictlyPositiveNumber(self.NYP, "Integration points Y")
 
     def do_xoppy_calculation(self):
-        return xoppy_calc_ws(ENERGY=self.ENERGY,CUR=self.CUR,PERIOD=self.PERIOD,N=self.N,KX=self.KX,KY=self.KY,EMIN=self.EMIN,EMAX=self.EMAX,NEE=self.NEE,D=self.D,XPC=self.XPC,YPC=self.YPC,XPS=self.XPS,YPS=self.YPS,NXP=self.NXP,NYP=self.NYP)
+        outFile = xoppy_calc_ws(
+            ENERGY = self.ENERGY,
+            CUR    = self.CUR,
+            PERIOD = self.PERIOD,
+            N      = self.N,
+            KX     = self.KX,
+            KY     = self.KY,
+            EMIN   = self.EMIN,
+            EMAX   = self.EMAX,
+            NEE    = self.NEE,
+            D      = self.D,
+            XPC    = self.XPC,
+            YPC    = self.YPC,
+            XPS    = self.XPS,
+            YPS    = self.YPS,
+            NXP    = self.NXP,
+            NYP    = self.NYP,
+        )
+
+        dict_parameters = {
+            "ENERGY" : self.ENERGY,
+            "CUR"    : self.CUR,
+            "PERIOD" : self.PERIOD,
+            "N"      : self.N,
+            "KX"     : self.KX,
+            "KY"     : self.KY,
+            "EMIN"   : self.EMIN,
+            "EMAX"   : self.EMAX,
+            "NEE"    : self.NEE,
+            "D"      : self.D,
+            "XPC"    : self.XPC,
+            "YPC"    : self.YPC,
+            "XPS"    : self.XPS,
+            "YPS"    : self.YPS,
+            "NXP"    : self.NXP,
+            "NYP"    : self.NYP,
+        }
+
+        script = self.script_template().format_map(dict_parameters)
+
+        self.xoppy_script.set_code(script)
+
+        return outFile, script
+
+    def script_template(self):
+        return """
+#
+# script to make the calculations (created by XOPPY:WS)
+#
+import numpy
+from xoppylib.xoppy_run_binaries import xoppy_calc_ws
+
+out_file =  xoppy_calc_ws(
+        ENERGY = {ENERGY},
+        CUR    = {CUR},
+        PERIOD = {PERIOD},
+        N      = {N},
+        KX     = {KX},
+        KY     = {KY},
+        EMIN   = {EMIN},
+        EMAX   = {EMAX},
+        NEE    = {NEE},
+        D      = {D},
+        XPC    = {XPC},
+        YPC    = {YPC},
+        XPS    = {XPS},
+        YPS    = {YPS},
+        NXP    = {NXP},
+        NYP    = {NYP},
+        )
+
+# data to pass to power
+data = numpy.loadtxt(out_file)
+energy = data[:,0]
+flux = data[:,1]
+spectral_power = data[:,2]
+cumulated_power = data[:,3]
+
+#
+# example plot
+#
+from srxraylib.plot.gol import plot
+plot(energy,flux,
+    xtitle="Photon energy [eV]",ytitle="Flux [photons/s/0.1%bw]",title="WS Flux",
+    xlog=True,ylog=True,show=False)
+plot(energy,spectral_power,
+    xtitle="Photon energy [eV]",ytitle="Power [W/eV]",title="WS Spectral Power",
+    xlog=True,ylog=True,show=False)
+plot(energy,cumulated_power,
+    xtitle="Photon energy [eV]",ytitle="Cumulated Power [W]",title="WS Cumulated Power",
+    xlog=False,ylog=False,show=True)
+    
+#
+# end script
+#
+"""
+    def extract_data_from_xoppy_output(self, calculation_output):
+
+        spec_file_name, script = calculation_output
+        out = numpy.loadtxt(spec_file_name)
+        if len(out) == 0: raise Exception("Calculation gave no results (empty data)")
+
+        calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
+        calculated_data.add_content("xoppy_specfile", spec_file_name)
+        calculated_data.add_content("xoppy_data", out)
+        calculated_data.add_content("xoppy_script", script)
+
+        return calculated_data
 
     def get_data_exchange_widget_name(self):
         return "WS"
@@ -262,68 +374,8 @@ class OWws(XoppyWidget,WidgetDecorator):
                 self.id_PERIOD.setEnabled(False)
                 self.id_KY.setEnabled(False)
 
-# --------------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------------
-
-
-def xoppy_calc_ws(ENERGY=7.0,CUR=100.0,PERIOD=8.5,N=28.0,KX=0.0,KY=8.739999771118164,\
-                  EMIN=1000.0,EMAX=100000.0,NEE=2000,D=30.0,XPC=0.0,YPC=0.0,XPS=2.0,YPS=2.0,NXP=10,NYP=10):
-    print("Inside xoppy_calc_ws. ")
-
-    try:
-        with open("ws.inp","wt") as f:
-            f.write("inputs from xoppy \n")
-            f.write("%f     %f\n"%(ENERGY,CUR))
-            f.write("%f  %d  %f  %f\n"%(PERIOD,N,KX,KY))
-            f.write("%f  %f   %d\n"%(EMIN,EMAX,NEE))
-            f.write("%f  %f  %f  %f  %f  %d  %d\n"%(D,XPC,YPC,XPS,YPS,NXP,NYP))
-            f.write("%d  \n"%(4))
-
-        
-        if platform.system() == "Windows":
-            command = "\"" + os.path.join(locations.home_bin(),'ws.exe') + "\""
-        else:
-            command = "'" + os.path.join(locations.home_bin(),'ws') + "'"
-        print("Running command '%s' in directory: %s \n"%(command, locations.home_bin_run()))
-        # TODO try to capture the text output of the external code
-        os.system(command)
-
-        # write spec file
-        txt = open("ws.out").readlines()
-        outFile = os.path.join(locations.home_bin_run(), "ws.spec")
-        f = open(outFile,"w")
-
-        f.write("#F ws.spec\n")
-        f.write("\n")
-        f.write("#S 1 ws results\n")
-        f.write("#N 4\n")
-        f.write("#L  Energy(eV)  Flux(photons/s/0.1%bw)  Spectral power(W/eV)  Cumulated power(W)\n")
-        cum = 0.0
-        estep = (EMAX-EMIN)/(NEE-1)
-        for i in txt:
-            tmp = i.strip(" ")
-            if tmp[0].isdigit():
-                tmp1 = numpy.fromstring(tmp, dtype=float, sep=' ')
-                cum += tmp1[1]*codata.e*1e3
-                f.write("%f  %g  %f  %f \n"%(tmp1[0],tmp1[1],tmp1[1]*codata.e*1e3,cum*estep))
-            else:
-               f.write("#UD "+tmp)
-        f.close()
-        print("File written to disk: ws.spec")
-
-        # print output file
-        # for line in txt:
-        #     print(line, end="")
-        print("Results written to file: %s"%os.path.join(locations.home_bin_run(),'ws.out'))
-
-        return outFile
-    except Exception as e:
-        raise e
-
-
-
 if __name__ == "__main__":
-    import os
+    import os, sys
     os.environ['LD_LIBRARY_PATH'] = ''
     app = QApplication(sys.argv)
     w = OWws()
