@@ -795,6 +795,7 @@ plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
             calculated_data.add_content("xoppy_data", out_dictionary["data"].T)
             calculated_data.add_content("plot_x_col", 0)
             calculated_data.add_content("plot_y_col", -1)
+            calculated_data.add_content("xoppy_script", script)
         except:
             pass
         try:
