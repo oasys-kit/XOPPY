@@ -363,7 +363,7 @@ class OWxcrystal(XoppyWidget):
             emin = self.ENERGY - 100.0
             emax = self.ENERGY + 100.0
 
-        estep = (emax - emin) / self.SCANPOINTS
+        estep = (emax - emin) / 500 # the preprocessor data is limited to NMAXENER=1000
         preprocessor_file = "xcrystal.bra"
 
         print("Using crystal descriptor: ", descriptor)
