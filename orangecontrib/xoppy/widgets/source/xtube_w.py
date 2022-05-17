@@ -118,7 +118,7 @@ plot(energy,spectral_power,
     xtitle="Photon energy [eV]",ytitle="Spectral Power [W/eV/mA/mm^2(@1m)]",title="xtube_w Spectral Power",
     xlog=False,ylog=False,show=False)
 plot(energy,cumulated_power,
-    xtitle="Photon energy [eV]",ytitle="Cumylated Power [W/mA/mm^2(@1m)]",title="xtube_w Cumulated Power",
+    xtitle="Photon energy [eV]",ytitle="Cumulated Power [W/mA/mm^2(@1m)]",title="xtube_w Cumulated Power",
     xlog=False,ylog=False,show=True)
     
 #
