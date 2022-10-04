@@ -487,6 +487,8 @@ class XoppyWidget(widget.OWWidget):
                                        str(exception), QtWidgets.QMessageBox.Ok)
             self.setStatusMessage("Error!")
 
+            if self.IS_DEVELOP: raise exception
+
         self.progressBarFinished()
 
 
