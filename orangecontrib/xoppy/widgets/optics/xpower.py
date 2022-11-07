@@ -1017,7 +1017,7 @@ if __name__ == "__main__":
 
         elif input_data_type == "POWER3D":
             # create unulator_radiation xoppy exchange data
-            from xoppylib.xoppy_undulators import xoppy_calc_undulator_radiation
+            from xoppylib.sources.xoppy_undulators import xoppy_calc_undulator_radiation
 
             e, h, v, p, code = xoppy_calc_undulator_radiation(ELECTRONENERGY=6.04,ELECTRONENERGYSPREAD=0.001,ELECTRONCURRENT=0.2,\
                                                ELECTRONBEAMSIZEH=0.000395,ELECTRONBEAMSIZEV=9.9e-06,\

@@ -922,7 +922,7 @@ if __name__ == "__main__":
     # received_data.add_content("xoppy_code", code)
 
     # create wiggler_radiation xoppy exchange data
-    from xoppylib.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation
+    from xoppylib.sources.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation
 
     h5_parameters = dict()
     h5_parameters["ELECTRONENERGY"] = 3.0
