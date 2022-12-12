@@ -522,6 +522,11 @@ plot((harmonics_data[0][1])[:,0],
             else:
                 raise Exception("Empty Data")
 
+            try:
+                self.tabs.setCurrentIndex(0)
+            except:
+                pass
+
     def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
                    log_x=False, log_y=False, harmonic=1, color='blue', control=True):
         h_title = "Harmonic " + str(harmonic)
@@ -539,6 +544,7 @@ plot((harmonics_data[0][1])[:,0],
         self.plot_canvas[plot_canvas_index].setGraphTitle(title)
         self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
 
+
     def get_data_exchange_widget_name(self):
         return "XTCAP"
 
@@ -549,7 +555,7 @@ plot((harmonics_data[0][1])[:,0],
         return ["Energy (eV)","Energy (eV)","Energy (eV)","Energy (eV)","Energy (eV)"]
 
     def getYTitles(self):
-        return ["Flux (ph/s/mm^2/0.1%bw)","Ky","Total Power (W)","Power density (W/mm^2)","Integrated Power on Aperture (W)"]
+        return ["Flux (ph/s/0.1%bw)","Ky","Total Power (W)","Power density (W/mm^2)","Integrated Power on Aperture (W)"]
 
     def getVariablesToPlot(self):
         return [(0, 1), (0, 3), (0, 4), (0, 5), (0, 6)]

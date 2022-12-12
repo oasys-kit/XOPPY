@@ -429,6 +429,10 @@ plot((harmonics_data[0][1])[:,0],
             else:
                 raise Exception("Empty Data")
 
+            try:
+                self.tabs.setCurrentIndex(0)
+            except:
+                pass
     def plot_histo(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
                    log_x=False, log_y=False, harmonic=1, color='blue', control=True):
         h_title = "Harmonic " + str(harmonic)
