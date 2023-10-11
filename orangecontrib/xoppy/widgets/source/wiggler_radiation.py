@@ -465,7 +465,34 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
 
         hf.close()
 
-        return e, h, v, p, traj
+        script_template = """
+#
+# script to load the wiggler radiation calculations from file wiggler_radiation.h5
+#
+import h5py
+hf = h5py.File('{file_h5}','r')
+
+flux3D = hf["{subtitle}/Radiation/stack_data"][:]
+energy = hf["{subtitle}/Radiation/axis0"][:]
+horizontal = hf["{subtitle}/Radiation/axis1"][:]
+vertical = hf["{subtitle}/Radiation/axis2"][:]
+traj = hf["{subtitle}/trajectory/traj"][:]
+
+hf.close()
+
+# example plot
+from srxraylib.plot.gol import plot_image
+plot_image(flux3D[0],horizontal,vertical,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%(100.0),xtitle="H [mm]",ytitle="V [mm]")
+#
+# end script
+#
+"""
+
+        script = script_template.format_map({"file_h5":file_h5, "subtitle":subtitle})
+        self.xoppy_script.set_code(script)
+
+
+        return e, h, v, p, traj, script
 
     def set_fields_from_h5file(self,file_h5,subtitle):
 
