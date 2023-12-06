@@ -305,25 +305,6 @@ class OWbm(XoppyWidget, WidgetDecorator):
 
 
     def do_xoppy_calculation(self):
-        a6_T, fm, a, energy_ev =  xoppy_calc_bm(TYPE_CALC=self.TYPE_CALC,
-                             MACHINE_NAME=self.MACHINE_NAME,
-                             RB_CHOICE=self.RB_CHOICE,
-                             MACHINE_R_M=self.MACHINE_R_M,
-                             BFIELD_T=self.BFIELD_T,
-                             BEAM_ENERGY_GEV=self.BEAM_ENERGY_GEV,
-                             CURRENT_A=self.CURRENT_A,
-                             HOR_DIV_MRAD=self.HOR_DIV_MRAD,
-                             VER_DIV=self.VER_DIV,
-                             PHOT_ENERGY_MIN=self.PHOT_ENERGY_MIN,
-                             PHOT_ENERGY_MAX=self.PHOT_ENERGY_MAX,
-                             NPOINTS=self.NPOINTS,
-                             LOG_CHOICE=self.LOG_CHOICE,
-                             PSI_MRAD_PLOT=self.PSI_MRAD_PLOT,
-                             PSI_MIN=self.PSI_MIN,
-                             PSI_MAX=self.PSI_MAX,
-                             PSI_NPOINTS=self.PSI_NPOINTS,
-                             FILE_DUMP=self.FILE_DUMP)
-
         # write python script in standard output
         dict_parameters = {
             "TYPE_CALC"       : self.TYPE_CALC,
@@ -348,6 +329,25 @@ class OWbm(XoppyWidget, WidgetDecorator):
 
         script = self.script_template().format_map(dict_parameters)
         self.xoppy_script.set_code(script)
+
+        a6_T, fm, a, energy_ev =  xoppy_calc_bm(TYPE_CALC=self.TYPE_CALC,
+                             MACHINE_NAME=self.MACHINE_NAME,
+                             RB_CHOICE=self.RB_CHOICE,
+                             MACHINE_R_M=self.MACHINE_R_M,
+                             BFIELD_T=self.BFIELD_T,
+                             BEAM_ENERGY_GEV=self.BEAM_ENERGY_GEV,
+                             CURRENT_A=self.CURRENT_A,
+                             HOR_DIV_MRAD=self.HOR_DIV_MRAD,
+                             VER_DIV=self.VER_DIV,
+                             PHOT_ENERGY_MIN=self.PHOT_ENERGY_MIN,
+                             PHOT_ENERGY_MAX=self.PHOT_ENERGY_MAX,
+                             NPOINTS=self.NPOINTS,
+                             LOG_CHOICE=self.LOG_CHOICE,
+                             PSI_MRAD_PLOT=self.PSI_MRAD_PLOT,
+                             PSI_MIN=self.PSI_MIN,
+                             PSI_MAX=self.PSI_MAX,
+                             PSI_NPOINTS=self.PSI_NPOINTS,
+                             FILE_DUMP=self.FILE_DUMP)
 
         return a6_T, fm, a, energy_ev, script
 

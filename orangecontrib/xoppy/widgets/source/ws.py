@@ -214,24 +214,6 @@ class OWws(XoppyWidget,WidgetDecorator):
         self.NYP = congruence.checkStrictlyPositiveNumber(self.NYP, "Integration points Y")
 
     def do_xoppy_calculation(self):
-        outFile = xoppy_calc_ws(
-            ENERGY = self.ENERGY,
-            CUR    = self.CUR,
-            PERIOD = self.PERIOD,
-            N      = self.N,
-            KX     = self.KX,
-            KY     = self.KY,
-            EMIN   = self.EMIN,
-            EMAX   = self.EMAX,
-            NEE    = self.NEE,
-            D      = self.D,
-            XPC    = self.XPC,
-            YPC    = self.YPC,
-            XPS    = self.XPS,
-            YPS    = self.YPS,
-            NXP    = self.NXP,
-            NYP    = self.NYP,
-        )
 
         dict_parameters = {
             "ENERGY" : self.ENERGY,
@@ -255,6 +237,25 @@ class OWws(XoppyWidget,WidgetDecorator):
         script = self.script_template().format_map(dict_parameters)
 
         self.xoppy_script.set_code(script)
+
+        outFile = xoppy_calc_ws(
+            ENERGY = self.ENERGY,
+            CUR    = self.CUR,
+            PERIOD = self.PERIOD,
+            N      = self.N,
+            KX     = self.KX,
+            KY     = self.KY,
+            EMIN   = self.EMIN,
+            EMAX   = self.EMAX,
+            NEE    = self.NEE,
+            D      = self.D,
+            XPC    = self.XPC,
+            YPC    = self.YPC,
+            XPS    = self.XPS,
+            YPS    = self.YPS,
+            NXP    = self.NXP,
+            NYP    = self.NYP,
+        )
 
         return outFile, script
 

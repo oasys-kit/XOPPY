@@ -251,27 +251,6 @@ class OWxtc(XoppyWidget):
         self.NEKS  = congruence.checkPositiveNumber(self.NEKS , "Neks OR % Helicity")
 
     def do_xoppy_calculation(self):
-        data, harmonics_data =  xoppy_calc_xtc(
-            ENERGY         = self.ENERGY        ,
-            CURRENT        = self.CURRENT       ,
-            ENERGY_SPREAD  = self.ENERGY_SPREAD ,
-            SIGX           = self.SIGX          ,
-            SIGY           = self.SIGY          ,
-            SIGX1          = self.SIGX1         ,
-            SIGY1          = self.SIGY1         ,
-            PERIOD         = self.PERIOD        ,
-            NP             = self.NP            ,
-            EMIN           = self.EMIN          ,
-            EMAX           = self.EMAX          ,
-            N              = self.N             ,
-            HARMONIC_FROM  = self.HARMONIC_FROM ,
-            HARMONIC_TO    = self.HARMONIC_TO   ,
-            HARMONIC_STEP  = self.HARMONIC_STEP ,
-            HELICAL        = self.HELICAL       ,
-            METHOD         = self.METHOD        ,
-            NEKS           = self.NEKS          ,
-            )
-
         dict_parameters = {
             "ENERGY"         : self.ENERGY        ,
             "CURRENT"        : self.CURRENT       ,
@@ -296,6 +275,27 @@ class OWxtc(XoppyWidget):
         script = self.script_template().format_map(dict_parameters)
 
         self.xoppy_script.set_code(script)
+
+        data, harmonics_data =  xoppy_calc_xtc(
+            ENERGY         = self.ENERGY        ,
+            CURRENT        = self.CURRENT       ,
+            ENERGY_SPREAD  = self.ENERGY_SPREAD ,
+            SIGX           = self.SIGX          ,
+            SIGY           = self.SIGY          ,
+            SIGX1          = self.SIGX1         ,
+            SIGY1          = self.SIGY1         ,
+            PERIOD         = self.PERIOD        ,
+            NP             = self.NP            ,
+            EMIN           = self.EMIN          ,
+            EMAX           = self.EMAX          ,
+            N              = self.N             ,
+            HARMONIC_FROM  = self.HARMONIC_FROM ,
+            HARMONIC_TO    = self.HARMONIC_TO   ,
+            HARMONIC_STEP  = self.HARMONIC_STEP ,
+            HELICAL        = self.HELICAL       ,
+            METHOD         = self.METHOD        ,
+            NEKS           = self.NEKS          ,
+            )
 
         return data, harmonics_data, script
 

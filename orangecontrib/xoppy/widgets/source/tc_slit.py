@@ -436,21 +436,9 @@ class OWtc_slit(XoppyWidget):
         # for i in range(self.HARMONICS+1):
         #     if i % 2 != 0: harmonics.append(i)
 
-        K_scan,harmonics,power_array, energy_values_at_flux_peak,flux_values = tuning_curves_on_slit(bl,
-                    Kmin=self.KMIN,
-                    Kmax=self.KMAX,
-                    Kpoints=self.KPOINTS,
-                    harmonics=harmonics,
-                    zero_emittance=zero_emittance,
-                    do_plot_peaks=False,
-                    code=code)
-
         if zero_emittance:
             print("\nNo emittance calculation")
 
-        print("Done")
-
-        # write python script in standard output
         dict_parameters = {
             'ElectronBeamDivergenceH' : self.ELECTRONBEAMDIVERGENCEH,
             'ElectronBeamDivergenceV' : self.ELECTRONBEAMDIVERGENCEV,
@@ -479,8 +467,16 @@ class OWtc_slit(XoppyWidget):
         script = self.script_template().format_map(dict_parameters)
         self.xoppy_script.set_code(script)
 
+        K_scan, harmonics, power_array, energy_values_at_flux_peak, flux_values = tuning_curves_on_slit(bl,
+                    Kmin=self.KMIN,
+                    Kmax=self.KMAX,
+                    Kpoints=self.KPOINTS,
+                    harmonics=harmonics,
+                    zero_emittance=zero_emittance,
+                    do_plot_peaks=False,
+                    code=code)
 
-        return K_scan,harmonics,power_array,energy_values_at_flux_peak,flux_values,script
+        return K_scan, harmonics, power_array, energy_values_at_flux_peak, flux_values, script
 
     def script_template(self):
         return """

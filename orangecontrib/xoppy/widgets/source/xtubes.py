@@ -61,8 +61,6 @@ class OWxtubes(XoppyWidget):
         if self.VOLTAGE <= 18 or self.VOLTAGE >= 42: raise Exception("Voltage out of range")
 
     def do_xoppy_calculation(self):
-        out_file = xoppy_calc_xtubes(ITUBE=self.ITUBE,VOLTAGE=self.VOLTAGE)
-
         dict_parameters = {
                         "ITUBE": self.ITUBE,
                         "VOLTAGE"   : self.VOLTAGE,
@@ -70,6 +68,9 @@ class OWxtubes(XoppyWidget):
         script = self.script_template().format_map(dict_parameters)
 
         self.xoppy_script.set_code(script)
+
+        out_file = xoppy_calc_xtubes(ITUBE=self.ITUBE,VOLTAGE=self.VOLTAGE)
+
         return out_file, script
 
     def script_template(self):

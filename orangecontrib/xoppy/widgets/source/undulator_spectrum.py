@@ -304,30 +304,6 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
         #     raise Exception("SRW calculation code not supported under Linux")
 
     def do_xoppy_calculation(self):
-        energy, flux, spectral_power, cumulated_power = xoppy_calc_undulator_spectrum(ELECTRONENERGY=self.ELECTRONENERGY,
-                                             ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,
-                                             ELECTRONCURRENT=self.ELECTRONCURRENT,
-                                             ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,
-                                             ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,
-                                             ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,
-                                             ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,
-                                             PERIODID=self.PERIODID,
-                                             NPERIODS=self.NPERIODS,
-                                             KV=self.KV,
-                                             KH=self.KH,
-                                             KPHASE=self.KPHASE,
-                                             DISTANCE=self.DISTANCE,
-                                             GAPH=self.GAPH,
-                                             GAPV=self.GAPV,
-                                             GAPH_CENTER=self.GAPH_CENTER,
-                                             GAPV_CENTER=self.GAPV_CENTER,
-                                             PHOTONENERGYMIN=self.PHOTONENERGYMIN,
-                                             PHOTONENERGYMAX=self.PHOTONENERGYMAX,
-                                             PHOTONENERGYPOINTS=self.PHOTONENERGYPOINTS,
-                                             METHOD=self.METHOD,
-                                             USEEMITTANCES=self.USEEMITTANCES)
-
-        # write python script in standard output
         dict_parameters = {
             "ELECTRONENERGY" : self.ELECTRONENERGY,
             "ELECTRONENERGYSPREAD" : self.ELECTRONENERGYSPREAD,
@@ -357,6 +333,29 @@ class OWundulator_spectrum(XoppyWidget, WidgetDecorator):
         script = self.script_template().format_map(dict_parameters)
 
         self.xoppy_script.set_code(script)
+
+        energy, flux, spectral_power, cumulated_power = xoppy_calc_undulator_spectrum(ELECTRONENERGY=self.ELECTRONENERGY,
+                                             ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,
+                                             ELECTRONCURRENT=self.ELECTRONCURRENT,
+                                             ELECTRONBEAMSIZEH=self.ELECTRONBEAMSIZEH,
+                                             ELECTRONBEAMSIZEV=self.ELECTRONBEAMSIZEV,
+                                             ELECTRONBEAMDIVERGENCEH=self.ELECTRONBEAMDIVERGENCEH,
+                                             ELECTRONBEAMDIVERGENCEV=self.ELECTRONBEAMDIVERGENCEV,
+                                             PERIODID=self.PERIODID,
+                                             NPERIODS=self.NPERIODS,
+                                             KV=self.KV,
+                                             KH=self.KH,
+                                             KPHASE=self.KPHASE,
+                                             DISTANCE=self.DISTANCE,
+                                             GAPH=self.GAPH,
+                                             GAPV=self.GAPV,
+                                             GAPH_CENTER=self.GAPH_CENTER,
+                                             GAPV_CENTER=self.GAPV_CENTER,
+                                             PHOTONENERGYMIN=self.PHOTONENERGYMIN,
+                                             PHOTONENERGYMAX=self.PHOTONENERGYMAX,
+                                             PHOTONENERGYPOINTS=self.PHOTONENERGYPOINTS,
+                                             METHOD=self.METHOD,
+                                             USEEMITTANCES=self.USEEMITTANCES)
 
         return energy, flux, spectral_power, cumulated_power, script
 

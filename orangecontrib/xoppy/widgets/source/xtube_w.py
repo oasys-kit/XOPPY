@@ -73,7 +73,6 @@ class OWxtube_w(XoppyWidget):
         self.AL_FILTER = congruence.checkPositiveNumber(self.AL_FILTER, "Al filter")
 
     def do_xoppy_calculation(self):
-        out_file = xoppy_calc_xtube_w(VOLTAGE=self.VOLTAGE,RIPPLE=self.RIPPLE,AL_FILTER=self.AL_FILTER)
         dict_parameters = {
                         "VOLTAGE"   : self.VOLTAGE,
                         "RIPPLE"    : self.RIPPLE,
@@ -83,6 +82,9 @@ class OWxtube_w(XoppyWidget):
         script = self.script_template().format_map(dict_parameters)
 
         self.xoppy_script.set_code(script)
+
+        out_file = xoppy_calc_xtube_w(VOLTAGE=self.VOLTAGE,RIPPLE=self.RIPPLE,AL_FILTER=self.AL_FILTER)
+
         return out_file, script
 
     def script_template(self):

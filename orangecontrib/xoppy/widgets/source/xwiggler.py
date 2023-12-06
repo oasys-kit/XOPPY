@@ -179,19 +179,6 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
 
 
     def do_xoppy_calculation(self):
-        e, f0, p0, cumulated_power, traj, traj_info =  xoppy_calc_wigg(
-            FIELD=self.FIELD,
-            NPERIODS=self.NPERIODS,
-            ULAMBDA=self.ULAMBDA,
-            K=self.K,
-            ENERGY=self.ENERGY,
-            PHOT_ENERGY_MIN=self.PHOT_ENERGY_MIN,
-            PHOT_ENERGY_MAX=self.PHOT_ENERGY_MAX,
-            NPOINTS=self.NPOINTS,
-            NTRAJPOINTS=self.NTRAJPOINTS,
-            CURRENT=self.CURRENT,
-            FILE=self.FILE)
-
         # write python script in standard output
         dict_parameters = {
             "FIELD"           : self.FIELD,
@@ -211,8 +198,18 @@ class OWxwiggler(XoppyWidget,WidgetDecorator):
 
         self.xoppy_script.set_code(script)
 
-
-
+        e, f0, p0, cumulated_power, traj, traj_info =  xoppy_calc_wigg(
+            FIELD=self.FIELD,
+            NPERIODS=self.NPERIODS,
+            ULAMBDA=self.ULAMBDA,
+            K=self.K,
+            ENERGY=self.ENERGY,
+            PHOT_ENERGY_MIN=self.PHOT_ENERGY_MIN,
+            PHOT_ENERGY_MAX=self.PHOT_ENERGY_MAX,
+            NPOINTS=self.NPOINTS,
+            NTRAJPOINTS=self.NTRAJPOINTS,
+            CURRENT=self.CURRENT,
+            FILE=self.FILE)
 
         return e, f0, p0 , cumulated_power, traj, traj_info, script
 

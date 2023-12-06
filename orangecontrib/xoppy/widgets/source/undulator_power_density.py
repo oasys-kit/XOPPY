@@ -409,6 +409,9 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
             "MASK_V_MAX":self.MASK_V_MAX,
         }
 
+        script = self.script_template().format_map(h5_parameters)
+        self.xoppy_script.set_code(script)
+
         h, v, p, code =  xoppy_calc_undulator_power_density(ELECTRONENERGY=self.ELECTRONENERGY,
                                                    ELECTRONENERGYSPREAD=self.ELECTRONENERGYSPREAD,
                                                    ELECTRONCURRENT=self.ELECTRONCURRENT,
@@ -440,9 +443,6 @@ class OWundulator_power_density(XoppyWidget, WidgetDecorator):
                                                    h5_initialize=True,
                                                    h5_parameters=h5_parameters,
                                                    )
-
-        script = self.script_template().format_map(h5_parameters)
-        self.xoppy_script.set_code(script)
 
         return h, v, p, code, script
 

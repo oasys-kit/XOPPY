@@ -323,34 +323,6 @@ class OWtcap(XoppyWidget):
         self.NEKS = congruence.checkStrictlyPositiveNumber(self.NEKS, "Neks OR % Helicity")
 
     def do_xoppy_calculation(self):
-        data, harmonics_data = xoppy_calc_xtcap(
-            ENERGY        = self.ENERGY       ,
-            CURRENT       = self.CURRENT      ,
-            ENERGY_SPREAD = self.ENERGY_SPREAD,
-            SIGX          = self.SIGX         ,
-            SIGY          = self.SIGY         ,
-            SIGX1         = self.SIGX1        ,
-            SIGY1         = self.SIGY1        ,
-            PERIOD        = self.PERIOD       ,
-            NP            = self.NP           ,
-            EMIN          = self.EMIN         ,
-            EMAX          = self.EMAX         ,
-            N             = self.N            ,
-            DISTANCE      = self.DISTANCE     ,
-            XPS           = self.XPS          ,
-            YPS           = self.YPS          ,
-            XPC           = self.XPC          ,
-            YPC           = self.YPC          ,
-            HARMONIC_FROM = self.HARMONIC_FROM,
-            HARMONIC_TO   = self.HARMONIC_TO  ,
-            HARMONIC_STEP = self.HARMONIC_STEP,
-            HRED          = self.HRED         ,
-            HELICAL       = self.HELICAL      ,
-            NEKS          = self.NEKS         ,
-            METHOD        = self.METHOD       ,
-            BSL           = self.BSL          ,
-        )
-
         dict_parameters = {
             "ENERGY"        : self.ENERGY       ,
             "CURRENT"       : self.CURRENT      ,
@@ -382,6 +354,34 @@ class OWtcap(XoppyWidget):
         script = self.script_template().format_map(dict_parameters)
 
         self.xoppy_script.set_code(script)
+
+        data, harmonics_data = xoppy_calc_xtcap(
+            ENERGY        = self.ENERGY       ,
+            CURRENT       = self.CURRENT      ,
+            ENERGY_SPREAD = self.ENERGY_SPREAD,
+            SIGX          = self.SIGX         ,
+            SIGY          = self.SIGY         ,
+            SIGX1         = self.SIGX1        ,
+            SIGY1         = self.SIGY1        ,
+            PERIOD        = self.PERIOD       ,
+            NP            = self.NP           ,
+            EMIN          = self.EMIN         ,
+            EMAX          = self.EMAX         ,
+            N             = self.N            ,
+            DISTANCE      = self.DISTANCE     ,
+            XPS           = self.XPS          ,
+            YPS           = self.YPS          ,
+            XPC           = self.XPC          ,
+            YPC           = self.YPC          ,
+            HARMONIC_FROM = self.HARMONIC_FROM,
+            HARMONIC_TO   = self.HARMONIC_TO  ,
+            HARMONIC_STEP = self.HARMONIC_STEP,
+            HRED          = self.HRED         ,
+            HELICAL       = self.HELICAL      ,
+            NEKS          = self.NEKS         ,
+            METHOD        = self.METHOD       ,
+            BSL           = self.BSL          ,
+        )
 
         return data, harmonics_data, script
 
