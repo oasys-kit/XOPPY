@@ -536,6 +536,15 @@ class OWxpower(XoppyWidget):
 
                     self.process_showers()
                     self.compute()
+                elif exchangeData.get_program_name() == "SRW":
+                    if exchangeData.get_widget_name() =="UNDULATOR_SPECTRUM" :
+                        spectrum = exchangeData.get_content("srw_data")
+
+                        self.input_spectrum = numpy.vstack((spectrum[:, 0], spectrum[:, 1]))
+                        self.input_script = None
+
+                        self.process_showers()
+                        self.compute()
 
         except Exception as exception:
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
