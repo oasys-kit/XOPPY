@@ -13,6 +13,7 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 from oasys.widgets.gui import ConfirmDialog
+from oasys.util.oasys_objects import OasysSurfaceData
 
 from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
 
@@ -39,8 +40,12 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
     inputs = [{"name": "ExchangeData",
                "type": DataExchangeObject,
                "handler": "acceptExchangeData" },
-              WidgetDecorator.syned_input_data()[0]]
+              WidgetDecorator.syned_input_data()[0],
+              ("Surface Data", OasysSurfaceData, "set_input_surface_data")]
 
+
+    
+    
     INPUT_BEAM_FROM = Setting(0)
     INPUT_BEAM_FILE = Setting("undulator_radiation.h5")
 
@@ -59,6 +64,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
     EL1_VMAG = Setting(1.0)
     EL1_HROT = Setting(0.0)
     EL1_VROT = Setting(0.0)
+    thin_object_file = Setting('/home/srio/Oasys/lens.h5')
+    thin_object_thickness_outside_file_area = Setting(0.0)
 
     PLOT_SETS = Setting(1)
 
@@ -70,6 +77,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
     INTERPOLATION_FLAG = Setting(0)
     INTERPOLATION_FACTOR_H = Setting(1.0)
     INTERPOLATION_FACTOR_V = Setting(1.0)
+
+
 
     def __init__(self):
         super().__init__(show_script_tab=True)
@@ -117,7 +126,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box11)
         gui.comboBox(box1, self, "EL1_FLAG",
                     label=self.unitLabels()[idx], addSpace=False,
-                    items=['Filter', 'Mirror','Aperture','Magnifier','Screen Rotation'],
+                    items=['Filter', 'Mirror','Aperture','Magnifier','Screen Rotation',"Thin object filter"],
                     valueType=int, orientation="horizontal", callback=self.set_EL_FLAG, labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
@@ -133,7 +142,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         list_w = ["EL1_THI", "EL1_ANG", "EL1_DEF", "EL1_ROU", "EL1_DEN",
                   "EL1_HGAP", "EL1_VGAP", "EL1_HGAPCENTER", "EL1_VGAPCENTER",
                   "EL1_HMAG", "EL1_VMAG",
-                  "EL1_HROT", "EL1_VROT"]
+                  "EL1_HROT", "EL1_VROT",
+                  "thin_object_file", "thin_object_thickness_outside_file_area"]
 
         for el in list_w:
             idx += 1
@@ -283,6 +293,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         labels.append('V Magnification')
         labels.append('Rotation angle around V axis [deg]')
         labels.append('Rotation angle around H axis [deg]')
+        labels.append('File with t.o. thickness')
+        labels.append('T. o. thickness outside file definition')
 
         labels.append("Plot")
         labels.append("Write input beam")
@@ -315,6 +327,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         flags.append('self.EL1_FLAG  ==  3')   # magnification
         flags.append('self.EL1_FLAG  in (0, 4)')   # rotation
         flags.append('self.EL1_FLAG  in (0, 4)')   # rotation
+        flags.append('self.EL1_FLAG  == 5')   # thin object thickness
+        flags.append('self.EL1_FLAG  == 5')   # thin object thickness
         flags.append("True")  # plot
         flags.append("True")
         flags.append('self.FILE_INPUT_FLAG >= 1')
@@ -328,6 +342,14 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
 
     def get_help_name(self):
         return 'power3dcomponent'
+
+    def set_input_surface_data(self, surface_data):
+        if isinstance(surface_data, OasysSurfaceData):
+            self.EL1_FLAG = 5
+            self.thin_object_file = surface_data.surface_data_file
+            self.thin_object_thickness_outside_file_area = 0.0
+        else:
+            raise Exception("Wrong surface_data")
 
     def acceptExchangeData(self, exchangeData):
         try:
@@ -397,6 +419,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         elif self.EL1_FLAG == 4: # rotation
             self.EL1_HROT = congruence.checkNumber(self.EL1_HROT, "OE rotation H")
             self.EL1_VROT = congruence.checkNumber(self.EL1_VROT, "OE rotation V")
+        elif self.EL1_FLAG == 4: # thin object filter
+            self.thin_object_thickness_outside_file_area = congruence.checkNumber(self.thin_object_thickness_outside_file_area, "Thin object thickness outside file")
 
         if self.FILE_DUMP == 1:
             if (os.path.splitext(self.FILE_NAME))[-1] not in [".h5",".H5",".hdf5",".HDF5"]:
@@ -434,24 +458,52 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
                                    h5_parameters=None,
                                    )
 
+        # defaults
+        hgap = 1000.0
+        vgap = 1000.0
+        hgapcenter = 0.0
+        vgapcenter = 0.0
+        hmag = 1.0
+        vmag = 1.0
+        hrot = 0.0
+        vrot = 0.0
+        thin_object_file = ''
+        thin_object_thickness_outside_file_area = 0.0
+        if self.EL1_FLAG in [0,1,2]: #  used
+            hgap = self.EL1_HGAP
+            vgap = self.EL1_VGAP
+            hgapcenter = self.EL1_HGAPCENTER
+            vgapcenter = self.EL1_VGAPCENTER
+        if self.EL1_FLAG == 3: #  used
+            hmag = self.EL1_HMAG
+            vmag = self.EL1_VMAG
+        if self.EL1_FLAG in [0,1,4]: #  used
+            hrot = self.EL1_HROT
+            vrot = self.EL1_VROT
+        if self.EL1_FLAG == 5: #  used
+            thin_object_file = self.thin_object_file
+            thin_object_thickness_outside_file_area = self.thin_object_thickness_outside_file_area
+
         transmittance, absorbance, E, H, V, txt = calculate_component_absorbance_and_transmittance(
-                                                              e0, h0, v0,
-                                                              substance=self.EL1_FOR,
-                                                              thick=self.EL1_THI,
-                                                              angle=self.EL1_ANG,
-                                                              defection=self.EL1_DEF,
-                                                              dens=self.EL1_DEN,
-                                                              roughness=self.EL1_ROU,
-                                                              flags=self.EL1_FLAG,
-                                                              hgap=self.EL1_HGAP,
-                                                              vgap=self.EL1_VGAP,
-                                                              hgapcenter=self.EL1_HGAPCENTER,
-                                                              vgapcenter=self.EL1_VGAPCENTER,
-                                                              hmag=self.EL1_HMAG,
-                                                              vmag=self.EL1_VMAG,
-                                                              hrot=self.EL1_HROT,
-                                                              vrot=self.EL1_VROT,
-                                                              )
+                                  e0, h0, v0,
+                                  substance=self.EL1_FOR,
+                                  thick=self.EL1_THI,
+                                  angle=self.EL1_ANG,
+                                  defection=self.EL1_DEF,
+                                  dens=self.EL1_DEN,
+                                  roughness=self.EL1_ROU,
+                                  flags=self.EL1_FLAG,
+                                  hgap=hgap,
+                                  vgap=vgap,
+                                  hgapcenter=hgapcenter,
+                                  vgapcenter=vgapcenter,
+                                  hmag=hmag,
+                                  vmag=vmag,
+                                  hrot=hrot,
+                                  vrot=vrot,
+                                  thin_object_file=thin_object_file,
+                                  thin_object_thickness_outside_file_area=thin_object_thickness_outside_file_area,
+                                  )
 
         txt += info_total_power(p0, e0, v0, h0, transmittance, absorbance, EL1_FLAG=self.EL1_FLAG)
         print(txt)
@@ -462,7 +514,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
             pass
         elif self.FILE_DUMP == 1:
             write_h5_file(calculated_data, self.input_beam.get_content("xoppy_data"), filename=self.FILE_NAME,
-                          EL1_FLAG=self.EL1_FLAG, EL1_HMAG=self.EL1_HMAG, EL1_VMAG=self.EL1_VMAG)
+                          EL1_FLAG=self.EL1_FLAG, EL1_HMAG=hmag, EL1_VMAG=vmag)
         elif self.FILE_DUMP == 2:
             write_txt_file(calculated_data, self.input_beam.get_content("xoppy_data"),
                            filename=self.FILE_NAME, method="3columns")
@@ -494,19 +546,21 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
                 "EL1_DEN" : dens,
                 "EL1_ROU" : self.EL1_ROU,
                 "EL1_FLAG" : self.EL1_FLAG,
-                "EL1_HGAP" : self.EL1_HGAP,
-                "EL1_VGAP" : self.EL1_VGAP,
-                "EL1_HGAPCENTER" : self.EL1_HGAPCENTER,
-                "EL1_VGAPCENTER" : self.EL1_VGAPCENTER,
-                "EL1_HMAG" : self.EL1_HMAG,
-                "EL1_VMAG" : self.EL1_VMAG,
-                "EL1_HROT" : self.EL1_HROT,
-                "EL1_VROT" : self.EL1_VROT,
+                "hgap" : hgap,
+                "vgap" : vgap,
+                "hgapcenter" : hgapcenter,
+                "vgapcenter" : vgapcenter,
+                "hmag" : hmag,
+                "vmag" : vmag,
+                "hrot" : hrot,
+                "vrot" : vrot,
                 "FILE_INPUT_NAME": "'"+self.FILE_INPUT_NAME+"'",
                 "INTERPOLATION_FLAG" : self.INTERPOLATION_FLAG,
                 "INTERPOLATION_FACTOR_H" : self.INTERPOLATION_FACTOR_H,
                 "INTERPOLATION_FACTOR_V" : self.INTERPOLATION_FACTOR_V,
                 "EL1_SLIT_CROP" : self.EL1_SLIT_CROP,
+                "thin_object_file" : thin_object_file,
+                "thin_object_thickness_outside_file_area" : thin_object_thickness_outside_file_area,
             }
 
 
@@ -549,25 +603,27 @@ transmittance, absorbance, E, H, V, txt = calculate_component_absorbance_and_tra
                 dens={EL1_DEN},
                 roughness={EL1_ROU},
                 flags={EL1_FLAG},
-                hgap={EL1_HGAP},
-                vgap={EL1_VGAP},
-                hgapcenter={EL1_HGAPCENTER},
-                vgapcenter={EL1_VGAPCENTER},
-                hmag={EL1_HMAG},
-                vmag={EL1_VMAG},
-                hrot={EL1_HROT},
-                vrot={EL1_VROT},
+                hgap={hgap},
+                vgap={vgap},
+                hgapcenter={hgapcenter},
+                vgapcenter={vgapcenter},
+                hmag={hmag},
+                vmag={vmag},
+                hrot={hrot},
+                vrot={vrot},
+                thin_object_file='{thin_object_file}',
+                thin_object_thickness_outside_file_area={thin_object_thickness_outside_file_area},
                 )
 
 # apply transmittance to incident beam 
 f_transmitted, e, h, v = apply_transmittance_to_incident_beam(transmittance, f0, e0, h0, v0,
                                   flags = {EL1_FLAG},
-                                  hgap = {EL1_HGAP},
-                                  vgap = {EL1_VGAP},
-                                  hgapcenter = {EL1_HGAPCENTER},
-                                  vgapcenter = {EL1_VGAPCENTER},
-                                  hmag = {EL1_HMAG},
-                                  vmag = {EL1_VMAG},
+                                  hgap = {hgap},
+                                  vgap = {vgap},
+                                  hgapcenter = {hgapcenter},
+                                  vgapcenter = {vgapcenter},
+                                  hmag = {hmag},
+                                  vmag = {vmag},
                                   interpolation_flag     = {INTERPOLATION_FLAG},
                                   interpolation_factor_h = {INTERPOLATION_FACTOR_H},
                                   interpolation_factor_v = {INTERPOLATION_FACTOR_V},
@@ -986,8 +1042,6 @@ if __name__ == "__main__":
     w.EL1_HGAPCENTER = 0.0
     w.EL1_VGAPCENTER = 0.0
     w.PLOT_SETS = 3
-
-
 
     w.show()
     app.exec()
