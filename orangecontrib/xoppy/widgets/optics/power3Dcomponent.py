@@ -313,12 +313,12 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         flags.append('True')  # input from
         flags.append('self.INPUT_BEAM_FROM  ==  1')  # input file
         flags.append('True')                   # kind
-        flags.append('self.EL1_FLAG  <=  1')   # formula
+        flags.append('self.EL1_FLAG  in  (0, 1, 5)')   # formula
         flags.append('self.EL1_FLAG  ==  0')   # thickness
         flags.append('self.EL1_FLAG  ==  1')   # angle
         flags.append('self.EL1_FLAG  ==  1')   # mirror deflection
         flags.append('self.EL1_FLAG  ==  1')   # roughness
-        flags.append('self.EL1_FLAG  <=  1')   # density
+        flags.append('self.EL1_FLAG  in  (0, 1, 5)')   # density
         flags.append('self.EL1_FLAG  <=  2')   # gap
         flags.append('self.EL1_FLAG  <=  2')   # gap
         flags.append('self.EL1_FLAG  <=  2')   # gap center
