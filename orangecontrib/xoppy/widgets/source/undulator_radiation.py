@@ -363,6 +363,9 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
 
                 # self.add_specific_content_to_calculated_data(self.calculated_data)
                 #
+
+                self.xoppy_script.set_code(calculation_output[5])
+
                 self.setStatusMessage("Plotting Results")
 
                 self.plot_results(self.calculated_data, progressBarValue=60)
@@ -402,7 +405,35 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
 
         hf.close()
 
-        return e, h, v, p, code
+        script_dat = {'file_h5': file_h5,
+                      'code': code,
+                      'subtitle': subtitle,
+                      }
+        script_txt = """
+#
+# import undulator radiation from file
+#
+import h5py
+
+code = '{code}'
+hf = h5py.File('{file_h5}','r')
+flux3D = hf["{subtitle}/Radiation/stack_data"].value
+energy = hf["{subtitle}/Radiation/axis0"].value
+horizontal = hf["{subtitle}/Radiation/axis1"].value
+vertical = hf["{subtitle}/Radiation/axis2"].value
+hf.close()
+
+# example plot
+from srxraylib.plot.gol import plot_image
+plot_image(flux3D[0],horizontal,vertical,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%(6000.0),xtitle="H [mm]",ytitle="V [mm]")
+#
+# end script
+#
+
+"""
+        script = script_txt.format_map(script_dat)
+
+        return e, h, v, p, code, script
 
     def set_fields_from_h5file(self,file_h5,subtitle):
 
