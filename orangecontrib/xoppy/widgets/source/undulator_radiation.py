@@ -359,6 +359,8 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
                 try:
                     self.set_fields_from_h5file(self.filename, "/XOPPY_RADIATION")
                 except:
+                    QMessageBox.critical(self, "Error", "Failed to set fields hdf5 /XOPPY_RADIATION/parameters \n",
+                                         QMessageBox.Ok)
                     pass
 
                 # self.add_specific_content_to_calculated_data(self.calculated_data)
@@ -382,23 +384,23 @@ class OWundulator_radiation(XoppyWidget, WidgetDecorator):
         hf = h5py.File(file_h5,'r')
 
         try:
-            p = hf[subtitle+"/Radiation/stack_data"].value
-            e = hf[subtitle+"/Radiation/axis0"].value
-            h = hf[subtitle+"/Radiation/axis1"].value
-            v = hf[subtitle+"/Radiation/axis2"].value
+            p = hf[subtitle+"/Radiation/stack_data"][:]
+            e = hf[subtitle+"/Radiation/axis0"][:]
+            h = hf[subtitle+"/Radiation/axis1"][:]
+            v = hf[subtitle+"/Radiation/axis2"][:]
         except:
             raise Exception("Data not plottable: bad content\n" + str(e))
 
         code = "unknown"
 
         try:
-            if hf[subtitle+"/parameters/METHOD"].value == 0:
+            if hf[subtitle+"/parameters/METHOD"][()] == 0:
                 code = 'US'
-            elif hf[subtitle+"/parameters/METHOD"].value == 1:
+            elif hf[subtitle+"/parameters/METHOD"][()] == 1:
                 code = 'URGENT'
-            elif hf[subtitle+"/parameters/METHOD"].value == 2:
+            elif hf[subtitle+"/parameters/METHOD"][()] == 2:
                 code = 'SRW'
-            elif hf[subtitle+"/parameters/METHOD"].value == 3:
+            elif hf[subtitle+"/parameters/METHOD"][()] == 3:
                 code = 'pySRU'
         except:
             pass
@@ -417,10 +419,10 @@ import h5py
 
 code = '{code}'
 hf = h5py.File('{file_h5}','r')
-flux3D = hf["{subtitle}/Radiation/stack_data"].value
-energy = hf["{subtitle}/Radiation/axis0"].value
-horizontal = hf["{subtitle}/Radiation/axis1"].value
-vertical = hf["{subtitle}/Radiation/axis2"].value
+flux3D = hf["{subtitle}/Radiation/stack_data"][:]
+energy = hf["{subtitle}/Radiation/axis0"][:]
+horizontal = hf["{subtitle}/Radiation/axis1"][:]
+vertical = hf["{subtitle}/Radiation/axis2"][:]
 hf.close()
 
 # example plot
@@ -439,30 +441,30 @@ plot_image(flux3D[0],horizontal,vertical,title="Flux [photons/s] per 0.1 bw per 
 
         hf = h5py.File(file_h5,'r')
 
-        self.METHOD                  = hf[subtitle + "/parameters/METHOD"].value
-        self.USEEMITTANCES           = hf[subtitle + "/parameters/USEEMITTANCES"].value
-        self.ELECTRONENERGY          = hf[subtitle + "/parameters/ELECTRONENERGY"].value
-        self.ELECTRONENERGYSPREAD    = hf[subtitle + "/parameters/ELECTRONENERGYSPREAD"].value
-        self.ELECTRONCURRENT         = hf[subtitle + "/parameters/ELECTRONCURRENT"].value
-        self.ELECTRONBEAMSIZEH       = hf[subtitle + "/parameters/ELECTRONBEAMSIZEH"].value
-        self.ELECTRONBEAMSIZEV       = hf[subtitle + "/parameters/ELECTRONBEAMSIZEV"].value
-        self.ELECTRONBEAMDIVERGENCEH = hf[subtitle + "/parameters/ELECTRONBEAMDIVERGENCEH"].value
-        self.ELECTRONBEAMDIVERGENCEV = hf[subtitle + "/parameters/ELECTRONBEAMDIVERGENCEV"].value
-        self.PERIODID                = hf[subtitle + "/parameters/PERIODID"].value
-        self.NPERIODS                = hf[subtitle + "/parameters/NPERIODS"].value
-        self.KV                      = hf[subtitle + "/parameters/KV"].value
-        self.KH                      = hf[subtitle + "/parameters/KH"].value
-        self.KPHASE                  = hf[subtitle + "/parameters/KPHASE"].value
-        self.DISTANCE                = hf[subtitle + "/parameters/DISTANCE"].value
-        self.SETRESONANCE            = hf[subtitle + "/parameters/SETRESONANCE"].value
-        self.HARMONICNUMBER          = hf[subtitle + "/parameters/HARMONICNUMBER"].value
-        self.GAPH                    = hf[subtitle + "/parameters/GAPH"].value
-        self.GAPV                    = hf[subtitle + "/parameters/GAPV"].value
-        self.HSLITPOINTS             = hf[subtitle + "/parameters/HSLITPOINTS"].value
-        self.VSLITPOINTS             = hf[subtitle + "/parameters/VSLITPOINTS"].value
-        self.PHOTONENERGYMIN         = hf[subtitle + "/parameters/PHOTONENERGYMIN"].value
-        self.PHOTONENERGYMAX         = hf[subtitle + "/parameters/PHOTONENERGYMAX"].value
-        self.PHOTONENERGYPOINTS      = hf[subtitle + "/parameters/PHOTONENERGYPOINTS"].value
+        self.METHOD                  = hf[subtitle + "/parameters/METHOD"][()]
+        self.USEEMITTANCES           = hf[subtitle + "/parameters/USEEMITTANCES"][()]
+        self.ELECTRONENERGY          = hf[subtitle + "/parameters/ELECTRONENERGY"][()]
+        self.ELECTRONENERGYSPREAD    = hf[subtitle + "/parameters/ELECTRONENERGYSPREAD"][()]
+        self.ELECTRONCURRENT         = hf[subtitle + "/parameters/ELECTRONCURRENT"][()]
+        self.ELECTRONBEAMSIZEH       = hf[subtitle + "/parameters/ELECTRONBEAMSIZEH"][()]
+        self.ELECTRONBEAMSIZEV       = hf[subtitle + "/parameters/ELECTRONBEAMSIZEV"][()]
+        self.ELECTRONBEAMDIVERGENCEH = hf[subtitle + "/parameters/ELECTRONBEAMDIVERGENCEH"][()]
+        self.ELECTRONBEAMDIVERGENCEV = hf[subtitle + "/parameters/ELECTRONBEAMDIVERGENCEV"][()]
+        self.PERIODID                = hf[subtitle + "/parameters/PERIODID"][()]
+        self.NPERIODS                = hf[subtitle + "/parameters/NPERIODS"][()]
+        self.KV                      = hf[subtitle + "/parameters/KV"][()]
+        self.KH                      = hf[subtitle + "/parameters/KH"][()]
+        self.KPHASE                  = hf[subtitle + "/parameters/KPHASE"][()]
+        self.DISTANCE                = hf[subtitle + "/parameters/DISTANCE"][()]
+        self.SETRESONANCE            = hf[subtitle + "/parameters/SETRESONANCE"][()]
+        self.HARMONICNUMBER          = hf[subtitle + "/parameters/HARMONICNUMBER"][()]
+        self.GAPH                    = hf[subtitle + "/parameters/GAPH"][()]
+        self.GAPV                    = hf[subtitle + "/parameters/GAPV"][()]
+        self.HSLITPOINTS             = hf[subtitle + "/parameters/HSLITPOINTS"][()]
+        self.VSLITPOINTS             = hf[subtitle + "/parameters/VSLITPOINTS"][()]
+        self.PHOTONENERGYMIN         = hf[subtitle + "/parameters/PHOTONENERGYMIN"][()]
+        self.PHOTONENERGYMAX         = hf[subtitle + "/parameters/PHOTONENERGYMAX"][()]
+        self.PHOTONENERGYPOINTS      = hf[subtitle + "/parameters/PHOTONENERGYPOINTS"][()]
 
         hf.close()
 

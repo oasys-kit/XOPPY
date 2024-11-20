@@ -428,7 +428,8 @@ class OWwiggler_radiation(XoppyWidget, WidgetDecorator):
                 try:
                     self.set_fields_from_h5file(self.filename, "/XOPPY_RADIATION")
                 except:
-                    QMessageBox.critical(self, "Error", "Failed to set fields hdf5 /XOPPY_RADIATION/parameters \n", QMessageBox.Ok)
+                    pass
+                    # QMessageBox.critical(self, "Error", "Failed to set fields hdf5 /XOPPY_RADIATION/parameters \n", QMessageBox.Ok)
 
 
                 # self.add_specific_content_to_calculated_data(self.calculated_data)
@@ -499,29 +500,28 @@ plot_image(flux3D[0],horizontal,vertical,title="Flux [photons/s] per 0.1 bw per 
 
         hf = h5py.File(file_h5,'r')
 
+        self.ELECTRONENERGY          = hf[subtitle + "/parameters/ELECTRONENERGY"][()]
+        self.ELECTRONCURRENT         = hf[subtitle + "/parameters/ELECTRONCURRENT"][()]
+        self.PERIODID                = hf[subtitle + "/parameters/PERIODID"][()]
+        self.NPERIODS                = hf[subtitle + "/parameters/NPERIODS"][()]
+        self.KV                      = hf[subtitle + "/parameters/KV"][()]
+        self.DISTANCE                = hf[subtitle + "/parameters/DISTANCE"][()]
+        self.HSLITPOINTS             = hf[subtitle + "/parameters/HSLITPOINTS"][()]
+        self.VSLITPOINTS             = hf[subtitle + "/parameters/VSLITPOINTS"][()]
+        self.PHOTONENERGYMIN         = hf[subtitle + "/parameters/PHOTONENERGYMIN"][()]
+        self.PHOTONENERGYMAX         = hf[subtitle + "/parameters/PHOTONENERGYMAX"][()]
+        self.PHOTONENERGYPOINTS      = hf[subtitle + "/parameters/PHOTONENERGYPOINTS"][()]
 
-        self.ELECTRONENERGY          = hf[subtitle + "/parameters/ELECTRONENERGY"].value
-        self.ELECTRONCURRENT         = hf[subtitle + "/parameters/ELECTRONCURRENT"].value
-        self.PERIODID                = hf[subtitle + "/parameters/PERIODID"].value
-        self.NPERIODS                = hf[subtitle + "/parameters/NPERIODS"].value
-        self.KV                      = hf[subtitle + "/parameters/KV"].value
-        self.DISTANCE                = hf[subtitle + "/parameters/DISTANCE"].value
-        self.HSLITPOINTS             = hf[subtitle + "/parameters/HSLITPOINTS"].value
-        self.VSLITPOINTS             = hf[subtitle + "/parameters/VSLITPOINTS"].value
-        self.PHOTONENERGYMIN         = hf[subtitle + "/parameters/PHOTONENERGYMIN"].value
-        self.PHOTONENERGYMAX         = hf[subtitle + "/parameters/PHOTONENERGYMAX"].value
-        self.PHOTONENERGYPOINTS      = hf[subtitle + "/parameters/PHOTONENERGYPOINTS"].value
+        self.FIELD = hf[subtitle + "/parameters/FIELD"][()]
+        self.FILE = hf[subtitle + "/parameters/FILE"][()]
+        self.POLARIZATION = hf[subtitle + "/parameters/POLARIZATION"][()]
+        self.CONVOLUTION = hf[subtitle + "/parameters/CONVOLUTION"][()]
+        self.PASSEPARTOUT = hf[subtitle + "/parameters/PASSEPARTOUT"][()]
 
-        self.FIELD = hf[subtitle + "/parameters/FIELD"].value
-        self.FILE = hf[subtitle + "/parameters/FILE"].value
-        self.POLARIZATION = hf[subtitle + "/parameters/POLARIZATION"].value
-        self.CONVOLUTION = hf[subtitle + "/parameters/CONVOLUTION"].value
-        self.PASSEPARTOUT = hf[subtitle + "/parameters/PASSEPARTOUT"].value
-
-        self.SHIFT_X_FLAG = hf[subtitle + "/parameters/SHIFT_X_FLAG"].value
-        self.SHIFT_BETAX_FLAG = hf[subtitle + "/parameters/SHIFT_BETAX_FLAG"].value
-        self.SHIFT_X_VALUE = hf[subtitle + "/parameters/SHIFT_X_VALUE"].value
-        self.SHIFT_BETAX_VALUE = hf[subtitle + "/parameters/SHIFT_BETAX_VALUE"].value
+        self.SHIFT_X_FLAG = hf[subtitle + "/parameters/SHIFT_X_FLAG"][()]
+        self.SHIFT_BETAX_FLAG = hf[subtitle + "/parameters/SHIFT_BETAX_FLAG"][()]
+        self.SHIFT_X_VALUE = hf[subtitle + "/parameters/SHIFT_X_VALUE"][()]
+        self.SHIFT_BETAX_VALUE = hf[subtitle + "/parameters/SHIFT_BETAX_VALUE"][()]
 
 
         hf.close()
