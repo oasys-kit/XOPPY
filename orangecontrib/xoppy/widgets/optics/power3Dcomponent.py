@@ -41,7 +41,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
                "type": DataExchangeObject,
                "handler": "acceptExchangeData" },
               WidgetDecorator.syned_input_data()[0],
-              ("Surface Data", OasysSurfaceData, "set_input_surface_data")]
+              ("Surface Data 1", OasysSurfaceData, "set_input_surface_data_front"),
+              ("Surface Data 2", OasysSurfaceData, "set_input_surface_data_back")]
 
 
     
@@ -56,6 +57,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
     EL1_DEF = Setting(1) # deflection 0=H 1=V
     EL1_ROU = Setting(0.0)
     EL1_DEN = Setting("?")
+    EL1_GAPSHAPE = Setting(0)
     EL1_HGAP = Setting(1000.0)
     EL1_VGAP = Setting(1000.0)
     EL1_HGAPCENTER = Setting(0.0)
@@ -66,6 +68,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
     EL1_VROT = Setting(0.0)
     thin_object_file = Setting('/home/srio/Oasys/lens.h5')
     thin_object_thickness_outside_file_area = Setting(0.0)
+    thin_object_back_profile_flag = Setting(0)
+    thin_object_back_profile_file = Setting('/home/srio/Oasys/lens.h5')
 
     PLOT_SETS = Setting(1)
 
@@ -139,11 +143,11 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         self.show_at(self.unitFlags()[idx], box1)
 
 
-        list_w = ["EL1_THI", "EL1_ANG", "EL1_DEF", "EL1_ROU", "EL1_DEN",
+        list_w = ["EL1_THI", "EL1_ANG", "EL1_DEF", "EL1_ROU", "EL1_DEN", "EL1_GAPSHAPE",
                   "EL1_HGAP", "EL1_VGAP", "EL1_HGAPCENTER", "EL1_VGAPCENTER",
                   "EL1_HMAG", "EL1_VMAG",
                   "EL1_HROT", "EL1_VROT",
-                  "thin_object_file", "thin_object_thickness_outside_file_area"]
+                  "thin_object_file", "thin_object_thickness_outside_file_area", "thin_object_back_profile_flag", "thin_object_back_profile_file"]
 
         for el in list_w:
             idx += 1
@@ -154,7 +158,19 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
                              items=['Horizontal',
                                     'Vertical'],
                              valueType=int, orientation="horizontal", labelWidth=250)
-            elif el == "EL1_DEN":
+            elif el == "EL1_GAPSHAPE":
+                gui.comboBox(box1, self, el,
+                             label=self.unitLabels()[idx], addSpace=False,
+                             items=['Rectangle',
+                                    'Ellipse'],
+                             valueType=int, orientation="horizontal", labelWidth=250)
+            elif el == "thin_object_back_profile_flag":
+                gui.comboBox(box1, self, el,
+                             label=self.unitLabels()[idx], addSpace=False,
+                             items=['zero',
+                                    'from h5 file'],
+                             valueType=int, orientation="horizontal", labelWidth=250)
+            elif el in ["EL1_DEN", "thin_object_file", "thin_object_back_profile_file"]:
                 oasysgui.lineEdit(box1, self, el,
                                   label=self.unitLabels()[idx], addSpace=False,
                                   valueType=str, orientation="horizontal", labelWidth=250)
@@ -285,6 +301,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         labels.append('Mirror deflection')
         labels.append('Roughness[A]')
         labels.append('Density [g/cm^3]')
+        labels.append('Aperture shape')
         labels.append('H Size/Gap [mm]')
         labels.append('V Size/Gap [mm]')
         labels.append('H Center/Gap [mm]')
@@ -293,8 +310,11 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         labels.append('V Magnification')
         labels.append('Rotation angle around V axis [deg]')
         labels.append('Rotation angle around H axis [deg]')
-        labels.append('File with t.o. thickness')
-        labels.append('T. o. thickness outside file definition')
+        labels.append('File with FRONT profile z(x,y)')
+        labels.append('Front profile z outside file definition')
+        labels.append('Back profile z(x,y)')
+        labels.append('File with BACK profile z(x,y)')
+
 
         labels.append("Plot")
         labels.append("Write input beam")
@@ -319,6 +339,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         flags.append('self.EL1_FLAG  ==  1')   # mirror deflection
         flags.append('self.EL1_FLAG  ==  1')   # roughness
         flags.append('self.EL1_FLAG  in  (0, 1, 5)')   # density
+        flags.append('self.EL1_FLAG  <=  2') # gap shape
         flags.append('self.EL1_FLAG  <=  2')   # gap
         flags.append('self.EL1_FLAG  <=  2')   # gap
         flags.append('self.EL1_FLAG  <=  2')   # gap center
@@ -329,6 +350,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         flags.append('self.EL1_FLAG  in (0, 4)')   # rotation
         flags.append('self.EL1_FLAG  == 5')   # thin object thickness
         flags.append('self.EL1_FLAG  == 5')   # thin object thickness
+        flags.append('self.EL1_FLAG  == 5')   # thin object back profile flag
+        flags.append('self.EL1_FLAG  == 5 and self.thin_object_back_profile_flag == 1')   # thin object back profile file
         flags.append("True")  # plot
         flags.append("True")
         flags.append('self.FILE_INPUT_FLAG >= 1')
@@ -343,11 +366,19 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
     def get_help_name(self):
         return 'power3dcomponent'
 
-    def set_input_surface_data(self, surface_data):
+    def set_input_surface_data_front(self, surface_data):
         if isinstance(surface_data, OasysSurfaceData):
             self.EL1_FLAG = 5
             self.thin_object_file = surface_data.surface_data_file
             self.thin_object_thickness_outside_file_area = 0.0
+        else:
+            raise Exception("Wrong surface_data")
+
+    def set_input_surface_data_back(self, surface_data):
+        if isinstance(surface_data, OasysSurfaceData):
+            self.EL1_FLAG = 5
+            self.thin_object_back_profile_flag= 1
+            self.thin_object_back_profile_file= surface_data.surface_data_file
         else:
             raise Exception("Wrong surface_data")
 
@@ -459,6 +490,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
                                    )
 
         # defaults
+        gapshape = 0
         hgap = 1000.0
         vgap = 1000.0
         hgapcenter = 0.0
@@ -469,11 +501,14 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         vrot = 0.0
         thin_object_file = ''
         thin_object_thickness_outside_file_area = 0.0
+        thin_object_back_profile_flag = 0
+        thin_object_back_profile_file = ''
         if self.EL1_FLAG in [0,1,2]: #  used
             hgap = self.EL1_HGAP
             vgap = self.EL1_VGAP
             hgapcenter = self.EL1_HGAPCENTER
             vgapcenter = self.EL1_VGAPCENTER
+            gapshape = self.EL1_GAPSHAPE
         if self.EL1_FLAG == 3: #  used
             hmag = self.EL1_HMAG
             vmag = self.EL1_VMAG
@@ -483,6 +518,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         if self.EL1_FLAG == 5: #  used
             thin_object_file = self.thin_object_file
             thin_object_thickness_outside_file_area = self.thin_object_thickness_outside_file_area
+            thin_object_back_profile_flag = self.thin_object_back_profile_flag
+            thin_object_back_profile_file = self.thin_object_back_profile_file
 
         transmittance, absorbance, E, H, V, txt = calculate_component_absorbance_and_transmittance(
                                   e0, h0, v0,
@@ -493,6 +530,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
                                   dens=self.EL1_DEN,
                                   roughness=self.EL1_ROU,
                                   flags=self.EL1_FLAG,
+                                  gapshape=gapshape,
                                   hgap=hgap,
                                   vgap=vgap,
                                   hgapcenter=hgapcenter,
@@ -503,6 +541,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
                                   vrot=vrot,
                                   thin_object_file=thin_object_file,
                                   thin_object_thickness_outside_file_area=thin_object_thickness_outside_file_area,
+                                  thin_object_back_profile_flag=thin_object_back_profile_flag,
+                                  thin_object_back_profile_file=thin_object_back_profile_file,
                                   )
 
         txt += info_total_power(p0, e0, v0, h0, transmittance, absorbance, EL1_FLAG=self.EL1_FLAG)
@@ -561,6 +601,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
                 "EL1_SLIT_CROP" : self.EL1_SLIT_CROP,
                 "thin_object_file" : thin_object_file,
                 "thin_object_thickness_outside_file_area" : thin_object_thickness_outside_file_area,
+                "thin_object_back_profile_flag": thin_object_back_profile_flag,
+                "thin_object_back_profile_file": thin_object_back_profile_file,
             }
 
 
@@ -613,6 +655,8 @@ transmittance, absorbance, E, H, V, txt = calculate_component_absorbance_and_tra
                 vrot={vrot},
                 thin_object_file='{thin_object_file}',
                 thin_object_thickness_outside_file_area={thin_object_thickness_outside_file_area},
+                thin_object_back_profile_flag={thin_object_back_profile_flag},
+                thin_object_back_profile_file='{thin_object_back_profile_file}',
                 )
 
 # apply transmittance to incident beam 
