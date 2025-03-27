@@ -51,7 +51,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
     INPUT_BEAM_FILE = Setting("undulator_radiation.h5")
 
     EL1_FOR = Setting("Be")
-    EL1_FLAG = Setting(0)  # 0=Filter 1=Mirror 2 = Aperture 3 magnifier
+    EL1_FLAG = Setting(0)  # 0=Filter 1=Mirror 2=Aperture 3=magnifier, 4=Screen rotation  5=Thin object  6=Multilayer
     EL1_THI = Setting(0.5)
     EL1_ANG = Setting(3.0)
     EL1_DEF = Setting(1) # deflection 0=H 1=V
@@ -70,6 +70,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
     thin_object_thickness_outside_file_area = Setting(0.0)
     thin_object_back_profile_flag = Setting(0)
     thin_object_back_profile_file = Setting('/home/srio/Oasys/lens.h5')
+    multilayer_file = Setting('/home/srio/Oasys/multilayerTiC.h5')
 
     PLOT_SETS = Setting(1)
 
@@ -130,7 +131,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box11)
         gui.comboBox(box1, self, "EL1_FLAG",
                     label=self.unitLabels()[idx], addSpace=False,
-                    items=['Filter', 'Mirror','Aperture','Magnifier','Screen Rotation',"Thin object filter"],
+                    items=['Filter', 'Mirror','Aperture','Magnifier','Screen Rotation',"Thin object filter","Multilayer"],
                     valueType=int, orientation="horizontal", callback=self.set_EL_FLAG, labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
@@ -143,11 +144,12 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         self.show_at(self.unitFlags()[idx], box1)
 
 
-        list_w = ["EL1_THI", "EL1_ANG", "EL1_DEF", "EL1_ROU", "EL1_DEN", "EL1_GAPSHAPE",
-                  "EL1_HGAP", "EL1_VGAP", "EL1_HGAPCENTER", "EL1_VGAPCENTER",
+        list_w = ["EL1_THI", "EL1_ANG", "EL1_DEF", "EL1_ROU", "EL1_DEN", "multilayer_file",
+                  "EL1_GAPSHAPE", "EL1_HGAP", "EL1_VGAP", "EL1_HGAPCENTER", "EL1_VGAPCENTER",
                   "EL1_HMAG", "EL1_VMAG",
                   "EL1_HROT", "EL1_VROT",
-                  "thin_object_file", "thin_object_thickness_outside_file_area", "thin_object_back_profile_flag", "thin_object_back_profile_file"]
+                  "thin_object_file", "thin_object_thickness_outside_file_area", "thin_object_back_profile_flag", "thin_object_back_profile_file",
+                  ]
 
         for el in list_w:
             idx += 1
@@ -174,6 +176,10 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
                 oasysgui.lineEdit(box1, self, el,
                                   label=self.unitLabels()[idx], addSpace=False,
                                   valueType=str, orientation="horizontal", labelWidth=250)
+            elif el in ["multilayer_file"]:
+                oasysgui.lineEdit(box1, self, el,
+                                  label=self.unitLabels()[idx], addSpace=False,
+                                  valueType=str, orientation="horizontal", labelWidth=200)
             else:
                 oasysgui.lineEdit(box1, self, el,
                                   label=self.unitLabels()[idx], addSpace=False,
@@ -297,10 +303,11 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         labels.append('optical element is:')
         labels.append('formula: ')
         labels.append('Filter thick[mm]')
-        labels.append('Mirror angle[mrad]')
-        labels.append('Mirror deflection')
+        labels.append('Grazing angle[mrad]')
+        labels.append('Mirror/ML deflection')
         labels.append('Roughness[A]')
         labels.append('Density [g/cm^3]')
+        labels.append('File from xoppy/Multilayer')
         labels.append('Aperture shape')
         labels.append('H Size/Gap [mm]')
         labels.append('V Size/Gap [mm]')
@@ -335,15 +342,16 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         flags.append('True')                   # kind
         flags.append('self.EL1_FLAG  in  (0, 1, 5)')   # formula
         flags.append('self.EL1_FLAG  ==  0')   # thickness
-        flags.append('self.EL1_FLAG  ==  1')   # angle
-        flags.append('self.EL1_FLAG  ==  1')   # mirror deflection
+        flags.append('self.EL1_FLAG  in  (1, 6)')   # angle
+        flags.append('self.EL1_FLAG  in  (1, 6)')   # mirror deflection
         flags.append('self.EL1_FLAG  ==  1')   # roughness
         flags.append('self.EL1_FLAG  in  (0, 1, 5)')   # density
-        flags.append('self.EL1_FLAG  <=  2') # gap shape
-        flags.append('self.EL1_FLAG  <=  2')   # gap
-        flags.append('self.EL1_FLAG  <=  2')   # gap
-        flags.append('self.EL1_FLAG  <=  2')   # gap center
-        flags.append('self.EL1_FLAG  <=  2')   # gap center
+        flags.append('self.EL1_FLAG  ==  6')  # multilayer file
+        flags.append('self.EL1_FLAG  in (0, 1, 2, 6)')  # gap shape
+        flags.append('self.EL1_FLAG  in (0, 1, 2, 6)')   # gap
+        flags.append('self.EL1_FLAG  in (0, 1, 2, 6)')   # gap
+        flags.append('self.EL1_FLAG  in (0, 1, 2, 6)')   # gap center
+        flags.append('self.EL1_FLAG  in (0, 1, 2, 6)')   # gap center
         flags.append('self.EL1_FLAG  ==  3')   # magnification
         flags.append('self.EL1_FLAG  ==  3')   # magnification
         flags.append('self.EL1_FLAG  in (0, 4)')   # rotation
@@ -503,6 +511,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         thin_object_thickness_outside_file_area = 0.0
         thin_object_back_profile_flag = 0
         thin_object_back_profile_file = ''
+        multilayer_file = ''
         if self.EL1_FLAG in [0,1,2]: #  used
             hgap = self.EL1_HGAP
             vgap = self.EL1_VGAP
@@ -520,7 +529,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
             thin_object_thickness_outside_file_area = self.thin_object_thickness_outside_file_area
             thin_object_back_profile_flag = self.thin_object_back_profile_flag
             thin_object_back_profile_file = self.thin_object_back_profile_file
-
+        if self.EL1_FLAG == 6: #  used
+            multilayer_file = self.multilayer_file
         transmittance, absorbance, E, H, V, txt = calculate_component_absorbance_and_transmittance(
                                   e0, h0, v0,
                                   substance=self.EL1_FOR,
@@ -543,6 +553,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
                                   thin_object_thickness_outside_file_area=thin_object_thickness_outside_file_area,
                                   thin_object_back_profile_flag=thin_object_back_profile_flag,
                                   thin_object_back_profile_file=thin_object_back_profile_file,
+                                  multilayer_file=multilayer_file,
                                   )
 
         txt += info_total_power(p0, e0, v0, h0, transmittance, absorbance, EL1_FLAG=self.EL1_FLAG)
@@ -644,7 +655,7 @@ transmittance, absorbance, E, H, V, txt = calculate_component_absorbance_and_tra
                 defection={EL1_DEF},
                 dens={EL1_DEN},
                 roughness={EL1_ROU},
-                flags={EL1_FLAG},
+                flags={EL1_FLAG}, # 0=Filter 1=Mirror 2=Aperture 3=magnifier, 4=Screen rotation  5=Thin object  6=Multilayer
                 hgap={hgap},
                 vgap={vgap},
                 hgapcenter={hgapcenter},
@@ -754,7 +765,7 @@ plot_image(power_density_absorbed, H, V,
 
     def getTitles(self):
         mylist = []
-        if self.EL1_FLAG == 1:
+        if self.EL1_FLAG in (1, 6):
             txt1 = "Reflectance "
             txt2 = "Reflected "
         else:
