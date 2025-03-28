@@ -16,7 +16,7 @@ class OWPower1DMonochromator(XoppyWidget):
     name = "Power1DMonochromator"
     id = "orange.widgets.dataxpower"
     description = "Power Absorbed and Transmitted by Monochromators"
-    icon = "icons/power1_monochromator.png"
+    icon = "icons/power1d_monochromator.png"
     priority = 2.1
     category = ""
     keywords = ["xoppy", "power", "monochromator"]
