@@ -37,7 +37,10 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
     category = ""
     keywords = ["xoppy", "Undulator Radiation", "power3Dcomponent"]
 
-    inputs = [{"name": "ExchangeData",
+    inputs = [{"name": "xoppy_data",
+               "type": DataExchangeObject,
+               "handler": "acceptExchangeData" },
+              {"name": "ExchangeData",
                "type": DataExchangeObject,
                "handler": "acceptExchangeData" },
               WidgetDecorator.syned_input_data()[0],
@@ -45,13 +48,11 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
               ("Surface Data 2", OasysSurfaceData, "set_input_surface_data_back")]
 
 
-    
-    
     INPUT_BEAM_FROM = Setting(0)
     INPUT_BEAM_FILE = Setting("undulator_radiation.h5")
 
     EL1_FOR = Setting("Be")
-    EL1_FLAG = Setting(0)  # 0=Filter 1=Mirror 2=Aperture 3=magnifier, 4=Screen rotation  5=Thin object  6=Multilayer
+    EL1_FLAG = Setting(0)  # 0=Filter 1=Mirror 2=Aperture 3=magnifier, 4=Screen rotation  5=Thin object  6=Multilayer 7=External file
     EL1_THI = Setting(0.5)
     EL1_ANG = Setting(3.0)
     EL1_DEF = Setting(1) # deflection 0=H 1=V
@@ -66,11 +67,12 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
     EL1_VMAG = Setting(1.0)
     EL1_HROT = Setting(0.0)
     EL1_VROT = Setting(0.0)
-    thin_object_file = Setting('/home/srio/Oasys/lens.h5')
+    thin_object_file = Setting('<none>')
     thin_object_thickness_outside_file_area = Setting(0.0)
     thin_object_back_profile_flag = Setting(0)
-    thin_object_back_profile_file = Setting('/home/srio/Oasys/lens.h5')
-    multilayer_file = Setting('/home/srio/Oasys/multilayerTiC.h5')
+    thin_object_back_profile_file = Setting('<none>')
+    multilayer_file = Setting('<none>')
+    external_reflectivity_file = Setting('<none>')
 
     PLOT_SETS = Setting(1)
 
@@ -131,7 +133,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         box1 = gui.widgetBox(box11)
         gui.comboBox(box1, self, "EL1_FLAG",
                     label=self.unitLabels()[idx], addSpace=False,
-                    items=['Filter', 'Mirror','Aperture','Magnifier','Screen Rotation',"Thin object filter","Multilayer"],
+                    items=['Filter', 'Mirror','Aperture','Magnifier','Screen Rotation',"Thin object filter","Multilayer","Reflectivity from file"],
                     valueType=int, orientation="horizontal", callback=self.set_EL_FLAG, labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
@@ -144,7 +146,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         self.show_at(self.unitFlags()[idx], box1)
 
 
-        list_w = ["EL1_THI", "EL1_ANG", "EL1_DEF", "EL1_ROU", "EL1_DEN", "multilayer_file",
+        list_w = ["EL1_THI", "EL1_ANG", "EL1_DEF", "EL1_ROU", "EL1_DEN", "multilayer_file", "external_reflectivity_file",
                   "EL1_GAPSHAPE", "EL1_HGAP", "EL1_VGAP", "EL1_HGAPCENTER", "EL1_VGAPCENTER",
                   "EL1_HMAG", "EL1_VMAG",
                   "EL1_HROT", "EL1_VROT",
@@ -177,6 +179,10 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
                                   label=self.unitLabels()[idx], addSpace=False,
                                   valueType=str, orientation="horizontal", labelWidth=250)
             elif el in ["multilayer_file"]:
+                oasysgui.lineEdit(box1, self, el,
+                                  label=self.unitLabels()[idx], addSpace=False,
+                                  valueType=str, orientation="horizontal", labelWidth=200)
+            elif el in ["external_reflectivity_file"]:
                 oasysgui.lineEdit(box1, self, el,
                                   label=self.unitLabels()[idx], addSpace=False,
                                   valueType=str, orientation="horizontal", labelWidth=200)
@@ -304,10 +310,11 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         labels.append('formula: ')
         labels.append('Filter thick[mm]')
         labels.append('Grazing angle[mrad]')
-        labels.append('Mirror/ML deflection')
+        labels.append('Component deflection')
         labels.append('Roughness[A]')
         labels.append('Density [g/cm^3]')
         labels.append('File from xoppy/Multilayer')
+        labels.append('File with reflectivity vs E')
         labels.append('Aperture shape')
         labels.append('H Size/Gap [mm]')
         labels.append('V Size/Gap [mm]')
@@ -321,6 +328,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         labels.append('Front profile z outside file definition')
         labels.append('Back profile z(x,y)')
         labels.append('File with BACK profile z(x,y)')
+
 
 
         labels.append("Plot")
@@ -343,15 +351,16 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         flags.append('self.EL1_FLAG  in  (0, 1, 5)')   # formula
         flags.append('self.EL1_FLAG  ==  0')   # thickness
         flags.append('self.EL1_FLAG  in  (1, 6)')   # angle
-        flags.append('self.EL1_FLAG  in  (1, 6)')   # mirror deflection
+        flags.append('self.EL1_FLAG  in  (1, 6, 7)')   # mirror deflection
         flags.append('self.EL1_FLAG  ==  1')   # roughness
         flags.append('self.EL1_FLAG  in  (0, 1, 5)')   # density
-        flags.append('self.EL1_FLAG  ==  6')  # multilayer file
-        flags.append('self.EL1_FLAG  in (0, 1, 2, 6)')  # gap shape
-        flags.append('self.EL1_FLAG  in (0, 1, 2, 6)')   # gap
-        flags.append('self.EL1_FLAG  in (0, 1, 2, 6)')   # gap
-        flags.append('self.EL1_FLAG  in (0, 1, 2, 6)')   # gap center
-        flags.append('self.EL1_FLAG  in (0, 1, 2, 6)')   # gap center
+        flags.append('self.EL1_FLAG  == 6')  # multilayer file
+        flags.append('self.EL1_FLAG  == 7')   # file with external reflectivity
+        flags.append('self.EL1_FLAG  in (0, 1, 2, 6, 7)')  # gap shape
+        flags.append('self.EL1_FLAG  in (0, 1, 2, 6, 7)')   # gap
+        flags.append('self.EL1_FLAG  in (0, 1, 2, 6, 7)')   # gap
+        flags.append('self.EL1_FLAG  in (0, 1, 2, 6, 7)')   # gap center
+        flags.append('self.EL1_FLAG  in (0, 1, 2, 6, 7)')   # gap center
         flags.append('self.EL1_FLAG  ==  3')   # magnification
         flags.append('self.EL1_FLAG  ==  3')   # magnification
         flags.append('self.EL1_FLAG  in (0, 4)')   # rotation
@@ -393,17 +402,62 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
     def acceptExchangeData(self, exchangeData):
         try:
             if not exchangeData is None:
-
                 if exchangeData.get_program_name() not in ["XOPPY"]:
-                        raise Exception("Exchange data must be XOPPY data")
+                    raise Exception("Exchange data must be XOPPY data")
 
-                if exchangeData.get_widget_name() not in ["UNDULATOR_RADIATION", "WIGGLER_RADIATION", "POWER3DCOMPONENT"]:
-                        raise Exception("Xoppy Input widget not recognized: %s" % exchangeData.get_widget_name())
+                name = exchangeData.get_widget_name()
+                if name in ["UNDULATOR_RADIATION", "WIGGLER_RADIATION", "POWER3DCOMPONENT"]:
+                    try:
+                        self.input_beam = exchangeData
+                        self.output_beam = None
+                        self.process_showers()
+                        self.compute()
+                    except:
+                        raise Exception("Error loading Input data from Xoppy Input widget: %s" % exchangeData.get_widget_name())
+                elif name == "MULTILAYER":
+                    myscan = -1
+                    if exchangeData.has_content_key("myscan"): myscan = exchangeData.get_content("myscan")
+                    if myscan == 1: # only energy scan allowed
+                        x_index = exchangeData.get_content("plot_x_col")
+                        y_index = exchangeData.get_content("plot_y_col")
+                        reflectivity = exchangeData.get_content("xoppy_data")
+                        reflectivity[numpy.where(numpy.isnan(reflectivity))] = 0
 
-                self.input_beam = exchangeData
-                self.output_beam = None
-                self.process_showers()
-                self.compute()
+                        external_reflectivity_file = "xoppy_reflectivity_" + str(id(self)) + ".dat"
+                        file = open(external_reflectivity_file, "w")
+                        for index in range(0, reflectivity.shape[0]):
+                            file.write(str(reflectivity[index, x_index]) + " " + str(reflectivity[index, y_index]) + "\n")
+                        file.close()
+
+                        self.external_reflectivity_file = external_reflectivity_file
+                        self.EL1_FLAG = 7
+                    else:
+                        raise Exception("Only energy scans allowed.")
+
+                elif name == "XCRYSTAL":
+                    if exchangeData.get_content("scan_type") == 3:
+                        x_index = 0 # energy
+                        y_index = -1 # s-pol
+
+                        reflectivity = exchangeData.get_content("xoppy_data")
+
+                        external_reflectivity_file = "xoppy_reflectivity_" + str(id(self)) + ".dat"
+                        file = open(external_reflectivity_file, "w")
+
+                        for index in range(0, reflectivity.shape[0]):
+                            file.write(
+                                str(reflectivity[index, x_index]) + " " + str(reflectivity[index, y_index]) + "\n")
+                        file.close()
+
+                        self.external_reflectivity_file = external_reflectivity_file
+                        self.EL1_FLAG = 7
+
+                    else:
+                        raise Exception("Only Energy Scan are accepted from CRYSTAL")
+
+                else:
+                    raise Exception("Cannot recover correct data from widget: %s" % name)
+
         except Exception as exception:
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
@@ -512,6 +566,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         thin_object_back_profile_flag = 0
         thin_object_back_profile_file = ''
         multilayer_file = ''
+        external_reflectivity_file = ''
         if self.EL1_FLAG in [0,1,2]: #  used
             hgap = self.EL1_HGAP
             vgap = self.EL1_VGAP
@@ -531,6 +586,68 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
             thin_object_back_profile_file = self.thin_object_back_profile_file
         if self.EL1_FLAG == 6: #  used
             multilayer_file = self.multilayer_file
+        if self.EL1_FLAG == 7: #  used
+            external_reflectivity_file = self.external_reflectivity_file
+
+        #
+        # write python script
+        #
+        if isinstance(self.EL1_DEN, str):
+            dens = "'"+self.EL1_DEN+"'"
+        else:
+            dens = "%g" % self.EL1_DEN
+
+        dict_parameters = {
+                "emin" : e0[0],
+                "emax" : e0[-1],
+                "epoints" : e0.size,
+                "hmin" : h0[0],
+                "hmax" : h0[-1],
+                "hpoints" : h0.size,
+                "vmin" : v0[0],
+                "vmax" : v0[-1],
+                "vpoints" : v0.size,
+                "EL1_FOR" : "'"+self.EL1_FOR+"'",
+                "EL1_THI" : self.EL1_THI,
+                "EL1_ANG" : self.EL1_ANG,
+                "EL1_DEF" : self.EL1_DEF,
+                "EL1_DEN" : dens,
+                "EL1_ROU" : self.EL1_ROU,
+                "EL1_FLAG" : self.EL1_FLAG,
+                "hgap" : hgap,
+                "vgap" : vgap,
+                "hgapcenter" : hgapcenter,
+                "vgapcenter" : vgapcenter,
+                "hmag" : hmag,
+                "vmag" : vmag,
+                "hrot" : hrot,
+                "vrot" : vrot,
+                "FILE_INPUT_NAME": self.FILE_INPUT_NAME,
+                "INTERPOLATION_FLAG" : self.INTERPOLATION_FLAG,
+                "INTERPOLATION_FACTOR_H" : self.INTERPOLATION_FACTOR_H,
+                "INTERPOLATION_FACTOR_V" : self.INTERPOLATION_FACTOR_V,
+                "EL1_SLIT_CROP" : self.EL1_SLIT_CROP,
+                "thin_object_file" : thin_object_file,
+                "thin_object_thickness_outside_file_area" : thin_object_thickness_outside_file_area,
+                "thin_object_back_profile_flag": thin_object_back_profile_flag,
+                "thin_object_back_profile_file": thin_object_back_profile_file,
+                "multilayer_file":  multilayer_file,
+                "external_reflectivity_file": external_reflectivity_file,
+            }
+
+        if self.input_beam is not None:
+            try:
+                script_previous = self.input_beam.get_content("xoppy_script")
+            except:
+                script_previous = '#\n# >> MISSING SCRIPT TO CREATE (energy, horizontal, vertical, flux3D) <<\n#\n'
+        script_element = self.script_template().format_map(dict_parameters)
+        script = script_previous + script_element
+        self.xoppy_script.set_code(script)
+
+
+        #
+        #calculation
+        #
         transmittance, absorbance, E, H, V, txt = calculate_component_absorbance_and_transmittance(
                                   e0, h0, v0,
                                   substance=self.EL1_FOR,
@@ -554,6 +671,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
                                   thin_object_back_profile_flag=thin_object_back_profile_flag,
                                   thin_object_back_profile_file=thin_object_back_profile_file,
                                   multilayer_file=multilayer_file,
+                                  external_reflectivity_file=external_reflectivity_file,
                                   )
 
         txt += info_total_power(p0, e0, v0, h0, transmittance, absorbance, EL1_FLAG=self.EL1_FLAG)
@@ -573,61 +691,6 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
             write_txt_file(calculated_data, self.input_beam.get_content("xoppy_data"),
                            filename=self.FILE_NAME, method="matrix")
 
-
-        if isinstance(self.EL1_DEN, str):
-            dens = "'"+self.EL1_DEN+"'"
-        else:
-            dens = "%g" % self.EL1_DEN
-
-        # write python script
-        dict_parameters = {
-                "emin" : E[0],
-                "emax" : E[-1],
-                "epoints" : E.size,
-                "hmin" : H[0],
-                "hmax" : H[-1],
-                "hpoints" : H.size,
-                "vmin" : V[0],
-                "vmax" : V[-1],
-                "vpoints" : V.size,
-                "EL1_FOR" : "'"+self.EL1_FOR+"'",
-                "EL1_THI" : self.EL1_THI,
-                "EL1_ANG" : self.EL1_ANG,
-                "EL1_DEF" : self.EL1_DEF,
-                "EL1_DEN" : dens,
-                "EL1_ROU" : self.EL1_ROU,
-                "EL1_FLAG" : self.EL1_FLAG,
-                "hgap" : hgap,
-                "vgap" : vgap,
-                "hgapcenter" : hgapcenter,
-                "vgapcenter" : vgapcenter,
-                "hmag" : hmag,
-                "vmag" : vmag,
-                "hrot" : hrot,
-                "vrot" : vrot,
-                "FILE_INPUT_NAME": "'"+self.FILE_INPUT_NAME+"'",
-                "INTERPOLATION_FLAG" : self.INTERPOLATION_FLAG,
-                "INTERPOLATION_FACTOR_H" : self.INTERPOLATION_FACTOR_H,
-                "INTERPOLATION_FACTOR_V" : self.INTERPOLATION_FACTOR_V,
-                "EL1_SLIT_CROP" : self.EL1_SLIT_CROP,
-                "thin_object_file" : thin_object_file,
-                "thin_object_thickness_outside_file_area" : thin_object_thickness_outside_file_area,
-                "thin_object_back_profile_flag": thin_object_back_profile_flag,
-                "thin_object_back_profile_file": thin_object_back_profile_file,
-            }
-
-
-
-        if self.input_beam is not None:
-            try:
-                script_previous = self.input_beam.get_content("xoppy_script")
-            except:
-                script_previous = '#\n# >> MISSING SCRIPT TO CREATE (energy, horizontal, vertical, flux3D) <<\n#\n'
-
-        script_element = self.script_template().format_map(dict_parameters)
-
-        script = script_previous + script_element
-        self.xoppy_script.set_code(script)
 
         return transmittance, absorbance, E, H, V, script
 
@@ -655,7 +718,7 @@ transmittance, absorbance, E, H, V, txt = calculate_component_absorbance_and_tra
                 defection={EL1_DEF},
                 dens={EL1_DEN},
                 roughness={EL1_ROU},
-                flags={EL1_FLAG}, # 0=Filter 1=Mirror 2=Aperture 3=magnifier, 4=Screen rotation  5=Thin object  6=Multilayer
+                flags={EL1_FLAG}, # 0=Filter 1=Mirror 2=Aperture 3=magnifier, 4=Screen rotation  5=Thin object  6=Multilayer 7=External file
                 hgap={hgap},
                 vgap={vgap},
                 hgapcenter={hgapcenter},
@@ -668,22 +731,24 @@ transmittance, absorbance, E, H, V, txt = calculate_component_absorbance_and_tra
                 thin_object_thickness_outside_file_area={thin_object_thickness_outside_file_area},
                 thin_object_back_profile_flag={thin_object_back_profile_flag},
                 thin_object_back_profile_file='{thin_object_back_profile_file}',
+                multilayer_file='{multilayer_file}',
+                external_reflectivity_file='{external_reflectivity_file}',
                 )
 
 # apply transmittance to incident beam 
 f_transmitted, e, h, v = apply_transmittance_to_incident_beam(transmittance, f0, e0, h0, v0,
-                                  flags = {EL1_FLAG},
-                                  hgap = {hgap},
-                                  vgap = {vgap},
-                                  hgapcenter = {hgapcenter},
-                                  vgapcenter = {vgapcenter},
-                                  hmag = {hmag},
-                                  vmag = {vmag},
-                                  interpolation_flag     = {INTERPOLATION_FLAG},
-                                  interpolation_factor_h = {INTERPOLATION_FACTOR_H},
-                                  interpolation_factor_v = {INTERPOLATION_FACTOR_V},
-                                  slit_crop = {EL1_SLIT_CROP},
-                                )
+                flags = {EL1_FLAG},
+                hgap = {hgap},
+                vgap = {vgap},
+                hgapcenter = {hgapcenter},
+                vgapcenter = {vgapcenter},
+                hmag = {hmag},
+                vmag = {vmag},
+                interpolation_flag     = {INTERPOLATION_FLAG},
+                interpolation_factor_h = {INTERPOLATION_FACTOR_H},
+                interpolation_factor_v = {INTERPOLATION_FACTOR_V},
+                slit_crop = {EL1_SLIT_CROP},
+                )
 
 f_absorbed = f0 * absorbance / (H[0] / h0[0]) / (V[0] / v0[0])
 
@@ -693,34 +758,35 @@ energy, horizontal, vertical, flux3D = e, h, v, f_transmitted
 #                       
 # example plots
 #
-from srxraylib.plot.gol import plot_image
-import scipy.constants as codata
-from xoppylib.power.power3d import integral_2d
-
-# transmitted/reflected beam
-
-spectral_power_transmitted = f_transmitted * codata.e * 1e3     
-plot_image(spectral_power_transmitted[0,:,:],h,v,title="Transmitted Spectral Power Density [W/eV/mm2] at E=%g eV" % ({emin}),xtitle="H [mm]",ytitle="V [mm]",aspect='auto')
-
-power_density_transmitted = numpy.trapz(spectral_power_transmitted, e, axis=0)
-power_density_integral = integral_2d(power_density_transmitted, h, v)
-plot_image(power_density_transmitted, h, v,
-                 xtitle='H [mm] (normal to beam)',
-                 ytitle='V [mm] (normal to beam)',
-                 title='Power Density [W/mm^2]. Integral: %6.3f W'%power_density_integral,aspect='auto')
-
-# local absorption 
-
-spectral_power_density_absorbed = f_absorbed * codata.e * 1e3
-
-plot_image(spectral_power_density_absorbed[0,:,:],H,V,title="Absorbed Spectral Power Density [W/eV/mm2] at E=%g eV" % ({emin}),xtitle="H [mm]",ytitle="V [mm]",aspect='auto')
-
-power_density_absorbed = numpy.trapz(spectral_power_density_absorbed, E, axis=0)
-power_density_integral = integral_2d(power_density_absorbed, H, V)
-plot_image(power_density_absorbed, H, V,
-                 xtitle='H [mm] (o.e. coordinates)',
-                 ytitle='V [mm] (o.e. coordinates)',
-                 title='Absorbed Power Density [W/mm^2]. Integral: %6.3f W'%power_density_integral,aspect='auto')
+if True:
+    from srxraylib.plot.gol import plot_image
+    import scipy.constants as codata
+    from xoppylib.power.power3d import integral_2d
+    
+    # transmitted/reflected beam
+    
+    spectral_power_transmitted = f_transmitted * codata.e * 1e3     
+    plot_image(spectral_power_transmitted[0,:,:],h,v,title="Transmitted Spectral Power Density [W/eV/mm2] at E=%g eV" % ({emin}),xtitle="H [mm]",ytitle="V [mm]",aspect='auto')
+    
+    power_density_transmitted = numpy.trapz(spectral_power_transmitted, e, axis=0)
+    power_density_integral = integral_2d(power_density_transmitted, h, v)
+    plot_image(power_density_transmitted, h, v,
+                     xtitle='H [mm] (normal to beam)',
+                     ytitle='V [mm] (normal to beam)',
+                     title='Power Density [W/mm^2]. Integral: %6.3f W'%power_density_integral,aspect='auto')
+    
+    # local absorption 
+    
+    spectral_power_density_absorbed = f_absorbed * codata.e * 1e3
+    
+    plot_image(spectral_power_density_absorbed[0,:,:],H,V,title="Absorbed Spectral Power Density [W/eV/mm2] at E=%g eV" % ({emin}),xtitle="H [mm]",ytitle="V [mm]",aspect='auto')
+    
+    power_density_absorbed = numpy.trapz(spectral_power_density_absorbed, E, axis=0)
+    power_density_integral = integral_2d(power_density_absorbed, H, V)
+    plot_image(power_density_absorbed, H, V,
+                     xtitle='H [mm] (o.e. coordinates)',
+                     ytitle='V [mm] (o.e. coordinates)',
+                     title='Absorbed Power Density [W/mm^2]. Integral: %6.3f W'%power_density_integral,aspect='auto')
                                                
 #
 # end script

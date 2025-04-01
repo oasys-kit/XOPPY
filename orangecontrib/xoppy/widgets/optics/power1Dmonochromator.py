@@ -21,7 +21,15 @@ class OWPower1DMonochromator(XoppyWidget):
     category = ""
     keywords = ["xoppy", "power", "monochromator"]
 
-    inputs = [("ExchangeData", DataExchangeObject, "acceptExchangeData")]
+    # inputs = [("ExchangeData", DataExchangeObject, "acceptExchangeData")]
+
+    inputs = [{"name": "xoppy_data",
+               "type": DataExchangeObject,
+               "handler": "acceptExchangeDataSelect" },
+              {"name": "ExchangeData",
+               "type": DataExchangeObject,
+               "handler": "acceptExchangeDataSelect" }]
+
 
     SOURCE = Setting(2)
     TYPE = Setting(3)
@@ -40,6 +48,7 @@ class OWPower1DMonochromator(XoppyWidget):
     ML_H5_FILE = Setting("<none>")
     ML_GRAZING_ANGLE_DEG = Setting(0.2)
     METHOD = Setting(0) # Zachariasen
+    external_reflectivity_file = Setting('<none>')
 
     input_spectrum = None
     input_script = None
@@ -63,8 +72,9 @@ class OWPower1DMonochromator(XoppyWidget):
         box1 = gui.widgetBox(box)
         self.box_source = gui.comboBox(box1, self, "SOURCE",
                                        label=self.unitLabels()[idx], addSpace=False,
-                                       items=['From Oasys wire', 'Normalized to 1',
-                                              'From external file.                '],
+                                       items=['From Oasys wire',
+                                              'Normalized to 1',
+                                              'From external file'],
                                        valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
 
@@ -108,8 +118,11 @@ class OWPower1DMonochromator(XoppyWidget):
         box1 = gui.widgetBox(box)
         self.box_source = gui.comboBox(box1, self, "TYPE",
                                        label=self.unitLabels()[idx], addSpace=False,
-                                       items=['Empty','Si Bragg','Si Laue',
-                                              'Multilayer'],
+                                       items=['Empty',
+                                              'Si Bragg',
+                                              'Si Laue',
+                                              'Multilayer',
+                                              'Reflectivity from file'],
                                        valueType=int, orientation="horizontal", labelWidth=200)
         self.show_at(self.unitFlags()[idx], box1)
 
@@ -199,6 +212,14 @@ class OWPower1DMonochromator(XoppyWidget):
         #widget index 17
         idx += 1
         box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "external_reflectivity_file",
+                          label=self.unitLabels()[idx], addSpace=False,
+                          valueType=str, orientation="horizontal", labelWidth=200)
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 18
+        idx += 1
+        box1 = gui.widgetBox(box)
         gui.separator(box1, height=7)
 
         gui.comboBox(box1, self, "FILE_DUMP",
@@ -206,6 +227,8 @@ class OWPower1DMonochromator(XoppyWidget):
                     items=['No', 'Yes (monochromator.spec)'],
                     valueType=int, orientation="horizontal", labelWidth=250)
         self.show_at(self.unitFlags()[idx], box1)
+
+
 
         self.input_spectrum = None
 
@@ -224,35 +247,94 @@ class OWPower1DMonochromator(XoppyWidget):
                  'Number of reflections',
                  'Polarization',
                  'Energy Selected [eV]',
-                 'Miller index h','Miller index k','Miller index l','Crystal thickness [microns]',
+                 'Miller index h','Miller index k','Miller index l',
+                 'Crystal thickness [microns]',
                  "Calculation method",
                  "XOPPY/Multilayer h5 file",
                  "Grazing angle [deg]",
+                 "File with reflectivity vs E",
                  "Dump file",
                  ]
 
     def unitFlags(self):
-         return ['True',
-                 'self.SOURCE == 1',
-                 'self.SOURCE == 1',
-                 'self.SOURCE == 1',
-                 'self.SOURCE == 2',
-                 'True',
-                 'True',
-                 'True',
-                 'self.TYPE == 1 or self.TYPE == 2',
+         return ['True',   # 'Input beam:',
+                 'self.SOURCE == 1',                   # 'From energy [eV]:',
+                 'self.SOURCE == 1',                   # 'To energy [eV]:',
+                 'self.SOURCE == 1',                   # 'Energy points:  ',
+                 'self.SOURCE == 2',                   # 'File with input beam spectral power:',
+                 'True',                               # 'Type Monochromator',
+                 'True',                               # 'Number of reflections',
+                 'self.TYPE in (1,2,3)',               # 'Polarization',
+                 'self.TYPE == 1 or self.TYPE == 2',   # 'Energy Selected [eV]',
                  'self.TYPE == 1 or self.TYPE == 2','self.TYPE == 1 or self.TYPE == 2','self.TYPE  ==  1 or self.TYPE  ==  2',
-                 'self.TYPE == 2',
-                 'self.TYPE == 1 or self.TYPE == 2',
-                 'self.TYPE == 3',
-                 'self.TYPE == 3',
-                 'True']
+                 'self.TYPE == 2',                      # 'Crystal thickness [microns]',
+                 'self.TYPE == 1 or self.TYPE == 2',    # "Calculation method",
+                 'self.TYPE == 3',                      # "XOPPY/Multilayer h5 file",
+                 'self.TYPE == 3',                      # "Grazing angle [deg]",
+                 'self.TYPE == 4',                      # "File with reflectivity vs E",
+                 'True',                                # "Dump file",
+                 ]
 
     def get_help_name(self):
         return 'Monochromator'
 
     def selectFile(self):
         self.le_source_file.setText(oasysgui.selectFileFromDialog(self, self.SOURCE_FILE, "Open Source File", file_extension_filter="*.*"))
+
+    def acceptExchangeDataSelect(self, exchangeData):  # driver to acceptExchangeData (beam) or acceptExchangeDataReflectivity
+        if not exchangeData is None:
+            if exchangeData.get_program_name() == "XOPPY":
+                if exchangeData.get_widget_name() in ["MULTILAYER", "XCRYSTAL"]:
+                    self.acceptExchangeDataReflectivity(exchangeData)
+                else:
+                    self.acceptExchangeData(exchangeData)
+
+    def acceptExchangeDataReflectivity(self, exchangeData):
+        try:
+            name = exchangeData.get_widget_name()
+            if name == "MULTILAYER":
+                myscan = -1
+                if exchangeData.has_content_key("myscan"): myscan = exchangeData.get_content("myscan")
+                if myscan == 1:  # only energy scan allowed
+                    x_index = exchangeData.get_content("plot_x_col")
+                    y_index = exchangeData.get_content("plot_y_col")
+                    reflectivity = exchangeData.get_content("xoppy_data")
+                    reflectivity[numpy.where(numpy.isnan(reflectivity))] = 0
+
+                    external_reflectivity_file = "xoppy_reflectivity_" + str(id(self)) + ".dat"
+                    file = open(external_reflectivity_file, "w")
+                    for index in range(0, reflectivity.shape[0]):
+                        file.write(str(reflectivity[index, x_index]) + " " + str(
+                            reflectivity[index, y_index]) + "\n")
+                    file.close()
+
+                    self.external_reflectivity_file = external_reflectivity_file
+                    self.TYPE = 4
+                else:
+                    raise Exception("Only energy scans allowed.")
+
+            elif name == "XCRYSTAL":
+                if exchangeData.get_content("scan_type") == 3:
+                    x_index = 0  # energy
+                    y_index = -1  # s-pol
+
+                    reflectivity = exchangeData.get_content("xoppy_data")
+
+                    external_reflectivity_file = "xoppy_reflectivity_" + str(id(self)) + ".dat"
+                    file = open(external_reflectivity_file, "w")
+
+                    for index in range(0, reflectivity.shape[0]):
+                        file.write(
+                            str(reflectivity[index, x_index]) + " " + str(reflectivity[index, y_index]) + "\n")
+                    file.close()
+
+                    self.external_reflectivity_file = external_reflectivity_file
+                    self.EL1_FLAG = 7
+                else:
+                    raise Exception("Only Energy Scan are accepted from CRYSTAL")
+
+        except Exception as exception:
+                QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
     def acceptExchangeData(self, exchangeData):  # the same as in xpower
 
@@ -407,32 +489,34 @@ class OWPower1DMonochromator(XoppyWidget):
                 raise
 
         dict_parameters = {
-            "TYPE"                : self.TYPE,
-            "ENER_SELECTED"       : self.ENER_SELECTED,
-            "METHOD"              : self.METHOD,
-            "THICK"               : self.THICK,
-            "ML_H5_FILE"          : self.ML_H5_FILE,
-            "ML_GRAZING_ANGLE_DEG": self.ML_GRAZING_ANGLE_DEG,
-            "N_REFLECTIONS"       : self.N_REFLECTIONS,
-            "FILE_DUMP"           : self.FILE_DUMP,
-            "polarization"        : self.POLARIZATION,
-            "output_file"         : "monochromator.spec",
+            "TYPE"                       : self.TYPE,
+            "ENER_SELECTED"              : self.ENER_SELECTED,
+            "METHOD"                     : self.METHOD,
+            "THICK"                      : self.THICK,
+            "ML_H5_FILE"                 : self.ML_H5_FILE,
+            "ML_GRAZING_ANGLE_DEG"       : self.ML_GRAZING_ANGLE_DEG,
+            "N_REFLECTIONS"              : self.N_REFLECTIONS,
+            "FILE_DUMP"                  : self.FILE_DUMP,
+            "polarization"               : self.POLARIZATION,
+            "external_reflectivity_file" : self.external_reflectivity_file,
+            "output_file"                : "monochromator.spec",
         }
         script_element = self.script_template().format_map(dict_parameters)
         script = script_previous + script_element
         self.xoppy_script.set_code(script)
 
         out_dictionary = xoppy_calc_power_monochromator(energies, source,
-                                                        TYPE                 = self.TYPE,
-                                                        ENER_SELECTED        = self.ENER_SELECTED,
-                                                        METHOD               = self.METHOD,
-                                                        THICK                = self.THICK,
-                                                        ML_H5_FILE           = self.ML_H5_FILE,
-                                                        ML_GRAZING_ANGLE_DEG =self.ML_GRAZING_ANGLE_DEG,
-                                                        N_REFLECTIONS        = self.N_REFLECTIONS,
-                                                        FILE_DUMP            = self.FILE_DUMP,
-                                                        polarization         = self.POLARIZATION,
-                                                        output_file          = "monochromator.spec",
+                                                        TYPE                       = self.TYPE,
+                                                        ENER_SELECTED              = self.ENER_SELECTED,
+                                                        METHOD                     = self.METHOD,
+                                                        THICK                      = self.THICK,
+                                                        ML_H5_FILE                 = self.ML_H5_FILE,
+                                                        ML_GRAZING_ANGLE_DEG       =self.ML_GRAZING_ANGLE_DEG,
+                                                        N_REFLECTIONS              = self.N_REFLECTIONS,
+                                                        FILE_DUMP                  = self.FILE_DUMP,
+                                                        polarization               = self.POLARIZATION,
+                                                        external_reflectivity_file = self.external_reflectivity_file,
+                                                        output_file                = "monochromator.spec",
                                                         )
 
         print(out_dictionary["info"])
@@ -454,16 +538,17 @@ from dabax.dabax_xraylib import DabaxXraylib
 out_dictionary = xoppy_calc_power_monochromator(
         energy, # array with energies in eV
         spectral_power, # array with source spectral density
-        TYPE                 = {TYPE}, # 0=None, 1=Crystal Bragg, 2=Crystal Laue, 3=Multilayer
-        ENER_SELECTED        = {ENER_SELECTED}, # Energy to set crystal monochromator
-        METHOD               = {METHOD}, # For crystals, in crystalpy, 0=Zachariasem, 1=Guigay
-        THICK                = {THICK}, # crystal thicknes Laur crystal in um
-        ML_H5_FILE           = "{ML_H5_FILE}", # File with inputs from multilaters (from xoppy/Multilayer)
-        ML_GRAZING_ANGLE_DEG = {ML_GRAZING_ANGLE_DEG}, # for multilayers the grazing angle in degrees
-        N_REFLECTIONS        = {N_REFLECTIONS}, # number of reflections (crystals or multilayers)
-        FILE_DUMP            = {FILE_DUMP}, # 0=No, 1=yes
-        polarization         = {polarization}, # 0=sigma, 1=pi, 2=unpolarized
-        output_file          = "{output_file}", # filename if FILE_DUMP=1
+        TYPE                       = {TYPE}, # 0=None, 1=Crystal Bragg, 2=Crystal Laue, 3=Multilayer, 4=External file
+        ENER_SELECTED              = {ENER_SELECTED}, # Energy to set crystal monochromator
+        METHOD                     = {METHOD}, # For crystals, in crystalpy, 0=Zachariasem, 1=Guigay
+        THICK                      = {THICK}, # crystal thicknes Laur crystal in um
+        ML_H5_FILE                 = "{ML_H5_FILE}", # File with inputs from multilaters (from xoppy/Multilayer)
+        ML_GRAZING_ANGLE_DEG       = {ML_GRAZING_ANGLE_DEG}, # for multilayers the grazing angle in degrees
+        N_REFLECTIONS              = {N_REFLECTIONS}, # number of reflections (crystals or multilayers)
+        FILE_DUMP                  = {FILE_DUMP}, # 0=No, 1=yes
+        polarization               = {polarization}, # 0=sigma, 1=pi, 2=unpolarized
+        external_reflectivity_file = "{external_reflectivity_file}", # file with external reflectivity
+        output_file                = "{output_file}", # filename if FILE_DUMP=1
         )
 
 
@@ -474,12 +559,13 @@ spectral_power = out_dictionary["data"][-1,:]
 #                       
 # example plots
 #
-from srxraylib.plot.gol import plot
-plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
-    out_dictionary["data"][0,:], out_dictionary["data"][-1,:],
-    xtitle=out_dictionary["labels"][0],
-    legend=[out_dictionary["labels"][1],out_dictionary["labels"][-1]],
-    title='Spectral Power [W/eV]')
+if True:
+    from srxraylib.plot.gol import plot
+    plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
+        out_dictionary["data"][0,:], out_dictionary["data"][-1,:],
+        xtitle=out_dictionary["labels"][0],
+        legend=[out_dictionary["labels"][1],out_dictionary["labels"][-1]],
+        title='Spectral Power [W/eV]')
 
 #
 # end script

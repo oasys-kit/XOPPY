@@ -477,7 +477,8 @@ class OWMlultilayer(XoppyWidget):
         try:
             calculated_data.add_content("xoppy_data", out_dict["data"])
             calculated_data.add_content("plot_x_col", 0)
-            calculated_data.add_content("plot_y_col", 1)
+            calculated_data.add_content("plot_y_col", -1)
+            calculated_data.add_content("myscan", myscan)
         except:
             pass
 
@@ -486,6 +487,7 @@ class OWMlultilayer(XoppyWidget):
             calculated_data.add_content("data2D_rp", out_dict["data2D_rp"])
             calculated_data.add_content("dataX", out_dict["dataX"])
             calculated_data.add_content("dataY", out_dict["dataY"])
+            calculated_data.add_content("myscan", myscan)
         except:
             pass
 
@@ -544,15 +546,16 @@ rs, rp, e, t = out.scan(h5file="{h5file}",
 #
 # plot (example)
 #
-myscan = {myscan}
-from srxraylib.plot.gol import plot,plot_image
-
-if myscan == 0: # angle scan 
-    plot(t, rs[0]**2, xtitle="angle [deg]", ytitle="Reflectivity-s", title="")
-elif myscan == 1: # energy scan 
-    plot(e,rs[:,0]**2,xtitle="Photon energy [eV]",ytitle="Reflectivity-s",title="")
-elif myscan == 2: # double scan 
-    plot_image(rs**2,e,t,xtitle="Photon energy [eV]",ytitle="Grazing angle [deg]",title="Reflectivity-s",aspect="auto")
+if True:
+    myscan = {myscan}
+    from srxraylib.plot.gol import plot,plot_image
+    
+    if myscan == 0: # angle scan 
+        plot(t, rs[0]**2, xtitle="angle [deg]", ytitle="Reflectivity-s", title="")
+    elif myscan == 1: # energy scan 
+        plot(e,rs[:,0]**2,xtitle="Photon energy [eV]",ytitle="Reflectivity-s",title="")
+    elif myscan == 2: # double scan 
+        plot_image(rs**2,e,t,xtitle="Photon energy [eV]",ytitle="Grazing angle [deg]",title="Reflectivity-s",aspect="auto")
                
 """
 
