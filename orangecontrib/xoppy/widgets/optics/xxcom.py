@@ -178,16 +178,17 @@ out_file =  xoppy_calc_xcom(
 #
 # example plot
 #
-import numpy
-from srxraylib.plot.gol import plot
-
-data = numpy.loadtxt(out_file)
-energy_in_MeV = data[:,0]
-total = data[:,6]
-
-plot(energy_in_MeV,total,
-    xtitle="Photon energy [MeV]",ytitle="Tot atten with coh scat ",title="XCOM attenuation",
-    xlog=True,ylog=True,show=True)
+if True:
+    import numpy
+    from srxraylib.plot.gol import plot
+    
+    data = numpy.loadtxt(out_file)
+    energy_in_MeV = data[:,0]
+    total = data[:,6]
+    
+    plot(energy_in_MeV,total,
+        xtitle="Photon energy [MeV]",ytitle="Tot atten with coh scat ",title="XCOM attenuation",
+        xlog=True,ylog=True,show=True)
 
 
 #

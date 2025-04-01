@@ -296,16 +296,17 @@ cumulated_power = data[:,3]
 #
 # example plot
 #
-from srxraylib.plot.gol import plot
-plot(energy,flux,
-    xtitle="Photon energy [eV]",ytitle="Flux [photons/s/0.1%bw]",title="WS Flux",
-    xlog=True,ylog=True,show=False)
-plot(energy,spectral_power,
-    xtitle="Photon energy [eV]",ytitle="Power [W/eV]",title="WS Spectral Power",
-    xlog=True,ylog=True,show=False)
-plot(energy,cumulated_power,
-    xtitle="Photon energy [eV]",ytitle="Cumulated Power [W]",title="WS Cumulated Power",
-    xlog=False,ylog=False,show=True)
+if True:
+    from srxraylib.plot.gol import plot
+    plot(energy,flux,
+        xtitle="Photon energy [eV]",ytitle="Flux [photons/s/0.1%bw]",title="WS Flux",
+        xlog=True,ylog=True,show=False)
+    plot(energy,spectral_power,
+        xtitle="Photon energy [eV]",ytitle="Power [W/eV]",title="WS Spectral Power",
+        xlog=True,ylog=True,show=False)
+    plot(energy,cumulated_power,
+        xtitle="Photon energy [eV]",ytitle="Cumulated Power [W]",title="WS Cumulated Power",
+        xlog=False,ylog=False,show=True)
     
 #
 # end script

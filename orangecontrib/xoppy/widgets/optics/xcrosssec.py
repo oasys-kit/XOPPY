@@ -317,11 +317,12 @@ out_dict =  xoppy_calc_crosssec(
 #
 # example plot
 #
-from srxraylib.plot.gol import plot
-
-plot(out_dict["data"][0,:],out_dict["data"][-1,:],
-    xtitle=out_dict["labels"][0],ytitle=out_dict["labels"][1],title="xcrosssec",
-    xlog=True,ylog=True,show=True)
+if True:
+    from srxraylib.plot.gol import plot
+    
+    plot(out_dict["data"][0,:],out_dict["data"][-1,:],
+        xtitle=out_dict["labels"][0],ytitle=out_dict["labels"][1],title="xcrosssec",
+        xlog=True,ylog=True,show=True)
 
 #
 # end script

@@ -513,9 +513,10 @@ K_scan,harmonics,power_array, energy_values_at_flux_peak,flux_values = tuning_cu
     zero_emittance={zero_emittance},
     do_plot_peaks={do_plot_peaks},
     code="{code}")
-      
-from srxraylib.plot.gol import plot
-plot(energy_values_at_flux_peak,flux_values,xtitle="Photon energy [eV]",ytitle="Flux on slit [photons/s/0.1%bw]")
+
+if True:  
+    from srxraylib.plot.gol import plot
+    plot(energy_values_at_flux_peak,flux_values,xtitle="Photon energy [eV]",ytitle="Flux on slit [photons/s/0.1%bw]")
               
 #
 # end script

@@ -1,5 +1,4 @@
 import sys
-import numpy
 from PyQt5.QtWidgets import QApplication
 
 from orangewidget import gui
@@ -130,22 +129,22 @@ out_dict =  xoppy_calc_black_body(
         NPOINTS     = {NPOINTS},
         )
 
+    energy = out_dict["data"][:,0]
+    brightness = out_dict["data"][:,2]
+    spectral_power = out_dict["data"][:,3]
+
 #
 # example plot
 #
-import numpy
-from srxraylib.plot.gol import plot
-        
-energy = out_dict["data"][:,0]
-brightness = out_dict["data"][:,2]
-spectral_power = out_dict["data"][:,3]
-
-plot(energy,brightness,
-    xtitle="Photon energy [eV]",ytitle="Brightness [Photons/sec/0.1%bw/mm2/mrad2]",title="black_body brightness",
-    xlog=False,ylog=False,show=False)
-plot(energy,spectral_power,
-    xtitle="Photon energy [eV]",ytitle="Spectral Power [W/eV/mrad2/mm2]",title="black_body Spectral Power",
-    xlog=False,ylog=False,show=True)
+if True:
+    from srxraylib.plot.gol import plot
+            
+    plot(energy,brightness,
+        xtitle="Photon energy [eV]",ytitle="Brightness [Photons/sec/0.1%bw/mm2/mrad2]",title="black_body brightness",
+        xlog=False,ylog=False,show=False)
+    plot(energy,spectral_power,
+        xtitle="Photon energy [eV]",ytitle="Spectral Power [W/eV/mrad2/mm2]",title="black_body Spectral Power",
+        xlog=False,ylog=False,show=True)
 
 
 #

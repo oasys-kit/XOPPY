@@ -397,18 +397,19 @@ if TYPE_CALC == 0 and VER_DIV in [0,2]:
 #   
 # example plot
 #
-if TYPE_CALC == 0 and VER_DIV in [0,2]:
-    from srxraylib.plot.gol import plot
-
-    plot(energy,flux,
-        xtitle="Photon energy [eV]",ytitle="Flux [photons/s/o.1%bw]",title="BM Flux",
-        xlog=True,ylog=True,show=False)
-    plot(energy,spectral_power,
-        xtitle="Photon energy [eV]",ytitle="Power [W/eV]",title="BM Spectral Power",
-        xlog=True,ylog=True,show=False)
-    plot(energy,cumulated_power,
-      xtitle="Photon energy [eV]",ytitle="Cumulated Power [W]",title="BM Cumulated Power",
-      xlog=False,ylog=False,show=True)
+if True:
+    if TYPE_CALC == 0 and VER_DIV in [0,2]:
+        from srxraylib.plot.gol import plot
+    
+        plot(energy,flux,
+            xtitle="Photon energy [eV]",ytitle="Flux [photons/s/o.1%bw]",title="BM Flux",
+            xlog=True,ylog=True,show=False)
+        plot(energy,spectral_power,
+            xtitle="Photon energy [eV]",ytitle="Power [W/eV]",title="BM Spectral Power",
+            xlog=True,ylog=True,show=False)
+        plot(energy,cumulated_power,
+          xtitle="Photon energy [eV]",ytitle="Cumulated Power [W]",title="BM Cumulated Power",
+          xlog=False,ylog=False,show=True)
     
     
 #

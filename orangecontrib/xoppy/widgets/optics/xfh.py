@@ -455,8 +455,9 @@ for i,ienergy in enumerate(energy):
 #                       
 # example plot
 #
-from srxraylib.plot.gol import plot
-plot(out[0,:], out[{I_PLOT},:], xtitle="{xtitle}", ytitle="{ytitle}")
+if True:
+    from srxraylib.plot.gol import plot
+    plot(out[0,:], out[{I_PLOT},:], xtitle="{xtitle}", ytitle="{ytitle}")
 
 #
 # end script

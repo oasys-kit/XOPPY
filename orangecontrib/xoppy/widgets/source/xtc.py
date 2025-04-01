@@ -330,16 +330,16 @@ data, harmonics_data =  xoppy_calc_xtc(
 #
 # example plot
 #
-import numpy
-from srxraylib.plot.gol import plot
-# 
-
-# 
-print("Number of harmonics calculated: ",len(harmonics_data))
-
-plot((harmonics_data[0][1])[:,0],
-     (harmonics_data[0][1])[:,2],
-     title="harmonic number = %d" % (harmonics_data[0][0]), xtitle="Energy[eV]", ytitle="Brilliance" )
+if True:
+    from srxraylib.plot.gol import plot
+    # 
+    
+    # 
+    print("Number of harmonics calculated: ",len(harmonics_data))
+    
+    plot((harmonics_data[0][1])[:,0],
+         (harmonics_data[0][1])[:,2],
+         title="harmonic number = %d" % (harmonics_data[0][0]), xtitle="Energy[eV]", ytitle="Brilliance" )
 
 #
 # end script

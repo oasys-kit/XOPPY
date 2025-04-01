@@ -526,9 +526,10 @@ run_diff_pat(
 #                       
 # example plot
 #
-from srxraylib.plot.gol import plot
-data = numpy.loadtxt("diff_pat.dat", skiprows=5)
-plot(data[:,0], data[:,-1], data[:,0], data[:,-2], ytitle='Crystal reflectivity', legend=['s-polarization','p-polarization'])
+if True:
+    from srxraylib.plot.gol import plot
+    data = numpy.loadtxt("diff_pat.dat", skiprows=5)
+    plot(data[:,0], data[:,-1], data[:,0], data[:,-2], ytitle='Crystal reflectivity', legend=['s-polarization','p-polarization'])
 
 #
 # end script

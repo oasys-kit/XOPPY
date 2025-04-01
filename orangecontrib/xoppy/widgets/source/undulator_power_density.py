@@ -515,8 +515,9 @@ horizontal, vertical, power_density, code = xoppy_calc_undulator_power_density(
     h5_parameters            =  h5_parameters,
     )
 # example plot
-from srxraylib.plot.gol import plot_image
-plot_image(power_density,horizontal,vertical,xtitle="H [mm]",ytitle="V [mm]",title="Power density W/mm2")
+if True:
+    from srxraylib.plot.gol import plot_image
+    plot_image(power_density,horizontal,vertical,xtitle="H [mm]",ytitle="V [mm]",title="Power density W/mm2")
 #
 # end script
 #

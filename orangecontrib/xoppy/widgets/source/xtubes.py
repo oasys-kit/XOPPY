@@ -97,17 +97,18 @@ cumulated_power = spectral_power.cumsum() * numpy.abs(energy[1]-energy[0]) # W/m
 #
 # example plot
 #
-from srxraylib.plot.gol import plot
-
-plot(energy,flux,
-    xtitle="Photon energy [eV]",ytitle="Fluence [photons/s/mm^2/0.5keV(bw)/mA]",title="xtubes Fluence",
-    xlog=False,ylog=False,show=True)
-plot(energy,spectral_power,
-    xtitle="Photon energy [eV]",ytitle="Spectral Power [W/eV/mA/mm^2(@?m) ]",title="xtube_w Spectral Power",
-    xlog=False,ylog=False,show=False)
-plot(energy,cumulated_power,
-    xtitle="Photon energy [eV]",ytitle="Cumulated Power [W/mA/mm^2(@?m) ]",title="xtube_w Cumulated Power",
-    xlog=False,ylog=False,show=True)
+if True:
+    from srxraylib.plot.gol import plot
+    
+    plot(energy,flux,
+        xtitle="Photon energy [eV]",ytitle="Fluence [photons/s/mm^2/0.5keV(bw)/mA]",title="xtubes Fluence",
+        xlog=False,ylog=False,show=True)
+    plot(energy,spectral_power,
+        xtitle="Photon energy [eV]",ytitle="Spectral Power [W/eV/mA/mm^2(@?m) ]",title="xtube_w Spectral Power",
+        xlog=False,ylog=False,show=False)
+    plot(energy,cumulated_power,
+        xtitle="Photon energy [eV]",ytitle="Cumulated Power [W/mA/mm^2(@?m) ]",title="xtube_w Cumulated Power",
+        xlog=False,ylog=False,show=True)
     
 #
 # end script

@@ -232,14 +232,15 @@ out_files =  xoppy_calc_powder_fml(
 #
 # example plot
 #
-import numpy
-from srxraylib.plot.gol import plot
-
-data = numpy.loadtxt(out_files[2], skiprows=3)
-
-plot(data[:,0],data[:,-1],
-    xtitle="TwoTheta[Deg]",ytitle="Intensity[a.u.]",title="Powder diffraction crystal_fml",
-    xlog=False,ylog=False,show=True)
+if True:
+    import numpy
+    from srxraylib.plot.gol import plot
+    
+    data = numpy.loadtxt(out_files[2], skiprows=3)
+    
+    plot(data[:,0],data[:,-1],
+        xtitle="TwoTheta[Deg]",ytitle="Intensity[a.u.]",title="Powder diffraction crystal_fml",
+        xlog=False,ylog=False,show=True)
 
 #
 # end script

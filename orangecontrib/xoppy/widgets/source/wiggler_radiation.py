@@ -482,8 +482,9 @@ traj = hf["{subtitle}/trajectory/traj"][:]
 hf.close()
 
 # example plot
-from srxraylib.plot.gol import plot_image
-plot_image(flux3D[0],horizontal,vertical,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%(100.0),xtitle="H [mm]",ytitle="V [mm]")
+if True:
+    from srxraylib.plot.gol import plot_image
+    plot_image(flux3D[0],horizontal,vertical,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%(100.0),xtitle="H [mm]",ytitle="V [mm]")
 #
 # end script
 #
@@ -796,8 +797,9 @@ energy, horizontal, vertical, flux3D, traj = xoppy_calc_wiggler_radiation(
         )
 
 # example plot
-from srxraylib.plot.gol import plot_image
-plot_image(flux3D[0],horizontal,vertical,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%({PHOTONENERGYMIN}),xtitle="H [mm]",ytitle="V [mm]")
+if True:
+    from srxraylib.plot.gol import plot_image
+    plot_image(flux3D[0],horizontal,vertical,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%({PHOTONENERGYMIN}),xtitle="H [mm]",ytitle="V [mm]")
 #
 # end script
 #

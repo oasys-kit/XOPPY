@@ -235,16 +235,17 @@ energy, flux, spectral_power, cumulated_power, traj, traj_info =  xoppy_calc_wig
 #
 # example plot
 #
-from srxraylib.plot.gol import plot
-plot(energy,flux,
-    xtitle="Photon energy [eV]",ytitle="Flux [photons/s/o.1%bw]",title="Wiggler Flux",
-    xlog=True,ylog=True,show=False)
-plot(energy,spectral_power,
-    xtitle="Photon energy [eV]",ytitle="Power [W/eV]",title="Wiggler Spectral Power",
-    xlog=True,ylog=True,show=False)
-plot(energy,cumulated_power,
-    xtitle="Photon energy [eV]",ytitle="Cumulated Power [W]",title="Wiggler Cumulated Power",
-    xlog=False,ylog=False,show=True)
+if True:
+    from srxraylib.plot.gol import plot
+    plot(energy,flux,
+        xtitle="Photon energy [eV]",ytitle="Flux [photons/s/o.1%bw]",title="Wiggler Flux",
+        xlog=True,ylog=True,show=False)
+    plot(energy,spectral_power,
+        xtitle="Photon energy [eV]",ytitle="Power [W/eV]",title="Wiggler Spectral Power",
+        xlog=True,ylog=True,show=False)
+    plot(energy,cumulated_power,
+        xtitle="Photon energy [eV]",ytitle="Cumulated Power [W]",title="Wiggler Cumulated Power",
+        xlog=False,ylog=False,show=True)
 #
 # end script
 #

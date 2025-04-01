@@ -411,15 +411,16 @@ out_dict =  xoppy_calc_f1f2(
 #
 # example plot
 #
-from srxraylib.plot.gol import plot, plot_image
-try:
-    plot(out_dict["data"][0,:],out_dict["data"][-1,:],
-        xtitle=out_dict["labels"][0],ytitle=out_dict["labels"][1],title="xf1f2",
-        xlog=True,ylog=True,show=True)
-except:
-    plot_image(out_dict["data2D"],out_dict["dataX"],out_dict["dataY"],
-        xtitle='Energy [eV]',ytitle='Theta [mrad]',title='Reflectivity',
-        aspect='auto',show=True)
+if True:
+    from srxraylib.plot.gol import plot, plot_image
+    try:
+        plot(out_dict["data"][0,:],out_dict["data"][-1,:],
+            xtitle=out_dict["labels"][0],ytitle=out_dict["labels"][1],title="xf1f2",
+            xlog=True,ylog=True,show=True)
+    except:
+        plot_image(out_dict["data2D"],out_dict["dataX"],out_dict["dataY"],
+            xtitle='Energy [eV]',ytitle='Theta [mrad]',title='Reflectivity',
+            aspect='auto',show=True)
 #
 # end script
 #

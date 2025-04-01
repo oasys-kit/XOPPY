@@ -777,12 +777,13 @@ spectral_power = out_dictionary["data"][-1,:]
 #                       
 # example plots
 #
-from srxraylib.plot.gol import plot
-plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
-    out_dictionary["data"][0,:], out_dictionary["data"][-1,:],
-    xtitle=out_dictionary["labels"][0],
-    legend=[out_dictionary["labels"][1],out_dictionary["labels"][-1]],
-    title='Spectral Power [W/eV]')
+if True:
+    from srxraylib.plot.gol import plot
+    plot(out_dictionary["data"][0,:], out_dictionary["data"][1,:],
+        out_dictionary["data"][0,:], out_dictionary["data"][-1,:],
+        xtitle=out_dictionary["labels"][0],
+        legend=[out_dictionary["labels"][1],out_dictionary["labels"][-1]],
+        title='Spectral Power [W/eV]')
  
 #
 # end script

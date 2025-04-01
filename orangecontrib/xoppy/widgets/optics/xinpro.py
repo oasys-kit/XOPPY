@@ -246,17 +246,18 @@ out_file =  xoppy_calc_inpro(
 #
 # example plot
 #
-import numpy
-from srxraylib.plot.gol import plot
-
-data = numpy.loadtxt(out_file)
-angle = data[:,0]
-reflectivity_s = data[:,1]
-reflectivity_p = data[:,2]
-
-plot(angle,reflectivity_s,angle,reflectivity_p,
-    xtitle="Theta-ThetaB [arcsec]",ytitle="Reflectivity",title="inpro crystal reflectivity",
-    legend=["s-polarized reflectivity","p-polarized reflectivity"],xlog=False,ylog=False,show=True)
+if True:
+    import numpy
+    from srxraylib.plot.gol import plot
+    
+    data = numpy.loadtxt(out_file)
+    angle = data[:,0]
+    reflectivity_s = data[:,1]
+    reflectivity_p = data[:,2]
+    
+    plot(angle,reflectivity_s,angle,reflectivity_p,
+        xtitle="Theta-ThetaB [arcsec]",ytitle="Reflectivity",title="inpro crystal reflectivity",
+        legend=["s-polarized reflectivity","p-polarized reflectivity"],xlog=False,ylog=False,show=True)
 
 #
 # end script

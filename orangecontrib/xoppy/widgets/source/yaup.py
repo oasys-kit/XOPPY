@@ -759,28 +759,29 @@ energy, flux, spectral_power, cumulated_power =  xoppy_calc_yaup(
 #
 # example plot
 #
-import numpy
-from srxraylib.plot.gol import plot
-
-bfield = numpy.loadtxt("bfield.dat",skiprows=3)
-traj = numpy.loadtxt("undul_traj.dat",skiprows=2)
-
-plot(bfield[:, 0], bfield[:, -1],
-    title="Magnetic Field", xtitle="Z coordinate [cm]", ytitle="Total field intensity [T]",
-    show=False)
-plot(traj[:, 0],traj[:, 2],
-    title="Electron Trajectory", xtitle="z [cm]", ytitle="x [cm]",
-    show=False)
+if True:
+    import numpy
+    from srxraylib.plot.gol import plot
     
-plot(energy,flux,
-    xtitle="Photon energy [eV]",ytitle="Flux [photons/s/0.1%bw]",title="WS Flux",
-    xlog=False,ylog=False,show=False)
-plot(energy,spectral_power,
-    xtitle="Photon energy [eV]",ytitle="Power [W/eV]",title="WS Spectral Power",
-    xlog=False,ylog=False,show=False)
-plot(energy,cumulated_power,
-    xtitle="Photon energy [eV]",ytitle="Cumulated Spectral Power [W]",title="WS Cumulated Power",
-    xlog=False,ylog=False,show=True)
+    bfield = numpy.loadtxt("bfield.dat",skiprows=3)
+    traj = numpy.loadtxt("undul_traj.dat",skiprows=2)
+    
+    plot(bfield[:, 0], bfield[:, -1],
+        title="Magnetic Field", xtitle="Z coordinate [cm]", ytitle="Total field intensity [T]",
+        show=False)
+    plot(traj[:, 0],traj[:, 2],
+        title="Electron Trajectory", xtitle="z [cm]", ytitle="x [cm]",
+        show=False)
+        
+    plot(energy,flux,
+        xtitle="Photon energy [eV]",ytitle="Flux [photons/s/0.1%bw]",title="WS Flux",
+        xlog=False,ylog=False,show=False)
+    plot(energy,spectral_power,
+        xtitle="Photon energy [eV]",ytitle="Power [W/eV]",title="WS Spectral Power",
+        xlog=False,ylog=False,show=False)
+    plot(energy,cumulated_power,
+        xtitle="Photon energy [eV]",ytitle="Cumulated Spectral Power [W]",title="WS Cumulated Power",
+        xlog=False,ylog=False,show=True)
 
 #
 # end script
