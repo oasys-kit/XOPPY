@@ -322,8 +322,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         labels.append('V Center/Gap [mm]')
         labels.append('H Magnification')
         labels.append('V Magnification')
-        labels.append('Rotation angle around V axis [deg]')
         labels.append('Rotation angle around H axis [deg]')
+        labels.append('Rotation angle around V axis [deg]')
         labels.append('File with FRONT profile z(x,y)')
         labels.append('Front profile z outside file definition')
         labels.append('Back profile z(x,y)')
@@ -351,7 +351,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         flags.append('self.EL1_FLAG  in  (0, 1, 5)')   # formula
         flags.append('self.EL1_FLAG  ==  0')   # thickness
         flags.append('self.EL1_FLAG  in  (1, 6)')   # angle
-        flags.append('self.EL1_FLAG  in  (1, 6, 7)')   # mirror deflection
+        flags.append('self.EL1_FLAG  in  (1, 6)')   # mirror deflection
         flags.append('self.EL1_FLAG  ==  1')   # roughness
         flags.append('self.EL1_FLAG  in  (0, 1, 5)')   # density
         flags.append('self.EL1_FLAG  == 6')  # multilayer file
@@ -363,8 +363,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         flags.append('self.EL1_FLAG  in (0, 1, 2, 6, 7)')   # gap center
         flags.append('self.EL1_FLAG  ==  3')   # magnification
         flags.append('self.EL1_FLAG  ==  3')   # magnification
-        flags.append('self.EL1_FLAG  in (0, 4)')   # rotation
-        flags.append('self.EL1_FLAG  in (0, 4)')   # rotation
+        flags.append('self.EL1_FLAG  in (0, 4, 7)')   # rotation
+        flags.append('self.EL1_FLAG  in (0, 4, 7)')   # rotation
         flags.append('self.EL1_FLAG  == 5')   # thin object thickness
         flags.append('self.EL1_FLAG  == 5')   # thin object thickness
         flags.append('self.EL1_FLAG  == 5')   # thin object back profile flag
@@ -431,6 +431,10 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
 
                         self.external_reflectivity_file = external_reflectivity_file
                         self.EL1_FLAG = 7
+
+                        self.EL1_HROT = numpy.round(90.0 - (exchangeData.get_content("THETA")), 4)
+                        self.EL1_VROT = 0.0
+
                     else:
                         raise Exception("Only energy scans allowed.")
 
@@ -450,7 +454,14 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
                         file.close()
 
                         self.external_reflectivity_file = external_reflectivity_file
+
+
                         self.EL1_FLAG = 7
+
+                        self.EL1_HROT = numpy.round(90.0 - \
+                                                    (exchangeData.get_content("bragg_angle") + \
+                                                     exchangeData.get_content("asymmetry_angle")), 4)
+                        self.EL1_VROT = 0.0
 
                     else:
                         raise Exception("Only Energy Scan are accepted from CRYSTAL")
@@ -495,8 +506,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         elif self.EL1_FLAG == 1: # mirror
             self.EL1_ANG = congruence.checkStrictlyPositiveNumber(self.EL1_ANG, "OE mirror angle")
             self.EL1_ROU = congruence.checkPositiveNumber(self.EL1_ROU, "OE mirror roughness")
-            self.EL1_HROT = congruence.checkNumber(self.EL1_HROT, "OE rotation H")
-            self.EL1_VROT = congruence.checkNumber(self.EL1_VROT, "OE rotation V")
+            self.EL1_HROT = congruence.checkNumber(self.EL1_HROT, "OE rotation around H axis")
+            self.EL1_VROT = congruence.checkNumber(self.EL1_VROT, "OE rotation around V axis")
             self.EL1_HGAP = congruence.checkStrictlyPositiveNumber(self.EL1_HGAP, "OE H gap")
             self.EL1_VGAP = congruence.checkPositiveNumber(self.EL1_VGAP, "OE V Gap")
             self.EL1_HGAPCENTER = congruence.checkNumber(self.EL1_HGAPCENTER, "OE H gap Center")
@@ -510,8 +521,8 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
             self.EL1_HMAG = congruence.checkStrictlyPositiveNumber(self.EL1_HMAG, "OE H magnification")
             self.EL1_VMAG = congruence.checkPositiveNumber(self.EL1_VMAG, "OE V magnification")
         elif self.EL1_FLAG == 4: # rotation
-            self.EL1_HROT = congruence.checkNumber(self.EL1_HROT, "OE rotation H")
-            self.EL1_VROT = congruence.checkNumber(self.EL1_VROT, "OE rotation V")
+            self.EL1_HROT = congruence.checkNumber(self.EL1_HROT, "OE rotation around H axis")
+            self.EL1_VROT = congruence.checkNumber(self.EL1_VROT, "OE rotation around V axis")
         elif self.EL1_FLAG == 4: # thin object filter
             self.thin_object_thickness_outside_file_area = congruence.checkNumber(self.thin_object_thickness_outside_file_area, "Thin object thickness outside file")
 
@@ -567,26 +578,32 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         thin_object_back_profile_file = ''
         multilayer_file = ''
         external_reflectivity_file = ''
-        if self.EL1_FLAG in [0,1,2]: #  used
+
+        if self.EL1_FLAG in [0,1,2,5,6,7]: #  using slit
             hgap = self.EL1_HGAP
             vgap = self.EL1_VGAP
             hgapcenter = self.EL1_HGAPCENTER
             vgapcenter = self.EL1_VGAPCENTER
             gapshape = self.EL1_GAPSHAPE
-        if self.EL1_FLAG == 3: #  used
+
+        if self.EL1_FLAG == 3:
             hmag = self.EL1_HMAG
             vmag = self.EL1_VMAG
-        if self.EL1_FLAG in [0,1,4]: #  used
+
+        if self.EL1_FLAG in [0,4,7]: #  using rotation
             hrot = self.EL1_HROT
             vrot = self.EL1_VROT
-        if self.EL1_FLAG == 5: #  used
+
+        if self.EL1_FLAG == 5:
             thin_object_file = self.thin_object_file
             thin_object_thickness_outside_file_area = self.thin_object_thickness_outside_file_area
             thin_object_back_profile_flag = self.thin_object_back_profile_flag
             thin_object_back_profile_file = self.thin_object_back_profile_file
-        if self.EL1_FLAG == 6: #  used
+
+        if self.EL1_FLAG == 6:
             multilayer_file = self.multilayer_file
-        if self.EL1_FLAG == 7: #  used
+
+        if self.EL1_FLAG == 7:
             external_reflectivity_file = self.external_reflectivity_file
 
         #
@@ -598,14 +615,14 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
             dens = "%g" % self.EL1_DEN
 
         dict_parameters = {
-                "emin" : e0[0],
-                "emax" : e0[-1],
+                "emin" :    e0[0],
+                "emax" :    e0[-1],
                 "epoints" : e0.size,
-                "hmin" : h0[0],
-                "hmax" : h0[-1],
+                "hmin" :    h0[0],
+                "hmax" :    h0[-1],
                 "hpoints" : h0.size,
-                "vmin" : v0[0],
-                "vmax" : v0[-1],
+                "vmin" :    v0[0],
+                "vmax" :    v0[-1],
                 "vpoints" : v0.size,
                 "EL1_FOR" : "'"+self.EL1_FOR+"'",
                 "EL1_THI" : self.EL1_THI,

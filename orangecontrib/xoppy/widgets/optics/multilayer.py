@@ -425,6 +425,47 @@ class OWMlultilayer(XoppyWidget):
             if result == QMessageBox.No:
                 raise Exception("Calculation cancelled.")
 
+        if self.THETA_FLAG == 1 and self.ENERGY_FLAG == 0:   # theta scan
+            myscan = 0
+        elif self.THETA_FLAG == 0 and self.ENERGY_FLAG == 1:  # energy scan
+            myscan = 1
+        elif self.THETA_FLAG == 1 and self.ENERGY_FLAG == 1:  # double scan
+            myscan = 2
+        elif self.THETA_FLAG == 0 and self.ENERGY_FLAG == 0:  # single point
+            myscan = 0
+        print(">>>>>>>>>>>>>>>>>>>>>> myscan: ", myscan)
+        #
+        # script
+        #
+        dict_parameters = {
+            "material_S":    self.MATERIAL_S,
+            "density_S":     density_S,
+            "roughness_S":   self.ROUGHNESS_S,
+            "material_E":    self.MATERIAL_E,
+            "density_E":     density_E,
+            "roughness_E":   self.ROUGHNESS_E,
+            "material_O":    self.MATERIAL_O,
+            "density_O":     density_O,
+            "roughness_O":   self.ROUGHNESS_O,
+            "bilayer_pairs": self.NLAYERS,
+            "bilayer_thickness": self.THICKNESS,
+            "bilayer_gamma":     self.GAMMA,
+            "energyN":           energyN,
+            "energy1":           self.ENERGY,
+            "energy2":           self.ENERGY_END,
+            "thetaN":            thetaN,
+            "theta1":            self.THETA,
+            "theta2":            self.THETA_END,
+            "myscan":            myscan,
+            "h5file":            h5file,
+            }
+        # write python script
+        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
+
+
+        #
+        # calculation
+        #
         rs, rp, e, t = out.scan(h5file=h5file,
                                 energyN=energyN, energy1=self.ENERGY, energy2=self.ENERGY_END,
                                 thetaN=thetaN, theta1=self.THETA, theta2=self.THETA_END)
@@ -436,41 +477,27 @@ class OWMlultilayer(XoppyWidget):
 
         if self.THETA_FLAG == 1 and self.ENERGY_FLAG == 0:   # theta scan
             out = numpy.zeros((t.size,3))
-
             out[:, 0] = t
             out[:, 1] = rs[0]**2
             out[:, 2] = rp[0]**2
-
             out_dict["data"] = out
-            myscan = 0
-
         elif self.THETA_FLAG == 0 and self.ENERGY_FLAG == 1:  # energy scan
             out = numpy.zeros((e.size,3))
-
             out[:, 0] = e
             out[:, 1] = rs[:, 0]**2
             out[:, 2] = rp[:, 0]**2
-
             out_dict["data"] = out
-            myscan = 1
-
         elif self.THETA_FLAG == 1 and self.ENERGY_FLAG == 1:  # double scan
-
             out_dict["data2D_rs"] = rs**2
             out_dict["data2D_rp"] = rs**2
             out_dict["dataX"] = e
             out_dict["dataY"] = t
-            myscan = 2
-
         elif self.THETA_FLAG == 0 and self.ENERGY_FLAG == 0:  # single point
             out = numpy.zeros((t.size,3))
             out[:, 0] = t
             out[:, 1] = rs[0]**2
             out[:, 2] = rp[0]**2
-
             out_dict["data"] = out
-            myscan = 0
-
 
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
@@ -485,39 +512,20 @@ class OWMlultilayer(XoppyWidget):
         try:
             calculated_data.add_content("data2D_rs", out_dict["data2D_rs"])
             calculated_data.add_content("data2D_rp", out_dict["data2D_rp"])
-            calculated_data.add_content("dataX", out_dict["dataX"])
-            calculated_data.add_content("dataY", out_dict["dataY"])
-            calculated_data.add_content("myscan", myscan)
+            calculated_data.add_content("dataX",     out_dict["dataX"])
+            calculated_data.add_content("dataY",     out_dict["dataY"])
         except:
             pass
 
-        # script
-
-        dict_parameters = {
-            "material_S":    self.MATERIAL_S,
-            "density_S":     density_S, \
-            "roughness_S":   self.ROUGHNESS_S, \
-            "material_E":    self.MATERIAL_E, \
-            "density_E":     density_E, \
-            "roughness_E":   self.ROUGHNESS_E, \
-            "material_O":    self.MATERIAL_O, \
-            "density_O":     density_O, \
-            "roughness_O":   self.ROUGHNESS_O, \
-            "bilayer_pairs": self.NLAYERS, \
-            "bilayer_thickness": self.THICKNESS, \
-            "bilayer_gamma":     self.GAMMA, \
-            "energyN":           energyN, \
-            "energy1":           self.ENERGY, \
-            "energy2":           self.ENERGY_END, \
-            "thetaN":            thetaN, \
-            "theta1":            self.THETA,\
-            "theta2":            self.THETA_END,
-            "myscan":            myscan, \
-            "h5file":            h5file, \
-            }
-
-        # write python script
-        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
+        try:
+            calculated_data.add_content("THETA_N",    self.THETA_N)
+            calculated_data.add_content("THETA",      self.THETA)
+            calculated_data.add_content("THETA_END",  self.THETA_END)
+            calculated_data.add_content("ENERGY_N",   self.ENERGY_N)
+            calculated_data.add_content("ENERGY",     self.ENERGY)
+            calculated_data.add_content("ENERGY_END", self.ENERGY_END)
+        except:
+            pass
 
         return calculated_data
 
