@@ -9,12 +9,14 @@ from oasys.widgets.exchange import DataExchangeObject
 
 
 from xoppylib.crystals.tools import bragg_calc, bragg_calc2, crystal_fh
-from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget_dabax import XoppyWidgetDabax
+
+from dabax.dabax_files import dabax_f1f2_files
 
 import xraylib
 from dabax.dabax_xraylib import DabaxXraylib
 
-class OWxfh(XoppyWidget):
+class OWxfh(XoppyWidgetDabax):
     name = "Fh"
     id = "orange.widgets.dataxfh"
     description = "Crystal Structure Factors"
@@ -36,17 +38,23 @@ class OWxfh(XoppyWidget):
     DUMP_TO_FILE = Setting(0)  # No
     FILE_NAME = Setting("Fh.dat")
 
-    # new crystals  #todo: add to menus?
-    material_constants_library_flag = Setting(2) # 0=xraylib, 1=dabax, 2=xraylib completed by dabax
-    dx = None # DABAX object
-
     def __init__(self):
         super().__init__(show_script_tab=True)
 
+    def dabax_show_f1f2(self):
+        return True
+
     def build_gui(self):
 
-        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
-        
+        # box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        ###########
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+        box = oasysgui.createTabPage(tabs_setting, self.name + " Input Parameters")
+        self.tab_dabax = oasysgui.createTabPage(tabs_setting, "Materials Library")
+        ###########
+
+
         idx = -1 
         
         #widget index 3 
@@ -195,25 +203,27 @@ class OWxfh(XoppyWidget):
         self.NPOINTS = congruence.checkStrictlyPositiveNumber(self.NPOINTS, "Number of Points")
 
     def get_crystal_list(self):
-        crystal_list_xrl = list(xraylib.Crystal_GetCrystalsList())
+        return list(DabaxXraylib().Crystal_GetCrystalsList())
 
-        if self.material_constants_library_flag == 0:
-            return crystal_list_xrl
-
-        if self.dx is None:
-            self.dx = DabaxXraylib()
-        crystal_list_dabax = self.dx.Crystal_GetCrystalsList()
-
-        if self.material_constants_library_flag == 1:
-            return crystal_list_dabax
-
-        crystal_list_combined = crystal_list_xrl
-        for crystal in crystal_list_dabax:
-            if crystal not in crystal_list_combined:
-                crystal_list_combined.append(crystal)
-
-        if self.material_constants_library_flag == 2:
-            return crystal_list_combined
+        # crystal_list_xrl = list(xraylib.Crystal_GetCrystalsList())
+        #
+        # if self.material_constants_library_flag == 0:
+        #     return crystal_list_xrl
+        #
+        # if self.dx is None:
+        #     self.dx = DabaxXraylib()
+        # crystal_list_dabax = self.dx.Crystal_GetCrystalsList()
+        #
+        # if self.material_constants_library_flag == 1:
+        #     return crystal_list_dabax
+        #
+        # crystal_list_combined = crystal_list_xrl
+        # for crystal in crystal_list_dabax:
+        #     if crystal not in crystal_list_combined:
+        #         crystal_list_combined.append(crystal)
+        #
+        # if self.material_constants_library_flag == 2:
+        #     return crystal_list_combined
 
     def do_xoppy_calculation(self):
         self.I_PLOT = self.plot_variable + 2
@@ -253,22 +263,46 @@ class OWxfh(XoppyWidget):
         NPOINTS = self.NPOINTS
 
         descriptor = self.get_crystal_list()[self.ILATTICE]
-
-        if self.material_constants_library_flag == 0:
-            material_constants_library = xraylib
-        elif self.material_constants_library_flag == 1:
-            material_constants_library = self.dx
-        elif self.material_constants_library_flag == 2:
-            if descriptor in xraylib.Crystal_GetCrystalsList():
-                material_constants_library = xraylib
-            elif descriptor in self.dx.Crystal_GetCrystalsList():
-                material_constants_library = self.dx
-            else:
-                raise Exception("Descriptor not found in material constants database")
-
-        # descriptor = material_constants_library.Crystal_GetCrystalsList()[ILATTICE]
         print("Using crystal descriptor: ",descriptor)
 
+
+        if self.MATERIAL_CONSTANT_LIBRARY_FLAG == 0:
+            material_constants_library = xraylib
+        elif self.MATERIAL_CONSTANT_LIBRARY_FLAG == 1:
+            material_constants_library = DabaxXraylib(file_f1f2=dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX])
+            print(material_constants_library.info())
+
+        #
+        # write python script
+        #
+        if isinstance(material_constants_library, DabaxXraylib):
+            material_constants_library_txt = 'DabaxXraylib(file_f1f2="%s")' % (dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX])
+        else:
+            material_constants_library_txt = "xraylib"
+
+
+        dict_parameters = {
+            'descriptor':  descriptor,
+            'ILATTICE'   : ILATTICE,
+            'HMILLER'    : HMILLER,
+            'KMILLER'    : KMILLER,
+            'LMILLER'    : LMILLER,
+            'I_PLOT'     : self.I_PLOT,
+            'TEMPER'     : TEMPER,
+            'ENERGY'     : ENERGY,
+            'ENERGY_END' : ENERGY_END,
+            'NPOINTS'    : NPOINTS,
+            'material_constants_library_txt': material_constants_library_txt,
+            'xtitle' : self.plotOptionList()[0],
+            'ytitle' : self.plotOptionList()[self.I_PLOT],
+            }
+
+
+        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
+
+        #
+        # run
+        #
         bragg_dictionary = bragg_calc2(descriptor=descriptor,
                                         hh=HMILLER,
                                         kk=KMILLER,
@@ -335,35 +369,8 @@ class OWxfh(XoppyWidget):
                     raise Exception("CrossSec: The data could not be dumped onto the specified file!\n")
 
         #
-        # write python script
-        #
-        if isinstance(material_constants_library, DabaxXraylib):
-            material_constants_library_txt = "DabaxXraylib()"
-        else:
-            material_constants_library_txt = "xraylib"
-
-
-        dict_parameters = {
-            'descriptor':  descriptor,
-            'ILATTICE'   : ILATTICE,
-            'HMILLER'    : HMILLER,
-            'KMILLER'    : KMILLER,
-            'LMILLER'    : LMILLER,
-            'I_PLOT'     : self.I_PLOT,
-            'TEMPER'     : TEMPER,
-            'ENERGY'     : ENERGY,
-            'ENERGY_END' : ENERGY_END,
-            'NPOINTS'    : NPOINTS,
-            'material_constants_library_txt': material_constants_library_txt,
-            'xtitle' : self.plotOptionList()[0],
-            'ytitle' : self.plotOptionList()[self.I_PLOT],
-            }
-
-
-        self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
-
-
         #send exchange
+        #
         calculated_data = DataExchangeObject("XOPPY", self.get_data_exchange_widget_name())
 
         try:
@@ -392,7 +399,8 @@ class OWxfh(XoppyWidget):
 
 import numpy
 from xoppylib.crystals.tools import bragg_calc2, crystal_fh
-import xraylib
+try: import xraylib
+except: print("xraylib not available")
 from dabax.dabax_xraylib import DabaxXraylib
 
 #

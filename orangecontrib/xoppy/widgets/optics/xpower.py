@@ -9,14 +9,18 @@ from oasys.widgets.exchange import DataExchangeObject
 from xoppylib.power.xoppy_calc_power import xoppy_calc_power
 
 from oasys.widgets.exchange import DataExchangeObject
-from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget_dabax import XoppyWidgetDabax
 
 import scipy.constants as codata
 
-import xraylib
-from dabax.dabax_xraylib import DabaxXraylib
+try: import xraylib
+except: print("xraylib not available")
 
-class OWxpower(XoppyWidget):
+from dabax.dabax_xraylib import DabaxXraylib
+from dabax.dabax_files import dabax_f1f2_files, dabax_crosssec_files
+
+
+class OWxpower(XoppyWidgetDabax):
     name = "POWER"
     id = "orange.widgets.dataxpower"
     description = "Power Absorbed and Transmitted by Optical Elements"
@@ -74,13 +78,25 @@ class OWxpower(XoppyWidget):
     def __init__(self):
         super().__init__(show_script_tab=True)
 
+    def dabax_show_f1f2(self):
+        return True
+
+    def dabax_show_crosssec(self):
+        return True
+
     def build_gui(self):
 
         self.leftWidgetPart.setSizePolicy(QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding))
         self.leftWidgetPart.setMaximumWidth(self.CONTROL_AREA_WIDTH + 20)
         self.leftWidgetPart.updateGeometry()
 
-        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-10)
+        # box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-10)
+        ###########
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+        box = oasysgui.createTabPage(tabs_setting, self.name + " Input Parameters")
+        self.tab_dabax = oasysgui.createTabPage(tabs_setting, "Materials Library")
+        ###########
 
         idx = -1 
 
@@ -703,26 +719,16 @@ class OWxpower(XoppyWidget):
             material_constants_library = xraylib
             material_constants_library_str = "xraylib"
         else:
-            material_constants_library = DabaxXraylib()
-            material_constants_library_str = 'DabaxXraylib()'
+            material_constants_library = DabaxXraylib(file_f1f2=dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
+                                                      file_CrossSec=dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX])
+            material_constants_library_str = 'DabaxXraylib(file_f1f2="%s",file_CrossSec="%s")' % \
+                                             (dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
+                                              dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX])
             print(material_constants_library.info())
 
-        out_dictionary = xoppy_calc_power(
-            energies,
-            source,
-            substance                  = substance,
-            thick                      = thick    ,
-            angle                      = angle    ,
-            dens                       = dens     ,
-            roughness                  = roughness,
-            flags                      = flags    ,
-            nelements                  = self.NELEMENTS + 1,
-            FILE_DUMP                  = self.FILE_DUMP,
-            material_constants_library = material_constants_library,
-                                                )
-
-        print(out_dictionary["info"])
-
+        #
+        # script
+        #
         dict_parameters = {
             "substance"                 : substance_str,
             "thick"                     : thick_str,
@@ -740,6 +746,25 @@ class OWxpower(XoppyWidget):
         script = script_previous + script_element
 
         self.xoppy_script.set_code(script)
+
+        #
+        # run
+        #
+        out_dictionary = xoppy_calc_power(
+            energies,
+            source,
+            substance                  = substance,
+            thick                      = thick    ,
+            angle                      = angle    ,
+            dens                       = dens     ,
+            roughness                  = roughness,
+            flags                      = flags    ,
+            nelements                  = self.NELEMENTS + 1,
+            FILE_DUMP                  = self.FILE_DUMP,
+            material_constants_library = material_constants_library,
+                                                )
+
+        print(out_dictionary["info"])
 
         return  out_dictionary, script
 

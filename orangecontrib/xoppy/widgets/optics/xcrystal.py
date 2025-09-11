@@ -5,17 +5,21 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 
 from oasys.widgets.exchange import DataExchangeObject
-from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget_dabax import XoppyWidgetDabax
 
 
 import scipy.constants as codata
 
-import xraylib
+try: import xraylib
+except: print("xraylib not available")
+
 from dabax.dabax_xraylib import DabaxXraylib
+from dabax.dabax_files import dabax_f1f2_files
 
 from xoppylib.crystals.tools import run_diff_pat, bragg_calc2
 
-class OWxcrystal(XoppyWidget):
+
+class OWxcrystal(XoppyWidgetDabax):
     name = "CRYSTAL"
     id = "orange.widgets.dataxcrystal"
     description = "Crystal Reflectivity (perfect, bent, mosaic)"
@@ -49,16 +53,24 @@ class OWxcrystal(XoppyWidget):
 
     # new crystals  #todo: add to menus?
     material_constants_library_flag = Setting(2) # 0=xraylib, 1=dabax, 2=xraylib completed by dabax
-    dx = None # DABAX object
 
 
     def __init__(self):
         super().__init__(show_script_tab=True)
 
+    def dabax_show_f1f2(self):
+        return True
+
     def build_gui(self):
 
-        box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
-        
+        # box = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        ###########
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+        box = oasysgui.createTabPage(tabs_setting, self.name + " Input Parameters")
+        self.tab_dabax = oasysgui.createTabPage(tabs_setting, "Materials Library")
+        ###########
+
         idx = -1 
         
         #widget index 3 
@@ -309,42 +321,47 @@ class OWxcrystal(XoppyWidget):
                 congruence.checkFile(self.FILECOMPLIANCE)
 
     def get_crystal_list(self):
-        crystal_list_xrl = list(xraylib.Crystal_GetCrystalsList())
+        return list(DabaxXraylib().Crystal_GetCrystalsList())
 
-        if self.material_constants_library_flag == 0:
-            return crystal_list_xrl
-
-        if self.dx is None:
-            self.dx = DabaxXraylib()
-        crystal_list_dabax = self.dx.Crystal_GetCrystalsList()
-
-        if self.material_constants_library_flag == 1:
-            return crystal_list_dabax
-
-        crystal_list_combined = crystal_list_xrl
-        for crystal in crystal_list_dabax:
-            if crystal not in crystal_list_combined:
-                crystal_list_combined.append(crystal)
-
-        if self.material_constants_library_flag == 2:
-            return crystal_list_combined
+        # crystal_list_xrl = list(xraylib.Crystal_GetCrystalsList())
+        #
+        # if self.material_constants_library_flag == 0:
+        #     return crystal_list_xrl
+        #
+        # if self.dx is None:
+        #     self.dx = DabaxXraylib()
+        # crystal_list_dabax = self.dx.Crystal_GetCrystalsList()
+        #
+        # if self.material_constants_library_flag == 1:
+        #     return crystal_list_dabax
+        #
+        # crystal_list_combined = crystal_list_xrl
+        # for crystal in crystal_list_dabax:
+        #     if crystal not in crystal_list_combined:
+        #         crystal_list_combined.append(crystal)
+        #
+        # if self.material_constants_library_flag == 2:
+        #     return crystal_list_combined
 
     def do_xoppy_calculation(self):
         # return self.xoppy_calc_xcrystal()
 
         descriptor = self.get_crystal_list()[self.CRYSTAL_MATERIAL]
+        print("Using crystal descriptor: ",descriptor)
 
-        if self.material_constants_library_flag == 0:
+        if self.MATERIAL_CONSTANT_LIBRARY_FLAG == 0:
             material_constants_library = xraylib
-        elif self.material_constants_library_flag == 1:
-            material_constants_library = self.dx
-        elif self.material_constants_library_flag == 2:
-            if descriptor in xraylib.Crystal_GetCrystalsList():
-                material_constants_library = xraylib
-            elif descriptor in self.dx.Crystal_GetCrystalsList():
-                material_constants_library = self.dx
-            else:
-                raise Exception("Descriptor not found in material constants database")
+        elif self.MATERIAL_CONSTANT_LIBRARY_FLAG == 1:
+            material_constants_library = DabaxXraylib(file_f1f2=dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX])
+            print(material_constants_library.info())
+
+        # elif self.material_constants_library_flag == 2:
+        #     if descriptor in xraylib.Crystal_GetCrystalsList():
+        #         material_constants_library = xraylib
+        #     elif descriptor in self.dx.Crystal_GetCrystalsList():
+        #         material_constants_library = self.dx
+        #     else:
+        #         raise Exception("Descriptor not found in material constants database")
 
         #
         # run bragg_calc (preprocessor) and create file xcrystal.bra
@@ -368,6 +385,9 @@ class OWxcrystal(XoppyWidget):
 
         print("Using crystal descriptor: ", descriptor)
 
+        #
+        # run
+        #
         bragg_dictionary = bragg_calc2(
             descriptor=descriptor,
             hh=self.MILLER_INDEX_H,
@@ -383,43 +403,12 @@ class OWxcrystal(XoppyWidget):
             verbose=False,
             material_constants_library=material_constants_library,
         )
-
-        #
-        # run external (fortran) diff_pat
-        #
-        run_diff_pat(
-            bragg_dictionary,
-            preprocessor_file=preprocessor_file,
-            descriptor=descriptor,
-            MOSAIC=self.MOSAIC,
-            GEOMETRY=self.GEOMETRY,
-            SCAN=self.SCAN,
-            UNIT=self.UNIT,
-            SCANFROM=self.SCANFROM,
-            SCANTO=self.SCANTO,
-            SCANPOINTS=self.SCANPOINTS,
-            ENERGY=self.ENERGY,
-            ASYMMETRY_ANGLE=self.ASYMMETRY_ANGLE,
-            THICKNESS=self.THICKNESS,
-            MOSAIC_FWHM=self.MOSAIC_FWHM,
-            RSAG=self.RSAG,
-            RMER=self.RMER,
-            ANISOTROPY=self.ANISOTROPY,
-            POISSON=self.POISSON,
-            CUT=self.CUT,
-            FILECOMPLIANCE=self.FILECOMPLIANCE,
-        )
-
-        # show calculated parameters in standard output
-        txt_info = open("diff_pat.par").read()
-        for line in txt_info:
-            print(line, end="")
-
         #
         # write python script
         #
         if isinstance(material_constants_library, DabaxXraylib):
-            material_constants_library_txt = "DabaxXraylib()"
+            material_constants_library_txt = 'DabaxXraylib(file_f1f2="%s")' % (
+            dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX])
         else:
             material_constants_library_txt = "xraylib"
 
@@ -454,6 +443,37 @@ class OWxcrystal(XoppyWidget):
 
         script = self.script_template().format_map(dict_parameters)
         self.xoppy_script.set_code(script)
+
+        #
+        # run external (fortran) diff_pat
+        #
+        run_diff_pat(
+            bragg_dictionary,
+            preprocessor_file=preprocessor_file,
+            descriptor=descriptor,
+            MOSAIC=self.MOSAIC,
+            GEOMETRY=self.GEOMETRY,
+            SCAN=self.SCAN,
+            UNIT=self.UNIT,
+            SCANFROM=self.SCANFROM,
+            SCANTO=self.SCANTO,
+            SCANPOINTS=self.SCANPOINTS,
+            ENERGY=self.ENERGY,
+            ASYMMETRY_ANGLE=self.ASYMMETRY_ANGLE,
+            THICKNESS=self.THICKNESS,
+            MOSAIC_FWHM=self.MOSAIC_FWHM,
+            RSAG=self.RSAG,
+            RMER=self.RMER,
+            ANISOTROPY=self.ANISOTROPY,
+            POISSON=self.POISSON,
+            CUT=self.CUT,
+            FILECOMPLIANCE=self.FILECOMPLIANCE,
+        )
+
+        # show calculated parameters in standard output
+        txt_info = open("diff_pat.par").read()
+        for line in txt_info:
+            print(line, end="")
 
         return bragg_dictionary, "diff_pat.dat", script
 
