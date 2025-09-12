@@ -495,7 +495,8 @@ class OWxcrystal(XoppyWidgetDabax):
 
 import numpy
 from xoppylib.crystals.tools import bragg_calc2, run_diff_pat
-import xraylib
+try: import xraylib
+except: print("xraylib not available")
 from dabax.dabax_xraylib import DabaxXraylib
 
 #
