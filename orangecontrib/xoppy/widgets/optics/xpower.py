@@ -777,7 +777,8 @@ class OWxpower(XoppyWidgetDabax):
 
 import numpy
 from xoppylib.power.xoppy_calc_power import xoppy_calc_power
-import xraylib
+try: import xraylib
+except: print("xraylib not available")
 from dabax.dabax_xraylib import DabaxXraylib
 
 out_dictionary = xoppy_calc_power(

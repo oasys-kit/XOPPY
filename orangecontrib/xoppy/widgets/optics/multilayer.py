@@ -6,13 +6,20 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
 
-from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget_dabax import XoppyWidgetDabax
 
 from xoppylib.mlayer import MLayer
 from xoppylib.xoppy_xraylib_util import density
 from xoppylib.xoppy_xraylib_util import Refractive_Index_Re_Extended_NIST, Refractive_Index_Im_Extended_NIST
 
-class OWMlultilayer(XoppyWidget):
+try: import xraylib
+except: print("xraylib not available")
+
+from dabax.dabax_xraylib import DabaxXraylib
+
+from dabax.dabax_files import dabax_f1f2_files, dabax_crosssec_files
+
+class OWMlultilayer(XoppyWidgetDabax):
     name = "Multilayer"
     id = "orange.widgets.datamlayer"
     description = "Multilayer Reflectivity"
@@ -55,10 +62,24 @@ class OWMlultilayer(XoppyWidget):
     def __init__(self):
         super().__init__(show_script_tab=True)
 
+    def dabax_show_f1f2(self):
+        return True
+
+    def dabax_show_crosssec(self):
+        return True
+
+
+
     def build_gui(self):
 
-        box0 = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
-        
+        # box0 = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5)
+        ###########
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+        box0 = oasysgui.createTabPage(tabs_setting, self.name + " Input Parameters")
+        self.tab_dabax = oasysgui.createTabPage(tabs_setting, "Materials Library")
+        ###########
+
         idx = -1 
 
         #
@@ -388,6 +409,17 @@ class OWMlultilayer(XoppyWidget):
                self.MATERIAL_E, density_E,
                self.MATERIAL_O, density_O, ))
 
+        if self.MATERIAL_CONSTANT_LIBRARY_FLAG == 0:
+            material_constants_library = xraylib
+            material_constants_library_str = "xraylib"
+        else:
+            material_constants_library = DabaxXraylib(file_f1f2=dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
+                                                      file_CrossSec=dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX])
+            material_constants_library_str = 'DabaxXraylib(file_f1f2="%s",file_CrossSec="%s")' % \
+                                             (dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
+                                              dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX])
+            print(material_constants_library.info())
+
         out = MLayer.initialize_from_bilayer_stack(
             material_S=self.MATERIAL_S, density_S=density_S, roughness_S=self.ROUGHNESS_S,  # 2.33
             material_E=self.MATERIAL_E, density_E=density_E, roughness_E=self.ROUGHNESS_E,  # 19.3
@@ -395,6 +427,7 @@ class OWMlultilayer(XoppyWidget):
             bilayer_pairs=self.NLAYERS,
             bilayer_thickness=self.THICKNESS,
             bilayer_gamma=self.GAMMA,
+            material_constants_library=material_constants_library,
         )
 
         for key in out.pre_mlayer_dict.keys():
@@ -458,6 +491,7 @@ class OWMlultilayer(XoppyWidget):
             "theta2":            self.THETA_END,
             "myscan":            myscan,
             "h5file":            h5file,
+            "material_constants_library": material_constants_library_str,
             }
         # write python script
         self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
@@ -533,6 +567,9 @@ class OWMlultilayer(XoppyWidget):
 
     def script_template(self):
         return """
+try: import xraylib
+except: print("xraylib not available")
+from dabax.dabax_xraylib import DabaxXraylib
 from xoppylib.mlayer import MLayer
 
 out = MLayer.initialize_from_bilayer_stack(
@@ -542,6 +579,7 @@ out = MLayer.initialize_from_bilayer_stack(
     bilayer_pairs={bilayer_pairs},
     bilayer_thickness={bilayer_thickness},
     bilayer_gamma={bilayer_gamma},
+    material_constants_library = {material_constants_library},
 )
 
 for key in out.pre_mlayer_dict.keys():

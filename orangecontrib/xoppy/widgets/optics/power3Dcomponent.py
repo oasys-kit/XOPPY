@@ -15,7 +15,7 @@ from oasys.widgets.exchange import DataExchangeObject
 from oasys.widgets.gui import ConfirmDialog
 from oasys.util.oasys_objects import OasysSurfaceData
 
-from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget_dabax import XoppyWidgetDabax
 
 from xoppylib.power.power3d import integral_2d, integral_3d, info_total_power
 from xoppylib.power.power3d import calculate_component_absorbance_and_transmittance, apply_transmittance_to_incident_beam
@@ -28,7 +28,14 @@ from syned.beamline.optical_elements.mirrors.mirror import Mirror
 from syned.beamline.beamline import Beamline
 from syned.beamline.shape import Rectangle
 
-class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
+try: import xraylib
+except: print("xraylib not available")
+
+from dabax.dabax_xraylib import DabaxXraylib
+from dabax.dabax_files import dabax_f1f2_files, dabax_crosssec_files
+
+
+class OWpower3Dcomponent(XoppyWidgetDabax, WidgetDecorator):
     name = "Power3Dcomponent"
     id = "orange.widgets.datapower3D"
     description = "Power (vs Energy and spatial coordinates) Absorbed and Transmitted or Reflected by Optical Elements"
@@ -90,6 +97,12 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
     def __init__(self):
         super().__init__(show_script_tab=True)
 
+    def dabax_show_f1f2(self):
+        return True
+
+    def dabax_show_crosssec(self):
+        return True
+
     def build_gui(self):
 
         self.leftWidgetPart.setSizePolicy(QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding))
@@ -101,6 +114,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
         tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
         tab_1 = oasysgui.createTabPage(tabs_setting, "Input Parameters")
         tab_2 = oasysgui.createTabPage(tabs_setting, "Send Settings")
+        self.tab_dabax = oasysgui.createTabPage(tabs_setting, "Materials Library")
         ###########
 
         box = oasysgui.widgetBox(tab_1, self.name + " Input Parameters", orientation="vertical",width=self.CONTROL_AREA_WIDTH-10)
@@ -607,6 +621,20 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
             external_reflectivity_file = self.external_reflectivity_file
 
         #
+        # dabax stuff
+        #
+        if self.MATERIAL_CONSTANT_LIBRARY_FLAG == 0:
+            material_constants_library = xraylib
+            material_constants_library_str = "xraylib"
+        else:
+            material_constants_library = DabaxXraylib(file_f1f2=dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
+                                                      file_CrossSec=dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX])
+            material_constants_library_str = 'DabaxXraylib(file_f1f2="%s",file_CrossSec="%s")' % \
+                                             (dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
+                                              dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX])
+            print(material_constants_library.info())
+
+        #
         # write python script
         #
         if isinstance(self.EL1_DEN, str):
@@ -650,6 +678,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
                 "thin_object_back_profile_file": thin_object_back_profile_file,
                 "multilayer_file":  multilayer_file,
                 "external_reflectivity_file": external_reflectivity_file,
+                "material_constants_library": material_constants_library_str,
             }
 
         if self.input_beam is not None:
@@ -689,6 +718,7 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
                                   thin_object_back_profile_file=thin_object_back_profile_file,
                                   multilayer_file=multilayer_file,
                                   external_reflectivity_file=external_reflectivity_file,
+                                  material_constants_library=material_constants_library,
                                   )
 
         txt += info_total_power(p0, e0, v0, h0, transmittance, absorbance, EL1_FLAG=self.EL1_FLAG)
@@ -720,6 +750,9 @@ class OWpower3Dcomponent(XoppyWidget, WidgetDecorator):
 #
 
 import numpy
+try: import xraylib
+except: print("xraylib not available")
+from dabax.dabax_xraylib import DabaxXraylib
 from xoppylib.power.power3d import calculate_component_absorbance_and_transmittance
 from xoppylib.power.power3d import apply_transmittance_to_incident_beam
 
@@ -750,6 +783,7 @@ transmittance, absorbance, E, H, V, txt = calculate_component_absorbance_and_tra
                 thin_object_back_profile_file='{thin_object_back_profile_file}',
                 multilayer_file='{multilayer_file}',
                 external_reflectivity_file='{external_reflectivity_file}',
+                material_constants_library = {material_constants_library},
                 )
 
 # apply transmittance to incident beam 

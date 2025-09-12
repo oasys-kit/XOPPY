@@ -6,13 +6,19 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets.exchange import DataExchangeObject
-from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget import XoppyWidget
+from orangecontrib.xoppy.widgets.gui.ow_xoppy_widget_dabax import XoppyWidgetDabax
 
 from xoppylib.power.xoppy_calc_power_monochromator import xoppy_calc_power_monochromator
 
 import scipy.constants as codata
 
-class OWPower1DMonochromator(XoppyWidget):
+try: import xraylib
+except: print("xraylib not available")
+
+from dabax.dabax_xraylib import DabaxXraylib
+from dabax.dabax_files import dabax_f1f2_files, dabax_crosssec_files
+
+class OWPower1DMonochromator(XoppyWidgetDabax):
     name = "Power1DMonochromator"
     id = "orange.widgets.dataxpower"
     description = "Power Absorbed and Transmitted by Monochromators"
@@ -45,6 +51,7 @@ class OWPower1DMonochromator(XoppyWidget):
     ENER_N = Setting(2000)
     SOURCE_FILE = Setting("?")
     FILE_DUMP = Setting(0)
+    CRYSTAL_DESCRIPTOR = Setting("Si")
     ML_H5_FILE = Setting("<none>")
     ML_GRAZING_ANGLE_DEG = Setting(0.2)
     METHOD = Setting(0) # Zachariasen
@@ -56,13 +63,26 @@ class OWPower1DMonochromator(XoppyWidget):
     def __init__(self):
         super().__init__(show_script_tab=True)
 
+    def dabax_show_f1f2(self):
+        return True
+
+    def dabax_show_crosssec(self):
+        return True
+
     def build_gui(self):
 
         self.leftWidgetPart.setSizePolicy(QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding))
         self.leftWidgetPart.setMaximumWidth(self.CONTROL_AREA_WIDTH + 20)
         self.leftWidgetPart.updateGeometry()
 
-        box_main = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-10)
+        # box_main = oasysgui.widgetBox(self.controlArea, self.name + " Input Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH-10)
+        ###########
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+        box_main = oasysgui.createTabPage(tabs_setting, self.name + " Input Parameters")
+        self.tab_dabax = oasysgui.createTabPage(tabs_setting, "Materials Library")
+        ###########
+
 
         idx = -1
 
@@ -143,6 +163,14 @@ class OWPower1DMonochromator(XoppyWidget):
                                        valueType=int, orientation="horizontal", labelWidth=200)
         self.show_at(self.unitFlags()[idx], box1)
 
+
+        # widget index 8BIS
+        idx += 1
+        box1 = gui.widgetBox(box)
+        oasysgui.lineEdit(box1, self, "CRYSTAL_DESCRIPTOR",
+                          label=self.unitLabels()[idx], addSpace=False,
+                          valueType=str, orientation="horizontal", labelWidth=250)
+        self.show_at(self.unitFlags()[idx], box1)
 
         # widget index 9
         idx += 1
@@ -246,6 +274,7 @@ class OWPower1DMonochromator(XoppyWidget):
                  'Type Monochromator',
                  'Number of reflections',
                  'Polarization',
+                 'Crystal descriptor',
                  'Energy Selected [eV]',
                  'Miller index h','Miller index k','Miller index l',
                  'Crystal thickness [microns]',
@@ -265,6 +294,7 @@ class OWPower1DMonochromator(XoppyWidget):
                  'True',                               # 'Type Monochromator',
                  'True',                               # 'Number of reflections',
                  'self.TYPE in (1,2,3)',               # 'Polarization',
+                 'self.TYPE == 1 or self.TYPE == 2',   # ''Crystal descriptor'
                  'self.TYPE == 1 or self.TYPE == 2',   # 'Energy Selected [eV]',
                  'self.TYPE == 1 or self.TYPE == 2','self.TYPE == 1 or self.TYPE == 2','self.TYPE  ==  1 or self.TYPE  ==  2',
                  'self.TYPE == 2',                      # 'Crystal thickness [microns]',
@@ -488,8 +518,23 @@ class OWPower1DMonochromator(XoppyWidget):
                 print("Error loading file %s "%(source_file))
                 raise
 
+        if self.MATERIAL_CONSTANT_LIBRARY_FLAG == 0:
+            material_constants_library = xraylib
+            material_constants_library_str = "xraylib"
+        else:
+            material_constants_library = DabaxXraylib(file_f1f2=dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
+                                                      file_CrossSec=dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX])
+            material_constants_library_str = 'DabaxXraylib(file_f1f2="%s",file_CrossSec="%s")' % \
+                                             (dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
+                                              dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX])
+            print(material_constants_library.info())
+
+        #
+        # script
+        #
         dict_parameters = {
             "TYPE"                       : self.TYPE,
+            "crystal_descriptor"         : self.CRYSTAL_DESCRIPTOR,
             "ENER_SELECTED"              : self.ENER_SELECTED,
             "METHOD"                     : self.METHOD,
             "THICK"                      : self.THICK,
@@ -500,13 +545,18 @@ class OWPower1DMonochromator(XoppyWidget):
             "polarization"               : self.POLARIZATION,
             "external_reflectivity_file" : self.external_reflectivity_file,
             "output_file"                : "monochromator.spec",
+            "material_constants_library" : material_constants_library_str,
         }
         script_element = self.script_template().format_map(dict_parameters)
         script = script_previous + script_element
         self.xoppy_script.set_code(script)
 
+        #
+        # run
+        #
         out_dictionary = xoppy_calc_power_monochromator(energies, source,
                                                         TYPE                       = self.TYPE,
+                                                        crystal_descriptor         = self.CRYSTAL_DESCRIPTOR,
                                                         ENER_SELECTED              = self.ENER_SELECTED,
                                                         METHOD                     = self.METHOD,
                                                         THICK                      = self.THICK,
@@ -517,6 +567,7 @@ class OWPower1DMonochromator(XoppyWidget):
                                                         polarization               = self.POLARIZATION,
                                                         external_reflectivity_file = self.external_reflectivity_file,
                                                         output_file                = "monochromator.spec",
+                                                        material_constants_library = material_constants_library,
                                                         )
 
         print(out_dictionary["info"])
@@ -532,13 +583,15 @@ class OWPower1DMonochromator(XoppyWidget):
 
 import numpy
 from xoppylib.power.xoppy_calc_power_monochromator import xoppy_calc_power_monochromator
-import xraylib
+try: import xraylib
+except: print("xraylib not available")
 from dabax.dabax_xraylib import DabaxXraylib
 
 out_dictionary = xoppy_calc_power_monochromator(
         energy, # array with energies in eV
         spectral_power, # array with source spectral density
         TYPE                       = {TYPE}, # 0=None, 1=Crystal Bragg, 2=Crystal Laue, 3=Multilayer, 4=External file
+        crystal_descriptor         = "{crystal_descriptor}", # crystal descriptor (for xraylib/dabax) in crystal monochromator
         ENER_SELECTED              = {ENER_SELECTED}, # Energy to set crystal monochromator
         METHOD                     = {METHOD}, # For crystals, in crystalpy, 0=Zachariasem, 1=Guigay
         THICK                      = {THICK}, # crystal thicknes Laur crystal in um
@@ -549,6 +602,7 @@ out_dictionary = xoppy_calc_power_monochromator(
         polarization               = {polarization}, # 0=sigma, 1=pi, 2=unpolarized
         external_reflectivity_file = "{external_reflectivity_file}", # file with external reflectivity
         output_file                = "{output_file}", # filename if FILE_DUMP=1
+        material_constants_library = {material_constants_library},
         )
 
 
