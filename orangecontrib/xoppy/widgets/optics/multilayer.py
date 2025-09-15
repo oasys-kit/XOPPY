@@ -410,15 +410,15 @@ class OWMlultilayer(XoppyWidgetDabax):
                self.MATERIAL_O, density_O, ))
 
         if self.MATERIAL_CONSTANT_LIBRARY_FLAG == 0:
-            material_constants_library = xraylib
-            material_constants_library_str = "xraylib"
+            dabax = None
+            material_constants_library_str = "None"
         else:
-            material_constants_library = DabaxXraylib(file_f1f2=dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
+            dabax = DabaxXraylib(file_f1f2=dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
                                                       file_CrossSec=dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX])
             material_constants_library_str = 'DabaxXraylib(file_f1f2="%s",file_CrossSec="%s")' % \
                                              (dabax_f1f2_files()[self.DABAX_F1F2_FILE_INDEX],
                                               dabax_crosssec_files()[self.DABAX_CROSSSEC_FILE_INDEX])
-            print(material_constants_library.info())
+            print(dabax.info())
 
         out = MLayer.initialize_from_bilayer_stack(
             material_S=self.MATERIAL_S, density_S=density_S, roughness_S=self.ROUGHNESS_S,  # 2.33
@@ -427,7 +427,8 @@ class OWMlultilayer(XoppyWidgetDabax):
             bilayer_pairs=self.NLAYERS,
             bilayer_thickness=self.THICKNESS,
             bilayer_gamma=self.GAMMA,
-            material_constants_library=material_constants_library,
+            use_xraylib_or_dabax=self.MATERIAL_CONSTANT_LIBRARY_FLAG,
+            dabax=dabax,
         )
 
         for key in out.pre_mlayer_dict.keys():
@@ -491,7 +492,8 @@ class OWMlultilayer(XoppyWidgetDabax):
             "theta2":            self.THETA_END,
             "myscan":            myscan,
             "h5file":            h5file,
-            "material_constants_library": material_constants_library_str,
+            "use_xraylib_or_dabax" : self.MATERIAL_CONSTANT_LIBRARY_FLAG,
+            "dabax_str"            : material_constants_library_str,
             }
         # write python script
         self.xoppy_script.set_code(self.script_template().format_map(dict_parameters))
@@ -579,7 +581,8 @@ out = MLayer.initialize_from_bilayer_stack(
     bilayer_pairs={bilayer_pairs},
     bilayer_thickness={bilayer_thickness},
     bilayer_gamma={bilayer_gamma},
-    material_constants_library = {material_constants_library},
+    use_xraylib_or_dabax = {use_xraylib_or_dabax},
+    dabax={dabax_str},
 )
 
 for key in out.pre_mlayer_dict.keys():
