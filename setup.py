@@ -40,11 +40,11 @@ SETUP_REQUIRES = (
 )
 
 INSTALL_REQUIRES = (
-    'oasys1>=1.2.130',
+    'oasys1>=1.2.150',
     'oasys-srwpy',
     'pySRU',
     'srxraylib',
-    'xoppylib>=1.0.40',
+    'xoppylib>=1.0.44',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
