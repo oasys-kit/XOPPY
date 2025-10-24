@@ -1,3 +1,5 @@
+import xraylib
+
 from orangewidget import gui
 from orangewidget.settings import Setting
 
@@ -185,7 +187,7 @@ class OWmare(XoppyWidget):
 
         list_of_scripts = mare_calc(descriptor,self.H,self.K,self.L,
                                                self.HMAX,self.KMAX,self.LMAX,self.FHEDGE,self.DISPLAY,
-                                               self.LAMBDA,self.DELTALAMBDA,self.PHI,self.DELTAPHI)
+                                               self.LAMBDA,self.DELTALAMBDA,self.PHI,self.DELTAPHI, material_constants_library=xraylib)
 
 
         self.number_of_scripts = len(list_of_scripts)
