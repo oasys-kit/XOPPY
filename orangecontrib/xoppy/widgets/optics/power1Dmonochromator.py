@@ -139,8 +139,8 @@ class OWPower1DMonochromator(XoppyWidgetDabax):
         self.box_source = gui.comboBox(box1, self, "TYPE",
                                        label=self.unitLabels()[idx], addSpace=False,
                                        items=['Empty',
-                                              'Si Bragg',
-                                              'Si Laue',
+                                              'Crystal Bragg',
+                                              'Crystal Laue',
                                               'Multilayer',
                                               'Reflectivity from file'],
                                        valueType=int, orientation="horizontal", labelWidth=200)
