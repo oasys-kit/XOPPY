@@ -8,7 +8,7 @@ except AttributeError:
     from setuptools import find_packages, setup
 
 NAME = 'OASYS1-XOPPY'
-VERSION = '1.2.30'
+VERSION = '1.2.31'
 ISRELEASED = False
 
 DESCRIPTION = 'XOPPY: XOP (X-ray oriented programs) in Python'
@@ -20,31 +20,27 @@ URL = 'https://github.com/oasys-kit/XOPPY'
 DOWNLOAD_URL = 'https://github.com/oasys-kit/XOPPY'
 LICENSE = 'GPLv3'
 
-KEYWORDS = (
+KEYWORDS = [
     'X-ray optics',
     'simulator',
     'oasys1',
-)
+]
 
-CLASSIFIERS = (
+CLASSIFIERS = [
     'Development Status :: 5 - Production/Stable',
     'Environment :: X11 Applications :: Qt',
     'Environment :: Console',
     'Environment :: Plugins',
     'Programming Language :: Python :: 3',
     'Intended Audience :: Science/Research',
-)
-
-SETUP_REQUIRES = (
-    'setuptools',
-)
+]
 
 INSTALL_REQUIRES = (
     'oasys1>=1.2.150',
     'oasys-srwpy',
     'pySRU',
-    'srxraylib',
-    'xoppylib>=1.0.47',
+    'srxraylib>=1.0.67',
+    'xoppylib>=1.0.51',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
@@ -86,11 +82,7 @@ if __name__ == '__main__':
               classifiers = CLASSIFIERS,
               packages = PACKAGES,
               package_data = PACKAGE_DATA,
-              #py_modules = PY_MODULES,
-              setup_requires = SETUP_REQUIRES,
               install_requires = INSTALL_REQUIRES,
-              #extras_require = EXTRAS_REQUIRE,
-              #dependency_links = DEPENDENCY_LINKS,
               entry_points = ENTRY_POINTS,
               namespace_packages=NAMESPACE_PACAKGES,
               include_package_data = True,
